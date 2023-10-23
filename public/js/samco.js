@@ -5,8 +5,16 @@ window.addEventListener("DOMContentLoaded", function(){
     
     socket.on("ServerEmit", (pMsg) => {
         const objDivMsgs = document.getElementById("divMessages");
+        const objMsg = JSON.parse(pMsg);
 
-        objDivMsgs.innerHTML += "<br />" + pMsg;
+        objDivMsgs.innerHTML += "<p>" + objMsg.symbolName + " - " + objMsg.indType + " - "  + objMsg.direction + " - " + objMsg.strike + "</p>";
+        objDivMsgs.scrollTop = objDivMsgs.scrollHeight;
+    });
+
+    socket.on("ClientEmit", (pMsg) => {
+        const objDivMsgs = document.getElementById("divMessages");
+
+        objDivMsgs.innerHTML += "<p>" + pMsg + "</p>";
         objDivMsgs.scrollTop = objDivMsgs.scrollHeight;
     });
 

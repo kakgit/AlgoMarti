@@ -32,7 +32,7 @@ io.on("connection", (cSocket) => {
 
     cSocket.on("UserMessage", (pMsg) => {
         //console.log("New Msg from client: " + pMsg);
-        io.emit("ServerEmit", pMsg);
+        io.emit("ClientEmit", pMsg);
     });
 });
 
@@ -66,25 +66,25 @@ app.post("/tv-msg", (req, res) => {
     const vDirection = req.body.direction;
     const vStrike = req.body.strike;
     
+    const objMsg = JSON.stringify({ symbolName: vSymbolName, indType: vIndType, direction: vDirection, strike: vStrike });
+
+    //console.log(objMsg);
+
     var options = {
       'method': 'POST',
       'url': process.env.API_PATH + 'api/tvMsgs',
       'headers': {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        "symbolName": vSymbolName,
-        "indType": vIndType,
-        "direction": vDirection,
-        "strike": vStrike
-      })
+      body: objMsg
     };
+
     request(options, function (error, response) {
       if (error) throw new Error(error);
       //console.log(response.body);
     });
 
-    io.emit("ServerEmit", vIndType);
+    io.emit("ServerEmit", objMsg);
 
     res.send("Success");
     //res.render("index.ejs");
