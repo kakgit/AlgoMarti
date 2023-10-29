@@ -1,0 +1,353 @@
+<div id="main">
+
+    <div class="page-heading">
+        <h2>Manage Users</h2>
+    </div>
+    <div class="text-center">
+        &nbsp;<span id="spnGenMessage" class="badge bg-secondary">Welcome</span>
+    </div>
+    <div class="page-content">
+        <section class="row">
+            <div class="col-12 col-lg-9">
+                <div class="row">
+                    <div class="col-6 col-lg-3 col-md-6">
+                        <div class="card">
+                            <div class="card-body px-4 py-4-5">
+                                <div class="row">
+                                    <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
+                                        <div class="stats-icon purple mb-2">
+                                            <i class="iconly-boldShow"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                                        <h6 class="text-muted font-semibold">Profile Views</h6>
+                                        <h6 class="font-extrabold mb-0">112.000</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3 col-md-6">
+                        <div class="card">
+                            <div class="card-body px-4 py-4-5">
+                                <div class="row">
+                                    <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
+                                        <div class="stats-icon blue mb-2">
+                                            <i class="iconly-boldProfile"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                                        <h6 class="text-muted font-semibold">Followers</h6>
+                                        <h6 class="font-extrabold mb-0">183.000</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3 col-md-6">
+                        <div class="card">
+                            <div class="card-body px-4 py-4-5">
+                                <div class="row">
+                                    <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
+                                        <div class="stats-icon green mb-2">
+                                            <i class="iconly-boldAdd-User"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                                        <h6 class="text-muted font-semibold">Following</h6>
+                                        <h6 class="font-extrabold mb-0">80.000</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3 col-md-6">
+                        <div class="card">
+                            <div class="card-body px-4 py-4-5">
+                                <div class="row">
+                                    <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
+                                        <div class="stats-icon red mb-2">
+                                            <i class="iconly-boldBookmark"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                                        <h6 class="text-muted font-semibold">Saved Post</h6>
+                                        <h6 class="font-extrabold mb-0">112</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="row">
+                                    <div class="col-1">
+                                        <select class="form-select" id="ddlDispRecNos" onchange="fnChangeDispRecNos(this);">
+                                            <option value="0" default="true">All</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="5">5</option>
+                                            <option value="10">10</option>
+                                            <option value="15">15</option>
+                                            <option value="20">20</option>
+                                            <option value="25">25</option>
+                                            <option value="50">50</option>
+                                            <option value="75">75</option>
+                                            <option value="100">100</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6">
+                                        <input id="myInput" class="form-control" type="text" placeholder="Search.." onkeyup="fnSearchTable(this, '#tdUserData tr');" />
+                                        
+                                    </div>
+                                    <div class="col-1">
+                                        <i class="fa fa-refresh" aria-hidden="true" style="color: orangered; font-weight: bold;" onclick="fnGetUserData();"></i>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <span class="badge bg-primary" onclick="fnShowUserMdlAE('add', '0');" style="cursor: pointer;"><i class="fa fa-plus" aria-hidden="true" style="color: aliceblue;"></i> Add New User</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <!-- table responsive -->
+                                <section class="section">
+                                    <div class="row" id="table-responsive">
+                                        <div class="col-12">
+                                            <div class="table-responsive">
+                                                <input type="hidden" id="hidSortBy" value="updatedAt" />
+                                                <input type="hidden" id="hidOrderBy" value="-1" />
+                                                <input type="hidden" id="hidCurrPage" value="1" />
+                                                <table class="table table-hover mb-0">
+                                                    <thead class='text-center'>
+                                                        <tr>
+                                                            <th scope="col"><i class="fa fa-sort" aria-hidden="true" style="cursor: pointer; font-weight: bold;" onclick="fnUserOrderBy('updatedAt');"> Dated </i></th>
+                                                            <th scope="col"><i class="fa fa-sort" aria-hidden="true" style="cursor: pointer; font-weight: bold;" onclick="fnUserOrderBy('fullName');"> Full Name </i></th>
+                                                            <th scope="col"><i class="fa fa-sort" aria-hidden="true" style="cursor: pointer; font-weight: bold;" onclick="fnUserOrderBy('phoneNumber');"> Phone</i></th>
+                                                            <th scope="col"><i class="fa fa-sort" aria-hidden="true" style="cursor: pointer; font-weight: bold;" onclick="fnUserOrderBy('eMailId');"> E-Mail</i></th>
+                                                            <th scope="col"><i class="fa fa-sort" aria-hidden="true" style="cursor: pointer; font-weight: bold;" onclick="fnUserOrderBy('password');"> Password</i></th>
+                                                            <th scope="col"><i class="fa fa-sort" aria-hidden="true" style="cursor: pointer; font-weight: bold;" onclick="fnUserOrderBy('isActive');"> Active</i></th>
+                                                            <th scope="col"><i class="fa fa-sort" aria-hidden="true" style="cursor: pointer; font-weight: bold;" onclick="fnUserOrderBy('isAdmin');"> Admin</i></th>
+                                                            <th scope="col" colspan="3">Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="tdUserData">
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <div>
+                                                <nav aria-label="Page navigation example">
+                                                    <ul class="pagination pagination-success justify-content-end" id="ulUserPagination">
+                                                        <li class="page-item">
+                                                            <a class="page-link" href="#"><span aria-hidden="true">&lt;</span></a>
+                                                        </li>
+                                                        <li class="page-item"><a class="page-link" href="#">1</a></li>
+                                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                                        <li class="page-item active"><a class="page-link" href="#">3</a></li>
+                                                        <li class="page-item">
+                                                            <a class="page-link" href="#"><span aria-hidden="true">&gt;</span></a>
+                                                        </li>
+                                                    </ul>
+                                                </nav>                        
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Recent Messages</h4>
+                    </div>
+                    <div class="card-body">
+                        <input type="button" value="CLEAR STORAGE" onclick="fnClearStorage();" />
+                        <input type="button" value="ADD DATA" onclick="fnAddNewUserDetails();" />
+                        <input type="button" value="TEST DATE" onclick="fnSetCurrDate(Date.now());" />
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Visitors Profile</h4>
+                    </div>
+                    <div class="card-body">
+                        <button type="button" class="btn btn-outline-primary block" data-bs-toggle="modal"
+                            data-bs-target="#backdrop">
+                            Launch Modal
+                        </button>
+                        <!--Disabled Backdrop Modal -->
+                        <div class="modal fade text-left" id="mdlUserFormAE" tabindex="-1" role="dialog"
+                            aria-labelledby="myModalLabel4" data-bs-backdrop="false" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-secondary">
+                                        <h4 class="modal-title" id="myModalLabel4">User Details</h4>
+                                            <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
+                                        
+                                    </div>
+                                    <div class="modal-body">
+    <!-- // Basic multiple Column Form section start -->
+    <section id="multiple-column-form">
+        <div class="row match-height">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header text-center">
+                        &nbsp;<span id="spnUserMsgAE" class="badge bg-primary">Please Input User Details</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-body">
+                            <form class="form">
+                                <div class="row">
+                                    <div class="col-md-6 col-12">
+                                        <div class="form-group">
+                                            <label for="txtFullName">Full Name</label>
+                                            <input type="text" id="txtFullName" class="form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-12">
+                                        <div class="form-group">
+                                            <label for="txtEmailId">Email</label>
+                                            <input type="email" id="txtEmailId" class="form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-12">
+                                        <div class="form-group">
+                                            <label for="txtPassword">Password</label>
+                                            <input type="text" id="txtPassword" class="form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-12">
+                                        <div class="form-group">
+                                            <label for="txtConfirmPassword">Confirm Password</label>
+                                            <input type="text" id="txtConfirmPassword" class="form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-12">
+                                        <div class="form-group">
+                                            <label for="txtPhoneNumber">Phone Number</label>
+                                            <input type="text" id="txtPhoneNumber" class="form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-12">
+                                        <div class="form-group">
+                                            <input type="hidden" id="hidId" class="form-control" />
+                                            <input type="hidden" id="hidOldPass" class="form-control" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                                            <i class="bx bx-x d-block d-sm-none"></i>
+                                            <span class="d-none d-sm-block">CLOSE</span>
+                                        </button>
+                                        <button id="btnUserFormAE" type="button" class="btn btn-primary ms-1">
+                                            <i class="bx bx-check d-block d-sm-none"></i>
+                                            <span class="d-none d-sm-block">SUBMIT</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Button trigger for large size modal -->
+                        <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal"
+                            data-bs-target="#large">
+                            Large Modal
+                        </button>
+
+                        <!--large size Modal -->
+                        <div class="modal fade text-left" id="large" tabindex="-1" role="dialog"
+                            aria-labelledby="myModalLabel17" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl"
+                                role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h4 class="modal-title" id="myModalLabel17">Large Modal</h4>
+                                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                            <i data-feather="x"></i>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        I love tart cookie cupcake. I love chupa chups biscuit. I love
+                                        marshmallow apple pie wafer
+                                        liquorice. Marshmallow cotton candy chocolate. Apple pie muffin tart.
+                                        Marshmallow halvah pie
+                                        marzipan lemon drops jujubes. Macaroon sugar plum cake icing toffee.
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                                            <i class="bx bx-x d-block d-sm-none"></i>
+                                            <span class="d-none d-sm-block">Close</span>
+                                        </button>
+                                        <button type="button" class="btn btn-primary ms-1" data-bs-dismiss="modal">
+                                            <i class="bx bx-check d-block d-sm-none"></i>
+                                            <span class="d-none d-sm-block">Accept</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Button trigger for primary themes modal -->
+                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                            data-bs-target="#primary">
+                            Primary
+                        </button>
+
+                        <!--primary theme Modal -->
+                        <div class="modal fade text-left" id="primary" tabindex="-1" role="dialog"
+                            aria-labelledby="myModalLabel160" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-primary">
+                                        <h5 class="modal-title white" id="myModalLabel160">Primary Modal
+                                        </h5>
+                                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                            <i data-feather="x"></i>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Tart lemon drops macaroon oat cake chocolate toffee chocolate
+                                        bar icing. Pudding jelly beans
+                                        carrot cake pastry gummies cheesecake lollipop. I love cookie
+                                        lollipop cake I love sweet
+                                        gummi
+                                        bears cupcake dessert.
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                                            <i class="bx bx-x d-block d-sm-none"></i>
+                                            <span class="d-none d-sm-block">Close</span>
+                                        </button>
+                                        <button type="button" class="btn btn-primary ms-1" data-bs-dismiss="modal">
+                                            <i class="bx bx-check d-block d-sm-none"></i>
+                                            <span class="d-none d-sm-block">Accept</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+
+<script src="/js/manageUsers.js"></script>

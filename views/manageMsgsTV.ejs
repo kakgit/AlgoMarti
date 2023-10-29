@@ -1,7 +1,7 @@
 <div id="main">
 
     <div class="page-heading">
-        <h3>Profile Statistics</h3>
+        <h3>Manage Tradingview Messages</h3>
     </div>
     <div class="page-content">
         <section class="row">
@@ -80,32 +80,48 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4>Profile Visit</h4>
+                                <h4>Tradingview Messages</h4>
                             </div>
                             <div class="card-body">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12 col-xl-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4>Notification Header</h4>
-                            </div>
-                            <div class="card-body">
-
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-xl-8">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4>Latest Comments</h4>
-                            </div>
-                            <div class="card-body">
-
+                                <!-- table responsive -->
+                                <section class="section">
+                                    <div class="row" id="table-responsive">
+                                        <div class="col-12">
+                                          <div class="table-responsive">
+                                            <table class="table table-hover mb-0">
+                                              <thead>
+                                                <tr>
+                                                    <th scope="col">#</th>
+                                                    <th scope="col">Date Time</th>
+                                                    <th scope="col">Symbol Name</th>
+                                                    <th scope="col">Indicator</th>
+                                                    <th scope="col">Direction</th>
+                                                    <th scope="col">Strike</th>
+                                                    <th scope="col" colspan="3">Action</th>
+                                                </tr>
+                                              </thead>
+                                              <tbody>
+                                                <% for(let i=0; i<tvMsgs.length; i++) { %>
+                                                    <tr>
+                                                        <td><%= i + 1 %></td>
+                                                        <td><%= tvMsgs[i].createdAt %></td>
+                                                        <td><%= tvMsgs[i].symbolName %></td>
+                                                        <td><%= tvMsgs[i].indType %></td>
+                                                        <td><%= tvMsgs[i].direction %></td>
+                                                        <td><%= tvMsgs[i].strike %></td>
+                                                        <td>
+                                                            <a class="btn btn-delete" data-id="<%= tvMsgs[i]._id %>" onclick="fnDeleteTvMsg(this);">
+                                                                <i class="fa fa-trash-o" style="font-size:17px;color:red;cursor: pointer;" aria-hidden="true"></i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                <% } %>
+                                            </tbody>
+                                            </table>
+                                          </div>
+                                        </div>
+                                    </div>
+                                </section>
                             </div>
                         </div>
                     </div>
@@ -116,19 +132,10 @@
                     <div class="card-header">
                         <h4>Recent Messages</h4>
                     </div>
-                    <div class="card-body" style="height: 400px; overflow-x: hidden; overflow-y:auto;" id="divMessages">
+                    <div class="card-body">
 
                     </div>
-                    <div class="row">
-                        <div class="col-lg-12"><input type="text" id="txtMessageToAll" class="form-control" /><a href="/manageMsgsTV">.</a></div>
-                            <div class="col-sm-12 d-flex justify-content-end">
-                                <div class="btn-group mb-3" role="group" aria-label="Basic example">
-                                <button class='btn btn-outline-warning' id="btnClearMsg" onclick="fnClearMessage();">CLEAR</button>
-                                <button class='btn btn-outline-primary' id="btnSendMsg" onclick="fnSendMessageToAll();">SEND</button>
-                            </div>
-                        </div>
-                    </div>
-                    </div>
+                </div>
                 <div class="card">
                     <div class="card-header">
                         <h4>Visitors Profile</h4>
@@ -143,4 +150,4 @@
 </div>
 
 
-<script src="/js/samco.js"></script>
+<script src="/js/manageMsgsTV.js"></script>

@@ -93,9 +93,9 @@ app.post("/tv-msg", (req, res) => {
 
 app.use('/', require('./server/routes/router.js'));
 
-app.get('*', (req, res) => {
-    res.status(404).render('404.ejs');
-});
+// app.get('*', (req, res) => {
+//     res.status(404).render('404.ejs');
+// });
 
 server.listen(vPort, ()=> {
     console.log(`Server is running on ${process.env.API_PATH}`);

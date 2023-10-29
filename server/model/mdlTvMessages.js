@@ -1,6 +1,6 @@
-const mdlMsgs = require("mongoose");
+const mongoose = require("mongoose");
 
-var objMsgSchema = new mdlMsgs.Schema({
+const objMsgSchema = new mongoose.Schema({
     symbolName: {type:String, require:true},
     indType : {type:String, require:true},
     direction : {type:String, require:true},
@@ -8,6 +8,6 @@ var objMsgSchema = new mdlMsgs.Schema({
     createdAt: {type: Date, default: Date.now()}
 });
 
-const objMsgs = mdlMsgs.model('msgs', objMsgSchema);
+const objMsgs = mongoose.model('msgs', objMsgSchema);
 
 module.exports = objMsgs;
