@@ -8,7 +8,7 @@ exports.fnUsersDefault = (req, res) => {
 }
 
 exports.fnActions = async (req, res) => {
-    var vAction = req.body.action;
+    let vAction = req.body.action;
 
     //console.log("action: " + vAction);
 
@@ -85,7 +85,7 @@ async function fnGetUsersData(req, res)
 
 async function fnGetUsersDataById(req, res)
 {
-    var vId = req.body.id;
+    let vId = req.body.id;
 
     try {
         const objUsers = await mdlUsers.findById(vId)
@@ -122,7 +122,7 @@ async function fnAddNewUserData(req, res)
     } catch (error) {
         console.log("Error: ", error);
 
-        return {"status": "danger", "message" : error};
+        return {"status": "danger", "message" : "Error: Unable to Save Data", "data" : error};
     }
 }
 
@@ -153,7 +153,7 @@ async function fnUpdateUserData(req, res)
 
 async function fnDelUserData(req, res)
 {
-    var vId = req.body.id;
+    let vId = req.body.id;
 
     try {
         const vMsg = await mdlUsers.findByIdAndDelete(vId);
@@ -166,7 +166,7 @@ async function fnDelUserData(req, res)
 
 async function fnUpdateUserActive(req, res)
 {
-    var vId = req.body.id;
+    let vId = req.body.id;
 
     try {
         const vMsg = await mdlUsers.findByIdAndUpdate(vId, {isActive: req.body.isActive});
@@ -179,7 +179,7 @@ async function fnUpdateUserActive(req, res)
 
 async function fnUpdateUserAdmin(req, res)
 {
-    var vId = req.body.id;
+    let vId = req.body.id;
 
     try {
         const vMsg = await mdlUsers.findByIdAndUpdate(vId, {isAdmin: req.body.isAdmin, isActive: req.body.isAdmin});

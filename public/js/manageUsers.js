@@ -1,22 +1,8 @@
 
 window.addEventListener("DOMContentLoaded", function(){
     fnGetSetDefaultValue();
-
     fnGetUserData();
-    //this.document.getElementById("tdData").innerText = Date.now();
 });
-
-function fnGetSetDefaultValue()
-{
-    //alert(localStorage.getItem("lsRecords"));
-    let objRecordsDdl = document.getElementById("ddlDispRecNos");
-    //let lsRecords = localStorage.getItem("lsRecords") || 10;
-    if(localStorage.getItem("lsRecords") === null || localStorage.getItem("lsRecords") === "")
-    {
-        localStorage.setItem("lsRecords", 10);
-    }
-    objRecordsDdl.value = localStorage.getItem("lsRecords");
-}
 
 function fnChangeDispRecNos(objThis)
 {
@@ -35,10 +21,10 @@ function fnGetUserData()
     let objOrderBy = document.getElementById("hidOrderBy");
     let objCurrPage = document.getElementById("hidCurrPage");
 
-    var vHeaders = new Headers();
+    let vHeaders = new Headers();
     vHeaders.append("Content-Type", "application/json");
 
-    var vAction = JSON.stringify({
+    let vAction = JSON.stringify({
         "action": "feTch",
         "dispRecs": localStorage.getItem("lsRecords"),
         "cuurPage" : objCurrPage.value,
@@ -46,7 +32,7 @@ function fnGetUserData()
         "orderBy" : parseInt(objOrderBy.value)
     });
 
-    var requestOptions = {
+    let requestOptions = {
         method: 'POST',
         headers: vHeaders,
         body: vAction,
@@ -72,15 +58,15 @@ function fnGetUserData()
 async function fnGetUserDetailsById(pId)
 {
     let vResult = "";
-    var vHeaders = new Headers();
+    let vHeaders = new Headers();
     vHeaders.append("Content-Type", "application/json");
 
-    var vAction = JSON.stringify({
+    let vAction = JSON.stringify({
         "action": "feTchById",
         "id": pId
     });
 
-    var requestOptions = {
+    let requestOptions = {
         method: 'POST',
         headers: vHeaders,
         body: vAction,
@@ -104,7 +90,7 @@ async function fnGetUserDetailsById(pId)
 
 function fnFillUserData(objData)
 {
-    var vHtml = "";
+    let vHtml = "";
     //console.log(objData)
 
     for(let i=0; i<objData.length; i++)
@@ -234,12 +220,12 @@ function fnSaveUserDetails(pAorE)
     {
         //const vNow = new Date(Date.now());
 
-        var vHeaders = new Headers();
+        let vHeaders = new Headers();
         vHeaders.append("Content-Type", "application/json");
 
         if(pAorE === "add")
         {
-            var vAction = JSON.stringify({
+            let vAction = JSON.stringify({
                 "action": "aDd",
                 "fullName" : objFullName.value,
                 "phoneNumber" : objPhoneNumber.value,
@@ -249,7 +235,7 @@ function fnSaveUserDetails(pAorE)
                 // "updatedAt" : vNow
             });
 
-            var requestOptions = {
+            let requestOptions = {
                 method: 'POST',
                 headers: vHeaders,
                 body: vAction,
@@ -271,7 +257,7 @@ function fnSaveUserDetails(pAorE)
         }
         else if(pAorE === "edit")
         {
-            var vAction = JSON.stringify({
+            let vAction = JSON.stringify({
                 "action": "eDiT",
                 "id" : objId.value,
                 "fullName" : objFullName.value,
@@ -282,7 +268,7 @@ function fnSaveUserDetails(pAorE)
                 // "updatedAt" : vNow
             });
 
-            var requestOptions = {
+            let requestOptions = {
                 method: 'POST',
                 headers: vHeaders,
                 body: vAction,
@@ -317,14 +303,14 @@ function fnSaveUserDetails(pAorE)
     }
 }
 
-function fnAddNewUserDetails()
+async function fnAddNewUserDetails()
 {
     const vNow = fnGetCurrDate();
 
-    var vHeaders = new Headers();
+    let vHeaders = new Headers();
     vHeaders.append("Content-Type", "application/json");
 
-    var vAction = JSON.stringify({
+    let vAction = JSON.stringify({
         "action": "aDd",
         "fullName" : "Anil",
         "phoneNumber" : "1231231232",
@@ -335,7 +321,7 @@ function fnAddNewUserDetails()
         // "updatedAt" : vNow
     });
 
-    var requestOptions = {
+    let requestOptions = {
         method: 'POST',
         headers: vHeaders,
         body: vAction,
@@ -343,33 +329,56 @@ function fnAddNewUserDetails()
     };
     
     //console.log(vAction);
+
+    document.getElementById("divLoading").style.visibility = "visible";
+    
+    //await new Promise(resolve => setTimeout(resolve, 3000));
+
     fetch("/api/actionUsers", requestOptions)
         .then(response => response.json())
         .then(result => {
-
-            fnGetUserData();
-            fnGenMessage(result.message, `badge bg-${result.status}`, "spnGenMessage");
-
+            //console.log(result);
+            if(result.status === "success")
+            {
+                fnGetUserData();
+                fnGenMessage(result.message, `badge bg-${result.status}`, "spnGenMessage");
+            }
+            else if(result.status === "danger")
+            {
+                if(result.data.code === 11000)
+                {
+                    fnGenMessage("Email-ID Already exists, Pls Check.", `badge bg-${result.status}`, "spnGenMessage");
+                }
+                else
+                {
+                    fnGenMessage("New Code " + result.message, `badge bg-${result.status}`, "spnGenMessage");
+                }
+            }
+            else
+            {
+                fnGenMessage(result.message, `badge bg-${result.status}`, "spnGenMessage");
+            }
         })
         .catch(error => {
             console.log('error: ', error);
             fnGenMessage("Error: Unable to Add User Details.", `badge bg-danger`, "spnGenMessage");
         });
+    document.getElementById("divLoading").style.visibility = "hidden";
 }
 
 function fnDelUserDetails(pRecId)
 {
     if(confirm("Are You Sure, You Want to Delete this Record?"))
     {    
-        var vHeaders = new Headers();
+        let vHeaders = new Headers();
         vHeaders.append("Content-Type", "application/json");
 
-        var vAction = JSON.stringify({
+        let vAction = JSON.stringify({
             "action": "dEl",
             "id" : pRecId
         });
 
-        var requestOptions = {
+        let requestOptions = {
             method: 'POST',
             headers: vHeaders,
             body: vAction,
@@ -401,7 +410,7 @@ function fnToggleUserActive(pRecId, pActiveState)
         "isActive": pActiveState
     });
 
-    var requestOptions = {
+    let requestOptions = {
         method: 'POST',
         headers: vHeaders,
         body: vAction,
@@ -433,7 +442,7 @@ function fnToggleUserAdmin(pRecId, pAdminState)
         "isAdmin": pAdminState
     });
 
-    var requestOptions = {
+    let requestOptions = {
         method: 'POST',
         headers: vHeaders,
         body: vAction,

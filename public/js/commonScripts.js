@@ -2,16 +2,32 @@ const socket = io();
 
 // $(document).ready(function () {
 //   $("#myInput").on("keyup", function () {
-//     var value = $(this).val().toLowerCase();
+//     let value = $(this).val().toLowerCase();
 //     $("#tdUserData tr").filter(function () {
 //       $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
 //     });
 //   });
 // });
 
+window.addEventListener("DOMContentLoaded", function(){
+
+});
+
+function fnGetSetDefaultValue()
+{
+    //alert(localStorage.getItem("lsRecords"));
+    let objRecordsDdl = document.getElementById("ddlDispRecNos");
+    //let lsRecords = localStorage.getItem("lsRecords") || 10;
+    if(localStorage.getItem("lsRecords") === null || localStorage.getItem("lsRecords") === "")
+    {
+        localStorage.setItem("lsRecords", 0);
+    }
+    objRecordsDdl.value = localStorage.getItem("lsRecords");
+}
+
 function fnSearchTable(objThis, pContentId) {
     //console.log(objThis);
-    var value = $(objThis).val().toLowerCase();
+    let value = $(objThis).val().toLowerCase();
     $(pContentId).filter(function () {
         $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
     });
@@ -35,11 +51,17 @@ function fnDisplayShortText(pTxt, pLength) {
 function fnFillPagination(pRecCount, pDispLocId)
 {
     let vRecPerPage = localStorage.getItem("lsRecords");
-    let vPages = Math.ceil(pRecCount / vRecPerPage);
+    let vPages = 1;
+
+    if(parseInt(vRecPerPage) === 0)
+    vPages = Math.ceil(pRecCount / pRecCount);
+    else
+    vPages = Math.ceil(pRecCount / vRecPerPage);
+
     let objUl = document.getElementById(pDispLocId);
     let vCurrPage = document.getElementById("hidCurrPage");
     let vHtml = "";
-    //alert(vRecPerPage);
+    //alert(vPages);
 
     if(parseInt(vCurrPage.value) > 1)
     {

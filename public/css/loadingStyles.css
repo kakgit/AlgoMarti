@@ -1,0 +1,97 @@
+.divLoading{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: sans-serif;
+    position: absolute;
+    top:0px;
+    left:0px;
+    width: 100%;
+    visibility:visible;
+    opacity: 0.8;
+    z-index: 999;
+}
+
+
+
+.container-loading
+{
+    min-height: 100vh;
+    background: #030e1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: animateBgColor 10s linear infinite;
+}
+
+@keyframes animateBgColor
+{
+    0%{
+        filter: hue-rotate(0deg);
+    }
+    100%{
+        filter: hue-rotate(360deg);
+    }
+}
+
+.loading
+{
+    height: 250px;
+    width: 250px;
+    position: relative;
+}
+
+.loading span
+{
+    height: 25px;
+    width: 8px;
+    background: #303030;
+    position: absolute;
+    left: 50%;
+    transform: rotate(calc(18deg * var(--i)));
+    transform-origin: 0 125px;
+    border-radius: 8px;
+    animation: animate 1.9s ease-in-out infinite;
+    animation-delay: calc(0.05s * var(--i));
+}
+
+@keyframes animate
+{
+    0%,50%{
+        background: #303030;
+        box-shadow: none;
+    }
+
+    50.1%,100%{
+        background: #0077be;
+        box-shadow: 0 0 5px #0077be,
+                    0 0 15px #0077be,
+                    0 0 30px #0077be,
+                    0 0 60px #0077be,
+                    0 0 90px #0077be;
+    }
+}
+
+.loading h3{
+    font-size: 32px;
+    letter-spacing: 2px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: animateText 2s ease-in-out infinite;
+}
+
+@keyframes animateText
+{
+    0%,50%{
+        color: #303030;
+        text-shadow: none;
+    }
+
+    50.1%,100%{
+        color: #0077be;
+        text-shadow: 0 0 5px #0077be,
+                    0 0 15px #0077be;
+    }
+}
