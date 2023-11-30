@@ -1,82 +1,31 @@
 <div id="main">
 
     <div class="page-heading">
-        <h3>Profile Statistics</h3>
+        <div class="row">
+            <div class="col-6">
+                <h3>Alice Blue - Paper Trader</h3>
+            </div>
+            <div class="col-6 text-center">
+                <span class="badge bg-primary" id="spnGenMsg">Hi, Welcome</span>
+            </div>
+        </div>
+
     </div>
     <div class="page-content">
         <section class="row">
             <div class="col-12 col-lg-9">
                 <div class="row">
                     <div class="col-6 col-lg-3 col-md-6">
-                        <div class="card">
-                            <div class="card-body px-4 py-4-5">
-                                <div class="row">
-                                    <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
-                                        <div class="stats-icon purple mb-2">
-                                            <i class="iconly-boldShow"></i>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
-                                        <h6 class="text-muted font-semibold">Profile Views</h6>
-                                        <h6 class="font-extrabold mb-0">112.000</h6>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <button class="badge bg-danger" onclick="fnShowTraderLoginMdl(this);" id="btnTraderStatus">TRADER - Disconnected</button>
                     </div>
                     <div class="col-6 col-lg-3 col-md-6">
-                        <div class="card">
-                            <div class="card-body px-4 py-4-5">
-                                <div class="row">
-                                    <div
-                                        class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
-                                        <div class="stats-icon blue mb-2">
-                                            <i class="iconly-boldProfile"></i>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
-                                        <h6 class="text-muted font-semibold">Followers</h6>
-                                        <h6 class="font-extrabold mb-0">183.000</h6>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <button class="badge bg-danger" onclick="fnToggleAutoTrader()" id="btnAutoTraderStatus">Auto Trader - OFF</button>
                     </div>
                     <div class="col-6 col-lg-3 col-md-6">
-                        <div class="card">
-                            <div class="card-body px-4 py-4-5">
-                                <div class="row">
-                                    <div
-                                        class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
-                                        <div class="stats-icon green mb-2">
-                                            <i class="iconly-boldAdd-User"></i>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
-                                        <h6 class="text-muted font-semibold">Following</h6>
-                                        <h6 class="font-extrabold mb-0">80.000</h6>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <button class="badge bg-success">Paper Trading - ON</button>
                     </div>
                     <div class="col-6 col-lg-3 col-md-6">
-                        <div class="card">
-                            <div class="card-body px-4 py-4-5">
-                                <div class="row">
-                                    <div
-                                        class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
-                                        <div class="stats-icon red mb-2">
-                                            <i class="iconly-boldBookmark"></i>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
-                                        <h6 class="text-muted font-semibold">Saved Post</h6>
-                                        <h6 class="font-extrabold mb-0">112</h6>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <button class="badge bg-danger">NO Open Position</button>
                     </div>
                 </div>
                 <div class="row">
@@ -98,7 +47,8 @@
                                 <h4>Notification Header</h4>
                             </div>
                             <div class="card-body">
-
+                                <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="fnClearLocalStorageTemp()">Clear LS</button>
+                                <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="fnTestToggle('cnf2', 'BANKNIFTY')">Toggle Radio</button>
                             </div>
                         </div>
                     </div>
@@ -117,28 +67,199 @@
             <div class="col-12 col-lg-3">
                 <div class="card">
                     <div class="card-header">
-                        <h4>Recent Messages</h4>
-                    </div>
-                    <div class="card-content pb-4">
-
-                        <div class="px-4">
-                            <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3'>Start
-                                Conversation</button>
+                        <div class="row">
+                            <div class="col-8"><h5>I Confirmation</h5></div>
+                            <div class="col-4">
+                                
+                            </div>
                         </div>
+                    </div>
+                    <div class="card-body">
+                        <form name="cnf1">
+                            <div class="row text-center">
+                                <div class="col-4">BNF</div>
+                                <div class="col-4">NIFTY</div>
+                                <div class="col-4">FINNIFTY</div>
+                                <div class="col-4">
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input type="radio" name="BANKNIFTY" value="false" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-down"></i></label>
+                                        <input checked type="radio" name="BANKNIFTY" value="-1" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-minus"></i></label>
+                                        <input type="radio" name="BANKNIFTY" value="true" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input type="radio" name="NIFTY" value="false" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-down"></i></label>
+                                        <input checked type="radio" name="NIFTY" value="-1" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-minus"></i></label>
+                                        <input type="radio" name="NIFTY" value="true" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input type="radio" name="FINNIFTY" value="false" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-down"></i></label>
+                                        <input checked type="radio" name="FINNIFTY" value="-1" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-minus"></i></label>
+                                        <input type="radio" name="FINNIFTY" value="true" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
                 <div class="card">
                     <div class="card-header">
-                        <h4>Visitors Profile</h4>
+                        <div class="row">
+                            <div class="col-8"><h5>II Confirmation</h5></div>
+                            <div class="col-4">
+                                
+                            </div>
+                        </div>
                     </div>
                     <div class="card-body">
-
+                        <form name="cnf2">
+                            <div class="row text-center">
+                                <div class="col-4">BNF</div>
+                                <div class="col-4">NIFTY</div>
+                                <div class="col-4">FINNIFTY</div>
+                                <div class="col-4">
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input type="radio" name="BANKNIFTY" value="false" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-down"></i></label>
+                                        <input checked type="radio" name="BANKNIFTY" value="-1" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-minus"></i></label>
+                                        <input type="radio" name="BANKNIFTY" value="true" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input type="radio" name="NIFTY" value="false" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-down"></i></label>
+                                        <input checked type="radio" name="NIFTY" value="-1" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-minus"></i></label>
+                                        <input type="radio" name="NIFTY" value="true" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input type="radio" name="FINNIFTY" value="false" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-down"></i></label>
+                                        <input checked type="radio" name="FINNIFTY" value="-1" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-minus"></i></label>
+                                        <input type="radio" name="FINNIFTY" value="true" />
+                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
-            </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h4>III Confirmation</h4>
+                    </div>
+                    <div class="card-body" style="height: 300px; overflow-x: hidden; overflow-y:auto;" id="divMessages">
+
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12"><input type="text" id="txtMessageToAll" class="form-control" /></div>
+                            <div class="col-sm-12 d-flex justify-content-end">
+                                <div class="btn-group mb-3" role="group" aria-label="Basic example">
+                                <button class='btn btn-outline-warning' id="btnClearMsg" onclick="fnClearMessage();">CLEAR</button>
+                                <button class='btn btn-outline-primary' id="btnSendMsg" onclick="fnSendMessageToAll();">SEND</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
         </section>
     </div>
 </div>
 
 
+    <!--Disabled Backdrop Modal -->
+    <div class="modal fade text-left" id="mdlAliceLogin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
+        data-bs-backdrop="false" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-secondary">
+                    <h4 class="modal-title" id="myModalLabel4">Alice Blue Login Details</h4>
+                    <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
+                </div>
+                <div class="modal-body">
+                    <!-- // Basic multiple Column Form section start -->
+                    <section id="multiple-column-form">
+                        <div class="row match-height">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header text-center">
+                                        &nbsp;<span id="spnAliceBlueLogin" class="badge bg-primary">Please Input Login Details</span>
+                                    </div>
+                                    <div class="card-content">
+                                        <div class="card-body">
+                                            <form class="form">
+                                                <div class="row">
+                                                    <div class="col-md-6 col-12">
+                                                        <div class="form-group">
+                                                            <label for="txtClientId">Client ID</label>
+                                                            <input type="text" id="txtClientId" class="form-control" value="632665" />
+                                                        </div>
+                                                    </div>
+                                                     <div class="col-md-6 col-12">
+                                                        <!--<div class="form-group">
+                                                            <label for="txtEmailId">Email</label>
+                                                            <input type="email" id="txtEmailId" class="form-control" />
+                                                        </div>-->
+                                                    </div> 
+                                                    <div class="col-md-12 col-12">
+                                                        <div class="form-group">
+                                                            <label for="txtApiKey">API Key</label>
+                                                            <input type="text" id="txtApiKey" class="form-control" value="sYtLAxsaZjYPcHEMVKK2yLGvsr9mH1ou9FcFmZuQy5LIuotmzaoN4uof32IavhKaYSUBkQfHWVs4OUlk7FQjYpOWRxJx9BDajn9LKI598LtIbR0STdhK1g0uLIlBLHHW" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 col-12">
+                                                        <div class="form-group">
+                                                            <input type="text" id="hidEncKey" class="form-control" />
+                                                            <input type="text" id="hidSession" class="form-control" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                        <i class="bx bx-x d-block d-sm-none"></i>
+                        <span class="d-none d-sm-block">CLOSE</span>
+                    </button>
+                    <button id="btnSubmit" type="button" class="btn btn-primary ms-1" onclick="fnLoginAliceBlue();">
+                        <i class="bx bx-check d-block d-sm-none"></i>
+                        <span class="d-none d-sm-block">SUBMIT</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 <script src="/js/index.js"></script>
+<script src="/js/alice-blue.js"></script>

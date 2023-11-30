@@ -1,0 +1,73 @@
+.myContainer
+{
+    max-width: 1700px;
+    margin:auto;
+}
+
+/* THREE WAY TOGGLE BUTTON */
+.tw-toggle {
+    /* background: #95A5A6; */
+    display: inline-block;
+    padding: 1px 2px;
+    border-radius: 10px;
+    position:relative;
+    border: 1px solid #95A5A6;
+  }
+  
+  .tw-toggle label {
+    text-align: center;
+    font-family: sans-serif;
+    display: inline-block;
+    color: #95A5A6;
+    position:relative;
+    z-index:2;
+    margin: 0;
+    text-align: center;
+    padding: 2px 3px;
+    font-size: 15px;
+    /* cursor: pointer; */
+  }
+  
+  .tw-toggle input {
+    /* display: none; */
+    position: absolute;
+    z-index: 3;
+    opacity: 0;
+    cursor: pointer;
+  }
+  
+  .tw-toggle span {
+    height: 21px;
+    width: 21px;
+    line-height: 21px;
+    border-radius: 50%;
+    background:#fff;
+    display:block;
+    position:absolute;
+    left: 23px;
+    top: 2px;
+    transition:all 0.3s ease-in-out;
+  }
+  
+  .tw-toggle input[value="false"]:checked ~ span{
+    background:#e74c3c;
+    left:3px;
+    color:#fff;
+  }
+  
+  .tw-toggle input[value="true"]:checked ~ span{
+    background:#27ae60;
+    left: 48px;
+  }
+  .tw-toggle input[value="-1"]:checked ~ span{
+    background:#95A5A6;
+    left: 25px;
+  }
+  
+  .tw-toggle input[value="false"]:checked + label,.tw-toggle input[value="true"]:checked + label{
+    color:#fff;
+  }
+  .tw-toggle input[value="-1"]:checked + label{
+    color:#fff;
+  }  
+/* THREE WAY TOGGLE BUTTON */

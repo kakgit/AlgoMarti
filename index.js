@@ -65,28 +65,29 @@ app.post("/tv-msg", (req, res) => {
     const vIndType = req.body.indType;
     const vDirection = req.body.direction;
     const vStrike = req.body.strike;
+    const vCnf = req.body.cnf;
     
-    const objMsg = JSON.stringify({ symbolName: vSymbolName, indType: vIndType, direction: vDirection, strike: vStrike });
+    const objMsg = JSON.stringify({ symbolName: vSymbolName, indType: vIndType, direction: vDirection, strike: vStrike, cnf: vCnf });
 
     //console.log(objMsg);
 
-    var options = {
-      'method': 'POST',
-      'url': process.env.API_PATH + 'api/tvMsgs',
-      'headers': {
-        'Content-Type': 'application/json'
-      },
-      body: objMsg
-    };
+    // var options = {
+    //   'method': 'POST',
+    //   'url': process.env.API_PATH + 'api/tvMsgs',
+    //   'headers': {
+    //     'Content-Type': 'application/json'
+    //   },
+    //   body: objMsg
+    // };
 
-    request(options, function (error, response) {
-      if (error) throw new Error(error);
-      //console.log(response.body);
-    });
+    // request(options, function (error, response) {
+    //   if (error) throw new Error(error);
+    //   //console.log(response.body);
+    // });
 
     io.emit("ServerEmit", objMsg);
 
-    res.send("Success");
+    res.send("success");
     //res.render("index.ejs");
     return;
 });
