@@ -6,6 +6,7 @@ const samcoServices = require('../services/samcoPage.js');
 const tvMsgsServices = require('../services/tvMsgsPage.js');
 const tvMsgsController = require('../controller/controllerTvMsgs.js');
 const usersController = require('../controller/controllerUsers.js');
+const tvConfsController = require('../controller/controllerJSON.js');
 const abController = require("../controller/controllerAliceBlue.js");
 
 //home Routes
@@ -30,6 +31,8 @@ route.post('/api/actionUsers', usersController.fnActions);
 route.post("/alice-blue/getSession", abController);
 // route.post("/alice-blue/getSession", abController.fnLoginAliceBlue);
 
+//Update JSON file Routes
+route.post("/json/tvConfs", tvConfsController.fnUpdJsons);
 
 route.get('*', (req, res) => {
     res.status(404).send({"message": "No Page to Display"});
