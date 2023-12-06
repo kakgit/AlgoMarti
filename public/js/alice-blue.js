@@ -52,6 +52,36 @@ window.addEventListener("DOMContentLoaded", function(){
     });
 });
 
+function fnUploadFiles()
+{
+    const objFiles = document.getElementById("flsSelectFiles");
+    const objFormData = new FormData();
+
+    if(objFiles.files.length === 0)
+    {
+        fnGenMessage("Please Select a File to Upload!", `badge bg-danger`, "spnSettingsMsg");
+    }
+    else
+    {
+        for(let i=0; i<objFiles.files.length; i++)
+        {
+            objFormData.append("files", objFiles.files[i]);
+        }
+    
+        //console.log(...objFormData);
+    
+        fetch("/uploadsAB", {
+            method: 'POST',
+            body: objFormData
+        })
+        .then(res => res.json())
+        .then(result => {
+            console.log(result);
+            fnGenMessage(result.status, `badge bg-${result.status}`, "spnSettingsMsg");
+        });
+    }
+}
+
 function fnTraderLoginStatus()
 {
     // console.log("At Login Status: ")
@@ -352,11 +382,11 @@ function fnSaveConfirmations(pFrm, pSymName, pStatus)
 
     //console.log(lsCnfAtr[pFrm][pSymName] = pStatus);
     console.log(localStorage.getItem("lsCnfAtr"));
-    //alert(pStatus);
 
     let vAction = JSON.stringify({
         "jsonName" : "tvConfs",
-        "JsonStr" : objSavelsCnfAtr
+        "JsonStr" : objSavelsCnfAtr,
+        "JsonFileName" : "tvConfirmations.json"
     });
 
     let vHeaders = new Headers();
@@ -369,7 +399,7 @@ function fnSaveConfirmations(pFrm, pSymName, pStatus)
         redirect: 'follow'
     };
 
-    fetch("/json/tvConfs", requestOptions)
+    fetch("/json/uorcJSON", requestOptions)
     .then(response => response.json())
     .then(result => {        
         if(result.status === "danger")
@@ -438,7 +468,9 @@ function fnAddEditSymbolDetails()
         const vSymDet = { Symbol: [{ SymbolName: objSymName.value, TradeName: objTradeName.value, Token: objToken.value, Exchange: objExchange.options[objExchange.selectedIndex].text, Contract: objContracts.value, LotSize: objLotSize.value, StrikeInterval: objStrikeInterval.value, StopLoss: objStopLoss.value, TakeProfit: objTakeProfit.value, ExpiryDates: [] }] };
         var vFirstItem = JSON.stringify(vSymDet);
         localStorage.setItem("SymbolListS", vFirstItem);
+
         //Save to DB code Here
+        fnSaveSymbolAttrToDB(vFirstItem);
 
         console.log(localStorage.getItem("SymbolListS"));
         objGDispMessage.className = "badge bg-success";
@@ -475,6 +507,7 @@ function fnAddEditSymbolDetails()
             localStorage.setItem("SymbolListS", vEditedItems);
 
             //Save to DB code Here
+            fnSaveSymbolAttrToDB(vEditedItems);
 
             console.log(localStorage.getItem("SymbolListS"));
             objEditCB.checked = false;
@@ -487,6 +520,7 @@ function fnAddEditSymbolDetails()
             localStorage.setItem("SymbolListS", vAddlItems);
 
             //Save to DB code Here
+            fnSaveSymbolAttrToDB(vAddlItems);
 
             console.log(localStorage.getItem("SymbolListS"));
             objGDispMessage.className = "badge bg-success";
@@ -550,6 +584,7 @@ function fnAddEditExpiryDetails()
         localStorage.setItem("SymbolListS", vAddlItems);
 
         //Save to DB code Here
+        fnSaveSymbolAttrToDB(vAddlItems);
         console.log(localStorage.getItem("SymbolListS"));
 
         objExpDate.value = "";
@@ -733,8 +768,9 @@ function fnDeleteSymbol()
             localStorage.setItem("SymbolListS", vEditedItems);
 
             //Save to DB code Here
-
+            fnSaveSymbolAttrToDB(vEditedItems);
             console.log(localStorage.getItem("SymbolListS"));
+
             objGDispMessage.className = "badge bg-success";
             objGDispMessage.innerText = objSelSym.value + " Details Deleted!";
             objSymName.value = "";
@@ -780,8 +816,9 @@ function fnDeleteExpiry()
             localStorage.setItem("SymbolListS", vEditedItems);
 
             //Save to DB code Here
-
+            fnSaveSymbolAttrToDB(vEditedItems);
             console.log(localStorage.getItem("SymbolListS"));
+            
             objGDispMessage.className = "badge bg-success";
             objGDispMessage.innerText = objSelExp.value + " Expiry Date Deleted!";
             objExpDate.value = "";
@@ -829,29 +866,69 @@ function fnDeleteLocalStorageSymbol()
     const vSymDet = { Symbol: [] };
     var vFirstItem = JSON.stringify(vSymDet);
 
-        //Save to DB code Here
+    //Save to DB code Here
+    fnSaveSymbolAttrToDB(vFirstItem);
 
-        localStorage.setItem("SymbolListS", vFirstItem);
+    localStorage.setItem("SymbolListS", vFirstItem);
 
-        var objSymName = document.getElementById("txtSymbolName");
-        var objLotSize = document.getElementById("txtLotSize");
-        var objStrikeInterval = document.getElementById("txtStrikeInterval");
-        var objHidLotSize = document.getElementById("txtHidLotSize");
-        var objStopLoss = document.getElementById("txtStopLoss");
-        var objTakeProfit = document.getElementById("txtTakeProfit");
+    var objSymName = document.getElementById("txtSymbolName");
+    var objLotSize = document.getElementById("txtLotSize");
+    var objStrikeInterval = document.getElementById("txtStrikeInterval");
+    var objHidLotSize = document.getElementById("txtHidLotSize");
+    var objStopLoss = document.getElementById("txtStopLoss");
+    var objTakeProfit = document.getElementById("txtTakeProfit");
+
+    objSymName.value = "";
+    objLotSize.value = "";
+    objStrikeInterval.value = "";
+    objHidLotSize.value = "";
+    objStopLoss.value = "";
+    objTakeProfit.value = "";
+
+    fnGetSymbolList();
+
+    objGDispMessage.className = "badge bg-success";
+    objGDispMessage.innerText = "All Symbol Date Removed!";
+    console.log(localStorage.getItem("SymbolListS"));
+    console.log("All Symbol Date Removed & Set to NULL");    
+}
+
+function fnSaveSymbolAttrToDB(pSymbolDetails)
+{
+    let vAction = JSON.stringify({
+        "jsonName" : "abSymbs",
+        "JsonStr" : pSymbolDetails,
+        "JsonFileName" : "abSymbols.json"
+    });
+
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let requestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: vAction,
+        redirect: 'follow'
+    };
     
-        objSymName.value = "";
-        objLotSize.value = "";
-        objStrikeInterval.value = "";
-        objHidLotSize.value = "";
-        objStopLoss.value = "";
-        objTakeProfit.value = "";
-
-        fnGetSymbolList();
-
-        objGDispMessage.className = "badge bg-success";
-        objGDispMessage.innerText = "All Symbol Date Removed!";
-        console.log(localStorage.getItem("SymbolListS"));
-        console.log("All Symbol Date Removed & Set to NULL");
-    
+    fetch("/json/uorcJSON", requestOptions)
+    .then(response => response.json())
+    .then(result => {        
+        if(result.status === "danger")
+        {
+            fnGenMessage(result.message, `badge bg-${result.status}`, "spnSettingsMsg");
+        }
+        else if(result.status === "warning")
+        {
+            fnGenMessage(result.message, `badge bg-${result.status}`, "spnSettingsMsg");
+        }
+        else
+        {
+            fnGenMessage(result.message, `badge bg-${result.status}`, "spnSettingsMsg");
+        }
+    })
+    .catch(error => {
+        console.log('error: ', error);
+        fnGenMessage("ErrorC: Unable to Update JSON Details.", `badge bg-danger`, "spnSettingsMsg");
+    });
 }

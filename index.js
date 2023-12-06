@@ -5,17 +5,20 @@
 
 const http = require("http");
 const express = require("express");
+const multer = require("multer");
+const cors = require("cors");
 const expressLayout = require('express-ejs-layouts');
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 const bodyparser = require("body-parser");
 const path = require("path");
 const { Server } = require("socket.io");
-var request = require('request');
+
 
 const connectDB = require("./server/database/connection.js");
 
 const app = express();
+app.use(cors());
 
 dotenv.config({path: 'config.env'});
 
@@ -69,27 +72,31 @@ app.post("/tv-msg", (req, res) => {
     
     const objMsg = JSON.stringify({ symbolName: vSymbolName, indType: vIndType, direction: vDirection, strike: vStrike, cnf: vCnf });
 
-    //console.log(objMsg);
-
-    // var options = {
-    //   'method': 'POST',
-    //   'url': process.env.API_PATH + 'api/tvMsgs',
-    //   'headers': {
-    //     'Content-Type': 'application/json'
-    //   },
-    //   body: objMsg
-    // };
-
-    // request(options, function (error, response) {
-    //   if (error) throw new Error(error);
-    //   //console.log(response.body);
-    // });
-
     io.emit("ServerEmit", objMsg);
 
     res.send("success");
     //res.render("index.ejs");
     return;
+});
+
+const storage = multer.diskStorage({
+    destination: function(req, file, callback){
+        callback(null, __dirname + "/public/json");
+    },
+    filename: function(req, file, callback){
+        callback(null, file.originalname);
+    }
+});
+
+const objUploads = multer({storage: storage});
+
+app.post("/uploadsAB", objUploads.array("files"), (req, res) => {
+    console.log(req.body);
+    console.log(req.files);
+
+    //res.json({status: "files received"});
+    res.json({"status": "success", "message": "File/s Uploaded Successfully!"});
+
 });
 
 app.use('/', require('./server/routes/router.js'));

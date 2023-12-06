@@ -5,6 +5,7 @@ exports.fnUpdJsons = async (req, res) => {
 
     let vJsonName = req.body.jsonName;
     let vJsonStr = req.body.JsonStr;
+    let vJsonFileName = req.body.JsonFileName;
     let vMsg = "";
 
     //console.log("Recs: " + vJsonStr);
@@ -30,12 +31,12 @@ exports.fnUpdJsons = async (req, res) => {
                 //console.log("Updated");
             }
             //fs.writeFile('myjsonfile.json', vJsonStr, 'utf8', callback);
-            fs.writeFile("./public/json/tvConfirmations.json", JSON.stringify(vJsonStr, null, 4), (err) => {
+            fs.writeFile("./public/json/" + vJsonFileName, JSON.stringify(vJsonStr, null, 4), (err) => {
                 if (err) {
                     console.error(err);
                     return;
                 };
-                console.log("File has been created");
+                console.log("File Created / Updated!");
             });
             res.send({"status": "success", "message" : "Json Data Updated Successfully!", "data" : vMsg});
         }

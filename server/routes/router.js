@@ -32,7 +32,7 @@ route.post("/alice-blue/getSession", abController);
 // route.post("/alice-blue/getSession", abController.fnLoginAliceBlue);
 
 //Update JSON file Routes
-route.post("/json/tvConfs", tvConfsController.fnUpdJsons);
+route.post("/json/uorcJSON", tvConfsController.fnUpdJsons);
 
 route.get('*', (req, res) => {
     res.status(404).send({"message": "No Page to Display"});

@@ -6,7 +6,7 @@
                 <h3>Alice Blue - Paper Trader</h3>
             </div>
             <div class="col-4 text-center">
-                <span class="badge bg-primary" id="spnGenMsg">Hi, Welcome</span>
+                <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
             </div>
             <div class="col-4" style="text-align: right;">
                 <a href="javascript: void(null);" class="btn btn-outline-primary" onclick="fnShowSettingsMdl();"><i class="fa fa-cogs" aria-hidden="true" style="color: orangered;"></i> Alice Blue Settings</a>
@@ -286,6 +286,29 @@
                                     <div class="card-body">
                                         <form class="form">
                                             <div class="row">
+                                                <div class="col-sm-12"><h3>Upload Files for Alice Blue Tokens</h3></div>
+                                                    <div class="container-fluid">
+                                                        <div class="row">
+                                                            <div class="col-sm-3"><a href="https://v2api.aliceblueonline.com/contractMaster" target="_blank">Click to Download Contracts</a></div>
+                                                            <div class="col-sm-4">
+                                                                <form>
+                                                                    <fieldset>
+                                                                        <div class="input-group">
+                                                                            <input type="file" class="form-control" id="flsSelectFiles" name="flsSelectFiles"
+                                                                                aria-describedby="inputGroupFileAddon04" aria-label="Upload" multiple />
+                                                                            <input class="btn btn-primary" type="button" value="Upload" onclick="fnUploadFiles();" />
+                                                                        </div>
+                                                                    </fieldset>
+                                                                </form>
+                                                            </div>
+                                                            <div class="col-sm-2"></div>
+                                                            <div class="col-sm-1"><a href="/json/INDICES.json" target="_blank">Indices</a></div>
+                                                            <div class="col-sm-1"><a href="/json/NFO.json" target="_blank">NFO</a></div>
+                                                            <div class="col-sm-1"><a href="/json/BFO.json" target="_blank">BFO</a></div>
+                                                        </div>
+                                                    </div>
+
+                                                <div class="col-12"><hr /></div>
                                                 <div class="col-md-6 col-6">
                                                     <div class="row">
                                                         <div class="col-sm-12"><h5>Manage Symbol, Lot Size & Interval</h5></div>
@@ -382,10 +405,6 @@
                 <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
                     <i class="bx bx-x d-block d-sm-none"></i>
                     <span class="d-none d-sm-block">CLOSE</span>
-                </button>
-                <button id="btnSubmit" type="button" class="btn btn-primary ms-1" onclick="fnLoginAliceBlue();">
-                    <i class="bx bx-check d-block d-sm-none"></i>
-                    <span class="d-none d-sm-block">SUBMIT</span>
                 </button>
             </div>
         </div>
