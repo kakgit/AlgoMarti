@@ -28,7 +28,6 @@ window.addEventListener("DOMContentLoaded", function(){
         }
         else
         {
-
             objDivMsgs.innerHTML += "<p>" + objMsg.symbolName + " - " + objMsg.indType + " - "  + objMsg.direction + " - " + objMsg.strike + "</p>";
             objDivMsgs.scrollTop = objDivMsgs.scrollHeight;
         }
@@ -594,17 +593,24 @@ function fnAddEditExpiryDetails()
 
 function fnGetSymbolList() {
     var objSelSym = document.getElementById("ddlSymbol");
+    var objSelManSym = document.getElementById("ddlManualSymbol");
+
     var objSybLst = localStorage.getItem("SymbolListS");
 
+    console.log(objSybLst)
     objSybLst = JSON.parse(objSybLst);
 
     objSelSym.innerHTML = "";
 
-    objSelSym.innerHTML = "<option value=''>Select</option>";
+    objSelSym.innerHTML = "<option value=''>Select Symbol</option>";
+    objSelManSym.innerHTML = "<option value=''>Select Symbol</option>"
     if (objSybLst != null) {
         for (var i = 0; i < objSybLst.Symbol.length; i++) {
-            var vOption = objSybLst.Symbol[i].SymbolName;
-            objSelSym.innerHTML += "<option value=\"" + vOption + "\">" + vOption + "</option>";
+            var vVal = objSybLst.Symbol[i].SymbolName;
+            var vDispName = objSybLst.Symbol[i].TradeName;
+            
+            objSelSym.innerHTML += "<option value=\"" + vVal + "\">" + vDispName + "</option>";
+            objSelManSym.innerHTML += "<option value=\"" + vVal + "\">" + vDispName + "</option>";
         }
         fnGetExpiryList();
     }
@@ -623,6 +629,7 @@ function fnGetExpiryList()
     var objHidLotSize = document.getElementById("txtHidLotSize");
     var objEditCB = document.getElementById("swtEditSymbol");
     var objSelExp = document.getElementById("ddlExpiry");
+    var objSelManExp = document.getElementById("ddlManualExpiry");
     var objSybLst = localStorage.getItem("SymbolListS");
     var objExpEditCB = document.getElementById("swtEditExpiry");
     var objExpiryDate = document.getElementById("txtExpiryDate");
@@ -642,7 +649,8 @@ function fnGetExpiryList()
     objSybLst = JSON.parse(objSybLst);
 
     objSelExp.innerHTML = "";
-    objSelExp.innerHTML = "<option value=''>Select</option>";
+    objSelExp.innerHTML = "<option value=''>Select Expiry</option>";
+    objSelManExp.innerHTML = "<option value=''>Select Expiry</option>";
 
     if (objSybLst != null) {
         for (var i = 0; i < objSybLst.Symbol.length; i++) {
@@ -651,6 +659,7 @@ function fnGetExpiryList()
                 for (var j = 0; j < objSybLst.Symbol[i].ExpiryDates.length; j++) {
                     var vOption = objSybLst.Symbol[i].ExpiryDates[j];
                     objSelExp.innerHTML += "<option value=\"" + vOption + "\">" + vOption + "</option>";
+                    objSelManExp.innerHTML += "<option value=\"" + vOption + "\">" + vOption + "</option>";
                 }
             }
         }

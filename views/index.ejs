@@ -32,22 +32,10 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4>Profile Visit</h4>
-                            </div>
-                            <div class="card-body">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
                     <div class="col-12 col-xl-4">
                         <div class="card">
                             <div class="card-header">
-                                <h4>Notification Header</h4>
+                                <h4>Open Position</h4>
                             </div>
                             <div class="card-body">
                                 <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="fnClearLocalStorageTemp();">Clear LS</button>
@@ -58,7 +46,72 @@
                     <div class="col-12 col-xl-8">
                         <div class="card">
                             <div class="card-header">
-                                <h4>Latest Comments</h4>
+                                <h4>Manual Trader</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-6 col-lg-3 col-md-6">
+                                        <select id="ddlManualSymbol" class="form-control" onchange="fnAPTGetOptionValsBySym(this.value);">
+                                        </select>
+                                    </div>
+                                    <div class="col-6 col-lg-3 col-md-6">
+                                        <select id="ddlManualExpiry" class="form-control" onchange="//fnGetExpValByChdAPT(this.value);"></select>
+                                    </div>
+                                    <div class="col-6 col-lg-3 col-md-6">
+                                        <input type="text" class="form-control" placeholder="Strike Price" id="txtStrike" />
+                                    </div>
+                                    <!-- <div class="col-6 col-lg-3 col-md-6">
+                                        <select id="ddlOptionType" class="form-control">
+                                            <option value="">Select Option</option>
+                                            <option value="CE">CE</option>
+                                            <option value="PE">PE</option>
+                                        </select>
+                                    </div> -->
+                                    <div class="col-6 col-lg-3 col-md-6">
+                                        <input type="text" class="form-control" placeholder="MARKET" id="txtBuyPrice" />
+                                    </div>
+                                    <div class="col-6 col-lg-3 col-md-6">
+                                        <input type="text" class="form-control" placeholder="Quantity" id="txtBuyQty" />
+                                    </div>
+                                    <div class="col-6 col-lg-3 col-md-6">
+                                        <input type="text" class="form-control" placeholder="Lots" id="txtLots" />
+                                    </div>
+                                    <div class="col-6 col-lg-3 col-md-6">
+                                        <input type="text" class="form-control" placeholder="Stop Loss" id="txtStopLoss" />
+                                    </div>
+                                    <div class="col-6 col-lg-3 col-md-6">
+                                        <input type="text" class="form-control" placeholder="Take Profit" id="txtTakeProfit" />
+                                    </div>
+                                    <div class="col-6 col-lg-3 col-md-6">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-danger"><b>SELL CALL</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-lg-3 col-md-6">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-danger"><b>SELL PUT</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-lg-3 col-md-6">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-success"><b>BUY CALL</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-lg-3 col-md-6">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-success"><b>BUY PUT</b></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Closed Positions</h4>
                             </div>
                             <div class="card-body">
 
@@ -66,6 +119,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
             <div class="col-12 col-lg-3">
                 <div class="card">
@@ -224,6 +278,8 @@
                                                     </div>
                                                 </div>
                                                     <div class="col-md-6 col-12">
+                                                        <br/>
+                                                        <a href="https://ant.aliceblueonline.com/" target="_blank">LOGIN TO TRADING ACCOUNT</a>
                                                     <!--<div class="form-group">
                                                         <label for="txtEmailId">Email</label>
                                                         <input type="email" id="txtEmailId" class="form-control" />
