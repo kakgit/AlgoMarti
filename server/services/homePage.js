@@ -15,3 +15,8 @@ exports.defaultRoute = (req, res) => {
     //     res.send(error);
     // })
 }
+
+exports.signalsTV = (req, res) => {
+    //res.send("Crud Application");
+    res.render("signalsTV.ejs");
+}

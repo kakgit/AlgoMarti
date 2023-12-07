@@ -1,0 +1,188 @@
+<div id="main">
+
+    <div class="page-heading">
+        <div class="row">
+            <div class="col-4">
+                <h3>TV - Signals</h3>
+            </div>
+            <div class="col-4 text-center">
+                <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
+            </div>
+            <div class="col-4" style="text-align: right;">
+
+            </div>
+        </div>
+
+    </div>
+    <div class="page-content">
+        <section class="row">
+            <div class="col-12 col-lg-9">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                            </div>
+                            <div class="card-body">
+                                <div class="container-fluid">
+                                    <table width="450px">
+                                        <tr style="text-align:center;font-weight:bold">
+                                            <td onclick="fnClearLabelsData();">Symbol</td>
+                                            <td>CMA</td>
+                                            <td>NADR</td>
+                                            <td>TRADE</td>
+                                        </tr>
+                                        <tr style="text-align:center;">
+                                            <td style="padding: 15px 0;">EURUSD</td>
+                                            <td style="font-size: 30px">
+                                                <i class="fa fa-arrow-down" style="cursor:pointer; color: red;"
+                                                    aria-hidden="true" onclick="fnSetClientSignal('EURUSD', 'CMA', 'DN');"></i>
+                                                <span id="spnEurUsdCMA" class="badge rounded-pill text-bg-warning"
+                                                    style="cursor:pointer;" onclick="fnSetClientSignal('EURUSD', 'CMA', '');">&nbsp;</span>
+                                                <i class="fa fa-arrow-up" style="cursor:pointer; color: green;"
+                                                    aria-hidden="true" onclick="fnSetClientSignal('EURUSD', 'CMA', 'UP');"></i>
+                                            </td>
+                                            <td style="font-size: 30px">
+                                                <i class="fa fa-arrow-down" style="cursor:pointer; color: red;"
+                                                    aria-hidden="true" onclick="fnSetClientSignal('EURUSD', 'NADR', 'DN');"></i>
+                                                <span id="spnEurUsdNADR" class="badge rounded-pill text-bg-warning"
+                                                    style="cursor:pointer;" onclick="fnSetClientSignal('EURUSD', 'NADR', '');">&nbsp;</span>
+                                                <i class="fa fa-arrow-up" style="cursor:pointer; color: green;"
+                                                    aria-hidden="true" onclick="fnSetClientSignal('EURUSD', 'NADR', 'UP');"></i>
+                                            </td>
+                                            <td style="font-size: 30px">
+                                                <span id="spnEurUsdBoth" class="badge rounded-pill text-bg-warning">&nbsp;</span>
+                                            </td>
+                                        </tr>
+                                        <tr style="text-align:center;">
+                                            <td></td>
+                                            <td><span id="lblS1" class="badge bg-info"
+                                                    contenteditable="true" onblur="fnAddEddLabelsTV(this, 0);"></span>
+                                            </td>
+                                            <td><span id="lblS2" class="badge bg-info"
+                                                    contenteditable="true" onblur="fnAddEddLabelsTV(this, 1);"></span>
+                                            </td>
+                                            <td><span id="lblS3" class="badge bg-info"
+                                                    contenteditable="true" onblur="fnAddEddLabelsTV(this, 2);"></span>
+                                            </td>
+                                        </tr>
+                                        <tr style="text-align:center;">
+                                            <td>EURJPY</td>
+                                            <td style="font-size: 30px">
+                                                <i class="fa fa-arrow-down" style="cursor:pointer; color: red;"
+                                                    aria-hidden="true" onclick="fnSetClientSignal('EURJPY', 'CMA', 'DN');"></i>
+                                                <span id="spnEurJpyCMA" class="badge rounded-pill text-bg-warning"
+                                                    style="cursor:pointer;" onclick="fnSetClientSignal('EURJPY', 'CMA', '');">&nbsp;</span>
+                                                <i class="fa fa-arrow-up" style="cursor:pointer; color: green;"
+                                                    aria-hidden="true" onclick="fnSetClientSignal('EURJPY', 'CMA', 'UP');"></i>
+                                            </td>
+                                            <td style="font-size: 30px">
+                                                <i class="fa fa-arrow-down" style="cursor:pointer; color: red;"
+                                                    aria-hidden="true" onclick="fnSetClientSignal('EURJPY', 'NADR', 'DN');"></i>
+                                                <span id="spnEurJpyNADR" class="badge rounded-pill text-bg-warning"
+                                                    style="cursor:pointer;" onclick="fnSetClientSignal('EURJPY', 'NADR', '');">&nbsp;</span>
+                                                <i class="fa fa-arrow-up" style="cursor:pointer; color: green;"
+                                                    aria-hidden="true" onclick="fnSetClientSignal('EURJPY', 'NADR', 'UP');"></i>
+                                            </td>
+                                            <td style="font-size: 30px">
+                                                <span id="spnEurJpyBoth" class="badge rounded-pill text-bg-warning">&nbsp;</span>
+                                            </td>
+                                        </tr>
+                                        <tr style="text-align:center;">
+                                            <td></td>
+                                            <td><span id="lblS4" class="badge bg-info"
+                                                    contenteditable="true" onblur="fnAddEddLabelsTV(this, 3);"></span>
+                                            </td>
+                                            <td><span id="lblS5" class="badge bg-info"
+                                                    contenteditable="true" onblur="fnAddEddLabelsTV(this, 4);"></span>
+                                            </td>
+                                            <td><span id="lblS6" class="badge bg-info"
+                                                    contenteditable="true" onblur="fnAddEddLabelsTV(this, 5);"></span>
+                                            </td>
+                                        </tr>
+                                        <tr style="text-align:center;">
+                                            <td>OTC</td>
+                                            <td style="font-size: 30px">
+                                                <i class="fa fa-arrow-down" style="cursor:pointer; color: red;"
+                                                    aria-hidden="true" onclick="fnSetClientSignal('OTC', 'CMA', 'DN');"></i>
+                                                <span id="spnOtcCMA" class="badge rounded-pill text-bg-warning"
+                                                    style="cursor:pointer;" onclick="fnSetClientSignal('OTC', 'CMA', '');">&nbsp;</span>
+                                                <i class="fa fa-arrow-up" style="cursor:pointer; color: green;"
+                                                    aria-hidden="true" onclick="fnSetClientSignal('OTC', 'CMA', 'UP');"></i>
+                                            </td>
+                                            <td style="font-size: 30px">
+                                                <i class="fa fa-arrow-down" style="cursor:pointer; color: red;"
+                                                    aria-hidden="true" onclick="fnSetClientSignal('OTC', 'NADR', 'DN');"></i>
+                                                <span id="spnOtcNADR" class="badge rounded-pill text-bg-warning"
+                                                    style="cursor:pointer;" onclick="fnSetClientSignal('OTC', 'NADR', '');">&nbsp;</span>
+                                                <i class="fa fa-arrow-up" style="cursor:pointer; color: green;"
+                                                    aria-hidden="true" onclick="fnSetClientSignal('OTC', 'NADR', 'UP');"></i>
+                                            </td>
+                                            <td style="font-size: 30px">
+                                                <span id="spnOtcBoth" class="badge rounded-pill text-bg-warning">&nbsp;</span>
+                                            </td>
+                                        </tr>
+                                        <tr style="text-align:center;">
+                                            <td></td>
+                                            <td><span id="lblS7" class="badge bg-info"
+                                                    contenteditable="true" onblur="fnAddEddLabelsTV(this, 6);"></span>
+                                            </td>
+                                            <td><span id="lblS8" class="badge bg-info"
+                                                    contenteditable="true" onblur="fnAddEddLabelsTV(this, 7);"></span>
+                                            </td>
+                                            <td><span id="lblS9" class="badge bg-info"
+                                                    contenteditable="true" onblur="fnAddEddLabelsTV(this, 8);"></span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <div class="row">
+                                        <div class="col-sm-12">&nbsp;</div>
+                                        <div class="col-sm-6">
+                                            <div id="divMessages" style="height: 300px; overflow-x: hidden; overflow-y:auto;">
+
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                        </div>
+                                
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-3">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row">
+                        </div>
+                    </div>
+                    <div class="card-body">
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row">
+                        </div>
+                    </div>
+                    <div class="card-body">
+
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+
+                    </div>
+                    <div class="card-body">
+
+                    </div>
+                    <div class="row">
+
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script src="/js/signalsTV.js"></script>

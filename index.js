@@ -37,6 +37,12 @@ io.on("connection", (cSocket) => {
         //console.log("New Msg from client: " + pMsg);
         io.emit("ClientEmit", pMsg);
     });
+
+    cSocket.on("MaheshMsg", (pObjMsg) => {
+        //console.log("New Msg from client: " + pObjMsg.symbolName);
+
+        io.emit("MaheshEmit", pObjMsg);
+    });
 });
 
 //log requests
@@ -76,6 +82,19 @@ app.post("/tv-msg", (req, res) => {
 
     res.send("success");
     //res.render("index.ejs");
+    return;
+});
+
+app.post("/tv-msg-mahesh", (req, res) => {
+    const vSymbolName = req.body.symbolName;
+    const vIndType = req.body.indType;
+    const vDirection = req.body.direction;
+    
+    const objMsg = JSON.stringify({ symbolName: vSymbolName, indType: vIndType, direction: vDirection });
+
+    io.emit("MaheshEmit", objMsg);
+
+    res.send("success");
     return;
 });
 

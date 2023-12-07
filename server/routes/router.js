@@ -12,6 +12,9 @@ const abController = require("../controller/controllerAliceBlue.js");
 //home Routes
 route.get("/", homeServices.defaultRoute);
 
+//Tradingview Signals Routes
+route.get("/mahesh", homeServices.signalsTV);
+
 //Samco Routes
 route.get("/samco", samcoServices.defaultRoute);
 
