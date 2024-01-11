@@ -31,7 +31,8 @@ route.get('/mngUsers', usersController.fnUsersDefault);
 route.post('/api/actionUsers', usersController.fnActions);
 
 //AliceBlue Routes
-route.post("/alice-blue/getSession", abController);
+route.post("/alice-blue/getSession", abController.fnLoginAliceBlue);
+route.post("/alice-blue/getStrikePrice", abController.fnGetStrikePrice);
 // route.post("/alice-blue/getSession", abController.fnLoginAliceBlue);
 
 //Update JSON file Routes

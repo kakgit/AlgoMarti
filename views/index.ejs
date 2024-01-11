@@ -39,7 +39,7 @@
                             </div>
                             <div class="card-body">
                                 <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="fnClearLocalStorageTemp();">Clear LS</button>
-                                <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="fnTestToggle('cnf2', 'BANKNIFTY');">Toggle Radio</button>
+                                <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="fnTestMe();">Test Me</button>
                             </div>
                         </div>
                     </div>
@@ -51,56 +51,73 @@
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-6 col-lg-3 col-md-6">
-                                        <select id="ddlManualSymbol" class="form-control" onchange="fnAPTGetOptionValsBySym(this.value);">
+                                        Load from
+                                    </div>
+                                    <div class="col-6 col-lg-3 col-md-6">
+                                        <select id="ddlManualSource" class="form-control">
+                                            <option value=0>Local</option>
+                                            <option value=1>Server</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6 col-lg-3 col-md-6">File</div>
+                                    <div class="col-6 col-lg-3 col-md-6"></div>
+                                    <div class="col-6 col-lg-3 col-md-6">
+                                        <select id="ddlManualSymbol" class="form-control" onchange="fnGetSelSymbolData(this.value);">
                                         </select>
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <select id="ddlManualExpiry" class="form-control" onchange="//fnGetExpValByChdAPT(this.value);"></select>
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
-                                        <input type="text" class="form-control" placeholder="Strike Price" id="txtStrike" />
-                                    </div>
-                                    <!-- <div class="col-6 col-lg-3 col-md-6">
-                                        <select id="ddlOptionType" class="form-control">
-                                            <option value="">Select Option</option>
-                                            <option value="CE">CE</option>
-                                            <option value="PE">PE</option>
-                                        </select>
-                                    </div> -->
-                                    <div class="col-6 col-lg-3 col-md-6">
-                                        <input type="text" class="form-control" placeholder="MARKET" id="txtBuyPrice" />
+                                        <div class="input-group mb-3">
+                                            <button class="btn btn-primary" type="button" id="button-addon1" onclick="fnGetLiveRate();"><i class="fa fa-share" aria-hidden="true"></i></button>
+                                            <input id="txtManualStrike" type="text" class="form-control" placeholder="Strike Price" />
+                                        </div>
+                                        
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
-                                        <input type="text" class="form-control" placeholder="Quantity" id="txtBuyQty" />
+                                        <input type="text" class="form-control" placeholder="MARKET" id="txtManualBuyPrice" />
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
-                                        <input type="text" class="form-control" placeholder="Lots" id="txtLots" />
+                                        <input type="text" class="form-control" placeholder="Quantity" id="txtManualBuyQty" />
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
-                                        <input type="text" class="form-control" placeholder="Stop Loss" id="txtStopLoss" />
+                                        <input type="text" class="form-control" placeholder="Lots" id="txtManualLots" />
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
-                                        <input type="text" class="form-control" placeholder="Take Profit" id="txtTakeProfit" />
+                                        <input type="text" class="form-control" placeholder="Stop Loss" id="txtManualStopLoss" />
+                                    </div>
+                                    <div class="col-6 col-lg-3 col-md-6">
+                                        <input type="text" class="form-control" placeholder="Take Profit" id="txtManualTakeProfit" />
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-danger"><b>SELL CALL</b></button>
+                                            <button class="btn btn-outline-danger" onclick="fnInitiateManualTrade('sell', 'CE');"><b>SELL CALL</b></button>
                                         </div>
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-danger"><b>SELL PUT</b></button>
+                                            <button class="btn btn-outline-danger" onclick="fnInitiateManualTrade('sell', 'PE');"><b>SELL PUT</b></button>
                                         </div>
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success"><b>BUY CALL</b></button>
+                                            <button class="btn btn-outline-success" onclick="fnInitiateManualTrade('buy', 'CE');"><b>BUY CALL</b></button>
                                         </div>
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success"><b>BUY PUT</b></button>
+                                            <button class="btn btn-outline-success" onclick="fnInitiateManualTrade('buy', 'PE');"><b>BUY PUT</b></button>
                                         </div>
+                                    </div>
+                                    <div class="col-12 col-lg-12 col-md-12">
+                                        <input type="text" id="hidSession" class="form-control" placeholder="Session" />
+                                        <input type="text" id="hidStrikeInterval" placeholder="Strike Interval" />
+                                        <input type="text" id="hidToken" placeholder="Token" />
+                                        <input type="text" id="hidExchange" placeholder="Exchange" />
+                                        <input type="text" id="hidContract" placeholder="Contract" />
+                                        <input type="text" id="txtTest" placeholder="Testing" />
+                                        <input type="text" id="txtTest1" placeholder="Testing" />
                                     </div>
                                 </div>
                             </div>
@@ -139,34 +156,34 @@
                                 <div class="col-4">FINNIFTY</div>
                                 <div class="col-4">
                                     <div class="tw-toggle" style="white-space: nowrap;">
-                                        <input type="radio" name="BANKNIFTY" value="false" onclick="fnSaveConfirmations('cnf1', 'BANKNIFTY', false);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-down"></i></label>
-                                        <input checked type="radio" name="BANKNIFTY" value="-1" onclick="fnSaveConfirmations('cnf1', 'BANKNIFTY', -1);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-minus"></i></label>
-                                        <input type="radio" name="BANKNIFTY" value="true" onclick="fnSaveConfirmations('cnf1', 'BANKNIFTY', true);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-up"></i></label>
+                                        <input id="txtBN1" type="radio" name="BANKNIFTY" value="false" onclick="fnSaveConfirmations('cnf1', 'BANKNIFTY', false);" />
+                                        <label class="toggle toggle-yes" for="txtBN1"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtBN2" checked type="radio" name="BANKNIFTY" value="-1" onclick="fnSaveConfirmations('cnf1', 'BANKNIFTY', -1);" />
+                                        <label class="toggle toggle-yes" for="txtBN2"><i class="fa fa-minus"></i></label>
+                                        <input id="txtBN3" type="radio" name="BANKNIFTY" value="true" onclick="fnSaveConfirmations('cnf1', 'BANKNIFTY', true);" />
+                                        <label class="toggle toggle-yes" for="txtBN3"><i class="fa fa-arrow-up"></i></label>
                                         <span></span>
                                     </div>
                                 </div>
                                 <div class="col-4">
                                     <div class="tw-toggle" style="white-space: nowrap;">
-                                        <input type="radio" name="NIFTY" value="false" onclick="fnSaveConfirmations('cnf1', 'NIFTY', false);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-down"></i></label>
-                                        <input checked type="radio" name="NIFTY" value="-1" onclick="fnSaveConfirmations('cnf1', 'NIFTY', -1);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-minus"></i></label>
-                                        <input type="radio" name="NIFTY" value="true" onclick="fnSaveConfirmations('cnf1', 'NIFTY', true);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-up"></i></label>
+                                        <input id="txtNF1" type="radio" name="NIFTY" value="false" onclick="fnSaveConfirmations('cnf1', 'NIFTY', false);" />
+                                        <label class="toggle toggle-yes" for="txtNF1"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtNF2" checked type="radio" name="NIFTY" value="-1" onclick="fnSaveConfirmations('cnf1', 'NIFTY', -1);" />
+                                        <label class="toggle toggle-yes" for="txtNF2"><i class="fa fa-minus"></i></label>
+                                        <input id="txtNF3" type="radio" name="NIFTY" value="true" onclick="fnSaveConfirmations('cnf1', 'NIFTY', true);" />
+                                        <label class="toggle toggle-yes" for="txtNF3"><i class="fa fa-arrow-up"></i></label>
                                         <span></span>
                                     </div>
                                 </div>
                                 <div class="col-4">
                                     <div class="tw-toggle" style="white-space: nowrap;">
-                                        <input type="radio" name="FINNIFTY" value="false" onclick="fnSaveConfirmations('cnf1', 'FINNIFTY', false);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-down"></i></label>
-                                        <input checked type="radio" name="FINNIFTY" value="-1" onclick="fnSaveConfirmations('cnf1', 'FINNIFTY', -1);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-minus"></i></label>
-                                        <input type="radio" name="FINNIFTY" value="true" onclick="fnSaveConfirmations('cnf1', 'FINNIFTY', true);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-up"></i></label>
+                                        <input id="txtFN1" type="radio" name="FINNIFTY" value="false" onclick="fnSaveConfirmations('cnf1', 'FINNIFTY', false);" />
+                                        <label class="toggle toggle-yes" for="txtFN1"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtFN2" checked type="radio" name="FINNIFTY" value="-1" onclick="fnSaveConfirmations('cnf1', 'FINNIFTY', -1);" />
+                                        <label class="toggle toggle-yes" for="txtFN2"><i class="fa fa-minus"></i></label>
+                                        <input id="txtFN3" type="radio" name="FINNIFTY" value="true" onclick="fnSaveConfirmations('cnf1', 'FINNIFTY', true);" />
+                                        <label class="toggle toggle-yes" for="txtFN3"><i class="fa fa-arrow-up"></i></label>
                                         <span></span>
                                     </div>
                                 </div>
@@ -191,34 +208,34 @@
                                 <div class="col-4">FINNIFTY</div>
                                 <div class="col-4">
                                     <div class="tw-toggle" style="white-space: nowrap;">
-                                        <input type="radio" name="BANKNIFTY" value="false" onclick="fnSaveConfirmations('cnf2', 'BANKNIFTY', false);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-down"></i></label>
-                                        <input checked type="radio" name="BANKNIFTY" value="-1" onclick="fnSaveConfirmations('cnf2', 'BANKNIFTY', -1);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-minus"></i></label>
-                                        <input type="radio" name="BANKNIFTY" value="true" onclick="fnSaveConfirmations('cnf2', 'BANKNIFTY', true);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-up"></i></label>
+                                        <input id="txtBN4" type="radio" name="BANKNIFTY" value="false" onclick="fnSaveConfirmations('cnf2', 'BANKNIFTY', false);" />
+                                        <label class="toggle toggle-yes" for="txtBN4"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtBN5" checked type="radio" name="BANKNIFTY" value="-1" onclick="fnSaveConfirmations('cnf2', 'BANKNIFTY', -1);" />
+                                        <label class="toggle toggle-yes" for="txtBN5"><i class="fa fa-minus"></i></label>
+                                        <input id="txtBN6" type="radio" name="BANKNIFTY" value="true" onclick="fnSaveConfirmations('cnf2', 'BANKNIFTY', true);" />
+                                        <label class="toggle toggle-yes" for="txtBN6"><i class="fa fa-arrow-up"></i></label>
                                         <span></span>
                                     </div>
                                 </div>
                                 <div class="col-4">
                                     <div class="tw-toggle" style="white-space: nowrap;">
-                                        <input type="radio" name="NIFTY" value="false" onclick="fnSaveConfirmations('cnf2', 'NIFTY', false);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-down"></i></label>
-                                        <input checked type="radio" name="NIFTY" value="-1" onclick="fnSaveConfirmations('cnf2', 'NIFTY', -1);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-minus"></i></label>
-                                        <input type="radio" name="NIFTY" value="true" onclick="fnSaveConfirmations('cnf2', 'NIFTY', true);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-up"></i></label>
+                                        <input id="txtNF4" type="radio" name="NIFTY" value="false" onclick="fnSaveConfirmations('cnf2', 'NIFTY', false);" />
+                                        <label class="toggle toggle-yes" for="txtNF4"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtNF5" checked type="radio" name="NIFTY" value="-1" onclick="fnSaveConfirmations('cnf2', 'NIFTY', -1);" />
+                                        <label class="toggle toggle-yes" for="txtNF5"><i class="fa fa-minus"></i></label>
+                                        <input id="txtNF6" type="radio" name="NIFTY" value="true" onclick="fnSaveConfirmations('cnf2', 'NIFTY', true);" />
+                                        <label class="toggle toggle-yes" for="txtNF6"><i class="fa fa-arrow-up"></i></label>
                                         <span></span>
                                     </div>
                                 </div>
                                 <div class="col-4">
                                     <div class="tw-toggle" style="white-space: nowrap;">
-                                        <input type="radio" name="FINNIFTY" value="false" onclick="fnSaveConfirmations('cnf2', 'FINNIFTY', false);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-down"></i></label>
-                                        <input checked type="radio" name="FINNIFTY" value="-1" onclick="fnSaveConfirmations('cnf2', 'FINNIFTY', -1);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-minus"></i></label>
-                                        <input type="radio" name="FINNIFTY" value="true" onclick="fnSaveConfirmations('cnf2', 'FINNIFTY', true);" />
-                                        <label class="toggle toggle-yes"><i class="fa fa-arrow-up"></i></label>
+                                        <input id="txtFN4" type="radio" name="FINNIFTY" value="false" onclick="fnSaveConfirmations('cnf2', 'FINNIFTY', false);" />
+                                        <label class="toggle toggle-yes" for="txtFN4"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtFN5" checked type="radio" name="FINNIFTY" value="-1" onclick="fnSaveConfirmations('cnf2', 'FINNIFTY', -1);" />
+                                        <label class="toggle toggle-yes" for="txtFN5"><i class="fa fa-minus"></i></label>
+                                        <input id="txtFN6" type="radio" name="FINNIFTY" value="true" onclick="fnSaveConfirmations('cnf2', 'FINNIFTY', true);" />
+                                        <label class="toggle toggle-yes" for="txtFN6"><i class="fa fa-arrow-up"></i></label>
                                         <span></span>
                                     </div>
                                 </div>
@@ -249,7 +266,7 @@
 </div>
 
 
-<!--Disabled Backdrop Modal -->
+<!--Disabled Backdrop Modal for Trader Login-->
 <div class="modal fade text-left" id="mdlAliceLogin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
     data-bs-backdrop="false" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
@@ -294,7 +311,7 @@
                                                 <div class="col-md-6 col-12">
                                                     <div class="form-group">
                                                         <input type="text" id="hidEncKey" class="form-control" />
-                                                        <input type="text" id="hidSession" class="form-control" />
+                                                        
                                                     </div>
                                                 </div>
                                             </div>
@@ -320,7 +337,7 @@
     </div>
 </div>
 
-<!--Disabled Backdrop Modal -->
+<!--Disabled Backdrop Modal for Trader Settings-->
 <div class="modal fade text-left" id="mdlSettingsAB" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
     data-bs-backdrop="false" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
@@ -438,7 +455,7 @@
                                                         </div>
                                                         <div class="col-sm-6">Expiry Date</div><div class="col-sm-6"></div>
                                                         <div class="col-sm-6">
-                                                            <input type="text" class="form-control" id="txtExpiryDate" placeholder="DDMMMYY" />
+                                                            <input type="text" class="form-control" id="txtExpiryDate" placeholder="YYYY-MM-DD" />
                                                         </div>
                                                         <div class="col-sm-6">
                                                         </div>

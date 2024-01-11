@@ -75,7 +75,7 @@ function fnUploadFiles()
         })
         .then(res => res.json())
         .then(result => {
-            console.log(result);
+            //console.log(result);
             fnGenMessage(result.status, `badge bg-${result.status}`, "spnSettingsMsg");
         });
     }
@@ -83,7 +83,6 @@ function fnUploadFiles()
 
 function fnTraderLoginStatus()
 {
-    // console.log("At Login Status: ")
     let lsPrevSessionDate = localStorage.getItem("lsLoginDate");
     let lsAliceBlueID = localStorage.getItem("lsAliceBlueID");
     let lsApiKey = localStorage.getItem("lsAliceBlueApiKey");
@@ -97,8 +96,6 @@ function fnTraderLoginStatus()
     const vDate = new Date();
     let vToday = vDate.getDate();
 
-    // console.log("PrevSesDate: " + lsPrevSessionDate);
-
     objClientId.value = lsAliceBlueID;
     objApiKey.value = lsApiKey;
     objSession.value = lsSessionID;
@@ -111,14 +108,10 @@ function fnTraderLoginStatus()
     if (objSession.value == "") {
         fnChangeBtnProps(objTraderStatus.id, "badge bg-danger", "TRADER - Disconnected");
         localStorage.setItem("isTraderLogin", false);
-        // objTraderStatus.className = "badge bg-danger";
-        // objTraderStatus.innerText = "TRADER - Disconnected";
     }
     else {
         fnChangeBtnProps(objTraderStatus.id, "badge bg-success", "TRADER - Connected");
         localStorage.setItem("isTraderLogin", true);
-        // objTraderStatus.className = "badge bg-success";
-        // objTraderStatus.innerText = "TRADER - Connected";
     }
 }
 
@@ -231,7 +224,7 @@ function fnLoginAliceBlue()
             //console.log(result);
             if(result.status === "success")
             {
-                console.log(result);
+                //console.log(result);
                 objEncKey.value = result.data.EncKey;
                 objSession.value = result.data.Session;
     
@@ -281,7 +274,7 @@ function fnClearLocalStorageTemp()
     localStorage.removeItem("isTraderLogin");
     localStorage.removeItem("isAutoTrader");
     //localStorage.removeItem("lsAliceBlueSession");
-    console.log("After: " + localStorage.getItem("isTraderLogin"));
+    //console.log("After: " + localStorage.getItem("isTraderLogin"));
 }
 
 function fnClearPrevLoginSession()
@@ -317,7 +310,7 @@ function fnSendMessageToAll()
 
 function fnClearMessage()
 {
-    const objDivMsgs = document.getElementById("divMessages-3");
+    const objDivMsgs = document.getElementById("divMessages");
 
     objDivMsgs.innerHTML = "";
 }
@@ -363,9 +356,13 @@ function fnLoadCnfStatus()
     }
 }
 
-function fnTestToggle(pFrm, pSymName)
+function fnTestMe()
 {
-    document[pFrm][pSymName].value = true;
+    //const d = new Date("2023-12-20");
+    const d = new Date("2023-12-13");
+    let objTestTxt = document.getElementById("txtTest");
+
+    objTestTxt.value = d.getTime();
 }
 
 function fnSaveConfirmations(pFrm, pSymName, pStatus)
@@ -380,7 +377,7 @@ function fnSaveConfirmations(pFrm, pSymName, pStatus)
         localStorage.setItem("lsCnfAtr", objSavelsCnfAtr);
 
     //console.log(lsCnfAtr[pFrm][pSymName] = pStatus);
-    console.log(localStorage.getItem("lsCnfAtr"));
+    //console.log(localStorage.getItem("lsCnfAtr"));
 
     let vAction = JSON.stringify({
         "jsonName" : "tvConfs",
@@ -471,7 +468,7 @@ function fnAddEditSymbolDetails()
         //Save to DB code Here
         fnSaveSymbolAttrToDB(vFirstItem);
 
-        console.log(localStorage.getItem("SymbolListS"));
+        //console.log(localStorage.getItem("SymbolListS"));
         objGDispMessage.className = "badge bg-success";
         objGDispMessage.innerText = objSymName.value + " Symbol Details Added!";
         objSymName.value = "";
@@ -508,7 +505,7 @@ function fnAddEditSymbolDetails()
             //Save to DB code Here
             fnSaveSymbolAttrToDB(vEditedItems);
 
-            console.log(localStorage.getItem("SymbolListS"));
+            //console.log(localStorage.getItem("SymbolListS"));
             objEditCB.checked = false;
             objGDispMessage.className = "badge bg-success";
             objGDispMessage.innerText = objSelSym.value + " Symbol Details Edited!";
@@ -521,7 +518,7 @@ function fnAddEditSymbolDetails()
             //Save to DB code Here
             fnSaveSymbolAttrToDB(vAddlItems);
 
-            console.log(localStorage.getItem("SymbolListS"));
+            //console.log(localStorage.getItem("SymbolListS"));
             objGDispMessage.className = "badge bg-success";
             objGDispMessage.innerText = objSymName.value + " Symbol Details Added!";
         }
@@ -584,7 +581,7 @@ function fnAddEditExpiryDetails()
 
         //Save to DB code Here
         fnSaveSymbolAttrToDB(vAddlItems);
-        console.log(localStorage.getItem("SymbolListS"));
+        //console.log(localStorage.getItem("SymbolListS"));
 
         objExpDate.value = "";
         fnGetExpiryList();
@@ -597,7 +594,7 @@ function fnGetSymbolList() {
 
     var objSybLst = localStorage.getItem("SymbolListS");
 
-    console.log(objSybLst)
+    //console.log(objSybLst);
     objSybLst = JSON.parse(objSybLst);
 
     objSelSym.innerHTML = "";
@@ -778,7 +775,7 @@ function fnDeleteSymbol()
 
             //Save to DB code Here
             fnSaveSymbolAttrToDB(vEditedItems);
-            console.log(localStorage.getItem("SymbolListS"));
+            //console.log(localStorage.getItem("SymbolListS"));
 
             objGDispMessage.className = "badge bg-success";
             objGDispMessage.innerText = objSelSym.value + " Details Deleted!";
@@ -826,7 +823,7 @@ function fnDeleteExpiry()
 
             //Save to DB code Here
             fnSaveSymbolAttrToDB(vEditedItems);
-            console.log(localStorage.getItem("SymbolListS"));
+            //console.log(localStorage.getItem("SymbolListS"));
             
             objGDispMessage.className = "badge bg-success";
             objGDispMessage.innerText = objSelExp.value + " Expiry Date Deleted!";
@@ -898,7 +895,7 @@ function fnDeleteLocalStorageSymbol()
 
     objGDispMessage.className = "badge bg-success";
     objGDispMessage.innerText = "All Symbol Date Removed!";
-    console.log(localStorage.getItem("SymbolListS"));
+    //console.log(localStorage.getItem("SymbolListS"));
     console.log("All Symbol Date Removed & Set to NULL");    
 }
 
@@ -940,4 +937,159 @@ function fnSaveSymbolAttrToDB(pSymbolDetails)
         console.log('error: ', error);
         fnGenMessage("ErrorC: Unable to Update JSON Details.", `badge bg-danger`, "spnSettingsMsg");
     });
+}
+
+//Trading Code Starts from Here
+
+function fnGetSelSymbolData(pSymbolVal)
+{
+    var objSelExp = document.getElementById("ddlManualExpiry");
+    var objSybLst = localStorage.getItem("SymbolListS");
+    var objStrikeInterval = document.getElementById("hidStrikeInterval");
+    var objToken = document.getElementById("hidToken");
+    var objLotSize = document.getElementById("txtManualBuyQty");
+    var objNoOfLots = document.getElementById("txtManualLots");
+    var objStopLoss = document.getElementById("txtManualStopLoss");
+    var objTakeProfit = document.getElementById("txtManualTakeProfit");
+    var objExchange = document.getElementById("hidExchange");
+    var objContract = document.getElementById("hidContract");
+
+    objSybLst = JSON.parse(objSybLst);
+
+    objSelExp.innerHTML = "";
+    //console.log(objSybLst);
+
+    if (objSybLst != null)
+    {
+        for (var i = 0; i < objSybLst.Symbol.length; i++)
+        {
+            if (objSybLst.Symbol[i].SymbolName == pSymbolVal)
+            {
+                objToken.value = objSybLst.Symbol[i].Token;
+                objLotSize.value = objSybLst.Symbol[i].LotSize;
+                objNoOfLots.value = 1;
+                objStrikeInterval.value = objSybLst.Symbol[i].StrikeInterval;
+                objStopLoss.value = objSybLst.Symbol[i].StopLoss;
+                objTakeProfit.value = objSybLst.Symbol[i].TakeProfit;
+                objExchange.value = objSybLst.Symbol[i].Exchange;
+                objContract.value = objSybLst.Symbol[i].Contract;
+
+                for (var j = 0; j < objSybLst.Symbol[i].ExpiryDates.length; j++) {
+                    var vOption = objSybLst.Symbol[i].ExpiryDates[j];
+                    objSelExp.innerHTML += "<option value=\"" + vOption + "\">" + vOption + "</option>";
+                }
+            }
+        }
+    }
+    if(pSymbolVal === "")
+    {
+        objToken.value = "";
+        objLotSize.value = "";
+        objNoOfLots.value = "";
+        objStrikeInterval.value = "";
+        objStopLoss.value = "";
+        objTakeProfit.value = "";
+        objExchange.value = "";
+        objContract.value = "";
+        objSelExp.innerHTML = "<option value=\"\">Select Expiry</option>";
+    }
+}
+
+async function fnInitiateManualTrade(pBYorSL, pCEorPE)
+{
+    let vClientId = document.getElementById("txtClientId").value;
+    let vSession = document.getElementById("hidSession").value;
+    let vSymbol = document.getElementById("ddlManualSymbol").value;
+    let vExpiry = document.getElementById("ddlManualExpiry").value;
+    // let vExchange = "NFO";
+    // let vToken = 39170;
+
+    if(vSymbol === "")
+    {
+        fnGenMessage("Please Select Symbol to Trade!", `badge bg-danger`, "spnGenMsg");
+    }
+    else if(vExpiry === "")
+    {
+        fnGenMessage("Please Select Expiry to Trade!", `badge bg-danger`, "spnGenMsg");
+    }
+    else
+    {
+        let objData = {ClientId: vClientId, Session: vSession, Symbol: vSymbol, Expiry: vExpiry};
+        console.log(pBYorSL);
+    }
+
+    //let vResult = await fnExecuteTrade();
+}
+
+function fnExecuteTrade()
+{
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+}
+
+function fnGetLiveRate()
+{
+    let vClientId = document.getElementById("txtClientId").value;
+    let vSession = document.getElementById("hidSession").value;
+    let vSymbol = document.getElementById("ddlManualSymbol").value;
+    let vExchange = document.getElementById("hidExchange").value;
+    let vStrikeInterval = document.getElementById("hidStrikeInterval").value;
+    let objManualStrikePrice = document.getElementById("txtManualStrike");
+    
+    let vSelToken = document.getElementById("hidToken").value;
+
+    if(vSession === "")
+    {
+        fnGenMessage("Please Login to Trader!", `badge bg-danger`, "spnGenMsg");
+    }
+    else if(vSymbol === "")
+    {
+        fnGenMessage("Please Select Symbol to get Strike Price!", `badge bg-danger`, "spnGenMsg");
+    }
+    else
+    {
+        //let objData = {ClientID: vClientId, Session: vSession, Symbol: vSymbol, Expiry: vExpiry};
+
+        let vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+
+        //let vAction = JSON.stringify({ objData });
+
+        let requestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: JSON.stringify({ClientID: vClientId, Session: vSession, Exchange: vExchange, StrikeInterval: vStrikeInterval, Token: vSelToken}),
+        redirect: 'follow'
+        };
+
+        fetch("/alice-blue/getStrikePrice", requestOptions)
+        .then(response => response.json())
+        .then(result => {
+            if(result.status === "success")
+            {
+                //console.log(result);
+                objManualStrikePrice.value = result.data;
+                fnGenMessage(result.message, `badge bg-${result.status}`, "spnGenMsg");
+            }
+            else if(result.status === "danger")
+            {
+                fnGenMessage(result.message, `badge bg-${result.status}`, "spnGenMsg");
+            }
+            else if(result.status === "warning")
+            {
+                fnGenMessage(result.message, `badge bg-${result.status}`, "spnGenMsg");
+            }
+            else
+            {
+                fnGenMessage("Error in Login, Contact Admin.", `badge bg-danger`, "spnGenMsg");
+            }
+        })
+        .catch(error => {
+            console.log('error: ', error);
+            fnGenMessage("Error to Fetch with Login Details.", `badge bg-danger`, "spnGenMsg");
+        });
+
+        //console.log(vAction);
+    }
 }
