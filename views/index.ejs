@@ -59,7 +59,7 @@
                                             <option value=1>Server</option>
                                         </select>
                                     </div>
-                                    <div class="col-6 col-lg-3 col-md-6">File</div>
+                                    <div class="col-6 col-lg-3 col-md-6"></div>
                                     <div class="col-6 col-lg-3 col-md-6"></div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <select id="ddlManualSymbol" class="form-control" onchange="fnGetSelSymbolData(this.value);">
@@ -71,7 +71,7 @@
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <div class="input-group mb-3">
                                             <button class="btn btn-primary" type="button" id="button-addon1" onclick="fnGetLiveRate();"><i class="fa fa-share" aria-hidden="true"></i></button>
-                                            <input id="txtManualStrike" type="text" class="form-control" placeholder="Strike Price" />
+                                            <input id="txtManualStrike" type="number" min="1" class="form-control" placeholder="Strike Price" />
                                         </div>
                                         
                                     </div>
@@ -79,10 +79,10 @@
                                         <input type="text" class="form-control" placeholder="MARKET" id="txtManualBuyPrice" />
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
-                                        <input type="text" class="form-control" placeholder="Quantity" id="txtManualBuyQty" />
+                                        <input type="number" min="1" class="form-control" placeholder="Quantity" id="txtManualBuyQty" />
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
-                                        <input type="text" class="form-control" placeholder="Lots" id="txtManualLots" />
+                                        <input type="number" min="1" class="form-control" placeholder="Lots" id="txtManualLots" />
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <input type="text" class="form-control" placeholder="Stop Loss" id="txtManualStopLoss" />
@@ -113,11 +113,12 @@
                                     <div class="col-12 col-lg-12 col-md-12">
                                         <input type="text" id="hidSession" class="form-control" placeholder="Session" />
                                         <input type="text" id="hidStrikeInterval" placeholder="Strike Interval" />
-                                        <input type="text" id="hidToken" placeholder="Token" />
+                                        <input type="text" id="hidToken" placeholder="Script Token" />
                                         <input type="text" id="hidExchange" placeholder="Exchange" />
                                         <input type="text" id="hidContract" placeholder="Contract" />
-                                        <input type="text" id="txtTest" placeholder="Testing" />
-                                        <input type="text" id="txtTest1" placeholder="Testing" />
+                                        <input type="text" id="txtDateToTime" placeholder="DateToTime" />
+                                        <input type="text" id="txtActualStrike" placeholder="Actual Strike" />
+                                        <input type="text" id="hidTradeToken" placeholder="Option Token" />
                                     </div>
                                 </div>
                             </div>

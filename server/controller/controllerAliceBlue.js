@@ -181,19 +181,19 @@ exports.fnGetStrikePrice = async (req, res) => {
   let vExchange = req.body.Exchange;
   let vStrikeInterval = req.body.StrikeInterval;
   let vToken = req.body.Token;
-  let vCurentPrice = "";
+  let objCurentPrice = "";
 
   try {
-    vCurentPrice = await fnGetCurrentPrice(vExchange, vToken, vClientId, vSession);
+    objCurentPrice = await fnGetCurrentPrice(vExchange, vToken, vClientId, vSession);
 
-    if(vCurentPrice !== "")
+    if(objCurentPrice.data !== "")
     {
-      //console.log(vCurentPrice);
+      //console.log(objCurentPrice);
       
-      let VRoundedStrike = await fnGetRoundedStrikePrice(vCurentPrice.data, vStrikeInterval);
-      //let VRoundedStrike = await fnGetRoundedStrikePrice(vCurentPrice, vStrikeInterval);
+      let vStrike = await fnGetRoundedStrikePrice(objCurentPrice.data, vStrikeInterval);
+      //let VRoundedStrike = await fnGetRoundedStrikePrice(objCurentPrice, vStrikeInterval);
 
-      res.send({"status": VRoundedStrike.status, "message": VRoundedStrike.message, "data": VRoundedStrike.data});
+      res.send({"status": vStrike.status, "message": vStrike.message, "data": vStrike.data});
     }
     else
     {
@@ -248,14 +248,88 @@ exports.fnGetStrikePrice = async (req, res) => {
   // });
 }
 
+exports.fnGetExecutedTradeRate = async (req, res) => {
+  let vActualStrikeRate = req.body.ActualStrikeRate;
+  let vCurrStrikeRate = req.body.CurrStrikeRate;
+  let vClientId = req.body.ClientID;
+  let vSession = req.body.Session;
+  let vExchange = req.body.Exchange;
+  let vStrikeInterval = req.body.StrikeInterval;
+  let vToken = req.body.Token;
+  let vBorS = req.body.BorS;
+  let vCorP = req.body.CorP;
+  let vContract = req.body.Contract;
+  let vSource = req.body.Source;
+  let vSymbol = req.body.Symbol;
+  let vDateToTime = req.body.DateToTime;
+
+  let objCurentPrice = "";
+
+  if(vActualStrikeRate !== "")
+  {
+    let objTokenData = await fnGetTradeToken(vBorS, vCorP, vActualStrikeRate, vCurrStrikeRate, vStrikeInterval, vContract, vSource, vSymbol, vDateToTime);
+
+      if(objTokenData.data.TradeToken !== "")
+      {
+        let objTradeDetails = await fnGetTradeDetails(vContract, objTokenData.data.TradeToken, vClientId, vSession, objTokenData.data.ActualStrike, objTokenData.data.RoundedStrike, vBorS);
+
+        res.send({ status: objTradeDetails.status, message: objTradeDetails.message, data: objTradeDetails.data });
+      }
+      else
+      {
+        res.send({ status: "warning", message: "Received Token Data is Invalid, Please Check!", data: "" });
+      }
+    }
+  else
+  {
+    try {
+      objCurentPrice = await fnGetCurrentPrice(vExchange, vToken, vClientId, vSession);
+
+      if (objCurentPrice.data !== "")
+      {
+        let vStrike = await fnGetRoundedStrikePrice(objCurentPrice.data, vStrikeInterval);
+
+        if(vStrike.data.RoundedStrike !== "")
+        {
+          let objTokenData = await fnGetTradeToken(vBorS, vCorP, vStrike.data.ActualStrike, vStrike.data.RoundedStrike, vStrikeInterval, vContract, vSource, vSymbol, vDateToTime);
+
+          if(objTokenData.data.TradeToken !== "")
+          {
+            let objTradeDetails = await fnGetTradeDetails(vContract, objTokenData.data.TradeToken, vClientId, vSession, objTokenData.data.ActualStrike, objTokenData.data.RoundedStrike, vBorS);
+
+            res.send({ status: objTradeDetails.status, message: objTradeDetails.message, data: objTradeDetails.data });
+          }
+          else
+          {
+            res.send({ status: "warning", message: "Received Token Data is Invalid, Please Check!", data: "" });
+          }
+        }
+        else
+        {
+          res.send({ status: "warning", message: "Received Strike Price is Invalid, Please Check!", data: "" });
+        }
+      }
+      else
+      {
+        res.send({ status: "warning", message: "Received LTP for the Symbol is Empty, Please Check!", data: "" });
+      }
+    }
+    catch (err)
+    {
+      console.log("At Executed Trade: " + err.data);
+      res.send({ status: err.status, message: err.message, data: err.data });
+    }
+  }
+};
+
 const fnGetCurrentPrice = async (pExchange, pToken, pClientId, pSession) => {
   const objData =  new Promise((resolve, reject) => {
-    let data = JSON.stringify({
+    let objParams = JSON.stringify({
       "exch": pExchange,
       "symbol": pToken
     });
 
-    let config = {
+    let objConfig = {
       method: 'post',
       maxBodyLength: Infinity,
       url: 'https://ant.aliceblueonline.com/rest/AliceBlueAPIService/api/ScripDetails/getScripQuoteDetails',
@@ -263,13 +337,13 @@ const fnGetCurrentPrice = async (pExchange, pToken, pClientId, pSession) => {
         'Authorization': 'Bearer '+ pClientId +' ' + pSession, 
         'Content-Type': 'application/json'
       },
-      data : data
+      data : objParams
     };
 
-    axios.request(config)
-    .then((response) => {
+    axios.request(objConfig)
+    .then((objResponse) => {
       //console.log(JSON.stringify(response.data));
-      resolve({"status": "success", "message": "Success - Symbol Data Received", "data": response.data.LTP});
+      resolve({"status": "success", "message": "Success - Symbol Data Received", "data": objResponse.data.LTP});
     })
     .catch((error) => {
       //console.log(error);
@@ -293,20 +367,43 @@ const fnGetRoundedStrikePrice = async (pActualStrike, pStrikeInterval) => {
     }
     else
     {
-      resolve({"status": "success", "message": "Success - Rounded Strike Rate Received", "data": vRoundedStrike});
+      resolve({"status": "success", "message": "Success - Rounded Strike Rate Received", "data": {"ActualStrike": vRoundedStrike, "RoundedStrike": vRoundedStrike} });
     }
   });
 
   return objData;
 }
 
-const fnGetSymbolToken = async (pSource, pExchange, pContract, pSymbol, pExpiry, pStrikeInterval) => {
-  const objData = new Promise((resolve, reject) => {
+const fnGetTradeToken = async (pBorS, pCorP, pActualStrike, pRoundedStrike, pStrikeInterval, pContract, pSource, pSymbol, pDateToTime) => {
+  const objData =  new Promise((resolve, reject) => {
+    let vITMStrike = pActualStrike;
+
+    //console.log(pContract + " - " + pCorP);
+    if(pBorS === "buy")
+    {
+      if(pCorP === "CE")
+      {
+        vITMStrike = parseFloat(vITMStrike) - parseFloat(pStrikeInterval);
+      }
+      else if(pCorP === "PE")
+      {
+        vITMStrike = parseFloat(vITMStrike) + parseFloat(pStrikeInterval);
+      }
+      else
+      {
+        vITMStrike = pActualStrike;
+      }
+    }
+    else
+    {
+      vITMStrike = pActualStrike;
+    }
+
     const vLocalUrl = process.env.API_PATH + "json/" + pContract + ".json";
     const vServerUrl = "https://v2api.aliceblueonline.com/restpy/contract_master?exch=" + pContract;
     let vUrl = "";
-    let vLoopData = "";
-
+    let vNewToken = "";
+    
     if(pSource === "0")
     {
       vUrl = vLocalUrl;
@@ -321,35 +418,81 @@ const fnGetSymbolToken = async (pSource, pExchange, pContract, pSymbol, pExpiry,
     }
 
     axios.get(vUrl)
-      .then((response) => {
-        let vData = response.data;
-
-        
-        if(vData[pContract])
+    .then((response) => {
+      let vData = response.data;
+      
+      if(vData[pContract])
+      {
+        for(let i=0; i<vData[pContract].length; i++)
         {
-          for(let i=0; i<vData[pContract].length; i++)
+          if((vData[pContract][i].symbol === pSymbol) && (vData[pContract][i].expiry_date === parseInt(pDateToTime)) && (parseFloat(vData[pContract][i].strike_price) === parseFloat(vITMStrike)) && (vData[pContract][i].option_type === pCorP))
           {
-            vLoopData = "";
-            if(vData[pContract][i].symbol === pSymbol)
-            {
-              //vLoopData += vData[pContract][i].symbol;
-              console.log(vData[pContract][i].symbol + " ,");
-            }
+            vNewToken = vData[pContract][i].token;
+            //console.log(vData[pContract][i].token + " ,");
           }
-          //console.log("Loop Data: "+ vLoopData);
-          console.log("Parameter: "+ pSymbol);
-          resolve({"status": "success", "message": "Success - Symbol Token Received", "data": vData[pContract].length});
         }
-        else
-        {
-          // console.log("Failed");
-          reject({"status": "warning", "message": "No Data Found in File", "data": ""});
-        }
-      })
-      .catch((error) => {
-        //console.log("Error: " + error);
-        reject({"status": "danger", "message": error.message, "data": ""});
-      });
+
+        resolve({"status": "success", "message": "Success - Option Token Received!", "data": { ActualStrike: pActualStrike, RoundedStrike: vITMStrike, TradeToken: vNewToken }});
+      }
+      else
+      {
+        // console.log("Failed");
+        reject({"status": "warning", "message": "No Data Found in File", "data": ""});
+      }
+    })
+    .catch((error) => {
+      //console.log("Error: " + error);
+      reject({"status": "danger", "message": error.message, "data": ""});
+    });
+  });
+
+  return objData;
+}
+
+const fnGetTradeDetails = async (pContract, pToken, pClientId, pSession, pActualStrike, pRoundedStrike, pBorS) => {
+  const objData =  new Promise((resolve, reject) => {
+
+    let objParams = JSON.stringify({
+      "exch": pContract,
+      "symbol": pToken
+    });
+
+    let objConfig = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: 'https://ant.aliceblueonline.com/rest/AliceBlueAPIService/api/ScripDetails/getScripQuoteDetails',
+      headers: { 
+        'Authorization': 'Bearer '+ pClientId +' ' + pSession, 
+        'Content-Type': 'application/json'
+      },
+      data : objParams
+    };
+
+    //console.log(pContract + " - " + pToken + " - " + pBorS);
+    axios.request(objConfig)
+    .then((objResponse) => {
+      let vLTP = 0;
+      console.log(JSON.stringify(objResponse.data));
+
+      if(pBorS === "buy")
+      {
+        vLTP = objResponse.data.SRate;
+      }
+      else if(pBorS === "sell")
+      {
+        vLTP = objResponse.data.BRate;
+      }
+      else
+      {
+        vLTP = 0;
+      }
+
+      resolve({"status": "success", "message": "Success - Option Data Received", "data": { ActualStrike: pActualStrike, RoundedStrike: pRoundedStrike, TradeToken: pToken, LTP: vLTP }});
+    })
+    .catch((error) => {
+      //console.log(error);
+      reject({"status": "danger", "message": "Error in getting LTP, Please Check!", "data": error.message});
+    });
   });
 
   return objData;

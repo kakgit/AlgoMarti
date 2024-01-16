@@ -358,7 +358,6 @@ function fnLoadCnfStatus()
 
 function fnTestMe()
 {
-    //const d = new Date("2023-12-20");
     const d = new Date("2023-12-13");
     let objTestTxt = document.getElementById("txtTest");
 
@@ -943,20 +942,30 @@ function fnSaveSymbolAttrToDB(pSymbolDetails)
 
 function fnGetSelSymbolData(pSymbolVal)
 {
-    var objSelExp = document.getElementById("ddlManualExpiry");
-    var objSybLst = localStorage.getItem("SymbolListS");
-    var objStrikeInterval = document.getElementById("hidStrikeInterval");
-    var objToken = document.getElementById("hidToken");
-    var objLotSize = document.getElementById("txtManualBuyQty");
-    var objNoOfLots = document.getElementById("txtManualLots");
-    var objStopLoss = document.getElementById("txtManualStopLoss");
-    var objTakeProfit = document.getElementById("txtManualTakeProfit");
-    var objExchange = document.getElementById("hidExchange");
-    var objContract = document.getElementById("hidContract");
+    let objSelExp = document.getElementById("ddlManualExpiry");
+    let objSybLst = localStorage.getItem("SymbolListS");
+    let objStrikeInterval = document.getElementById("hidStrikeInterval");
+    let objToken = document.getElementById("hidToken");
+    let objManualBuyPrice = document.getElementById("txtManualBuyPrice");
+    let objLotSize = document.getElementById("txtManualBuyQty");
+    let objNoOfLots = document.getElementById("txtManualLots");
+    let objStopLoss = document.getElementById("txtManualStopLoss");
+    let objTakeProfit = document.getElementById("txtManualTakeProfit");
+    let objExchange = document.getElementById("hidExchange");
+    let objContract = document.getElementById("hidContract");
+    let objManualStrike = document.getElementById("txtManualStrike");
+    let objActualStrike = document.getElementById("txtActualStrike");
+    let objTradeToken = document.getElementById("hidTradeToken");
+    let objDateToTime = document.getElementById("txtDateToTime");
 
     objSybLst = JSON.parse(objSybLst);
 
     objSelExp.innerHTML = "";
+    objManualStrike.value = "";
+    objActualStrike.value = "";
+    objManualBuyPrice.value = "";
+    objDateToTime.value = "";
+    objTradeToken.value = "";
     //console.log(objSybLst);
 
     if (objSybLst != null)
@@ -995,90 +1004,54 @@ function fnGetSelSymbolData(pSymbolVal)
     }
 }
 
-async function fnInitiateManualTrade(pBYorSL, pCEorPE)
-{
-    let vClientId = document.getElementById("txtClientId").value;
-    let vSession = document.getElementById("hidSession").value;
-    let vSymbol = document.getElementById("ddlManualSymbol").value;
-    let vExpiry = document.getElementById("ddlManualExpiry").value;
-    // let vExchange = "NFO";
-    // let vToken = 39170;
-
-    if(vSymbol === "")
-    {
-        fnGenMessage("Please Select Symbol to Trade!", `badge bg-danger`, "spnGenMsg");
-    }
-    else if(vExpiry === "")
-    {
-        fnGenMessage("Please Select Expiry to Trade!", `badge bg-danger`, "spnGenMsg");
-    }
-    else
-    {
-        let objData = {ClientId: vClientId, Session: vSession, Symbol: vSymbol, Expiry: vExpiry};
-        console.log(pBYorSL);
-    }
-
-    //let vResult = await fnExecuteTrade();
-}
-
-function fnExecuteTrade()
-{
-    let vHeaders = new Headers();
-    vHeaders.append("Content-Type", "application/json");
-
-}
-
 function fnGetLiveRate()
 {
-    let vClientId = document.getElementById("txtClientId").value;
-    let vSession = document.getElementById("hidSession").value;
-    let vSymbol = document.getElementById("ddlManualSymbol").value;
-    let vExchange = document.getElementById("hidExchange").value;
-    let vStrikeInterval = document.getElementById("hidStrikeInterval").value;
+    let objClientId = document.getElementById("txtClientId");
+    let objSession = document.getElementById("hidSession");
+    let objSymbol = document.getElementById("ddlManualSymbol");
+    let objExchange = document.getElementById("hidExchange");
+    let objStrikeInterval = document.getElementById("hidStrikeInterval");
     let objManualStrikePrice = document.getElementById("txtManualStrike");
-    
-    let vSelToken = document.getElementById("hidToken").value;
+    let objActualStrikePrice = document.getElementById("txtActualStrike");
+    let objSelToken = document.getElementById("hidToken");
 
-    if(vSession === "")
+    if(objSession.value === "")
     {
         fnGenMessage("Please Login to Trader!", `badge bg-danger`, "spnGenMsg");
     }
-    else if(vSymbol === "")
+    else if(objSymbol.value === "")
     {
         fnGenMessage("Please Select Symbol to get Strike Price!", `badge bg-danger`, "spnGenMsg");
     }
     else
     {
-        //let objData = {ClientID: vClientId, Session: vSession, Symbol: vSymbol, Expiry: vExpiry};
-
         let vHeaders = new Headers();
         vHeaders.append("Content-Type", "application/json");
 
-        //let vAction = JSON.stringify({ objData });
-
-        let requestOptions = {
+        let objRequestOptions = {
         method: 'POST',
         headers: vHeaders,
-        body: JSON.stringify({ClientID: vClientId, Session: vSession, Exchange: vExchange, StrikeInterval: vStrikeInterval, Token: vSelToken}),
+        body: JSON.stringify({ClientID: objClientId.value, Session: objSession.value, Exchange: objExchange.value, StrikeInterval: objStrikeInterval.value, Token: objSelToken.value}),
         redirect: 'follow'
         };
 
-        fetch("/alice-blue/getStrikePrice", requestOptions)
-        .then(response => response.json())
-        .then(result => {
-            if(result.status === "success")
+        fetch("/alice-blue/getStrikePrice", objRequestOptions)
+        .then(objResponse => objResponse.json())
+        .then(objResult => {
+            if(objResult.status === "success")
             {
-                //console.log(result);
-                objManualStrikePrice.value = result.data;
-                fnGenMessage(result.message, `badge bg-${result.status}`, "spnGenMsg");
+                //console.log(objResult);
+                objManualStrikePrice.value = objResult.data.RoundedStrike;
+                objActualStrikePrice.value = objResult.data.ActualStrike;
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
-            else if(result.status === "danger")
+            else if(objResult.status === "danger")
             {
-                fnGenMessage(result.message, `badge bg-${result.status}`, "spnGenMsg");
+                fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
-            else if(result.status === "warning")
+            else if(objResult.status === "warning")
             {
-                fnGenMessage(result.message, `badge bg-${result.status}`, "spnGenMsg");
+                fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
             else
             {
@@ -1091,5 +1064,94 @@ function fnGetLiveRate()
         });
 
         //console.log(vAction);
+    }
+}
+
+async function fnInitiateManualTrade(pBYorSL, pCEorPE)
+{
+    let objManualStrike = document.getElementById("txtManualStrike");
+    let objClientId = document.getElementById("txtClientId");
+    let objSession = document.getElementById("hidSession");
+    let objSymbol = document.getElementById("ddlManualSymbol");
+    let objExpiry = document.getElementById("ddlManualExpiry");
+    let objExchange = document.getElementById("hidExchange");
+    let objStrikeInterval = document.getElementById("hidStrikeInterval");
+    let objManualStrikePrice = document.getElementById("txtManualStrike");
+    let objActualStrikePrice = document.getElementById("txtActualStrike");
+    let objBuyPrice = document.getElementById("txtManualBuyPrice");
+    let objSelToken = document.getElementById("hidToken");
+    let objManualQty = document.getElementById("txtManualBuyQty");
+    let objManualLots = document.getElementById("txtManualLots");
+    let objDateToTime = document.getElementById("txtDateToTime");
+    let objContract = document.getElementById("hidContract");
+    let objSource = document.getElementById("ddlManualSource");
+    let objTradeToken = document.getElementById("hidTradeToken");
+
+    if(objSession.value === "")
+    {
+        fnGenMessage("Please Login to Trader!", `badge bg-danger`, "spnGenMsg");
+    }
+    else if(objSymbol.value === "")
+    {
+        fnGenMessage("Please Select Symbol to Trade!", `badge bg-danger`, "spnGenMsg");
+    }
+    else if(objExpiry.value === "")
+    {
+        fnGenMessage("Please Select Expiry to Trade!", `badge bg-danger`, "spnGenMsg");
+    }
+    else if(objManualQty.value === "")
+    {
+        fnGenMessage("Please Input Valid Quantity!", `badge bg-danger`, "spnGenMsg");
+    }
+    else if(objManualLots.value === "")
+    {
+        fnGenMessage("Please Input Valid No Of Lots!", `badge bg-danger`, "spnGenMsg");
+    }
+    else
+    {
+        let objDate = new Date(objExpiry.value);
+        objDateToTime.value = objDate.getTime();
+    
+        let vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+
+        let objRequestOptions = {
+            method: 'POST',
+            headers: vHeaders,
+            body: JSON.stringify({ ActualStrikeRate: objActualStrikePrice.value, CurrStrikeRate: objManualStrike.value, ClientID: objClientId.value, Session: objSession.value, Exchange: objExchange.value, StrikeInterval: objStrikeInterval.value, Token: objSelToken.value, BorS: pBYorSL, CorP: pCEorPE, Contract: objContract.value, Source: objSource.value, Symbol: objSymbol.value, DateToTime: objDateToTime.value }),
+            redirect: 'follow'
+            };
+
+            fetch("/alice-blue/getExecutedTradeRate", objRequestOptions)
+            .then(objResponse => objResponse.json())
+            .then(objResult => {
+                if(objResult.status === "success")
+                {
+                    //console.log(objResult);
+                    objManualStrikePrice.value = objResult.data.RoundedStrike;
+                    objActualStrikePrice.value = objResult.data.ActualStrike;
+                    objTradeToken.value = objResult.data.TradeToken;
+                    objBuyPrice.value = objResult.data.LTP;
+                    fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+                }
+                else if(objResult.status === "danger")
+                {
+                    fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+                }
+                else if(objResult.status === "warning")
+                {
+                    fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+                }
+                else
+                {
+                    fnGenMessage("Error in Login, Contact Admin.", `badge bg-danger`, "spnGenMsg");
+                }
+            })
+            .catch(error => {
+                console.log('error: ', error);
+                fnGenMessage("Error to Fetch with Login Details.", `badge bg-danger`, "spnGenMsg");
+            });
+        
+        //console.log(pCEorPE);
     }
 }
