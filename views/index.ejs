@@ -1,5 +1,4 @@
 <div id="main">
-
     <div class="page-heading">
         <div class="row">
             <div class="col-4">
@@ -12,12 +11,11 @@
                 <a href="javascript: void(null);" class="btn btn-outline-primary" onclick="fnShowSettingsMdl();"><i class="fa fa-cogs" aria-hidden="true" style="color: orangered;"></i> Alice Blue Settings</a>
             </div>
         </div>
-
     </div>
     <div class="page-content">
         <section class="row">
             <div class="col-12 col-lg-9">
-                <div class="row">
+                <div class="row" style="text-align: center;">
                     <div class="col-6 col-lg-3 col-md-6">
                         <button class="badge bg-danger" onclick="fnShowTraderLoginMdl(this);" id="btnTraderStatus">TRADER - Disconnected</button>
                     </div>
@@ -28,28 +26,20 @@
                         <button class="badge bg-success">Paper Trading - ON</button>
                     </div>
                     <div class="col-6 col-lg-3 col-md-6">
-                        <button class="badge bg-danger">NO Open Position</button>
+                        <button class="badge bg-danger" onclick="fnPositionStatus()" id="btnPositionStatus">NO Open Position</button>
                     </div>
+                    <div class="col-12">&nbsp;</div>
                 </div>
                 <div class="row">
-                    <div class="col-12 col-xl-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4>Open Position</h4>
-                            </div>
-                            <div class="card-body">
-                                <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="fnClearLocalStorageTemp();">Clear LS</button>
-                                <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="fnTestMe();">Test Me</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-xl-8">
+                    <div class="col-12 col-lg-12">
                         <div class="card">
                             <div class="card-header">
                                 <h4>Manual Trader</h4>
                             </div>
                             <div class="card-body">
                                 <div class="row">
+                                    <div class="col-6 col-lg-3 col-md-6">Strategy</div>
+                                    <div class="col-6 col-lg-3 col-md-6"><input id="txtStrategy" type="number" min="1" value="111111" class="form-control" placeholder="Strategy" /></div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         Load from
                                     </div>
@@ -59,8 +49,6 @@
                                             <option value=1>Server</option>
                                         </select>
                                     </div>
-                                    <div class="col-6 col-lg-3 col-md-6"></div>
-                                    <div class="col-6 col-lg-3 col-md-6"></div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <select id="ddlManualSymbol" class="form-control" onchange="fnGetSelSymbolData(this.value);">
                                         </select>
@@ -76,7 +64,7 @@
                                         
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
-                                        <input type="text" class="form-control" placeholder="MARKET" id="txtManualBuyPrice" />
+                                        <input type="text" class="form-control" placeholder="MARKET" id="txtManualTradePrice" />
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <input type="number" min="1" class="form-control" placeholder="Quantity" id="txtManualBuyQty" />
@@ -92,99 +80,204 @@
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-danger" onclick="fnInitiateManualTrade('sell', 'CE');"><b>SELL CALL</b></button>
+                                            <button class="btn btn-outline-danger" onclick="fnInitiateSellManualTrade('sell', 'CE');"><b>SELL CALL</b></button>
                                         </div>
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-danger" onclick="fnInitiateManualTrade('sell', 'PE');"><b>SELL PUT</b></button>
+                                            <button class="btn btn-outline-danger" onclick="fnInitiateSellManualTrade('sell', 'PE');"><b>SELL PUT</b></button>
                                         </div>
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success" onclick="fnInitiateManualTrade('buy', 'CE');"><b>BUY CALL</b></button>
+                                            <button class="btn btn-outline-success" onclick="fnInitiateBuyManualTrade('CE');"><b>BUY CALL</b></button>
                                         </div>
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success" onclick="fnInitiateManualTrade('buy', 'PE');"><b>BUY PUT</b></button>
+                                            <button class="btn btn-outline-success" onclick="fnInitiateBuyManualTrade('PE');"><b>BUY PUT</b></button>
                                         </div>
                                     </div>
                                     <div class="col-12 col-lg-12 col-md-12">
-                                        <input type="text" id="hidSession" class="form-control" placeholder="Session" />
-                                        <input type="text" id="hidStrikeInterval" placeholder="Strike Interval" />
-                                        <input type="text" id="hidToken" placeholder="Script Token" />
-                                        <input type="text" id="hidExchange" placeholder="Exchange" />
-                                        <input type="text" id="hidContract" placeholder="Contract" />
-                                        <input type="text" id="txtDateToTime" placeholder="DateToTime" />
-                                        <input type="text" id="txtActualStrike" placeholder="Actual Strike" />
-                                        <input type="text" id="hidTradeToken" placeholder="Option Token" />
+                                        <input type="hidden" id="hidSession" class="form-control" placeholder="Session" />
+                                        <input type="hidden" id="hidStrikeInterval" placeholder="Strike Interval" />
+                                        <input type="hidden" id="hidToken" placeholder="Script Token" />
+                                        <input type="hidden" id="hidExchange" placeholder="Exchange" />
+                                        <input type="hidden" id="hidContract" placeholder="Contract" />
+                                        <input type="hidden" id="txtDateToTime" placeholder="DateToTime" />
+                                        <input type="hidden" id="txtActualStrike" placeholder="Actual Strike" />
+                                        <input type="hidden" id="hidTradeToken" placeholder="Option Token" />
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">
                         <div class="card">
                             <div class="card-header">
                                 <h4>Closed Positions</h4>
                             </div>
                             <div class="card-body">
+                                <div class="container-fluid">
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead>
+                                                <tr style="text-align:center;">
+                                                  <!-- <th scope="col">TradeID</th> -->
+                                                  <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
+                                                  <th scope="col" style="text-wrap: nowrap;">End Date Time</th>
+                                                  <th scope="col" style="text-wrap: nowrap;">Symbol</th>
+                                                  <th scope="col" style="text-wrap: nowrap;">Expiry</th>
+                                                  <th scope="col" style="text-wrap: nowrap;">Strike</th>
+                                                  <th scope="col" style="text-wrap: nowrap;">Qty</th>
+                                                  <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
+                                                  <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
+                                                  <th scope="col" style="text-wrap: nowrap;">Capital</th>
+                                                  <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
+                                                </tr>
+                                              </thead>
+                                              <tbody id="divTodayTrades">
 
+                                              </tbody>
+                                        </table>
+                                    </div>
+                                    <!-- <div class="row" id="divTodayTrades">
+                                    </div> -->
+                                </div>                    
                             </div>
                         </div>
                     </div>
                 </div>
-
             </div>
             <div class="col-12 col-lg-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Open Position</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="divCurrTrade" style="overflow-x:hidden;">
+                            <div class="row" style="border:1px solid red; padding:5px;">
+                                <div class="col-6">
+                                    <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                                        <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtAutoChkPosition" name="swtAutoChkPosition" onchange="fnCheckTradeTimer();" />
+                                        <label for="swtAutoChkPosition" style="cursor:pointer;">Auto Check Every</label>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <input type="number" class="form-control" placeholder="Timer" id="txtTimeMS" value="10" maxlength="3" />
+                                </div>
+                                <div class="col-3" onclick="document.getElementById('txtMCurrPrice').type='text';">
+                                    <input type="hidden" class="form-control" placeholder="Sell Price" id="txtMCurrPrice" value="" />
+                                </div>
+                                
+                                <div class="col-12">
+                                    <select id="ddlTrailSLTP" class="form-control" onchange="fnSetDDLTrailSLTP(this);">
+                                        <option value=0 selected="true">SL or TP</option>
+                                        <option value=1>Trail by SL Points</option>
+                                        <option value=2>Trail SL After TP</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-12">&nbsp;</div>
+                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">T-SL</div>
+                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">On SL</div>
+                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">On TP</div>
+                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">Capital:</div>
+
+                                <div class="col-3" style="text-align:center; color:orange; white-space:nowrap; text-align: center;" id="lblTrailSL">0.00</div>
+                                <div class="col-3" style="text-align:center; color:red; white-space:nowrap; text-align: center;" id="lblLossOnSL">0.00</div>
+                                <div class="col-3" style="text-align:center; color:green; white-space:nowrap; text-align: center;" id="lblProfitOnTP">0.00</div>
+                                <div class="col-3" id="lblCapital" style="font-weight:bold; white-space:nowrap; text-align: center;">0.00</div>
+                                <div class="col-12">&nbsp;</div>
+
+                                <div class="col-4"><input type="text" class="form-control" placeholder="SL" id="txtUpdStopLoss" /></div>
+                                <div class="col-4"><input type="text" class="form-control" placeholder="TP" id="txtUpdTakeProfit" /></div>
+                                <div class="col-4"><button class="btn btn-outline-info btn-block" id="btnUpdateSLTP" onclick="fnUpdateSLTP();"><b>UPDATE</b></button></div>
+                                <hr />
+
+                                <div class="col-6" style="font-size:14px; color:cornflowerblue">Entry Date Time</div>
+                                <div class="col-6" style="text-align:right; font-size:14px; white-space:nowrap; color:cornflowerblue" id="lblEntryDate">00-00-0000 00:00:00</div>
+
+                                <div class="col-4" style="font-weight:bold; white-space:nowrap; font-size:14px;" id="lblSymbol">SYMBOL NAME</div>
+                                <div class="col-2" style="font-weight:bold; white-space:nowrap; font-size:14px;" id="lblStrike">000000</div>
+                                <div class="col-1" style="font-weight:bold; white-space:nowrap; font-size:14px;" id="lblOptionType">OT</div>
+                                <div class="col-5" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align:right;" id="lblExpiry">YYYY-MM-DD</div>
+                                <div class="col-12">&nbsp;</div>
+
+                                <div class="col-2" style="color:blue; white-space:nowrap; font-size:14px; text-align: center;">QTY</div>
+                                <div class="col-3" style="color:green; white-space:nowrap; font-size:14px; text-align: center;" id="lblBuyPriceInd">BUY PRICE</div>
+                                <div class="col-4" style="color:red; white-space:nowrap; font-size:14px; text-align: center;" id="lblSellPriceInd">SELL PRICE</div>
+                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">P & L</div>
+                                <div class="col-12"></div>
+
+                                <div class="col-2" style="color:blue; white-space:nowrap; font-size:14px; text-align: center;" id="lblQty">0</div>
+                                <div class="col-3" style="color:green; white-space:nowrap; font-size:14px; text-align: center;" id="lblBuyPrice">0.00</div>
+                                <div class="col-4" style="color:red; white-space:nowrap; font-size:14px; text-align: center;" id="lblSellPrice">0.00</div>
+                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;" id="lblProfitLoss">0.00</div>
+                                <div class="col-12">&nbsp;</div>
+
+                                <div class="col-6" style="text-align:center; white-space:nowrap; font-size:14px;"><button class="btn btn-outline-info btn-block" id="btnGetLatestPrice" onclick="fnCheckTradeTimer();"><b>GET CURRENT PRICE</b></button></div>
+                                <div class="col-6" style="text-align:center; white-space:nowrap; font-size:14px;"><button class="btn btn-outline-danger btn-block" id="btnClosePosition" onclick="fnManualCloseTrade();"><b>CLOSE POSITION</b></button></div>
+                            </div>
+                        </div>
+                        <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="fnClearLocalStorageTemp();">Clear LS</button>
+                        <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="fnTestMe();">Test Me</button>
+                    </div>
+                </div>
                 <div class="card">
                     <div class="card-header">
                         <div class="row">
                             <div class="col-8"><h5>I Confirmation</h5></div>
                             <div class="col-4">
-                                
                             </div>
                         </div>
                     </div>
                     <div class="card-body">
-                        <form name="cnf1">
+                        <form name="cnf3">
                             <div class="row text-center">
-                                <div class="col-4">BNF</div>
-                                <div class="col-4">NIFTY</div>
-                                <div class="col-4">FINNIFTY</div>
-                                <div class="col-4">
+                                <div class="col-3">BNF</div>
+                                <div class="col-3">NIFTY</div>
+                                <div class="col-3" style="white-space: nowrap;">FINNIFTY</div>
+                                <div class="col-3">SENSEX</div>
+                                <div class="col-3">
                                     <div class="tw-toggle" style="white-space: nowrap;">
-                                        <input id="txtBN1" type="radio" name="BANKNIFTY" value="false" onclick="fnSaveConfirmations('cnf1', 'BANKNIFTY', false);" />
+                                        <input id="txtBN1" type="radio" name="BANKNIFTY" value="false" onclick="fnSaveConfirmations('cnf3', 'BANKNIFTY', false);" />
                                         <label class="toggle toggle-yes" for="txtBN1"><i class="fa fa-arrow-down"></i></label>
-                                        <input id="txtBN2" checked type="radio" name="BANKNIFTY" value="-1" onclick="fnSaveConfirmations('cnf1', 'BANKNIFTY', -1);" />
+                                        <input id="txtBN2" checked type="radio" name="BANKNIFTY" value="-1" onclick="fnSaveConfirmations('cnf3', 'BANKNIFTY', -1);" />
                                         <label class="toggle toggle-yes" for="txtBN2"><i class="fa fa-minus"></i></label>
-                                        <input id="txtBN3" type="radio" name="BANKNIFTY" value="true" onclick="fnSaveConfirmations('cnf1', 'BANKNIFTY', true);" />
+                                        <input id="txtBN3" type="radio" name="BANKNIFTY" value="true" onclick="fnSaveConfirmations('cnf3', 'BANKNIFTY', true);" />
                                         <label class="toggle toggle-yes" for="txtBN3"><i class="fa fa-arrow-up"></i></label>
                                         <span></span>
                                     </div>
                                 </div>
-                                <div class="col-4">
+                                <div class="col-3">
                                     <div class="tw-toggle" style="white-space: nowrap;">
-                                        <input id="txtNF1" type="radio" name="NIFTY" value="false" onclick="fnSaveConfirmations('cnf1', 'NIFTY', false);" />
+                                        <input id="txtNF1" type="radio" name="NIFTY" value="false" onclick="fnSaveConfirmations('cnf3', 'NIFTY', false);" />
                                         <label class="toggle toggle-yes" for="txtNF1"><i class="fa fa-arrow-down"></i></label>
-                                        <input id="txtNF2" checked type="radio" name="NIFTY" value="-1" onclick="fnSaveConfirmations('cnf1', 'NIFTY', -1);" />
+                                        <input id="txtNF2" checked type="radio" name="NIFTY" value="-1" onclick="fnSaveConfirmations('cnf3', 'NIFTY', -1);" />
                                         <label class="toggle toggle-yes" for="txtNF2"><i class="fa fa-minus"></i></label>
-                                        <input id="txtNF3" type="radio" name="NIFTY" value="true" onclick="fnSaveConfirmations('cnf1', 'NIFTY', true);" />
+                                        <input id="txtNF3" type="radio" name="NIFTY" value="true" onclick="fnSaveConfirmations('cnf3', 'NIFTY', true);" />
                                         <label class="toggle toggle-yes" for="txtNF3"><i class="fa fa-arrow-up"></i></label>
                                         <span></span>
                                     </div>
                                 </div>
-                                <div class="col-4">
+                                <div class="col-3">
                                     <div class="tw-toggle" style="white-space: nowrap;">
-                                        <input id="txtFN1" type="radio" name="FINNIFTY" value="false" onclick="fnSaveConfirmations('cnf1', 'FINNIFTY', false);" />
+                                        <input id="txtFN1" type="radio" name="FINNIFTY" value="false" onclick="fnSaveConfirmations('cnf3', 'FINNIFTY', false);" />
                                         <label class="toggle toggle-yes" for="txtFN1"><i class="fa fa-arrow-down"></i></label>
-                                        <input id="txtFN2" checked type="radio" name="FINNIFTY" value="-1" onclick="fnSaveConfirmations('cnf1', 'FINNIFTY', -1);" />
+                                        <input id="txtFN2" checked type="radio" name="FINNIFTY" value="-1" onclick="fnSaveConfirmations('cnf3', 'FINNIFTY', -1);" />
                                         <label class="toggle toggle-yes" for="txtFN2"><i class="fa fa-minus"></i></label>
-                                        <input id="txtFN3" type="radio" name="FINNIFTY" value="true" onclick="fnSaveConfirmations('cnf1', 'FINNIFTY', true);" />
+                                        <input id="txtFN3" type="radio" name="FINNIFTY" value="true" onclick="fnSaveConfirmations('cnf3', 'FINNIFTY', true);" />
                                         <label class="toggle toggle-yes" for="txtFN3"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input id="txtSX1" type="radio" name="SENSEX" value="false" onclick="fnSaveConfirmations('cnf3', 'SENSEX', false);" />
+                                        <label class="toggle toggle-yes" for="txtSX1"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtSX2" checked type="radio" name="SENSEX" value="-1" onclick="fnSaveConfirmations('cnf3', 'SENSEX', -1);" />
+                                        <label class="toggle toggle-yes" for="txtSX2"><i class="fa fa-minus"></i></label>
+                                        <input id="txtSX3" type="radio" name="SENSEX" value="true" onclick="fnSaveConfirmations('cnf3', 'SENSEX', true);" />
+                                        <label class="toggle toggle-yes" for="txtSX3"><i class="fa fa-arrow-up"></i></label>
                                         <span></span>
                                     </div>
                                 </div>
@@ -197,17 +290,17 @@
                         <div class="row">
                             <div class="col-8"><h5>II Confirmation</h5></div>
                             <div class="col-4">
-                                
                             </div>
                         </div>
                     </div>
                     <div class="card-body">
                         <form name="cnf2">
                             <div class="row text-center">
-                                <div class="col-4">BNF</div>
-                                <div class="col-4">NIFTY</div>
-                                <div class="col-4">FINNIFTY</div>
-                                <div class="col-4">
+                                <div class="col-3">BNF</div>
+                                <div class="col-3">NIFTY</div>
+                                <div class="col-3" style="white-space: nowrap;">FINNIFTY</div>
+                                <div class="col-3">SENSEX</div>
+                                <div class="col-3">
                                     <div class="tw-toggle" style="white-space: nowrap;">
                                         <input id="txtBN4" type="radio" name="BANKNIFTY" value="false" onclick="fnSaveConfirmations('cnf2', 'BANKNIFTY', false);" />
                                         <label class="toggle toggle-yes" for="txtBN4"><i class="fa fa-arrow-down"></i></label>
@@ -218,7 +311,7 @@
                                         <span></span>
                                     </div>
                                 </div>
-                                <div class="col-4">
+                                <div class="col-3">
                                     <div class="tw-toggle" style="white-space: nowrap;">
                                         <input id="txtNF4" type="radio" name="NIFTY" value="false" onclick="fnSaveConfirmations('cnf2', 'NIFTY', false);" />
                                         <label class="toggle toggle-yes" for="txtNF4"><i class="fa fa-arrow-down"></i></label>
@@ -229,7 +322,7 @@
                                         <span></span>
                                     </div>
                                 </div>
-                                <div class="col-4">
+                                <div class="col-3">
                                     <div class="tw-toggle" style="white-space: nowrap;">
                                         <input id="txtFN4" type="radio" name="FINNIFTY" value="false" onclick="fnSaveConfirmations('cnf2', 'FINNIFTY', false);" />
                                         <label class="toggle toggle-yes" for="txtFN4"><i class="fa fa-arrow-down"></i></label>
@@ -237,6 +330,17 @@
                                         <label class="toggle toggle-yes" for="txtFN5"><i class="fa fa-minus"></i></label>
                                         <input id="txtFN6" type="radio" name="FINNIFTY" value="true" onclick="fnSaveConfirmations('cnf2', 'FINNIFTY', true);" />
                                         <label class="toggle toggle-yes" for="txtFN6"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input id="txtSX4" type="radio" name="SENSEX" value="false" onclick="fnSaveConfirmations('cnf2', 'SENSEX', false);" />
+                                        <label class="toggle toggle-yes" for="txtSX4"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtSX5" checked type="radio" name="SENSEX" value="-1" onclick="fnSaveConfirmations('cnf2', 'SENSEX', -1);" />
+                                        <label class="toggle toggle-yes" for="txtSX5"><i class="fa fa-minus"></i></label>
+                                        <input id="txtSX6" type="radio" name="SENSEX" value="true" onclick="fnSaveConfirmations('cnf2', 'SENSEX', true);" />
+                                        <label class="toggle toggle-yes" for="txtSX6"><i class="fa fa-arrow-up"></i></label>
                                         <span></span>
                                     </div>
                                 </div>
@@ -265,7 +369,6 @@
         </section>
     </div>
 </div>
-
 
 <!--Disabled Backdrop Modal for Trader Login-->
 <div class="modal fade text-left" id="mdlAliceLogin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
@@ -311,7 +414,7 @@
                                                 </div>
                                                 <div class="col-md-6 col-12">
                                                     <div class="form-group">
-                                                        <input type="text" id="hidEncKey" class="form-control" />
+                                                        <input type="hidden" id="hidEncKey" class="form-control" />
                                                         
                                                     </div>
                                                 </div>

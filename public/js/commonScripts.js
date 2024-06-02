@@ -155,3 +155,41 @@ function fnSetCurrDate(pDate)
   console.log("Converted to to Local Tm Str: " + dtNow.toLocaleTimeString());
   console.log("Converted to to Local DT en-US: " + dtNow.toLocaleString("en-IN"));
 }
+
+function fnLoginStatus()
+{
+  let objLoginTxt = document.getElementById("lblAppLoginTxt");
+  let objSession = document.getElementById("hidSession");
+  let objTraderStatus = document.getElementById("btnTraderStatus");
+
+  if(objLoginTxt.innerText === "LOGOUT")
+  {
+    localStorage.setItem("AppMsgStatusS", false);
+    localStorage.setItem("isTraderLogin", false);
+    localStorage.removeItem("lsAliceBlueSession", "");
+    localStorage.removeItem("UserDetS");
+
+    objSession.value = "";
+
+    objLoginTxt.innerText = "LOGIN";
+
+    fnSetUserProfileDets();
+    fnGenMessage("App is Logged Out!", `badge bg-success`, "spnGenMsg");
+    fnGenMessage("TRADER - Disconnected", `badge bg-danger`, "btnTraderStatus");
+    //fnChangeBtnProps(objTraderStatus.id, "badge bg-danger", "TRADER - Disconnected");
+  }
+  else
+  {
+    $('#mdlAppLogin').modal('show');
+  }
+}
+
+function fnAppLogin()
+{
+  let objLoginTxt = document.getElementById("lblAppLoginTxt");
+
+  localStorage.setItem("AppMsgStatusS", true);
+  objLoginTxt.innerText = "LOGOUT";
+  $('#mdlAppLogin').modal('hide');
+  fnGenMessage("App is Logged In!", `badge bg-success`, "spnGenMsg");
+}

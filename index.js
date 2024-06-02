@@ -76,6 +76,8 @@ app.post("/tv-msg", (req, res) => {
     const vStrike = req.body.strike;
     const vCnf = req.body.cnf;
     
+    //console.log(vCnf);
+
     const objMsg = JSON.stringify({ symbolName: vSymbolName, indType: vIndType, direction: vDirection, strike: vStrike, cnf: vCnf });
 
     io.emit("ServerEmit", objMsg);

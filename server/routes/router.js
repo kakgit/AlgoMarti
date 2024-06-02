@@ -34,6 +34,8 @@ route.post('/api/actionUsers', usersController.fnActions);
 route.post("/alice-blue/getSession", abController.fnLoginAliceBlue);
 route.post("/alice-blue/getStrikePrice", abController.fnGetStrikePrice);
 route.post("/alice-blue/getExecutedTradeRate", abController.fnGetExecutedTradeRate);
+route.post("/alice-blue/getOpenTradeRate", abController.fnGetOpenTradeRate);
+route.post("/alice-blue/getUserProfileDetails", abController.fnGetUserProfileDetails);
 // route.post("/alice-blue/getSession", abController.fnLoginAliceBlue);
 
 //Update JSON file Routes

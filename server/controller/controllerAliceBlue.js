@@ -2,54 +2,6 @@
 const {createHash} = require('node:crypto');
 const axios = require('axios');
 
-// exports.fnLoginAliceBlue = async (req, res) => {
-//     let vClientId = "632665";
-//     let vApiKey = "sYtLAxsaZjYPcHEMVKK2yLGvsr9mH1ou9FcFmZuQy5LIuotmzaoN4uof32IavhKaYSUBkQfHWVs4OUlk7FQjYpOWRxJx9BDajn9LKI598LtIbR0STdhK1g0uLIlBLHHW";
-
-//     // const vEncKey = await fnGetEncKey(req, res, vClientId);
-
-//     // console.log(vEncKey);
-
-//     let data = JSON.stringify({
-//       userId: vClientId,
-//     });
-//     let config = {
-//       method: "post",
-//       maxBodyLength: Infinity,
-//       url: "https://ant.aliceblueonline.com/rest/AliceBlueAPIService/api/customer/getAPIEncpkey",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       data: data,
-//     };
-
-//     await axios
-//       .request(config)
-//       .then((response) => {
-//         //console.log(JSON.stringify(response.data));
-//         const isEncKey = response.data.login;
-
-//         if(isEncKey)
-//         {
-//             const vEncKey = response.data.encKey;
-
-//             const objSession = fnGetSHA256Code(req, res, vClientId, vApiKey, vEncKey);
-//             //console.log(objSession);
-//         }
-//         else
-//         {
-//             res.send({"status": "warning", "message": response.data.emsg});
-//         }
-//       })
-//       .catch((error) => {
-//         console.log(error);
-//         res.send({"status": "danger", "message": "Error: Error at getting Enc Code!"});
-//     });
-
-//     // console.log(vEncKey);
-//     // res.send({"status": "success"});
-// }
-
 exports.fnLoginAliceBlue = async (req, res) => {
   // let vClientId = "632665";
   // let vApiKey = "sYtLAxsaZjYPcHEMVKK2yLGvsr9mH1ou9FcFmZuQy5LIuotmzaoN4uof32IavhKaYSUBkQfHWVs4OUlk7FQjYpOWRxJx9BDajn9LKI598LtIbR0STdhK1g0uLIlBLHHW";
@@ -66,16 +18,19 @@ exports.fnLoginAliceBlue = async (req, res) => {
     let vSession = await fnGetSessionAB(vClientId, vSHA256);
     // console.log(vSession);
 
-    let vData = {EncKey : vEncKey, Session : vSession};
+    let objUserDet = await fnGetProfileDetailsAB(vClientId, vSession);
 
-    res.send({"status": "success", "message": "Login - Successful", "data": vData});
+    let objUserMargin = await fnGetUsermarginsAB(vClientId, vSession);
+    //let vData = {accountId : objUserDet.data.accountId, accountName : objUserDet.data.accountName, cellAddr : objUserDet.data.cellAddr, emailAddr : objUserDet.data.emailAddr, accountStatus : objUserDet.data.accountStatus, dataMargins : objUserMargin.data[0]};
 
-    return true;
-    } catch (error) {
+
+    let vData = {EncKey : vEncKey, Session : vSession, accountId : objUserDet.data.accountId, accountName : objUserDet.data.accountName, cellAddr : objUserDet.data.cellAddr, emailAddr : objUserDet.data.emailAddr, accountStatus : objUserDet.data.accountStatus, dataMargins : objUserMargin.data[0]};
+
+    res.send({"status": "success", "message": "Trader Login - Successful", "data": vData});
+  }
+  catch (error) {
     //console.log(error);
     res.send({"status": "danger", "message": error.message});
-
-    return false;
   }
 }
 
@@ -175,6 +130,41 @@ async function fnGetSessionAB(pClientID, pSHA256) {
   return objSession;
 }
 
+exports.fnGetUserProfileDetails = async (req, res) => {
+  let vClientId = req.body.ClientID;
+  let vSession = req.body.Session;
+  let objUserDet, objUserMargin = "";
+
+  try {
+    objUserDet = await fnGetProfileDetailsAB(vClientId, vSession);
+
+    if(objUserDet.data !== "")
+    {
+      objUserMargin = await fnGetUsermarginsAB(vClientId, vSession);
+
+      if(objUserMargin.data !== "")
+        {
+          let vData = {accountId : objUserDet.data.accountId, accountName : objUserDet.data.accountName, cellAddr : objUserDet.data.cellAddr, emailAddr : objUserDet.data.emailAddr, accountStatus : objUserDet.data.accountStatus, dataMargins : objUserMargin.data[0]};
+
+          res.send({"status": objUserMargin.status, "message": objUserMargin.message, "data": vData });
+        }
+        else
+        {
+          res.send({"status": "warning", "message": "Error in Receiving User Margins!", "data": ""});
+        }
+    }
+    else
+    {
+      res.send({"status": "warning", "message": "Error in Receiving User Data!", "data": ""});
+    }
+  }
+  catch(err) {
+    console.log("At fnGetUserProfileDetails: " + err.data);
+    res.send({"status": err.status, "message": err.message, "data": err.data});
+  }
+
+}
+
 exports.fnGetStrikePrice = async (req, res) => {
   let vClientId = req.body.ClientID;
   let vSession = req.body.Session;
@@ -207,45 +197,6 @@ exports.fnGetStrikePrice = async (req, res) => {
     console.log("At fnGetCurrentPrice: " + err.data);
     res.send({"status": err.status, "message": err.message, "data": err.data});
   }
-
-  // const objData = new Promise((resolve, reject) => {
-  //   let data = JSON.stringify({
-  //     exch: pClientID,
-  //     symbol: pSHA256,
-  //   });
-
-  //   let config = {
-  //     method: "post",
-  //     maxBodyLength: Infinity,
-  //     url: "https://ant.aliceblueonline.com/rest/AliceBlueAPIService/api/ScripDetails/getScripQuoteDetails",
-  //     headers: {
-  //        "Authorization": `Bearer ${pClientID} ${Session}`,
-  //       "Content-Type": "application/json",
-  //     },
-  //     data: data,
-  //   };
-  //   axios
-  //     .request(config)
-  //     .then((response) => {
-
-  //       const vIsOk = response.data.stat;
-  //       //console.log(response.data);
-
-  //       if (vIsOk === "Ok") {
-  //         const vSessionAB = response.data.sessionID;
-
-  //         resolve(vSessionAB);
-
-  //       } else {
-  //         //console.log(response.data.emsg);
-  //         reject(new Error(response.data.emsg));
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       //console.log(error);
-  //       reject(new Error("Error at getting Session"));
-  //     });
-  // });
 }
 
 exports.fnGetExecutedTradeRate = async (req, res) => {
@@ -271,7 +222,7 @@ exports.fnGetExecutedTradeRate = async (req, res) => {
 
       if(objTokenData.data.TradeToken !== "")
       {
-        let objTradeDetails = await fnGetTradeDetails(vContract, objTokenData.data.TradeToken, vClientId, vSession, objTokenData.data.ActualStrike, objTokenData.data.RoundedStrike, vBorS);
+        let objTradeDetails = await fnGetTradeDetails(vContract, objTokenData.data.TradeToken, vClientId, vSession, objTokenData.data.ActualStrike, objTokenData.data.RoundedStrike);
 
         res.send({ status: objTradeDetails.status, message: objTradeDetails.message, data: objTradeDetails.data });
       }
@@ -295,7 +246,7 @@ exports.fnGetExecutedTradeRate = async (req, res) => {
 
           if(objTokenData.data.TradeToken !== "")
           {
-            let objTradeDetails = await fnGetTradeDetails(vContract, objTokenData.data.TradeToken, vClientId, vSession, objTokenData.data.ActualStrike, objTokenData.data.RoundedStrike, vBorS);
+            let objTradeDetails = await fnGetTradeDetails(vContract, objTokenData.data.TradeToken, vClientId, vSession, objTokenData.data.ActualStrike, objTokenData.data.RoundedStrike);
 
             res.send({ status: objTradeDetails.status, message: objTradeDetails.message, data: objTradeDetails.data });
           }
@@ -319,6 +270,29 @@ exports.fnGetExecutedTradeRate = async (req, res) => {
       console.log("At Executed Trade: " + err.data);
       res.send({ status: err.status, message: err.message, data: err.data });
     }
+  }
+};
+
+exports.fnGetOpenTradeRate = async (req, res) => {
+  let vContract = req.body.Contract;
+  let vToken = req.body.Token;
+  let vClientId = req.body.ClientID;
+  let vSession = req.body.Session;
+
+  if(vSession === "" || vClientId === "")
+  {
+    res.send({ status: "warning", message: "Session Expired! Please Login!", data: "" });
+  }
+  else if(vToken === "" || vContract === "")
+  {
+    res.send({ status: "warning", message: "Invalid Token! Please Check!", data: "" });
+  }
+  else
+  {
+    let objTradeDetails = await fnGetOpenTradeDetails(vContract, vToken, vClientId, vSession);
+
+    //console.log(objTradeDetails);
+    res.send({ status: objTradeDetails.status, message: objTradeDetails.message, data: objTradeDetails.data });
   }
 };
 
@@ -351,6 +325,64 @@ const fnGetCurrentPrice = async (pExchange, pToken, pClientId, pSession) => {
     });
   });
   //console.log(pExchange + " - " + pToken + " - " + pClientId + " - " + pSession);
+
+  return objData;
+}
+
+const fnGetProfileDetailsAB = async (pClientId, pSession) => {
+  const objData =  new Promise((resolve, reject) => {
+    let objParams = "";
+
+    let objConfig = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: 'https://ant.aliceblueonline.com/rest/AliceBlueAPIService/api/customer/accountDetails',
+      headers: { 
+        'Authorization': 'Bearer '+ pClientId +' ' + pSession, 
+        'Content-Type': 'application/json'
+      },
+      data : objParams
+    };
+
+    axios.request(objConfig)
+    .then((objResponse) => {
+      //console.log(JSON.stringify(response.data));
+      resolve({"status": "success", "message": "Success - Profile Data Received", "data": objResponse.data});
+    })
+    .catch((error) => {
+      //console.log(error);
+      reject({"status": "danger", "message": "Error in getting Profile Details, Please Check!", "data": error.message});
+    });
+  });
+
+  return objData;
+}
+
+const fnGetUsermarginsAB = async (pClientId, pSession) => {
+  const objData =  new Promise((resolve, reject) => {
+    let objParams = "";
+
+    let objConfig = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: 'https://ant.aliceblueonline.com/rest/AliceBlueAPIService/api/limits/getRmsLimits',
+      headers: { 
+        'Authorization': 'Bearer '+ pClientId +' ' + pSession, 
+        'Content-Type': 'application/json'
+      },
+      data : objParams
+    };
+
+    axios.request(objConfig)
+    .then((objResponse) => {
+      //console.log(JSON.stringify(response.data));
+      resolve({"status": "success", "message": "Success - User Margins Received", "data": objResponse.data});
+    })
+    .catch((error) => {
+      //console.log(error);
+      reject({"status": "danger", "message": "Error in getting User Margins, Please Check!", "data": error.message});
+    });
+  });
 
   return objData;
 }
@@ -449,7 +481,39 @@ const fnGetTradeToken = async (pBorS, pCorP, pActualStrike, pRoundedStrike, pStr
   return objData;
 }
 
-const fnGetTradeDetails = async (pContract, pToken, pClientId, pSession, pActualStrike, pRoundedStrike, pBorS) => {
+const fnGetOpenTradeDetails = async (pContract, pToken, pClientId, pSession) => {
+  const objData =  new Promise((resolve, reject) => {
+    let objParams = JSON.stringify({
+      "exch": pContract,
+      "symbol": pToken
+    });
+
+    let objConfig = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: 'https://ant.aliceblueonline.com/rest/AliceBlueAPIService/api/ScripDetails/getScripQuoteDetails',
+      headers: { 
+        'Authorization': 'Bearer '+ pClientId +' ' + pSession, 
+        'Content-Type': 'application/json'
+      },
+      data : objParams
+    };
+
+    axios.request(objConfig)
+    .then((objResponse) => {
+      //console.log(JSON.stringify(objResponse.data));
+
+      resolve({"status": "success", "message": "Success - Option Data Received", "data": { BuyPrice: objResponse.data.BRate, SellRate: objResponse.data.SRate, ReqStatus: objResponse.data.stat }});
+    })
+    .catch((error) => {
+      //console.log(error);
+      reject({"status": "danger", "message": "Error in getting LTP, Please Check!", "data": error.message});
+    });
+  });
+  return objData;
+}
+
+const fnGetTradeDetails = async (pContract, pToken, pClientId, pSession, pActualStrike, pRoundedStrike) => {
   const objData =  new Promise((resolve, reject) => {
 
     let objParams = JSON.stringify({
@@ -471,23 +535,9 @@ const fnGetTradeDetails = async (pContract, pToken, pClientId, pSession, pActual
     //console.log(pContract + " - " + pToken + " - " + pBorS);
     axios.request(objConfig)
     .then((objResponse) => {
-      let vLTP = 0;
-      console.log(JSON.stringify(objResponse.data));
+      //console.log(JSON.stringify(objResponse.data));
 
-      if(pBorS === "buy")
-      {
-        vLTP = objResponse.data.SRate;
-      }
-      else if(pBorS === "sell")
-      {
-        vLTP = objResponse.data.BRate;
-      }
-      else
-      {
-        vLTP = 0;
-      }
-
-      resolve({"status": "success", "message": "Success - Option Data Received", "data": { ActualStrike: pActualStrike, RoundedStrike: pRoundedStrike, TradeToken: pToken, LTP: vLTP }});
+      resolve({"status": "success", "message": "Success - Option Data Received", "data": { ActualStrike: pActualStrike, RoundedStrike: pRoundedStrike, TradeToken: pToken, BuyPrice: objResponse.data.BRate, SellRate: objResponse.data.SRate, ReqStatus: objResponse.data.stat }});
     })
     .catch((error) => {
       //console.log(error);
@@ -497,53 +547,3 @@ const fnGetTradeDetails = async (pContract, pToken, pClientId, pSession, pActual
 
   return objData;
 }
-
-//Not Used Delete Later if reference not required
-// async function fnGetSHA256Code(req, res, pClientID, pApiKey, pEncKey)
-// {
-//     // const vRes = createHash('sha256').update("632665sYtLAxsaZjYPcHEMVKK2yLGvsr9mH1ou9FcFmZuQy5LIuotmzaoN4uof32IavhKaYSUBkQfHWVs4OUlk7FQjYpOWRxJx9BDajn9LKI598LtIbR0STdhK1g0uLIlBLHHW0D8V646QTFM7MCCHH95N2UIQW7UNZBO2").digest('hex');
-//     const vHash256 = createHash('sha256').update(pClientID + pApiKey + pEncKey).digest('hex');
-
-//     const vRes = await fnGetSessionCode(req, res, pClientID, vHash256);
-
-//     return vRes;
-// }
-
-// async function fnGetSessionCode(req, res, pClientID, pSHA256)
-// {
-//     let data = JSON.stringify({
-//       userId: pClientID,
-//       userData: pSHA256,
-//     });
-
-//     let config = {
-//       method: "post",
-//       maxBodyLength: Infinity,
-//       url: "https://ant.aliceblueonline.com/rest/AliceBlueAPIService/api/customer/getUserSID",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       data: data,
-//     };
-
-//     axios
-//       .request(config)
-//       .then((response) => {
-
-//         const vIsOk = response.data.stat;
-//         console.log(JSON.stringify(response.data));
-
-//         if(vIsOk === "Ok")
-//         res.send({"status": "success", "message": "Login Successful", "session": response.data.sessionID});
-//         else
-//         res.send({"status": "danger", "message": response.data.emsg});
-
-//       })
-//       .catch((error) => {
-//         console.log(error);
-//         res.send({"status": "danger", "message": "Error: Error at Sending Session"});
-//       });
-// }
-
-
-//module.exports = fnLoginAliceBlue, fnGetStrikePrice;
