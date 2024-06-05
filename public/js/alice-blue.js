@@ -283,8 +283,6 @@ function fnCheckTradeTimer() {
     var objTimeMS = document.getElementById("txtTimeMS");
     var objTimerSwitch = document.getElementById("swtAutoChkPosition");
     var objCurrPosiLst = localStorage.getItem("CurrPositionS");
-
-    // alert("TradeTime: " + objCurrPosiLst);
     
     if (isNaN(parseInt(objTimeMS.value)) || (parseInt(objTimeMS.value) < 5)) {
         objTimeMS.value = 5;
@@ -309,14 +307,15 @@ function fnCheckTradeTimer() {
             clearInterval(vTradeInst);
             fnGenMessage("No Open Trade, Will start when the trade is Open", `badge bg-warning`, "spnGenMsg");
         }
+        // alert("vTradeInst: " + vTradeInst);
     }
     else {
         localStorage.setItem("TimerSwtS", "false");
         clearInterval(vTradeInst);
 
         fnGenMessage("Auto Check for Current Price is Off!", `badge bg-danger`, "spnGenMsg");
-        fnGetCurrentPrice();
     }
+    fnGetCurrentPrice();
 }
 
 function fnUploadFiles()
@@ -692,7 +691,7 @@ function fnGetUserProfileDets()
         .then(objResult => {
             if(objResult.status === "success")
             {
-                console.log(objResult);
+                //console.log(objResult);
                 document.getElementById("txtClientIdUP").value = objResult.data.accountId;
                 document.getElementById("txtFullNameUP").value = objResult.data.accountName;
                 document.getElementById("txtClientMobileUP").value = objResult.data.cellAddr;
@@ -799,7 +798,7 @@ function fnShowMyProfileMdl()
     fnGenMessage("Profile Details", `badge bg-primary`, "spnABProfile");
     $('#mdlUserProfile').modal('show');
 
-    console.log("Profile - " + localStorage.getItem("UserDetS"));
+    //console.log("Profile - " + localStorage.getItem("UserDetS"));
 }
 
 function fnSaveProfileDetails()
@@ -2209,7 +2208,7 @@ function fnInitiateAutoTrade(pObjMsg)
 
                         let objExcTradeDtls = JSON.stringify(vExcTradeDtls);
 
-                        console.log(objExcTradeDtls);
+                        //console.log(objExcTradeDtls);
 
                         if (objResult.data.ReqStatus == "Ok")
                         {
@@ -2246,7 +2245,7 @@ function fnInitiateAutoTrade(pObjMsg)
                     fnGenMessage("Error to Fetch with Option Details.", `badge bg-danger`, "spnGenMsg");
                 });
 
-            console.log(pObjMsg.symbolName + " - " + pObjMsg.direction);
+            //console.log(pObjMsg.symbolName + " - " + pObjMsg.direction);
         }
     }
     else{
@@ -2448,7 +2447,17 @@ function fnSetNextTradeSettings(pPL){
     }
     else if(parseFloat(vNewLossAmt) < 0) {
         localStorage.setItem("TotLossAmt", vNewLossAmt);
-        let vNextQty = Math.round(Math.abs(parseInt(vNewLossAmt)) / Math.abs(parseInt(vOldLossAmt))) * parseInt(vOldQtyMul);
+        let vDivAmt = parseFloat(vNewLossAmt) / parseFloat(vOldLossAmt);
+        let vNextQty = Math.round(vDivAmt * parseInt(vOldQtyMul));
+
+        //alert(vDivAmt + " - " + vNewQty);
+        //let vNextQty = Math.round(Math.abs(parseFloat(vNewLossAmt)) / Math.abs(parseFloat(vOldLossAmt))) * parseFloat(vOldQtyMul);
+
+        // console.log("New Loss: " + Math.abs(parseFloat(vNewLossAmt)));
+        // console.log("Old Loss: " + Math.abs(parseFloat(vOldLossAmt)));
+        // console.log("New Loss: " + parseFloat(vOldQtyMul));
+        // console.log("vNextQty:  " + vNextQty);
+        
         if(vNextQty < 1)
             vNextQty = 1;
 
@@ -2463,6 +2472,11 @@ function fnSetNextTradeSettings(pPL){
         localStorage.setItem("TradeStep", 0);
         objLots.value = 1;
     }
+}
+
+function fnChangeQtyMultiplier(pThis)
+{
+    localStorage.setItem("QtyMul", pThis.value);
 }
 
 function fnSetTradeStep(){
