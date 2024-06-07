@@ -243,21 +243,21 @@ function fnLoadTimerSwitchSetting()
 
 function fnSetTodayTradeDetails()
 {
-    var objTodayTrades = localStorage.getItem("TradesListS");
-    var objTodayTradeList = document.getElementById("divTodayTrades");
+    let objTodayTrades = localStorage.getItem("TradesListS");
+    let objTodayTradeList = document.getElementById("divTodayTrades");
 
     if (objTodayTrades == null || objTodayTrades == "") {
         objTodayTradeList.innerHTML = '<div class="col-sm-12" style="border:1px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 40px;">No Trades Yet</div>';
     }
     else {
-        var vTempHtml = "";
-        var vJsonData = JSON.parse(objTodayTrades);
-        var vNetProfit = 0;
+        let vTempHtml = "";
+        let vJsonData = JSON.parse(objTodayTrades);
+        let vNetProfit = 0;
 
-        for (var i = 0; i < vJsonData.TradeList.length; i++) {
+        for (let i = 0; i < vJsonData.TradeList.length; i++) {
             vTempHtml += '<tr>';
             //vTempHtml += '<td>' + vJsonData.TradeList[i].TradeID + '</td>';
-            vTempHtml += '<td style="text-wrap: nowrap;">' + vJsonData.TradeList[i].EntryDT + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap;" onclick=\'fnDeleteThisTrade(' + vJsonData.TradeList[i].TradeID + ');\'>' + vJsonData.TradeList[i].EntryDT + '</td>';
             vTempHtml += '<td style="text-wrap: nowrap;">' + vJsonData.TradeList[i].ExitDT + '</td>';
             vTempHtml += '<td style="text-wrap: nowrap; font-weight:bold;">' + vJsonData.TradeList[i].Symbol + '</td>';
             vTempHtml += '<td style="text-wrap: nowrap;">' + vJsonData.TradeList[i].Expiry + '</td>';
@@ -266,7 +266,7 @@ function fnSetTodayTradeDetails()
             vTempHtml += '<td style="text-wrap: nowrap; color:green;text-align:right;">' + vJsonData.TradeList[i].BuyPrice + '</td>';
             vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + vJsonData.TradeList[i].SellPrice + '</td>';
 
-            var vCapital = vJsonData.TradeList[i].Quantity * vJsonData.TradeList[i].BuyPrice;
+            let vCapital = vJsonData.TradeList[i].Quantity * vJsonData.TradeList[i].BuyPrice;
             vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (vCapital).toFixed(2) + '</td>';
             vTempHtml += '<td style="text-wrap: nowrap; font-weight:bold;text-align:right;">' + vJsonData.TradeList[i].ProfitLoss + '</td>';
 
@@ -276,6 +276,23 @@ function fnSetTodayTradeDetails()
         vTempHtml += '<tr><td colspan="8" Style="text-align:right;font-weight:bold;color:orange;">NET PROFIT & LOSS</td><td></td><td style="font-weight:bold;text-align:right;color:orange;">' + (vNetProfit).toFixed(2) + '</td></tr>';
 
         objTodayTradeList.innerHTML = vTempHtml;
+    }
+}
+
+function fnDeleteThisTrade(pTradeId)
+{
+    let objTodayTrades = localStorage.getItem("TradesListS");
+    let vJsonData = JSON.parse(objTodayTrades);
+
+    if(confirm("Are You Sure, You Want to Delete This Trade?")){
+        for (let i = 0; i < vJsonData.TradeList.length; i++) {
+            if(vJsonData.TradeList[i].TradeID === pTradeId) {
+                vJsonData.TradeList.splice(i, 1);
+            }
+        }
+        let vEditedItems = JSON.stringify(vJsonData);
+        localStorage.setItem("TradesListS", vEditedItems);
+        fnSetTodayTradeDetails();
     }
 }
 
