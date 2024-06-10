@@ -13,10 +13,10 @@ exports.fnLoginAliceBlue = async (req, res) => {
     // console.log(vEncKey);
 
     let vSHA256 = await fnGetSHA256Updated(vClientId, vApiKey, vEncKey);
-    // console.log(vSHA256);
+    //console.log(vSHA256);
 
     let vSession = await fnGetSessionAB(vClientId, vSHA256);
-    // console.log(vSession);
+    //console.log(vSession);
 
     let objUserDet = await fnGetProfileDetailsAB(vClientId, vSession);
 
@@ -32,6 +32,142 @@ exports.fnLoginAliceBlue = async (req, res) => {
     //console.log(error);
     res.send({"status": "danger", "message": error.message});
   }
+}
+
+exports.fnCreateWsSession = async (req, res) => {
+  let vClientId = req.body.ClientID;
+  let vSessionId = req.body.SessionID;
+
+  try {
+    let objWsData = await fnGetWsSessionData(vClientId, vSessionId);
+
+    console.log(objWsData.data);
+
+    res.send({"status": "success", "message": "WSS is Open!", "data": objWsData.data});
+  }
+  catch (error) {
+    res.send({"status": "danger", "message": error.message});
+  }
+}
+
+const fnGetWsSessionData = async (pClientId, pSession) => {
+  const objData =  new Promise((resolve, reject) => {
+    let objParams = {"loginType":"API"};
+
+    let objConfig = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: 'https://ant.aliceblueonline.com/rest/AliceBlueAPIService/api//ws/createWsSession',
+      headers: { 
+        'Authorization': 'Bearer '+ pClientId + ' ' + pSession, 
+        'Content-Type': 'application/json'
+      },
+      data : objParams
+    };
+
+    axios.request(objConfig)
+    .then((objResponse) => {
+      //console.log(JSON.stringify(response.data));
+      resolve({"status": "success", "message": "Success - WSS is Live", "data": objResponse.data});
+    })
+    .catch((error) => {
+      //console.log(error);
+      reject({"status": "danger", "message": "Error in WSS, Please Check!", "data": error.message});
+    });
+  });
+
+  return objData;
+}
+
+exports.fnInvalidateWsSession = async (req, res) => {
+  let vClientId = req.body.ClientID;
+  let vSessionId = req.body.SessionID;
+
+  try {
+    let objWsData = await fnCloseWsSessionData(vClientId, vSessionId);
+
+    console.log(objWsData.data);
+
+    res.send({"status": "success", "message": "WSS is Closed", "data": objWsData.data});
+  }
+  catch (error) {
+    res.send({"status": "danger", "message": error.message});
+  }
+}
+
+const fnCloseWsSessionData = async (pClientId, pSession) => {
+  const objData =  new Promise((resolve, reject) => {
+    let objParams = {"loginType":"API"};
+
+    let objConfig = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: 'https://ant.aliceblueonline.com/rest/AliceBlueAPIService/api//ws/invalidateWsSession',
+      headers: { 
+        'Authorization': 'Bearer '+ pClientId + ' ' + pSession, 
+        'Content-Type': 'application/json'
+      },
+      data : objParams
+    };
+
+    axios.request(objConfig)
+    .then((objResponse) => {
+      //console.log(JSON.stringify(response.data));
+      resolve({"status": "success", "message": "Success - WSS is Inactive", "data": objResponse.data});
+    })
+    .catch((error) => {
+      //console.log(error);
+      reject({"status": "danger", "message": "Error in Closing WSS, Please Check!", "data": error.message});
+    });
+  });
+
+  return objData;
+}
+
+exports.fnGetNseOptionChain = async (req, res) => {
+  let vClientId = req.body.ClientID;
+
+  try {
+    let objOCData = await fnLoadNSEOptionChainData(vClientId);
+
+    console.log(objOCData.data);
+
+    res.send({"status": "success", "message": "WSS is Closed", "data": objOCData.data});
+  }
+  catch (error) {
+    res.send({"status": "danger", "message": error.message});
+  }
+}
+
+const fnLoadNSEOptionChainData = async (pClientId) => {
+  const objData =  new Promise((resolve, reject) => {
+    let objParams = {"loginType":"API"};
+
+    let objConfig = {
+      method: 'GET',
+      maxBodyLength: Infinity,
+      url: 'https://www.nseindia.com/api/option-chain-indices?symbol=BANKNIFTY',
+      headers: { 
+        'Accept-Encoding': 'gzip, deflate, br, zstd',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Content-Type': 'application/json'
+      },
+      data : objParams
+    };
+
+    axios.request(objConfig)
+    .then((objResponse) => {
+      console.log(objResponse.data);
+      resolve({"status": "success", "message": "Success - WSS is Inactive", "data": objResponse.data});
+    })
+    .catch((error) => {
+      //console.log(error);
+      reject({"status": "danger", "message": "Error in Closing WSS, Please Check!", "data": error.message});
+    });
+  });
+
+  return objData;
 }
 
 const fnGetEncKey = async (pClientId) => {

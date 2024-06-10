@@ -2,6 +2,8 @@ let vTradeInst = 0;
 
 window.addEventListener("DOMContentLoaded", function(){
 
+    // const ws = new WebSocket("wss://ws1.aliceblueonline.com/NorenWS");
+
     fnLoadCnfStatus();
 
     fnGetSymbolList();
@@ -475,6 +477,150 @@ function fnShowTraderLoginMdl(objThis)
         fnGetSetAutoTraderStatus();
         fnGenMessage("Trader Disconnected Successfully!", `badge bg-warning`, "spnGenMsg");
     }
+}
+
+function fnCreateWsSession(){
+    let objClientId = document.getElementById("txtClientId");
+    let objSession = document.getElementById("hidSession");
+
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let vAction = JSON.stringify({
+        "ClientID" : objClientId.value,
+        "SessionID" : objSession.value
+    });
+    
+    let requestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: vAction,
+        redirect: 'follow'
+    };
+
+    fetch("/alice-blue/CreateWsSession", requestOptions)
+    .then(response => response.json())
+    .then(objResult => {
+        //console.log(objResult);
+        if(objResult.status === "success")
+        {
+            console.log(objResult.data.result.wsSess);
+            // objEncKey.value = objResult.data.EncKey;
+            // objSession.value = objResult.data.Session;
+
+        }
+        else if(objResult.status === "danger")
+        {
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "warning")
+        {
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else
+        {
+            fnGenMessage("Error in Creating Session, Contact Admin.", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        console.log('error: ', error);
+        fnGenMessage("Error to get WS Session.", `badge bg-danger`, "spnGenMsg");
+    });
+}
+
+function fnInvalidateWsSession(){
+    let objClientId = document.getElementById("txtClientId");
+    let objSession = document.getElementById("hidSession");
+
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let vAction = JSON.stringify({
+        "ClientID" : objClientId.value,
+        "SessionID" : objSession.value
+    });
+    
+    let requestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: vAction,
+        redirect: 'follow'
+    };
+
+    fetch("/alice-blue/InvalidateWsSession", requestOptions)
+    .then(response => response.json())
+    .then(objResult => {
+        //console.log(objResult);
+        if(objResult.status === "success")
+        {
+            console.log(objResult);
+            // objEncKey.value = objResult.data.EncKey;
+            // objSession.value = objResult.data.Session;
+
+        }
+        else if(objResult.status === "danger")
+        {
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "warning")
+        {
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else
+        {
+            fnGenMessage("Error in Invalidating Session, Contact Admin.", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        console.log('error: ', error);
+        fnGenMessage("Error to Close WS Session.", `badge bg-danger`, "spnGenMsg");
+    });
+}
+
+function fnGetNSEOptionChain(){
+    let objClientId = document.getElementById("txtClientId");
+
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let vAction = JSON.stringify({
+        "ClientID" : objClientId.value
+    });
+    
+    let requestOptions = {
+        method: 'GET',
+        headers: vHeaders,
+        redirect: 'follow'
+    };
+
+    fetch("/alice-blue/getNseOptionChain", requestOptions)
+    .then(response => response.json())
+    .then(objResult => {
+        //console.log(objResult);
+        if(objResult.status === "success")
+        {
+            console.log(objResult);
+            // objEncKey.value = objResult.data.EncKey;
+            // objSession.value = objResult.data.Session;
+
+        }
+        else if(objResult.status === "danger")
+        {
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "warning")
+        {
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else
+        {
+            fnGenMessage("Error in Getting Option Chain Data, Contact Admin.", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        console.log('error: ', error);
+        fnGenMessage("Error to get Option Chain Data from NSE", `badge bg-danger`, "spnGenMsg");
+    });
 }
 
 function fnLoginAliceBlue()
@@ -1594,6 +1740,7 @@ function fnGetCurrentPrice()
             });
         }
     }
+    fnPositionStatus();
 }
 
 async function fnInitiateBuyManualTrade(pCEorPE)
@@ -2112,6 +2259,7 @@ function fnCloseTrade()
     fnResetOpenPositionDetails();
     fnSetLotsByQtyMulLossAmt();
     fnSetTodayTradeDetails();
+    fnPositionStatus();
 }
 
 function fnPositionStatus()
@@ -2120,28 +2268,31 @@ function fnPositionStatus()
 
     if(localStorage.getItem("CurrPositionS") === null)
     {
-        objBtnPosition.className = "badge bg-danger";
+        objBtnPosition.className = "badge bg-success";
         objBtnPosition.innerText = "No Open Position";
-        fnGenMessage("No Open Positions!", `badge bg-warning`, "spnGenMsg");
+        fnGenMessage("No Open Positions!", `badge bg-success`, "spnGenMsg");
     }
     else
     {
-        if (confirm("Are You Sure, You Want to Close the Open Position?"))
-        {
-            localStorage.removeItem("CurrPositionS");
-            objBtnPosition.className = "badge bg-danger";
-            objBtnPosition.innerText = "No Open Position";
-            fnGenMessage("Position is Closed!", `badge bg-success`, "spnGenMsg");
-            //fnSetCurrentTradeDetails();
-        }
-        else
-        {
-            objBtnPosition.className = "badge bg-warning";
-            objBtnPosition.innerText = "Position is open";
-            fnGenMessage("Position is Still Open!", `badge bg-warning`, "spnGenMsg");
-        }
+        objBtnPosition.className = "badge bg-warning";
+        objBtnPosition.innerText = "Position is open";
+        fnGenMessage("Position is Still Open!", `badge bg-warning`, "spnGenMsg");
+
+        // if (confirm("Are You Sure, You Want to Close the Open Position?"))
+        // {
+        //     localStorage.removeItem("CurrPositionS");
+        //     objBtnPosition.className = "badge bg-danger";
+        //     objBtnPosition.innerText = "No Open Position";
+        //     fnGenMessage("Position is Closed!", `badge bg-success`, "spnGenMsg");
+        //     //fnSetCurrentTradeDetails();
+        // }
+        // else
+        // {
+        //     objBtnPosition.className = "badge bg-warning";
+        //     objBtnPosition.innerText = "Position is open";
+        //     fnGenMessage("Position is Still Open!", `badge bg-warning`, "spnGenMsg");
+        // }
     }
-    //alert(localStorage.getItem("CurrPositionS"));
 }
 
 function fnInitiateAutoTrade(pObjMsg)
@@ -2336,7 +2487,26 @@ function fnSetCurrTradeSLTP(){
         objStopLoss.value = vSLPoints;
         objTakeProfit.value = vTPPoints;
 
-        if(objDDLTrailSLTP.value === "1"){
+        if(objDDLTrailSLTP.value === "1") {
+            vSLPrice = parseFloat(vCurrBuyingPrice) - parseFloat(vSLPoints);
+            vTPPrice = parseFloat(vCurrBuyingPrice) + parseFloat(vTPPoints);
+
+            objTrailSL.innerText = "NO T-SL";
+            objLossOnSL.innerText = -(parseFloat(vSLPoints) * parseFloat(vTotQtyToTrade)).toFixed(2);
+            objProfitOnTP.innerText = (parseFloat(vTPPoints) * parseFloat(vTotQtyToTrade)).toFixed(2);
+            objCapital.innerText = (parseFloat(vCurrBuyingPrice) * parseFloat(vTotQtyToTrade)).toFixed(2);
+
+            objCurrTrade.TradeData[0].ProfitLoss = vPL;
+
+            //It is Important to Not to Save CurrPositionS After fnCloseTrade Function
+            let objExcTradeDtls = JSON.stringify(objCurrTrade);
+            localStorage.setItem("CurrPositionS", objExcTradeDtls);
+
+            if((vCurrSellingPrice <= vSLPrice) || (vCurrSellingPrice >= vTPPrice)){
+                fnCloseTrade();
+            }
+        }
+        else if(objDDLTrailSLTP.value === "2"){
 
             objCurrTrade.TradeData[0].ProfitLoss = vPL;
 
@@ -2362,7 +2532,7 @@ function fnSetCurrTradeSLTP(){
                 fnCloseTrade();
             }
         }
-        else if(objDDLTrailSLTP.value === "2"){
+        else if(objDDLTrailSLTP.value === "3"){
  
             objCurrTrade.TradeData[0].ProfitLoss = vPL;
 
@@ -2388,23 +2558,14 @@ function fnSetCurrTradeSLTP(){
             }
         }
         else {
-            vSLPrice = parseFloat(vCurrBuyingPrice) - parseFloat(vSLPoints);
-            vTPPrice = parseFloat(vCurrBuyingPrice) + parseFloat(vTPPoints);
-
             objTrailSL.innerText = "NO T-SL";
-            objLossOnSL.innerText = -(parseFloat(vSLPoints) * parseFloat(vTotQtyToTrade)).toFixed(2);
-            objProfitOnTP.innerText = (parseFloat(vTPPoints) * parseFloat(vTotQtyToTrade)).toFixed(2);
-            objCapital.innerText = (parseFloat(vCurrBuyingPrice) * parseFloat(vTotQtyToTrade)).toFixed(2);
-
+            objLossOnSL.innerText = "NO SL";
+            objProfitOnTP.innerText = "NO TP";
+            
             objCurrTrade.TradeData[0].ProfitLoss = vPL;
 
-            //It is Important to Not to Save CurrPositionS After fnCloseTrade Function
             let objExcTradeDtls = JSON.stringify(objCurrTrade);
             localStorage.setItem("CurrPositionS", objExcTradeDtls);
-
-            if((vCurrSellingPrice <= vSLPrice) || (vCurrSellingPrice >= vTPPrice)){
-                fnCloseTrade();
-            }
         }
     }
 }

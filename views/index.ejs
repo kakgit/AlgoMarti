@@ -99,7 +99,7 @@
                                         </div>
                                     </div>
                                     <div class="col-12 col-lg-12 col-md-12">
-                                        <input type="hidden" id="hidSession" class="form-control" placeholder="Session" />
+                                        <input type="text" id="hidSession" class="form-control" placeholder="Session" />
                                         <input type="hidden" id="hidStrikeInterval" placeholder="Strike Interval" />
                                         <input type="hidden" id="hidToken" placeholder="Script Token" />
                                         <input type="hidden" id="hidExchange" placeholder="Exchange" />
@@ -144,6 +144,18 @@
                                 </div>                    
                             </div>
                         </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Option Chain Analysis</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="container-fluid">
+                                    <input type="button" value="Open WSS Session" onclick="fnCreateWsSession();" />
+                                    <input type="button" value="Close WSS Session" onclick="fnInvalidateWsSession();" />
+                                    <input type="button" value="GET BNF OC" onclick="fnGetNSEOptionChain();" />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -170,9 +182,10 @@
                                 
                                 <div class="col-12">
                                     <select id="ddlTrailSLTP" class="form-control" onchange="fnSetDDLTrailSLTP(this);">
-                                        <option value=0 selected="true">SL or TP</option>
-                                        <option value=1>Trail by SL Points</option>
-                                        <option value=2>Trail SL After TP</option>
+                                        <option value=0 selected="true">NO SL or TP</option>
+                                        <option value=1>Strict SL or TP</option>
+                                        <option value=2>Trail by SL Points</option>
+                                        <option value=3>Trail SL After TP</option>
                                     </select>
                                 </div>
 

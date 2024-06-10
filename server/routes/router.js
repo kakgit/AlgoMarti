@@ -32,11 +32,13 @@ route.post('/api/actionUsers', usersController.fnActions);
 
 //AliceBlue Routes
 route.post("/alice-blue/getSession", abController.fnLoginAliceBlue);
+route.post("/alice-blue/CreateWsSession", abController.fnCreateWsSession);
+route.post("/alice-blue/InvalidateWsSession", abController.fnInvalidateWsSession);
 route.post("/alice-blue/getStrikePrice", abController.fnGetStrikePrice);
 route.post("/alice-blue/getExecutedTradeRate", abController.fnGetExecutedTradeRate);
 route.post("/alice-blue/getOpenTradeRate", abController.fnGetOpenTradeRate);
 route.post("/alice-blue/getUserProfileDetails", abController.fnGetUserProfileDetails);
-// route.post("/alice-blue/getSession", abController.fnLoginAliceBlue);
+route.get("/alice-blue/getNseOptionChain", abController.fnGetNseOptionChain);
 
 //Update JSON file Routes
 route.post("/json/uorcJSON", tvConfsController.fnUpdJsons);

@@ -14,7 +14,6 @@ const bodyparser = require("body-parser");
 const path = require("path");
 const { Server } = require("socket.io");
 
-
 const connectDB = require("./server/database/connection.js");
 
 const app = express();
