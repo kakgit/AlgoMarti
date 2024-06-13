@@ -1,0 +1,354 @@
+<div id="main">
+    <div class="page-heading">
+        <div class="row">
+            <div class="col-4">
+                <h3>Finvasia - Paper Trader</h3>
+            </div>
+            <div class="col-4 text-center">
+                <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
+            </div>
+            <div class="col-4" style="text-align: right;">
+                <a href="javascript: void(null);" class="btn btn-outline-primary" onclick="//fnShowSettingsMdl();"><i class="fa fa-cogs" aria-hidden="true" style="color: orangered;"></i> Finvasia Settings</a>
+            </div>
+        </div>
+    </div>
+    <div class="page-content">
+        <section class="row">
+            <div class="col-12 col-lg-9">
+                <div class="row" style="text-align: center;">
+                    <div class="col-6 col-lg-3 col-md-6">
+                        <button class="badge bg-danger" onclick="fnShowTraderLoginMdl(this);" id="btnTraderStatus">TRADER - Disconnected</button>
+                    </div>
+                    <div class="col-6 col-lg-3 col-md-6">
+                        <button class="badge bg-danger" onclick="//fnToggleAutoTrader()" id="btnAutoTraderStatus">Auto Trader - OFF</button>
+                    </div>
+                    <div class="col-6 col-lg-3 col-md-6">
+                        <button class="badge bg-success">Paper Trading - ON</button>
+                    </div>
+                    <div class="col-6 col-lg-3 col-md-6">
+                        <button class="badge bg-danger" onclick="//fnPositionStatus()" id="btnPositionStatus">NO Open Position</button>
+                    </div>
+                    <div class="col-12">&nbsp;</div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-lg-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Option Chain Analysis</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="container-fluid">
+                                    <input type="text" id="hidSession" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Open Position</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="divCurrTrade" style="overflow-x:hidden;">
+                            <div class="row" style="border:1px solid red; padding:5px;">
+                                <div class="col-6">
+                                    <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                                        <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtAutoChkPosition" name="swtAutoChkPosition" onchange="fnCheckTradeTimer();" />
+                                        <label for="swtAutoChkPosition" style="cursor:pointer;">Auto Check Every</label>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <input type="number" class="form-control" placeholder="Timer" id="txtTimeMS" value="5" maxlength="3" />
+                                </div>
+                                <div class="col-3" onclick="document.getElementById('txtMCurrPrice').type='text';">
+                                    <input type="hidden" class="form-control" placeholder="Sell Price" id="txtMCurrPrice" value="" />
+                                </div>
+                                
+                                <div class="col-12">
+                                    <select id="ddlTrailSLTP" class="form-control" onchange="fnSetDDLTrailSLTP(this);">
+                                        <option value=0 selected="true">NO SL or TP</option>
+                                        <option value=1>Strict SL or TP</option>
+                                        <option value=2>Trail by SL Points</option>
+                                        <option value=3>Trail SL After TP</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-12">&nbsp;</div>
+                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">T-SL</div>
+                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">On SL</div>
+                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">On TP</div>
+                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">Capital:</div>
+
+                                <div class="col-3" style="text-align:center; color:orange; white-space:nowrap; text-align: center;" id="lblTrailSL">0.00</div>
+                                <div class="col-3" style="text-align:center; color:red; white-space:nowrap; text-align: center;" id="lblLossOnSL">0.00</div>
+                                <div class="col-3" style="text-align:center; color:green; white-space:nowrap; text-align: center;" id="lblProfitOnTP">0.00</div>
+                                <div class="col-3" id="lblCapital" style="font-weight:bold; white-space:nowrap; text-align: center;">0.00</div>
+                                <div class="col-12">&nbsp;</div>
+
+                                <div class="col-4"><input type="text" class="form-control" placeholder="SL" id="txtUpdStopLoss" /></div>
+                                <div class="col-4"><input type="text" class="form-control" placeholder="TP" id="txtUpdTakeProfit" /></div>
+                                <div class="col-4"><button class="btn btn-outline-info btn-block" id="btnUpdateSLTP" onclick="fnUpdateSLTP();"><b>UPDATE</b></button></div>
+                                <hr />
+
+                                <div class="col-6" style="font-size:14px; color:cornflowerblue">Entry Date Time</div>
+                                <div class="col-6" style="text-align:right; font-size:14px; white-space:nowrap; color:cornflowerblue" id="lblEntryDate">00-00-0000 00:00:00</div>
+
+                                <div class="col-4" style="font-weight:bold; white-space:nowrap; font-size:14px;" id="lblSymbol">SYMBOL NAME</div>
+                                <div class="col-2" style="font-weight:bold; white-space:nowrap; font-size:14px;" id="lblStrike">000000</div>
+                                <div class="col-1" style="font-weight:bold; white-space:nowrap; font-size:14px;" id="lblOptionType">OT</div>
+                                <div class="col-5" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align:right;" id="lblExpiry">YYYY-MM-DD</div>
+                                <div class="col-12">&nbsp;</div>
+
+                                <div class="col-2" style="color:blue; white-space:nowrap; font-size:14px; text-align: center;">QTY</div>
+                                <div class="col-3" style="color:green; white-space:nowrap; font-size:14px; text-align: center;" id="lblBuyPriceInd">BUY PRICE</div>
+                                <div class="col-4" style="color:red; white-space:nowrap; font-size:14px; text-align: center;" id="lblSellPriceInd">SELL PRICE</div>
+                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">P & L</div>
+                                <div class="col-12"></div>
+
+                                <div class="col-2" style="color:blue; white-space:nowrap; font-size:14px; text-align: center;" id="lblQty">0</div>
+                                <div class="col-3" style="color:green; white-space:nowrap; font-size:14px; text-align: center;" id="lblBuyPrice">0.00</div>
+                                <div class="col-4" style="color:red; white-space:nowrap; font-size:14px; text-align: center;" id="lblSellPrice">0.00</div>
+                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;" id="lblProfitLoss">0.00</div>
+                                <div class="col-12">&nbsp;</div>
+
+                                <div class="col-6" style="text-align:center; white-space:nowrap; font-size:14px;"><button class="btn btn-outline-info btn-block" id="btnGetLatestPrice" onclick="fnCheckTradeTimer();"><b>GET CURRENT PRICE</b></button></div>
+                                <div class="col-6" style="text-align:center; white-space:nowrap; font-size:14px;"><button class="btn btn-outline-danger btn-block" id="btnClosePosition" onclick="fnManualCloseTrade();"><b>CLOSE POSITION</b></button></div>
+                            </div>
+                        </div>
+                        <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="fnClearLocalStorageTemp();">Clear LS</button>
+                        <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="fnTestMe();">Test Me</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-8"><h5>I Confirmation</h5></div>
+                            <div class="col-4">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form name="cnf3">
+                            <div class="row text-center">
+                                <div class="col-3">BNF</div>
+                                <div class="col-3">NIFTY</div>
+                                <div class="col-3" style="white-space: nowrap;">FINNIFTY</div>
+                                <div class="col-3">SENSEX</div>
+                                <div class="col-3">
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input id="txtBN1" type="radio" name="BANKNIFTY" value="false" onclick="fnSaveConfirmations('cnf3', 'BANKNIFTY', false);" />
+                                        <label class="toggle toggle-yes" for="txtBN1"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtBN2" checked type="radio" name="BANKNIFTY" value="-1" onclick="fnSaveConfirmations('cnf3', 'BANKNIFTY', -1);" />
+                                        <label class="toggle toggle-yes" for="txtBN2"><i class="fa fa-minus"></i></label>
+                                        <input id="txtBN3" type="radio" name="BANKNIFTY" value="true" onclick="fnSaveConfirmations('cnf3', 'BANKNIFTY', true);" />
+                                        <label class="toggle toggle-yes" for="txtBN3"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input id="txtNF1" type="radio" name="NIFTY" value="false" onclick="fnSaveConfirmations('cnf3', 'NIFTY', false);" />
+                                        <label class="toggle toggle-yes" for="txtNF1"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtNF2" checked type="radio" name="NIFTY" value="-1" onclick="fnSaveConfirmations('cnf3', 'NIFTY', -1);" />
+                                        <label class="toggle toggle-yes" for="txtNF2"><i class="fa fa-minus"></i></label>
+                                        <input id="txtNF3" type="radio" name="NIFTY" value="true" onclick="fnSaveConfirmations('cnf3', 'NIFTY', true);" />
+                                        <label class="toggle toggle-yes" for="txtNF3"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input id="txtFN1" type="radio" name="FINNIFTY" value="false" onclick="fnSaveConfirmations('cnf3', 'FINNIFTY', false);" />
+                                        <label class="toggle toggle-yes" for="txtFN1"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtFN2" checked type="radio" name="FINNIFTY" value="-1" onclick="fnSaveConfirmations('cnf3', 'FINNIFTY', -1);" />
+                                        <label class="toggle toggle-yes" for="txtFN2"><i class="fa fa-minus"></i></label>
+                                        <input id="txtFN3" type="radio" name="FINNIFTY" value="true" onclick="fnSaveConfirmations('cnf3', 'FINNIFTY', true);" />
+                                        <label class="toggle toggle-yes" for="txtFN3"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input id="txtSX1" type="radio" name="SENSEX" value="false" onclick="fnSaveConfirmations('cnf3', 'SENSEX', false);" />
+                                        <label class="toggle toggle-yes" for="txtSX1"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtSX2" checked type="radio" name="SENSEX" value="-1" onclick="fnSaveConfirmations('cnf3', 'SENSEX', -1);" />
+                                        <label class="toggle toggle-yes" for="txtSX2"><i class="fa fa-minus"></i></label>
+                                        <input id="txtSX3" type="radio" name="SENSEX" value="true" onclick="fnSaveConfirmations('cnf3', 'SENSEX', true);" />
+                                        <label class="toggle toggle-yes" for="txtSX3"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-8"><h5>II Confirmation</h5></div>
+                            <div class="col-4">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form name="cnf2">
+                            <div class="row text-center">
+                                <div class="col-3">BNF</div>
+                                <div class="col-3">NIFTY</div>
+                                <div class="col-3" style="white-space: nowrap;">FINNIFTY</div>
+                                <div class="col-3">SENSEX</div>
+                                <div class="col-3">
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input id="txtBN4" type="radio" name="BANKNIFTY" value="false" onclick="fnSaveConfirmations('cnf2', 'BANKNIFTY', false);" />
+                                        <label class="toggle toggle-yes" for="txtBN4"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtBN5" checked type="radio" name="BANKNIFTY" value="-1" onclick="fnSaveConfirmations('cnf2', 'BANKNIFTY', -1);" />
+                                        <label class="toggle toggle-yes" for="txtBN5"><i class="fa fa-minus"></i></label>
+                                        <input id="txtBN6" type="radio" name="BANKNIFTY" value="true" onclick="fnSaveConfirmations('cnf2', 'BANKNIFTY', true);" />
+                                        <label class="toggle toggle-yes" for="txtBN6"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input id="txtNF4" type="radio" name="NIFTY" value="false" onclick="fnSaveConfirmations('cnf2', 'NIFTY', false);" />
+                                        <label class="toggle toggle-yes" for="txtNF4"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtNF5" checked type="radio" name="NIFTY" value="-1" onclick="fnSaveConfirmations('cnf2', 'NIFTY', -1);" />
+                                        <label class="toggle toggle-yes" for="txtNF5"><i class="fa fa-minus"></i></label>
+                                        <input id="txtNF6" type="radio" name="NIFTY" value="true" onclick="fnSaveConfirmations('cnf2', 'NIFTY', true);" />
+                                        <label class="toggle toggle-yes" for="txtNF6"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input id="txtFN4" type="radio" name="FINNIFTY" value="false" onclick="fnSaveConfirmations('cnf2', 'FINNIFTY', false);" />
+                                        <label class="toggle toggle-yes" for="txtFN4"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtFN5" checked type="radio" name="FINNIFTY" value="-1" onclick="fnSaveConfirmations('cnf2', 'FINNIFTY', -1);" />
+                                        <label class="toggle toggle-yes" for="txtFN5"><i class="fa fa-minus"></i></label>
+                                        <input id="txtFN6" type="radio" name="FINNIFTY" value="true" onclick="fnSaveConfirmations('cnf2', 'FINNIFTY', true);" />
+                                        <label class="toggle toggle-yes" for="txtFN6"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input id="txtSX4" type="radio" name="SENSEX" value="false" onclick="fnSaveConfirmations('cnf2', 'SENSEX', false);" />
+                                        <label class="toggle toggle-yes" for="txtSX4"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtSX5" checked type="radio" name="SENSEX" value="-1" onclick="fnSaveConfirmations('cnf2', 'SENSEX', -1);" />
+                                        <label class="toggle toggle-yes" for="txtSX5"><i class="fa fa-minus"></i></label>
+                                        <input id="txtSX6" type="radio" name="SENSEX" value="true" onclick="fnSaveConfirmations('cnf2', 'SENSEX', true);" />
+                                        <label class="toggle toggle-yes" for="txtSX6"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h4>III Confirmation</h4>
+                    </div>
+                    <div class="card-body" style="height: 300px; overflow-x: hidden; overflow-y:auto;" id="divMessages">
+
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12"><input type="text" id="txtMessageToAll" class="form-control" /></div>
+                            <div class="col-sm-12 d-flex justify-content-end">
+                                <div class="btn-group mb-3" role="group" aria-label="Basic example">
+                                <button class='btn btn-outline-warning' id="btnClearMsg" onclick="fnClearMessage();">CLEAR</button>
+                                <button class='btn btn-outline-primary' id="btnSendMsg" onclick="fnSendMessageToAll();">SEND</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+        </section>
+    </div>
+</div>
+
+
+<!--Disabled Backdrop Modal for Trader Login-->
+<div class="modal fade text-left" id="mdlFinvasiaLogin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
+    data-bs-backdrop="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h4 class="modal-title" id="myModalLabel4">Finvasia Login Details</h4>
+                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
+            </div>
+            <div class="modal-body">
+                <!-- // Basic multiple Column Form section start -->
+                <section id="multiple-column-form">
+                    <div class="row match-height">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header text-center">
+                                    &nbsp;<span id="spnFinvasiaLogin" class="badge bg-primary">Please Input Login Details</span>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <form class="form">
+                                            <div class="row">
+                                                <div class="col-md-6 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtClientId">Login ID / User ID</label>
+                                                        <input type="text" id="txtClientId" class="form-control" value="FA153006" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtVendorCode">Vendor Code</label>
+                                                        <input type="text" id="txtVendorCode" class="form-control" value="FA153006_U" />
+                                                    </div>
+                                                </div> 
+                                                <div class="col-md-6 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtImei">IMEI</label>
+                                                        <input type="text" id="txtImei" class="form-control" value="abc1234" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtApiKey">API KEY</label>
+                                                        <input type="text" id="txtApiKey" class="form-control" value="75c4451a5b5df874c59d7ed6284d0fb1" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtPassword">Password</label>
+                                                        <input type="text" id="txtPassword" class="form-control" value="Lion@113" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtTOTP">TOTP</label>
+                                                        <input type="text" id="txtTOTP" class="form-control" value="" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                    <i class="bx bx-x d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">CLOSE</span>
+                </button>
+                <button id="btnSubmit" type="button" class="btn btn-primary ms-1" onclick="fnLoginFinvasia();">
+                    <i class="bx bx-check d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">SUBMIT</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/finvasia.js"></script>

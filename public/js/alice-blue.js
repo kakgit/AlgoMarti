@@ -1,7 +1,6 @@
 let vTradeInst = 0;
 
 window.addEventListener("DOMContentLoaded", function(){
-
     // const ws = new WebSocket("wss://ws1.aliceblueonline.com/NorenWS");
 
     fnLoadCnfStatus();
@@ -758,14 +757,6 @@ function fnClearPrevLoginSession()
 
     fnGetSetTraderLoginStatus();
     fnSetUserProfileDets();
-}
-
-function fnChangeBtnProps(pId, pClassName, pDispText)
-{
-    let objBtn = document.getElementById(pId);
-
-    objBtn.innerText = pDispText;
-    objBtn.className = pClassName;
 }
 
 function fnSendMessageToAll()

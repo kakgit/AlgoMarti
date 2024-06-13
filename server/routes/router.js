@@ -3,6 +3,7 @@ const route = express.Router();
 
 const homeServices = require('../services/homePage.js');
 const samcoServices = require('../services/samcoPage.js');
+const finvasiaServices = require('../services/finvasiaPage.js');
 const tvMsgsServices = require('../services/tvMsgsPage.js');
 const tvMsgsController = require('../controller/controllerTvMsgs.js');
 const usersController = require('../controller/controllerUsers.js');
@@ -17,6 +18,10 @@ route.get("/mahesh", homeServices.signalsTV);
 
 //Samco Routes
 route.get("/samco", samcoServices.defaultRoute);
+
+//Samco Routes
+route.get("/finvasia", finvasiaServices.defaultRoute);
+route.post("/finvasia/getSession", finvasiaServices.fnLoginFinvasia);
 
 //manageMsgsTV Routes
 //API

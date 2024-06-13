@@ -13,6 +13,14 @@ window.addEventListener("DOMContentLoaded", function(){
 
 });
 
+function fnChangeBtnProps(pId, pClassName, pDispText)
+{
+    let objBtn = document.getElementById(pId);
+
+    objBtn.innerText = pDispText;
+    objBtn.className = pClassName;
+}
+
 function fnGetSetDefaultValue()
 {
     //alert(localStorage.getItem("lsRecords"));

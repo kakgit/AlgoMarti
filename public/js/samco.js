@@ -45,3 +45,74 @@ function fnClearMessage()
 
     objDivMsgs.innerHTML = "";
 }
+
+function fnShowTraderLoginMdl(objThis)
+{
+    let isAppLoginStatus = localStorage.getItem("AppMsgStatusS");
+
+    //console.log(isAppLoginStatus);
+    if(isAppLoginStatus === "false")
+    {
+        $('#mdlAppLogin').modal('show');
+    }
+    else if(objThis.className === "badge bg-danger")
+    {
+        $('#mdlSamcoLogin').modal('show');
+    }
+    else
+    {
+        fnClearPrevLoginSession();
+        //fnGetSetAutoTraderStatus();
+        fnGenMessage("Trader Disconnected Successfully!", `badge bg-warning`, "spnGenMsg");
+    }
+}
+
+function fnClearPrevLoginSession()
+{
+    let objSession = document.getElementById("hidSession");
+
+    localStorage.removeItem("lsLoginDate");
+    localStorage.removeItem("lsSamcoSession");
+    localStorage.removeItem("isSamcoLogin");
+    localStorage.removeItem("isSamcoAutoTrader");
+    // localStorage.removeItem("UserDetS");
+
+    objSession.value = "";
+
+    fnGetSetTraderLoginStatus();
+    //fnSetUserProfileDets();
+}
+
+function fnGetSetTraderLoginStatus()
+{
+    let lsPrevSessionDate = localStorage.getItem("lsLoginDate");
+    let lsSamcoID = localStorage.getItem("lsSamcoID");
+    let lsApiKey = localStorage.getItem("lsSamcoApiKey");
+    let lsSessionID = localStorage.getItem("lsSamcoSession");
+    let objClientId = document.getElementById("txtClientId");
+    let objApiKey = document.getElementById("txtApiKey");
+    let objSession = document.getElementById("hidSession");
+    
+    let objTraderStatus = document.getElementById("btnTraderStatus");
+
+    const vDate = new Date();
+    let vToday = vDate.getDate();
+
+    objClientId.value = lsSamcoID;
+    objApiKey.value = lsApiKey;
+    objSession.value = lsSessionID;
+
+    if (lsPrevSessionDate != (vToday) || objClientId.value == "") {
+        localStorage.removeItem("lsSamcoSession");
+        objSession.value = "";
+    }
+
+    if (objSession.value == "") {
+        fnChangeBtnProps(objTraderStatus.id, "badge bg-danger", "TRADER - Disconnected");
+        localStorage.setItem("isSamcoLogin", false);
+    }
+    else {
+        fnChangeBtnProps(objTraderStatus.id, "badge bg-success", "TRADER - Connected");
+        localStorage.setItem("isSamcoLogin", true);
+    }
+}
