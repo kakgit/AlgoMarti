@@ -74,6 +74,8 @@ function fnCheckTradeStep(pObjMsg)
     //alert(vConfNo);
     //alert(document["cnf2"][pObjMsg.symbolName].value);
     //console.log(pObjMsg);
+    // if(pObjMsg.needCnf === "false")
+    //     vConfNo = 1;
 
     if(vConfNo === "1"){
         fnInitiateAutoTrade(pObjMsg);
