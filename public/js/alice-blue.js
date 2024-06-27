@@ -66,9 +66,9 @@ window.addEventListener("DOMContentLoaded", function(){
 
 function fnCheckTradeStep(pObjMsg)
 {
-    let objStrategyType = document.getElementById("txtStrategy");
+    let objConfSteps = document.getElementById("ddlConfSteps");
 
-    let vVal = objStrategyType.value;
+    let vVal = objConfSteps.value;
     let vConfNo = vVal[localStorage.getItem("TradeStep")];
 
     //alert(vConfNo);
@@ -478,150 +478,6 @@ function fnShowTraderLoginMdl(objThis)
         fnGetSetAutoTraderStatus();
         fnGenMessage("Trader Disconnected Successfully!", `badge bg-warning`, "spnGenMsg");
     }
-}
-
-function fnCreateWsSession(){
-    let objClientId = document.getElementById("txtClientId");
-    let objSession = document.getElementById("hidSession");
-
-    let vHeaders = new Headers();
-    vHeaders.append("Content-Type", "application/json");
-
-    let vAction = JSON.stringify({
-        "ClientID" : objClientId.value,
-        "SessionID" : objSession.value
-    });
-    
-    let requestOptions = {
-        method: 'POST',
-        headers: vHeaders,
-        body: vAction,
-        redirect: 'follow'
-    };
-
-    fetch("/alice-blue/CreateWsSession", requestOptions)
-    .then(response => response.json())
-    .then(objResult => {
-        //console.log(objResult);
-        if(objResult.status === "success")
-        {
-            console.log(objResult.data.result.wsSess);
-            // objEncKey.value = objResult.data.EncKey;
-            // objSession.value = objResult.data.Session;
-
-        }
-        else if(objResult.status === "danger")
-        {
-            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-        }
-        else if(objResult.status === "warning")
-        {
-            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-        }
-        else
-        {
-            fnGenMessage("Error in Creating Session, Contact Admin.", `badge bg-danger`, "spnGenMsg");
-        }
-    })
-    .catch(error => {
-        console.log('error: ', error);
-        fnGenMessage("Error to get WS Session.", `badge bg-danger`, "spnGenMsg");
-    });
-}
-
-function fnInvalidateWsSession(){
-    let objClientId = document.getElementById("txtClientId");
-    let objSession = document.getElementById("hidSession");
-
-    let vHeaders = new Headers();
-    vHeaders.append("Content-Type", "application/json");
-
-    let vAction = JSON.stringify({
-        "ClientID" : objClientId.value,
-        "SessionID" : objSession.value
-    });
-    
-    let requestOptions = {
-        method: 'POST',
-        headers: vHeaders,
-        body: vAction,
-        redirect: 'follow'
-    };
-
-    fetch("/alice-blue/InvalidateWsSession", requestOptions)
-    .then(response => response.json())
-    .then(objResult => {
-        //console.log(objResult);
-        if(objResult.status === "success")
-        {
-            console.log(objResult);
-            // objEncKey.value = objResult.data.EncKey;
-            // objSession.value = objResult.data.Session;
-
-        }
-        else if(objResult.status === "danger")
-        {
-            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-        }
-        else if(objResult.status === "warning")
-        {
-            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-        }
-        else
-        {
-            fnGenMessage("Error in Invalidating Session, Contact Admin.", `badge bg-danger`, "spnGenMsg");
-        }
-    })
-    .catch(error => {
-        console.log('error: ', error);
-        fnGenMessage("Error to Close WS Session.", `badge bg-danger`, "spnGenMsg");
-    });
-}
-
-function fnGetNSEOptionChain(){
-    let objClientId = document.getElementById("txtClientId");
-
-    let vHeaders = new Headers();
-    vHeaders.append("Content-Type", "application/json");
-
-    let vAction = JSON.stringify({
-        "ClientID" : objClientId.value
-    });
-    
-    let requestOptions = {
-        method: 'GET',
-        headers: vHeaders,
-        redirect: 'follow'
-    };
-
-    fetch("/alice-blue/getNseOptionChain", requestOptions)
-    .then(response => response.json())
-    .then(objResult => {
-        //console.log(objResult);
-        if(objResult.status === "success")
-        {
-            console.log(objResult);
-            // objEncKey.value = objResult.data.EncKey;
-            // objSession.value = objResult.data.Session;
-
-        }
-        else if(objResult.status === "danger")
-        {
-            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-        }
-        else if(objResult.status === "warning")
-        {
-            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-        }
-        else
-        {
-            fnGenMessage("Error in Getting Option Chain Data, Contact Admin.", `badge bg-danger`, "spnGenMsg");
-        }
-    })
-    .catch(error => {
-        console.log('error: ', error);
-        fnGenMessage("Error to get Option Chain Data from NSE", `badge bg-danger`, "spnGenMsg");
-    });
 }
 
 function fnLoginAliceBlue()
