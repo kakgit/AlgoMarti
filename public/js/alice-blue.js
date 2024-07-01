@@ -338,6 +338,44 @@ function fnCheckTradeTimer() {
     fnGetCurrentPrice();
 }
 
+function getJsonFile(){
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let objRequestOptions = {
+    method: 'POST',
+    headers: vHeaders,
+    body: "", //JSON.stringify({ClientID: objClientId.value, Session: objSession.value, Exchange: objExchange.value, StrikeInterval: objStrikeInterval.value, Token: objSelToken.value}),
+    redirect: 'follow'
+    };
+
+    fetch("/alice-blue/getJsonFiles", objRequestOptions)
+    .then(objResponse => objResponse.json())
+    .then(objResult => {
+        if(objResult.status === "success")
+        {
+            console.log(objResult);
+        fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "danger")
+        {
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "warning")
+        {
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else
+        {
+            fnGenMessage("Error in Login, Contact Admin.", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        console.log('error: ', error);
+        fnGenMessage("Error to Fetch with Login Details.", `badge bg-danger`, "spnGenMsg");
+    });
+}
+
 function fnUploadFiles()
 {
     const objFiles = document.getElementById("flsSelectFiles");

@@ -1,6 +1,8 @@
 
 const {createHash} = require('node:crypto');
 const axios = require('axios');
+const path = require('path');
+const fs = require('fs');
 
 exports.fnLoginAliceBlue = async (req, res) => {
   // let vClientId = "632665";
@@ -295,6 +297,16 @@ exports.fnGetOpenTradeRate = async (req, res) => {
     res.send({ status: objTradeDetails.status, message: objTradeDetails.message, data: objTradeDetails.data });
   }
 };
+
+exports.fnGetJsonFilesData = async (req, res) => {
+  // let config = require('./json/abSymbols.json');
+
+  let reqPath = path.join(__dirname, '../public/json/abSymbols.json');
+  console.log(reqPath);
+
+
+  res.send({ status: "success", message: "File Received", data: "Test" });
+}
 
 const fnGetCurrentPrice = async (pExchange, pToken, pClientId, pSession) => {
   const objData =  new Promise((resolve, reject) => {
