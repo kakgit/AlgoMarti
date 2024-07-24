@@ -299,13 +299,29 @@ exports.fnGetOpenTradeRate = async (req, res) => {
 };
 
 exports.fnGetJsonFilesData = async (req, res) => {
-  // let config = require('./json/abSymbols.json');
 
-  let reqPath = path.join(__dirname, '../public/json/abSymbols.json');
-  console.log(reqPath);
+  let reqPath = path.join(__dirname, '../../public/json/abSymbols.json');
+  //console.log(__dirname);
 
-
-  res.send({ status: "success", message: "File Received", data: "Test" });
+  //Read JSON from relative path of this file
+    fs.readFile(reqPath , 'utf8', function (err, data) {
+      //Handle Error
+      if(!err) {
+          //Handle Success
+          //console.log("Success: " + data);
+          // Parse Data to JSON OR
+          var jsonObj = JSON.parse(data)
+          //Send back as Response
+          //res.end(data);
+          res.send({ status: "success", message: "Symbol File Received!", data: jsonObj });
+        }
+        else {
+          //Handle Error
+          //console.log("Error: " + err);
+          //res.end("Error: " + err)
+          res.send({ status: "danger", message: "Error Reading File!", data: err });
+        }
+    });
 }
 
 const fnGetCurrentPrice = async (pExchange, pToken, pClientId, pSession) => {

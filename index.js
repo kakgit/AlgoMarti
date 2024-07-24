@@ -42,6 +42,11 @@ io.on("connection", (cSocket) => {
 
         io.emit("MaheshEmit", pObjMsg);
     });
+
+    cSocket.on("SymbolsUpdated", (pMsg) => {
+        console.log("New Msg from client: " + pMsg);
+        io.emit("UpdateSym", pMsg);
+    });
 });
 
 //log requests

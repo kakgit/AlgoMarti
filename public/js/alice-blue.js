@@ -2,6 +2,7 @@ let vTradeInst = 0;
 
 window.addEventListener("DOMContentLoaded", function(){
     // const ws = new WebSocket("wss://ws1.aliceblueonline.com/NorenWS");
+    getSymbolsDataFile();
 
     fnLoadCnfStatus();
 
@@ -51,6 +52,11 @@ window.addEventListener("DOMContentLoaded", function(){
 
         objDivMsgs.innerHTML += "<p>" + pMsg + "</p>";
         objDivMsgs.scrollTop = objDivMsgs.scrollHeight;
+    });
+
+    socket.on("UpdateSym", (pMsg) => {
+        getSymbolsDataFile();
+        console.log(pMsg);
     });
 
     objTxtMsg.addEventListener("keypress", function(event) {
@@ -338,7 +344,7 @@ function fnCheckTradeTimer() {
     fnGetCurrentPrice();
 }
 
-function getJsonFile(){
+function getSymbolsDataFile(){
     let vHeaders = new Headers();
     vHeaders.append("Content-Type", "application/json");
 
@@ -354,8 +360,9 @@ function getJsonFile(){
     .then(objResult => {
         if(objResult.status === "success")
         {
-            console.log(objResult);
-        fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            //console.log(objResult.data);
+            localStorage.setItem("SymbolListS", objResult.data);
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
         else if(objResult.status === "danger")
         {
@@ -367,12 +374,12 @@ function getJsonFile(){
         }
         else
         {
-            fnGenMessage("Error in Login, Contact Admin.", `badge bg-danger`, "spnGenMsg");
+            fnGenMessage("Error in JSON Data, Contact Admin.", `badge bg-danger`, "spnGenMsg");
         }
     })
     .catch(error => {
         console.log('error: ', error);
-        fnGenMessage("Error to Fetch with Login Details.", `badge bg-danger`, "spnGenMsg");
+        fnGenMessage("Error to fetch JSON Data", `badge bg-danger`, "spnGenMsg");
     });
 }
 
@@ -662,6 +669,10 @@ function fnSendMessageToAll()
     socket.emit("UserMessage", objMsg.value);
 
     objMsg.value = "";
+}
+
+function fnUpdateSymbolsForAll(){
+    socket.emit("SymbolsUpdated", "Updated Ur Symbol!");
 }
 
 function fnClearMessage()
@@ -1002,6 +1013,10 @@ function fnAddEditSymbolDetails()
         objStopLoss.value = "";
         objTakeProfit.value = "";
 
+        document.getElementById("ddlManualSymbol").value = "";
+
+        $('#ddlManualSymbol').change();
+
         fnGetSymbolList();
     }
 }
@@ -1056,6 +1071,7 @@ function fnAddEditExpiryDetails()
         //console.log(localStorage.getItem("SymbolListS"));
 
         objExpDate.value = "";
+
         fnGetExpiryList();
     }
 }
@@ -1066,8 +1082,8 @@ function fnGetSymbolList() {
 
     var objSybLst = localStorage.getItem("SymbolListS");
 
-    //console.log(objSybLst);
     objSybLst = JSON.parse(objSybLst);
+    //console.log(objSybLst);
 
     objSelSym.innerHTML = "";
 
@@ -1403,6 +1419,7 @@ function fnSaveSymbolAttrToDB(pSymbolDetails)
         else
         {
             fnGenMessage(result.message, `badge bg-${result.status}`, "spnSettingsMsg");
+            fnUpdateSymbolsForAll();
         }
     })
     .catch(error => {
@@ -1428,6 +1445,7 @@ function fnGetSelSymbolData(pSymbolVal)
     let objTradeToken = document.getElementById("hidTradeToken");
     let objDateToTime = document.getElementById("txtDateToTime");
 
+    //console.log(objSybLst);
     objSybLst = JSON.parse(objSybLst);
 
     objSelExp.innerHTML = "";
