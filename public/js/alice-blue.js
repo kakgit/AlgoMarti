@@ -56,7 +56,7 @@ window.addEventListener("DOMContentLoaded", function(){
 
     socket.on("UpdateSym", (pMsg) => {
         getSymbolsDataFile();
-        console.log(pMsg);
+        //console.log(pMsg);
     });
 
     objTxtMsg.addEventListener("keypress", function(event) {

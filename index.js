@@ -44,7 +44,7 @@ io.on("connection", (cSocket) => {
     });
 
     cSocket.on("SymbolsUpdated", (pMsg) => {
-        console.log("New Msg from client: " + pMsg);
+        //console.log("New Msg from client: " + pMsg);
         io.emit("UpdateSym", pMsg);
     });
 });
