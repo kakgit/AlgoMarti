@@ -70,6 +70,24 @@ window.addEventListener("DOMContentLoaded", function(){
     });
 });
 
+function fnChangeStartLotNos(pThisVal){
+
+    if(pThisVal.value === "" || pThisVal.value === "0"){
+        fnGenMessage("Not a Valid Lot No to Start with, Please Check", `badge bg-danger`, "spnGenMsg");
+        pThisVal.value = 1;
+        localStorage.setItem("StartLotNo", 1);
+    }
+    else if(isNaN(parseInt(pThisVal.value))){
+        fnGenMessage("Not a Valid Lot No to Start with, Please Check", `badge bg-danger`, "spnGenMsg");
+        pThisVal.value = 1;
+        localStorage.setItem("StartLotNo", 1);
+    }
+    else{
+        fnGenMessage("No of Lots to Start With is Changed!", `badge bg-success`, "spnGenMsg");
+        localStorage.setItem("StartLotNo", pThisVal.value);
+    }
+}
+
 function fnCheckTradeStep(pObjMsg)
 {
     let objConfSteps = document.getElementById("ddlConfSteps");
@@ -256,7 +274,7 @@ function fnSetTodayTradeDetails()
     let objTodayTradeList = document.getElementById("divTodayTrades");
 
     if (objTodayTrades == null || objTodayTrades == "") {
-        objTodayTradeList.innerHTML = '<div class="col-sm-12" style="border:1px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 40px;">No Trades Yet</div>';
+        objTodayTradeList.innerHTML = '<div class="col-sm-12" style="border:0px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 40px;">No Trades Yet</div>';
     }
     else {
         let vTempHtml = "";
@@ -1697,6 +1715,13 @@ async function fnInitiateBuyManualTrade(pCEorPE)
         }
         else
         {
+            let vStartLotNo = localStorage.getItem("StartLotNo");
+
+            if(parseInt(objManualLots.value) === 1){
+                objManualLots.value = vStartLotNo;
+                localStorage.setItem("QtyMul", vStartLotNo);
+            }
+
             //Execute the trade based on Buy on CE or PE
             let objDate = new Date(objExpiry.value);
             let vDate = new Date();
@@ -2230,6 +2255,13 @@ function fnInitiateAutoTrade(pObjMsg)
             let objManualStopLoss = document.getElementById("txtManualStopLoss");
             let objManualTradePrice = document.getElementById("txtManualTradePrice");
             let objManualTakeProfit = document.getElementById("txtManualTakeProfit");
+
+            let vStartLotNo = localStorage.getItem("StartLotNo");
+
+            if(parseInt(objManualLots.value) === 1){
+                objManualLots.value = vStartLotNo;
+                localStorage.setItem("QtyMul", vStartLotNo);
+            }
 
             objSymbol.value = pObjMsg.symbolName;
             fnGetSelSymbolData(pObjMsg.symbolName);
