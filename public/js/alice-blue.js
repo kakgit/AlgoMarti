@@ -2,6 +2,7 @@ let vTradeInst = 0;
 
 window.addEventListener("DOMContentLoaded", function(){
     // const ws = new WebSocket("wss://ws1.aliceblueonline.com/NorenWS");
+
     getSymbolsDataFile();
 
     fnLoadCnfStatus();
@@ -159,6 +160,7 @@ function fnGetSetAllStatus()
     fnLoadDefaultSLTP();
     fnSetLotsByQtyMulLossAmt();
     fnLoadTimerSwitchSetting();
+    fnSetDefaultLotNos();
 
     //fnSetCurrentTradeDetails();
     fnSetTodayTradeDetails();
@@ -227,6 +229,16 @@ function fnSetUserProfileDets()
         objEmailId.value = "";
         objStatus.value = "";
         objRealMargin.value = 0;
+    }
+}
+
+function fnSetDefaultLotNos(){
+    let vStartLots = localStorage.getItem("StartLotNo");
+    let objTxtLots = document.getElementById("txtStartLotNos");
+
+    if(vStartLots === null || vStartLots === "" || vStartLots === "0"){
+        localStorage.setItem("StartLotNo", 1);
+        objTxtLots.value = 1;
     }
 }
 
@@ -653,6 +665,7 @@ function fnClearLocalStorageTemp()
     // localStorage.removeItem("isAutoTrader");
     localStorage.removeItem("CurrPositionS");
     localStorage.removeItem("TradesListS");
+    localStorage.setItem("StartLotNo", 1);
     localStorage.setItem("QtyMul", 1);
     localStorage.removeItem("TotLossAmt");
     localStorage.removeItem("UserDetS");
