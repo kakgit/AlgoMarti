@@ -629,6 +629,7 @@ function fnLoginAliceBlue()
                 fnSetUserProfileDets();
                 fnChangeBtnProps("btnTraderStatus", "badge bg-success", "TRADER - Connected");
                 fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+                getSymbolsDataFile();
                 $('#mdlAliceLogin').modal('hide');
             }
             else if(objResult.status === "danger")
@@ -2190,6 +2191,7 @@ function fnCloseTrade()
     localStorage.setItem("CurrPositionS", objExcTradeDtls);
 
     fnGenMessage("Position Closed!", `badge bg-success`, "spnGenMsg");
+    getSymbolsDataFile();
 
     // objInstance.invokeMethodAsync("fnAPTFromJSCloseTrade").then(result => {
     //     console.log("Result: " + result);
