@@ -299,9 +299,11 @@ exports.fnGetOpenTradeRate = async (req, res) => {
 };
 
 exports.fnGetJsonFilesData = async (req, res) => {
+  // let nowDate = new Date();
+
+  // console.log(nowDate.valueOf());
 
   let reqPath = path.join(__dirname, '../../public/json/abSymbols.json');
-  //console.log(__dirname);
 
   //Read JSON from relative path of this file
     fs.readFile(reqPath , 'utf8', function (err, data) {
@@ -310,7 +312,8 @@ exports.fnGetJsonFilesData = async (req, res) => {
           //Handle Success
           //console.log("Success: " + data);
           // Parse Data to JSON OR
-          var jsonObj = JSON.parse(data)
+          var jsonObj = JSON.parse(data);
+          //console.log(jsonObj);
           //Send back as Response
           //res.end(data);
           res.send({ status: "success", message: "Symbol File Received!", data: jsonObj });

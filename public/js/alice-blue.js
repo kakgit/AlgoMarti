@@ -157,6 +157,7 @@ function fnGetSetAllStatus()
 
     fnGetSetTraderLoginStatus();
     fnGetSetAutoTraderStatus();
+    fnGetSetRealTradeStatus();
     fnLoadDefaultSLTP();
     fnSetLotsByQtyMulLossAmt();
     fnLoadTimerSwitchSetting();
@@ -390,7 +391,7 @@ function getSymbolsDataFile(){
     .then(objResult => {
         if(objResult.status === "success")
         {
-            //console.log(objResult.data);
+            console.log(objResult.data);
             localStorage.setItem("SymbolListS", objResult.data);
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
@@ -494,6 +495,47 @@ function fnGetSetAutoTraderStatus()
     }
 }
 
+function fnGetSetRealTradeStatus(){
+    let isLsTraderLogin = localStorage.getItem("isTraderLogin");
+    let isLsRealTrade = localStorage.getItem("isRealTrade");
+
+    let objRealTradeStatus = document.getElementById("btnRealTradeStatus");
+
+    if(isLsTraderLogin === "true" && isLsRealTrade === "true")
+    {
+        fnChangeBtnProps(objRealTradeStatus.id, "badge bg-warning", "Real Trade - ON");
+    }
+    else
+    {
+        fnChangeBtnProps(objRealTradeStatus.id, "badge bg-success", "Paper Trade - ON");
+    }
+}
+
+function fnToggleRealTrade(){
+    let isLsTraderLogin = localStorage.getItem("isTraderLogin");
+    let isLsRealTrade = localStorage.getItem("isRealTrade");
+
+    let objRealTradeStatus = document.getElementById("btnRealTradeStatus");
+
+    if(isLsRealTrade === null || isLsRealTrade === "false"){
+        if(isLsTraderLogin === "true"){
+            fnChangeBtnProps(objRealTradeStatus.id, "badge bg-warning", "Real Trade - ON");
+            fnGenMessage("Real Trading Mode is ON!", `badge bg-success`, "spnGenMsg");
+            localStorage.setItem("isRealTrade", true);
+        }
+        else
+        {
+            fnGenMessage("Login to Trading Account to Start Real Trades", `badge bg-warning`, "spnGenMsg");
+            localStorage.setItem("isRealTrade", false);
+        }
+    }
+    else{
+        fnChangeBtnProps(objRealTradeStatus.id, "badge bg-success", "Paper Trade - ON");
+        fnGenMessage("Real Trading Mode is Off!", `badge bg-danger`, "spnGenMsg");
+        localStorage.setItem("isRealTrade", false);
+    }
+}
+
 function fnToggleAutoTrader()
 {
     let isLsTraderLogin = localStorage.getItem("isTraderLogin");
@@ -521,17 +563,6 @@ function fnToggleAutoTrader()
         fnGenMessage("Auto Trading Mode is OFF!", `badge bg-danger`, "spnGenMsg");
         localStorage.setItem("isAutoTrader", false);
     }
-
-    // if(isLsTraderLogin)
-    // {
-    //     fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-success", "Auto Trader - ON");
-    //     fnGenMessage("Auto Trading Mode is ON!", `badge bg-success`, "spnGenMsg");
-
-    // }
-    // else
-    // {
-    //     fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
-    // }
 }
 
 function fnShowTraderLoginMdl(objThis)
@@ -2209,7 +2240,7 @@ function fnCloseTrade()
 
 function fnPositionStatus()
 {
-    objBtnPosition = document.getElementById("btnPositionStatus");
+    let objBtnPosition = document.getElementById("btnPositionStatus");
 
     if(localStorage.getItem("CurrPositionS") === null)
     {
