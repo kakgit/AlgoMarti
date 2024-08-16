@@ -47,6 +47,10 @@ io.on("connection", (cSocket) => {
         //console.log("New Msg from client: " + pMsg);
         io.emit("UpdateSym", pMsg);
     });
+
+    cSocket.on("SendTrdToAll", (pObjMsg) => {
+        io.emit("ServerEmit", pObjMsg);
+    });
 });
 
 //log requests

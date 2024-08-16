@@ -327,6 +327,11 @@ exports.fnGetJsonFilesData = async (req, res) => {
     });
 }
 
+exports.fnSqOffPositions = async (req, res) => {
+  console.log("Position Closed!!");
+  res.send({"status": "success", "message": "Position/s Closed!", "data": ""});
+}
+
 const fnGetCurrentPrice = async (pExchange, pToken, pClientId, pSession) => {
   const objData =  new Promise((resolve, reject) => {
     let objParams = JSON.stringify({
