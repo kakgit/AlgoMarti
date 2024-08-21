@@ -43,6 +43,8 @@ route.post("/alice-blue/getOpenTradeRate", abController.fnGetOpenTradeRate);
 route.post("/alice-blue/getUserProfileDetails", abController.fnGetUserProfileDetails);
 route.post("/alice-blue/getJsonFiles", abController.fnGetJsonFilesData);
 route.post("/alice-blue/sqOffPositions", abController.fnSqOffPositions);
+route.post("/alice-blue/getTradeBook", abController.fnGetTradeBook);
+route.post("/alice-blue/placeBracketOrder", abController.fnPlaceBracketOrder);
 
 //Update JSON file Routes
 route.post("/json/uorcJSON", tvConfsController.fnUpdJsons);

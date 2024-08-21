@@ -2691,14 +2691,57 @@ function fnTestMe()
     console.log("QtyMul - " + localStorage.getItem("QtyMul"));
 }
 
-function fnCloseRealPositions(){
+function fnShowRealPositions(){
+    let objClientId = document.getElementById("txtClientId");
+    let objSession = document.getElementById("hidSession");
+
     let vHeaders = new Headers();
     vHeaders.append("Content-Type", "application/json");
 
     let objRequestOptions = {
         method: 'POST',
         headers: vHeaders,
-        body: JSON.stringify([{ scripToken: "14003", pCode: "MIS" }]),
+        body: JSON.stringify({ ClientID: objClientId.value, Session: objSession.value }),
+        redirect: 'follow'
+    };
+    
+    fetch("/alice-blue/getTradeBook", objRequestOptions)
+    .then(objResponse => objResponse.json())
+    .then(objResult => {
+        if(objResult.status === "success")
+        {
+            console.log(objResult);
+        }
+        else if(objResult.status === "danger")
+        {
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "warning")
+        {
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else
+        {
+            fnGenMessage("Tradebook Error, COntact Admin.", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        console.log('error: ', error);
+        fnGenMessage("Error to Receive Tradebook.", `badge bg-danger`, "spnGenMsg");
+    });
+}
+
+function fnCloseRealPositions(){
+    let objClientId = document.getElementById("txtClientId");
+    let objSession = document.getElementById("hidSession");
+
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let objRequestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: JSON.stringify({ ClientID: objClientId.value, Session: objSession.value, scripToken: "14003", pCode: "MIS" }),
         redirect: 'follow'
     };
     
@@ -2707,7 +2750,7 @@ function fnCloseRealPositions(){
     .then(objResult => {
         if(objResult.status === "success")
         {
-            console.log("Success");
+            console.log(objResult);
         }
         else if(objResult.status === "danger")
         {
@@ -2725,5 +2768,45 @@ function fnCloseRealPositions(){
     .catch(error => {
         console.log('error: ', error);
         fnGenMessage("Error to Close the Open Position.", `badge bg-danger`, "spnGenMsg");
+    });
+}
+
+function fnPlaceBracketOrder(){
+    let objClientId = document.getElementById("txtClientId");
+    let objSession = document.getElementById("hidSession");
+
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let objRequestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: JSON.stringify({ ClientID: objClientId.value, Session: objSession.value }),
+        redirect: 'follow'
+    };
+    
+    fetch("/alice-blue/placeBracketOrder", objRequestOptions)
+    .then(objResponse => objResponse.json())
+    .then(objResult => {
+        if(objResult.status === "success")
+        {
+            console.log(objResult);
+        }
+        else if(objResult.status === "danger")
+        {
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "warning")
+        {
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else
+        {
+            fnGenMessage("Error to Place Bracket ORder.", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        console.log('error: ', error);
+        fnGenMessage("Error to Start New Trade", `badge bg-danger`, "spnGenMsg");
     });
 }

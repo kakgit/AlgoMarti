@@ -328,8 +328,150 @@ exports.fnGetJsonFilesData = async (req, res) => {
 }
 
 exports.fnSqOffPositions = async (req, res) => {
-  console.log("Position Closed!!");
-  res.send({"status": "success", "message": "Position/s Closed!", "data": ""});
+  let vClientId = req.body.ClientID;
+  let vSession = req.body.Session;
+  let objData = "";
+
+  try {
+    objData = await fnGetRealClosedPosiDetails(vClientId, vSession);
+    console.log(objData);
+    res.send({"status": "success", "message": "Position/s Closed!", "data": objData.data});
+    } catch (err) {
+      //console.log("At fnGetRealClosedPosiDetails: " + err.data);
+      res.send({"status": err.status, "message": err.message, "data": err.data});  
+  }
+}
+
+exports.fnGetTradeBook = async (req, res) => {
+  let vClientId = req.body.ClientID;
+  let vSession = req.body.Session;
+  let objData = "";
+
+  try {
+    objData = await fnGetRealTradeBookDetails(vClientId, vSession);
+    console.log("Data: " + objData);
+    res.send({"status": "success", "message": "Tradebook Received", "data": objData.data});
+    } catch (err) {
+      //console.log("At fnGetRealClosedPosiDetails: " + err.data);
+      res.send({"status": err.status, "message": err.message, "data": err.data});  
+  }
+}
+
+exports.fnPlaceBracketOrder = async (req, res) => {
+  let vClientId = req.body.ClientID;
+  let vSession = req.body.Session;
+  let objData = "";
+
+  try {
+    objData = await fnExecBracketOrder(vClientId, vSession);
+    console.log("Data: " + objData);
+    res.send({"status": "success", "message": "Bracket Order Placed!", "data": objData.data});
+    } catch (err) {
+      //console.log("At fnGetRealClosedPosiDetails: " + err.data);
+      res.send({"status": err.status, "message": err.message, "data": err.data});  
+  }
+}
+
+const fnExecBracketOrder = async (pClientId, pSession) => {
+  const objData =  new Promise((resolve, reject) => {
+    let objParams = JSON.stringify([
+      {
+        "complexty": "regular",
+        "discqty": "0",
+        "exch": "NSE",
+        "pCode": "CNC",
+        "prctyp": "MKT",
+        "price": "0",
+        "qty": 1,
+        "ret": "DAY",
+        "stopLoss": 0,
+        "symbol_id": "3499",
+        "target": 0,
+        "trading_symbol": "TATASTEEL-EQ",
+        "trailing_stop_loss": 0,
+        "transtype": "B",
+        "trigPrice": "0"
+      }
+    ]);
+
+    let objConfig = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: 'https://ant.aliceblueonline.com/rest/AliceBlueAPIService/api/placeOrder/executePlaceOrder',
+      headers: { 
+        'Authorization': 'Bearer '+ pClientId +' ' + pSession, 
+        'Content-Type': 'application/json'
+      },
+      data : objParams
+    };
+
+    axios.request(objConfig)
+    .then((objResponse) => {
+      resolve({"status": "success", "message": "Success - Order Placed", "data": objResponse.data});
+    })
+    .catch((error) => {
+      console.log(error.message);
+      reject({"status": "danger", "message": "Error in Placing the Order, Please Check!", "data": error.message});
+    });
+  });
+
+  return objData;
+}
+
+const fnGetRealTradeBookDetails = async (pClientId, pSession) => {
+  const objData =  new Promise((resolve, reject) => {
+    let objParams = "";
+
+    let objConfig = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: 'https://ant.aliceblueonline.com/rest/AliceBlueAPIService/api/placeOrder/fetchTradeBook',
+      headers: { 
+        'Authorization': 'Bearer '+ pClientId +' ' + pSession, 
+        'Content-Type': 'application/json'
+      },
+      data : objParams
+    };
+
+    axios.request(objConfig)
+    .then((objResponse) => {
+      resolve({"status": "success", "message": "Success - Tradabook Received", "data": objResponse.data});
+    })
+    .catch((error) => {
+      console.log(error.message);
+      reject({"status": "danger", "message": "Error in to Receive Tradebook, Please Check!", "data": error.message});
+    });
+  });
+
+  return objData;
+}
+
+const fnGetRealClosedPosiDetails = async (pClientId, pSession) => {
+  const objData =  new Promise((resolve, reject) => {
+    let objParams = "";
+
+    let objConfig = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: 'https://ant.aliceblueonline.com/rest/AliceBlueAPIService/api/positionAndHoldings/squareOffAllPositions',
+      headers: { 
+        'Authorization': 'Bearer '+ pClientId +' ' + pSession, 
+        'Content-Type': 'application/json'
+      },
+      data : objParams
+    };
+
+    axios.request(objConfig)
+    .then((objResponse) => {
+      resolve({"status": "success", "message": "Success - Position Closed", "data": objResponse.data});
+    })
+    .catch((error) => {
+      console.log(error.message);
+      reject({"status": "danger", "message": "Error in Closing Position, Please Check!", "data": error.message});
+    });
+  });
+
+  return objData;
 }
 
 const fnGetCurrentPrice = async (pExchange, pToken, pClientId, pSession) => {
