@@ -385,7 +385,7 @@ function getSymbolsDataFile(){
     .then(objResult => {
         if(objResult.status === "success")
         {
-            //console.log(objResult.data);
+            console.log(objResult.data);
             localStorage.setItem("SymbolListS", objResult.data);
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }

@@ -112,7 +112,7 @@ async function fnGetSessionAB(pClientID, pSHA256) {
       .then((response) => {
 
         const vIsOk = response.data.stat;
-        //console.log(response.data);
+        console.log(response.data);
 
         if (vIsOk === "Ok") {
           const vSessionAB = response.data.sessionID;
