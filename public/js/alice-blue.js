@@ -57,7 +57,7 @@ window.addEventListener("DOMContentLoaded", function(){
 
     socket.on("UpdateSym", (pMsg) => {
         getSymbolsDataFile();
-        //console.log(pMsg);
+        console.log(pMsg);
     });
 
     objTxtMsg.addEventListener("keypress", function(event) {
@@ -986,6 +986,9 @@ function fnAddEditSymbolDetails()
 
     var objSybLst = localStorage.getItem("SymbolListS");
 
+    const objDate = new Date();
+    let vSecDt = objDate.valueOf();
+
     if (objSymName.value == "") {
         objGDispMessage.className = "badge bg-danger";
         objGDispMessage.innerText = "Please Input Symbol Name!";
@@ -1007,7 +1010,7 @@ function fnAddEditSymbolDetails()
         objGDispMessage.innerText = "Please Input Strike Interval!";
     }
     else if ((objSybLst == null) || (objSybLst == "")) {
-        const vSymDet = { Symbol: [{ SymbolName: objSymName.value, TradeName: objTradeName.value, Token: objToken.value, Exchange: objExchange.options[objExchange.selectedIndex].text, Contract: objContracts.value, LotSize: objLotSize.value, StrikeInterval: objStrikeInterval.value, StopLoss: objStopLoss.value, TakeProfit: objTakeProfit.value, ExpiryDates: [] }] };
+        const vSymDet = { UpdDt: vSecDt, Symbol: [{ SymbolName: objSymName.value, TradeName: objTradeName.value, Token: objToken.value, Exchange: objExchange.options[objExchange.selectedIndex].text, Contract: objContracts.value, LotSize: objLotSize.value, StrikeInterval: objStrikeInterval.value, StopLoss: objStopLoss.value, TakeProfit: objTakeProfit.value, ExpiryDates: [] }] };
         var vFirstItem = JSON.stringify(vSymDet);
         localStorage.setItem("SymbolListS", vFirstItem);
 
@@ -1045,6 +1048,8 @@ function fnAddEditSymbolDetails()
                     vExistingData.Symbol[i].TakeProfit = objTakeProfit.value;
                 }
             }
+
+            vExistingData.UpdDt = vSecDt;
             var vEditedItems = JSON.stringify(vExistingData);
             localStorage.setItem("SymbolListS", vEditedItems);
 
@@ -1057,6 +1062,7 @@ function fnAddEditSymbolDetails()
             objGDispMessage.innerText = objSelSym.value + " Symbol Details Edited!";
         }
         else {
+            vExistingData.UpdDt = vSecDt;
             vExistingData.Symbol.push({ SymbolName: objSymName.value, TradeName: objTradeName.value, Token: objToken.value, Exchange: objExchange.options[objExchange.selectedIndex].text, Contract: objContracts.value, LotSize: objLotSize.value, StrikeInterval: objStrikeInterval.value, StopLoss: objStopLoss.value, TakeProfit: objTakeProfit.value, ExpiryDates: [] });
             var vAddlItems = JSON.stringify(vExistingData);
             localStorage.setItem("SymbolListS", vAddlItems);
@@ -1093,6 +1099,9 @@ function fnAddEditExpiryDetails()
     var objEditCB = document.getElementById("swtEditExpiry");
     var objGDispMessage = document.getElementById("spnSettingsMsg");
 
+    const objDate = new Date();
+    let vSecDt = objDate.valueOf();
+
     if (objSelSym.value == "") {
         objGDispMessage.className = "badge bg-warning";
         objGDispMessage.innerText = "Please Select Symbol to Add Expiry Date!";
@@ -1126,6 +1135,8 @@ function fnAddEditExpiryDetails()
             objGDispMessage.className = "badge bg-success";
             objGDispMessage.innerText = objExpDate.value + " Expiry Date Added!";
         }
+        vExistingData.UpdDt = vSecDt;
+
         var vAddlItems = JSON.stringify(vExistingData);
         localStorage.setItem("SymbolListS", vAddlItems);
 
@@ -1307,6 +1318,9 @@ function fnDeleteSymbol()
     var objEditCB = document.getElementById("swtEditSymbol");
     var objGDispMessage = document.getElementById("spnSettingsMsg");
 
+    const objDate = new Date();
+    let vSecDt = objDate.valueOf();
+
     if (objSelSym.value === "") {
         objGDispMessage.className = "badge bg-danger";
         objGDispMessage.innerText = "Please Select Symbol to Delete!";
@@ -1321,6 +1335,8 @@ function fnDeleteSymbol()
                     vExistingData.Symbol.splice(i, 1);
                 }
             }
+
+            vExistingData.UpdDt = vSecDt;
             var vEditedItems = JSON.stringify(vExistingData);
             localStorage.setItem("SymbolListS", vEditedItems);
 
@@ -1352,6 +1368,9 @@ function fnDeleteExpiry()
     var objEditCB = document.getElementById("swtEditExpiry");
     var objGDispMessage = document.getElementById("spnSettingsMsg");
 
+    const objDate = new Date();
+    let vSecDt = objDate.valueOf();
+
     if (objSelExp.value == "") {
         objGDispMessage.className = "badge bg-warning";
         objGDispMessage.innerText = "Please Select Expiry Date to Delete!";
@@ -1369,6 +1388,8 @@ function fnDeleteExpiry()
                     }
                 }
             }
+
+            vExistingData.UpdDt = vSecDt;
             var vEditedItems = JSON.stringify(vExistingData);
             localStorage.setItem("SymbolListS", vEditedItems);
 
