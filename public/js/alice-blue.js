@@ -373,6 +373,10 @@ function getSymbolsDataFile(){
     let vHeaders = new Headers();
     vHeaders.append("Content-Type", "application/json");
 
+    let vOldSybDt = localStorage.getItem("SymbolListS");
+    vOldSybDt = JSON.parse(vOldSybDt);
+    //alert(vOldSybDt.UpdDt);
+
     let objRequestOptions = {
     method: 'POST',
     headers: vHeaders,
@@ -385,9 +389,14 @@ function getSymbolsDataFile(){
     .then(objResult => {
         if(objResult.status === "success")
         {
-            console.log(objResult.data);
-            localStorage.setItem("SymbolListS", objResult.data);
-            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            let vNewSybDt = JSON.parse(objResult.data);
+
+            if(vNewSybDt.UpdDt > vOldSybDt.UpdDt){
+                console.log(objResult.data);
+
+                localStorage.setItem("SymbolListS", objResult.data);
+                fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
         }
         else if(objResult.status === "danger")
         {
