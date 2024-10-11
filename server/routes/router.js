@@ -2,6 +2,7 @@ const express = require('express');
 const route = express.Router();
 
 const homeServices = require('../services/homePage.js');
+const aliceLiveServices = require('../services/aliceLivePage.js');
 const samcoServices = require('../services/samcoPage.js');
 const finvasiaServices = require('../services/finvasiaPage.js');
 const tvMsgsServices = require('../services/tvMsgsPage.js');
@@ -9,12 +10,16 @@ const tvMsgsController = require('../controller/controllerTvMsgs.js');
 const usersController = require('../controller/controllerUsers.js');
 const tvConfsController = require('../controller/controllerJSON.js');
 const abController = require("../controller/controllerAliceBlue.js");
+const aliceLiveController = require("../controller/controllerAliceLive.js");
 
 //home Routes
 route.get("/", homeServices.defaultRoute);
 
 //Tradingview Signals Routes
 route.get("/mahesh", homeServices.signalsTV);
+
+//Alice Live Route
+route.get("/aliceLive", aliceLiveServices.defaultRoute);
 
 //Samco Routes
 route.get("/samco", samcoServices.defaultRoute);
@@ -44,7 +49,10 @@ route.post("/alice-blue/getUserProfileDetails", abController.fnGetUserProfileDet
 route.post("/alice-blue/getJsonFiles", abController.fnGetJsonFilesData);
 route.post("/alice-blue/sqOffPositions", abController.fnSqOffPositions);
 route.post("/alice-blue/getTradeBook", abController.fnGetTradeBook);
-route.post("/alice-blue/placeBracketOrder", abController.fnPlaceBracketOrder);
+route.post("/alice-blue/placeBasketOrder", abController.fnPlaceBasketOrder);
+
+//AliceBlue Real Trade Routes
+route.post("/alice-blue/getOrderPlacedDetails", abController.fnOrderPlacedDetails);
 
 //Update JSON file Routes
 route.post("/json/uorcJSON", tvConfsController.fnUpdJsons);

@@ -91,7 +91,6 @@ app.post("/tv-msg", (req, res) => {
     io.emit("ServerEmit", objMsg);
 
     res.send("success");
-    //res.render("index.ejs");
     return;
 });
 
@@ -120,8 +119,8 @@ const storage = multer.diskStorage({
 const objUploads = multer({storage: storage});
 
 app.post("/uploadsAB", objUploads.array("files"), (req, res) => {
-    console.log(req.body);
-    console.log(req.files);
+    // console.log(req.body);
+    // console.log(req.files);
 
     //res.json({status: "files received"});
     res.json({"status": "success", "message": "File/s Uploaded Successfully!"});

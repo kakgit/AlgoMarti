@@ -1,3 +1,4 @@
+
 <div id="main">
     <div class="page-heading">
         <div class="row">
@@ -16,16 +17,13 @@
         <section class="row">
             <div class="col-12 col-lg-9">
                 <div class="row" style="text-align: center;">
-                    <div class="col-6 col-lg-3 col-md-6">
+                    <div class="col-6 col-lg-4 col-md-6">
                         <button class="badge bg-danger" onclick="fnShowTraderLoginMdl(this);" id="btnTraderStatus">TRADER - Disconnected</button>
                     </div>
-                    <div class="col-6 col-lg-3 col-md-6">
+                    <div class="col-6 col-lg-4 col-md-6">
                         <button class="badge bg-danger" onclick="fnToggleAutoTrader();" id="btnAutoTraderStatus">Auto Trader - OFF</button>
                     </div>
-                    <div class="col-6 col-lg-3 col-md-6">
-                        <button class="badge bg-success" onclick="fnToggleRealTrade();" id="btnRealTradeStatus">Paper Trade - ON</button>
-                    </div>
-                    <div class="col-6 col-lg-3 col-md-6">
+                    <div class="col-6 col-lg-4 col-md-6">
                         <button class="badge bg-danger" onclick="fnPositionStatus()" id="btnPositionStatus">NO Open Position</button>
                     </div>
                     <div class="col-12">&nbsp;</div>
@@ -36,16 +34,43 @@
                             <div class="card-header">
                                 <div class="row">
                                     <div class="col-6"><h4>Manual Trader</h4></div>
-                                    <div class="col-3" style="text-align: right;">Start With </div>
+                                    <div class="col-2">
+                                        <select id="ddlOptionStrike" onchange="fnChangeOptionStrike(this);" class="form-select">
+                                            <option value="-10">-10 ITM</option>
+                                            <option value="-9">-9 ITM</option>
+                                            <option value="-8">-8 ITM</option>
+                                            <option value="-7">-7 ITM</option>
+                                            <option value="-6">-6 ITM</option>
+                                            <option value="-5">-5 ITM</option>
+                                            <option value="-4">-4 ITM</option>
+                                            <option value="-3">-3 ITM</option>
+                                            <option value="-2">-2 ITM</option>
+                                            <option value="-1">-1 ITM</option>
+                                            <option value="0" selected>ATM</option>
+                                            <option value="1">+1 OTM</option>
+                                            <option value="2">+2 OTM</option>
+                                            <option value="3">+3 OTM</option>
+                                            <option value="4">+4 OTM</option>
+                                            <option value="5">+5 OTM</option>
+                                            <option value="6">+6 OTM</option>
+                                            <option value="7">+7 OTM</option>
+                                            <option value="8">+8 OTM</option>
+                                            <option value="9">+9 OTM</option>
+                                            <option value="10">+10 OTM</option>
+                                        </select>    
+                                    </div>
+                                    <div class="col-2" style="text-align: right;">Start With </div>
                                     <div class="col-1"><input type="number" class="form-control" min="1" value="1" maxlength="3" id="txtStartLotNos" onchange="fnChangeStartLotNos(this);" /></div>
-                                    <div class="col-2"> Lot/s</div>
+                                    <div class="col-1"> Lot/s</div>
                                 </div>
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-6 col-lg-3 col-md-6">Confirmation Steps</div>
                                     <div class="col-6 col-lg-3 col-md-6">
-                                        <select id="ddlConfSteps" class="form-control">
+                                        Confirmation Steps
+                                    </div>
+                                    <div class="col-6 col-lg-3 col-md-6">
+                                        <select id="ddlConfSteps" class="form-select">
                                             <option value="111111">1-1-1-1-1-1</option>
                                             <option value="222222">2-2-2-2-2-2</option>
                                             <option value="333333">3-3-3-3-3-3</option>
@@ -58,24 +83,24 @@
                                         Load from
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
-                                        <select id="ddlManualSource" class="form-control">
+                                        <select id="ddlManualSource" class="form-select">
                                             <option value=0>Local</option>
                                             <option value=1>Server</option>
                                         </select>
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
-                                        <select id="ddlManualSymbol" class="form-control" onchange="fnGetSelSymbolData(this.value);">
+                                        <select id="ddlManualSymbol" class="form-select" onchange="fnGetSelSymbolData(this.value);">
                                         </select>
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
-                                        <select id="ddlManualExpiry" class="form-control" onchange="//fnGetExpValByChdAPT(this.value);"></select>
+                                        <select id="ddlManualExpiry" class="form-select" onchange="//fnGetExpValByChdAPT(this.value);"></select>
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <div class="input-group mb-3">
-                                            <button class="btn btn-primary" type="button" id="button-addon1" onclick="fnGetLiveRate();"><i class="fa fa-share" aria-hidden="true"></i></button>
+                                            <button class="btn btn-danger" type="button" id="button-addon1" onclick="fnGetCurrStrike('PE');"><i class="fa fa-arrow-down" aria-hidden="true"></i></button>
                                             <input id="txtManualStrike" type="number" min="1" class="form-control" placeholder="Strike Price" />
-                                        </div>
-                                        
+                                            <button class="btn btn-success" type="button" id="button-addon2" onclick="fnGetCurrStrike('CE');"><i class="fa fa-arrow-up" aria-hidden="true"></i></button>
+                                        </div>                                                   
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <input type="text" class="form-control" placeholder="MARKET" id="txtManualTradePrice" />
@@ -128,9 +153,10 @@
                                         <input type="hidden" id="hidToken" placeholder="Script Token" />
                                         <input type="hidden" id="hidExchange" placeholder="Exchange" />
                                         <input type="hidden" id="hidContract" placeholder="Contract" />
+                                        <input type="hidden" id="hidMaxLotsLimit" placeholder="Lots Limit" />
                                         <input type="hidden" id="txtDateToTime" placeholder="DateToTime" />
                                         <input type="hidden" id="txtActualStrike" placeholder="Actual Strike" />
-                                        <input type="hidden" id="hidTradeToken" placeholder="Option Token" />
+                                        <input type="text" id="hidTradeToken" placeholder="Option Token" />
                                     </div>
                                 </div>
                             </div>
@@ -173,13 +199,6 @@
                                 <h4>Option Chain Analysis</h4>
                             </div>
                             <div class="card-body">
-                                <div class="container-fluid">
-                                    Testing Phase
-                                    <button>Place Order</button>
-                                    <button onclick="fnShowRealPositions();">Trade Book</button>
-                                    <button onclick="fnCloseRealPositions();">Close Position</button>
-                                    <button onclick="fnPlaceBracketOrder();">Place Bracket Order</button>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -207,7 +226,7 @@
                                 </div>
                                 
                                 <div class="col-12">
-                                    <select id="ddlTrailSLTP" class="form-control" onchange="fnSetDDLTrailSLTP(this);">
+                                    <select id="ddlTrailSLTP" class="form-select" onchange="fnSetDDLTrailSLTP(this);">
                                         <option value=0 selected="true">NO SL or TP</option>
                                         <option value=1>Strict SL or TP</option>
                                         <option value=2>Trail by SL Points</option>
@@ -409,224 +428,9 @@
     </div>
 </div>
 
-<!--Disabled Backdrop Modal for Trader Login-->
-<div class="modal fade text-left" id="mdlAliceLogin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
-    data-bs-backdrop="false" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-secondary">
-                <h4 class="modal-title" id="myModalLabel4">Alice Blue Login Details</h4>
-                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
-            </div>
-            <div class="modal-body">
-                <!-- // Basic multiple Column Form section start -->
-                <section id="multiple-column-form">
-                    <div class="row match-height">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-header text-center">
-                                    &nbsp;<span id="spnAliceBlueLogin" class="badge bg-primary">Please Input Login Details</span>
-                                </div>
-                                <div class="card-content">
-                                    <div class="card-body">
-                                        <form class="form">
-                                            <div class="row">
-                                                <div class="col-md-6 col-12">
-                                                    <div class="form-group">
-                                                        <label for="txtClientId">Client ID</label>
-                                                        <input type="text" id="txtClientId" class="form-control" value="632665" />
-                                                    </div>
-                                                </div>
-                                                    <div class="col-md-6 col-12">
-                                                        <br/>
-                                                        <a href="https://ant.aliceblueonline.com/" target="_blank">LOGIN TO TRADING ACCOUNT</a>
-                                                    <!--<div class="form-group">
-                                                        <label for="txtEmailId">Email</label>
-                                                        <input type="email" id="txtEmailId" class="form-control" />
-                                                    </div>-->
-                                                </div> 
-                                                <div class="col-md-12 col-12">
-                                                    <div class="form-group">
-                                                        <label for="txtApiKey">API Key</label>
-                                                        <input type="text" id="txtApiKey" class="form-control" value="sYtLAxsaZjYPcHEMVKK2yLGvsr9mH1ou9FcFmZuQy5LIuotmzaoN4uof32IavhKaYSUBkQfHWVs4OUlk7FQjYpOWRxJx9BDajn9LKI598LtIbR0STdhK1g0uLIlBLHHW" />
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 col-12">
-                                                    <div class="form-group">
-                                                        <input type="hidden" id="hidEncKey" class="form-control" />
-                                                        
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
-                    <i class="bx bx-x d-block d-sm-none"></i>
-                    <span class="d-none d-sm-block">CLOSE</span>
-                </button>
-                <button id="btnSubmit" type="button" class="btn btn-primary ms-1" onclick="fnLoginAliceBlue();">
-                    <i class="bx bx-check d-block d-sm-none"></i>
-                    <span class="d-none d-sm-block">SUBMIT</span>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!--Disabled Backdrop Modal for Trader Settings-->
-<div class="modal fade text-left" id="mdlSettingsAB" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
-    data-bs-backdrop="false" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-secondary">
-                <h4 class="modal-title" id="myModalLabel4">Alice Blue Settings</h4>
-                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
-            </div>
-            <div class="modal-body">
-                <!-- // Basic multiple Column Form section start -->
-                <section id="multiple-column-form">
-                    <div class="row match-height">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-header text-center">
-                                    &nbsp;<span id="spnSettingsMsg" class="badge bg-primary">Please Input Details</span>
-                                </div>
-                                <div class="card-content">
-                                    <div class="card-body">
-                                        <form class="form">
-                                            <div class="row">
-                                                <div class="col-sm-12"><h3>Upload Files for Alice Blue Tokens</h3></div>
-                                                    <div class="container-fluid">
-                                                        <div class="row">
-                                                            <div class="col-sm-3"><a href="https://v2api.aliceblueonline.com/contractMaster" target="_blank">Click to Download Contracts</a></div>
-                                                            <div class="col-sm-4">
-                                                                <form>
-                                                                    <fieldset>
-                                                                        <div class="input-group">
-                                                                            <input type="file" class="form-control" id="flsSelectFiles" name="flsSelectFiles"
-                                                                                aria-describedby="inputGroupFileAddon04" aria-label="Upload" multiple />
-                                                                            <input class="btn btn-primary" type="button" value="Upload" onclick="fnUploadFiles();" />
-                                                                        </div>
-                                                                    </fieldset>
-                                                                </form>
-                                                            </div>
-                                                            <div class="col-sm-2"></div>
-                                                            <div class="col-sm-1"><a href="/json/INDICES.json" target="_blank">Indices</a></div>
-                                                            <div class="col-sm-1"><a href="/json/NFO.json" target="_blank">NFO</a></div>
-                                                            <div class="col-sm-1"><a href="/json/BFO.json" target="_blank">BFO</a></div>
-                                                        </div>
-                                                    </div>
-
-                                                <div class="col-12"><hr /></div>
-                                                <div class="col-md-6 col-6">
-                                                    <div class="row">
-                                                        <div class="col-sm-12"><h5>Manage Symbol, Lot Size & Interval</h5></div>
-                                                        <div class="col-sm-6">Select Symbol</div><div class="col-sm-4"></div><div class="col-sm-1" style="white-space: nowrap;">Edit</div><div class="col-sm-1" style="white-space: nowrap;">Del</div>
-                                                        <div class="col-sm-6">
-                                                            <select id="ddlSymbol" class="form-control" onchange="fnGetExpiryList();">
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-sm-4"><input type="text" class="form-control" id="txtHidLotSize" placeholder="Lot Size" disabled /></div>
-                                                        <div class="col-sm-1">
-                                                            <div class="form-check form-switch fs-6">
-                                                                <input type="checkbox" class="form-check-input me-0" id="swtEditSymbol" onclick="fnEditSymbol();" />
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-sm-1">
-                                                            <i class="fa fa-trash" style="color:red; cursor:pointer;" onclick="fnDeleteSymbol();"></i>
-                                                        </div>
-                                                        <div class="col-sm-4">Symbol Name</div><div class="col-sm-4">Index Name</div><div class="col-sm-4">Token</div>
-                                                        <div class="col-sm-4">
-                                                            <input type="text" class="form-control" id="txtSymbolName" placeholder="Symbol Name" />
-                                                        </div>
-                                                        <div class="col-sm-4">
-                                                            <input type="text" class="form-control" id="txtTradeName" placeholder="Index Name" />
-                                                        </div>
-                                                        <div class="col-sm-4">
-                                                            <input type="text" class="form-control" id="txtToken" placeholder="Symbol Token" />
-                                                        </div>
-                                                        <div class="col-sm-6">Exchange</div><div class="col-sm-6">Contract Name</div>
-                                                        <div class="col-sm-6">
-                                                            <select id="ddlExchange" class="form-control" onchange="fnChangeContracts(this);">
-                                                                <option value="NFO">NSE</option>
-                                                                <option value="BFO">BSE</option>
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-sm-6">
-                                                            <select id="ddlContracts" class="form-control">
-                                                                <option value="NFO">NFO</option>
-                                                                <option value="BFO">BFO</option>
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-sm-3">Lot Size</div><div class="col-sm-3">Strike Interval</div><div class="col-sm-3">Stop Loss</div><div class="col-sm-3">Take Profit</div>
-                                                        <div class="col-sm-3">
-                                                            <input type="text" class="form-control" id="txtLotSize" placeholder="Lot Size" />
-                                                        </div>
-                                                        <div class="col-sm-3">
-                                                            <input type="text" class="form-control" id="txtStrikeInterval" placeholder="Strike Interval" />
-                                                        </div>
-                                                        <div class="col-sm-3"><input type="text" class="form-control" id="txtStopLoss" placeholder="Stop Loss" /></div>
-                                                        <div class="col-sm-3"><input type="text" class="form-control" id="txtTakeProfit" placeholder="Take Profit" /></div>
-                                                        <div class="col-sm-6">&nbsp;</div><div class="col-sm-6"></div>
-                                                        <div class="col-sm-6"><input class="btn btn-outline-warning btn-block" id="btnClearSymbol" onclick='fnDeleteLocalStorageSymbol();' value="Clear All Data" /></div>
-                                                        <div class="col-sm-6"><input type="button" class="btn btn-outline-info btn-block" id="btnAddEditSymbol" onclick="fnAddEditSymbolDetails();" value="Save Symbol" /></div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 col-6">
-                                                    <div class="row">
-                                                        <div class="col-sm-12"><h5>Manage Expiry Dates</h5></div>
-                                                        <div class="col-sm-6">Select Expiry Date</div><div class="col-sm-4"></div><div class="col-sm-1" style="white-space: nowrap;">Edit</div><div class="col-sm-1" style="white-space: nowrap;">Del</div>
-                                                        <div class="col-sm-6">
-                                                            <select id="ddlExpiry" class="form-control" onchange="fnResetAllDetails();">
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-sm-4"></div>
-                                                        <div class="col-sm-1">
-                                                            <div class="form-check form-switch fs-6">
-                                                                <input type="checkbox" class="form-check-input me-0" id="swtEditExpiry" onclick="fnEditExpiry();" />
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-sm-1">
-                                                            <i class="fa fa-trash" style="color:red; cursor:pointer;" onclick="fnDeleteExpiry();"></i>
-                                                        </div>
-                                                        <div class="col-sm-6">Expiry Date</div><div class="col-sm-6"></div>
-                                                        <div class="col-sm-6">
-                                                            <input type="text" class="form-control" id="txtExpiryDate" placeholder="YYYY-MM-DD" />
-                                                        </div>
-                                                        <div class="col-sm-6">
-                                                        </div>
-                                                        <div class="col-sm-6">&nbsp;</div><div class="col-sm-6"></div>
-                                                        <div class="col-sm-6"></div>
-                                                        <div class="col-sm-6"><input type="button" class="btn btn-outline-info btn-block" id="btnAddEditExpiry" onclick="fnAddEditExpiryDetails();" value="Save Expiry" /></div>
-                                        
-                                                    </div>
-                                                </div> 
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
-                    <i class="bx bx-x d-block d-sm-none"></i>
-                    <span class="d-none d-sm-block">CLOSE</span>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+<%- include('partials/aliceSettings.ejs') %>
 
 <script type="module" src="/js/jsonImports.js"></script>
 <script src="/js/index.js"></script>
 <script src="/js/alice-blue.js"></script>
+<script src="/js/aliceSettings.js"></script>

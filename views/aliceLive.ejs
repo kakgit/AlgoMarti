@@ -1,0 +1,307 @@
+
+<div id="main" class="container-xxl">
+    <div class="page-heading">
+        <div class="row">
+            <div class="col-4">
+                <h3>Alice Blue - Live Trader</h3>
+            </div>
+            <div class="col-4 text-center">
+                <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
+            </div>
+            <div class="col-4" style="text-align: right;">
+                <a href="javascript: void(null);" class="btn btn-outline-primary" onclick="fnShowSettingsMdl();"><i class="fa fa-cogs" aria-hidden="true" style="color: orangered;"></i> Alice Blue Settings</a>
+            </div>
+        </div>
+    </div>
+    <div class="page-content">
+        <section class="row">
+            <div class="col-12 col-lg-12">
+                <div class="row" style="text-align: center;">
+                    <div class="col-6 col-lg-4 col-md-6">
+                        <button class="badge bg-danger" onclick="fnShowTraderLoginMdl(this);" id="btnTraderStatus">TRADER - Disconnected</button>
+                    </div>
+                    <div class="col-6 col-lg-4 col-md-6">
+                        <button class="badge bg-danger" onclick="fnToggleAutoTrader();" id="btnAutoTraderStatus">Auto Trader - OFF</button>
+                    </div>
+                    <!-- <div class="col-6 col-lg-3 col-md-6">
+                        <button class="badge bg-success" onclick="fnToggleRealTrade();" id="btnRealTradeStatus">Paper Trade - ON</button>
+                    </div> -->
+                    <div class="col-6 col-lg-4 col-md-6">
+                        <button class="badge bg-danger" onclick="fnPositionStatus()" id="btnPositionStatus">NO Open Position</button>
+                    </div>
+                    <div class="col-12">&nbsp;</div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-lg-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="row">
+                                    <div class="col-5">
+                                        <nav class="nav nav-pills">
+                                            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                                                <button class="nav-link active" id="nav-OneClickTrader-tab" data-bs-toggle="tab" data-bs-target="#nav-OneClickTrader"
+                                                    type="button" role="tab" aria-controls="nav-OneClickTrader" aria-selected="true">One Click Trader</button>
+                                                <button class="nav-link" id="nav-ManualTrader-tab" data-bs-toggle="tab" data-bs-target="#nav-ManualTrader"
+                                                    type="button" role="tab" aria-controls="nav-ManualTrader" aria-selected="false">Manual Trader</button>
+                                            </div>
+                                        </nav>    
+                                    </div>
+                                    <div class="col-2">
+                                        <select id="ddlOptionStrike" onchange="fnChangeOptionStrike(this);" class="form-select">
+                                            <option value="-10">-10 ITM</option>
+                                            <option value="-9">-9 ITM</option>
+                                            <option value="-8">-8 ITM</option>
+                                            <option value="-7">-7 ITM</option>
+                                            <option value="-6">-6 ITM</option>
+                                            <option value="-5">-5 ITM</option>
+                                            <option value="-4">-4 ITM</option>
+                                            <option value="-3">-3 ITM</option>
+                                            <option value="-2">-2 ITM</option>
+                                            <option value="-1">-1 ITM</option>
+                                            <option value="0" selected>ATM</option>
+                                            <option value="1">+1 OTM</option>
+                                            <option value="2">+2 OTM</option>
+                                            <option value="3">+3 OTM</option>
+                                            <option value="4">+4 OTM</option>
+                                            <option value="5">+5 OTM</option>
+                                            <option value="6">+6 OTM</option>
+                                            <option value="7">+7 OTM</option>
+                                            <option value="8">+8 OTM</option>
+                                            <option value="9">+9 OTM</option>
+                                            <option value="10">+10 OTM</option>
+                                        </select>    
+                                    </div>
+                                    <div class="col-2" style="text-align: right;">Start With </div>
+                                    <div class="col-1"><input type="number" class="form-control" min="1" value="1" maxlength="3" id="txtStartLotNos" onchange="fnChangeStartLotNos(this);" /></div>
+                                    <div class="col-1"> Lot/s</div>
+                                    <div class="col-1" style="text-align: right;">
+                                        <a data-bs-toggle="collapse" href="#divTraderClps" role="button" aria-expanded="true" aria-controls="divTraderClps">
+                                            <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                                          </a>
+                                    </div>                                    
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="collapse show" id="divTraderClps">
+                                    <div class="tab-content" id="nav-tabContent">
+                                        <div class="tab-pane fade show active" id="nav-OneClickTrader" role="tabpanel" aria-labelledby="nav-OneClickTrader-tab">
+                                            <div class="row">
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <div>
+                                                        <div class="btn-group" role="group">
+                                                            <button type="button" class="btn btn-danger" onclick="fnExecTradeToAll('BANKNIFTY', 'PE');"><i class="fa fa-arrow-down"></i></button>
+                                                            <span class="bg-secondary text-white" style="padding: 5px 5px 5px 5px">BANKNIFTY</span>
+                                                            <button type="button" class="btn btn-success" onclick="fnExecTradeToAll('BANKNIFTY', 'CE');"><i class="fa fa-arrow-up"></i></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <div>
+                                                        <div class="btn-group" role="group">
+                                                            <button type="button" class="btn btn-danger" onclick="fnExecTradeToAll('NIFTY', 'PE');"><i class="fa fa-arrow-down"></i></button>
+                                                            <span class="bg-secondary text-white" style="padding: 5px 5px 5px 5px">NIFTY 50</span>
+                                                            <button type="button" class="btn btn-success" onclick="fnExecTradeToAll('NIFTY', 'CE');"><i class="fa fa-arrow-up"></i></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    btn place holder
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    btn place holder
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade" id="nav-ManualTrader" role="tabpanel" aria-labelledby="nav-ManualTrader-tab">
+                                            <div class="row">
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    Confirmation Steps
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <select id="ddlConfSteps" class="form-select">
+                                                        <option value="111111">1-1-1-1-1-1</option>
+                                                        <option value="222222">2-2-2-2-2-2</option>
+                                                        <option value="333333">3-3-3-3-3-3</option>
+                                                        <option value="112233">1-1-2-2-3-3</option>
+                                                        <option value="111222">1-1-1-2-2-2</option>
+                                                        <option value="222333">2-2-2-3-3-3</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    Load from
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <select id="ddlManualSource" class="form-select">
+                                                        <option value=0>Local</option>
+                                                        <option value=1>Server</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <select id="ddlManualSymbol" class="form-select" onchange="fnGetSelSymbolData(this.value);">
+                                                    </select>
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <select id="ddlManualExpiry" class="form-select" onchange="//fnGetExpValByChdAPT(this.value);"></select>
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <div class="input-group mb-3">
+                                                        <button class="btn btn-danger" type="button" id="button-addon1" onclick="fnGetCurrStrike('PE');"><i class="fa fa-arrow-down" aria-hidden="true"></i></button>
+                                                        <input id="txtManualStrike" type="number" min="1" class="form-control" placeholder="Strike Price" />
+                                                        <button class="btn btn-success" type="button" id="button-addon2" onclick="fnGetCurrStrike('CE');"><i class="fa fa-arrow-up" aria-hidden="true"></i></button>
+                                                    </div>                                                   
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <input type="text" class="form-control" placeholder="MARKET" id="txtManualTradePrice" />
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <input type="number" min="1" class="form-control" placeholder="Quantity" id="txtManualBuyQty" />
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <input type="number" min="1" class="form-control" placeholder="Lots" id="txtManualLots" onchange="fnChangeQtyMultiplier(this);" />
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <input type="text" class="form-control" placeholder="Stop Loss" id="txtManualStopLoss" />
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <input type="text" class="form-control" placeholder="Take Profit" id="txtManualTakeProfit" />
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <div class="d-grid gap-1">
+                                                        <button class="btn btn-outline-success" onclick="fnInitiateBuyManualRealTrade('CE');"><b>BUY CALL</b></button>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <div class="d-grid gap-1">
+                                                        <button class="btn btn-outline-success" onclick="fnInitiateBuyManualRealTrade('PE');"><b>BUY PUT</b></button>
+                                                    </div>
+                                                </div>
+                                                <div class="col-12 col-lg-12 col-md-12">
+                                                    <input type="text" id="hidSession" class="form-control" placeholder="Session" />
+                                                    <input type="text" id="hidStrikeInterval" placeholder="Strike Interval" />
+                                                    <input type="text" id="hidToken" placeholder="Script Token" />
+                                                    <input type="text" id="hidExchange" placeholder="Exchange" />
+                                                    <input type="text" id="hidContract" placeholder="Contract" />
+                                                    <input type="text" id="hidMaxLotsLimit" placeholder="Lots Limit" />
+                                                    <input type="text" id="txtDateToTime" placeholder="DateToTime" />
+                                                    <input type="text" id="txtActualStrike" placeholder="Actual Strike" />
+                                                    <input type="text" id="hidTradeToken" placeholder="Option Token" />
+                                                </div>
+                                            </div>            
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <h4>Open Position(s)</h4>
+                                    </div>
+                                    <div class="col-5">
+
+                                    </div>
+                                    <div class="col-1" style="text-align: right;">
+                                        <a data-bs-toggle="collapse" href="#divOpenPosClps" role="button" aria-expanded="true" aria-controls="divOpenPosClps">
+                                            <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                                          </a>
+                                    </div>                                    
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="collapse show" id="divOpenPosClps">
+                                    sad asd asda sdasd asdas asdasd asd asdas dasd ads sadas dasd asdsa dasdasdkljasdkjh kjasdhajks hasjkdhasjk hdaskjdhaskjh daskjdhaksjhdakjdhasjkdhaskjdh
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <h4>Closed Position(s)</h4>
+                                    </div>
+                                    <div class="col-5">
+
+                                    </div>
+                                    <div class="col-1" style="text-align: right;">
+                                        <a data-bs-toggle="collapse" href="#divClosedPosClps" role="button" aria-expanded="false" aria-controls="divClosedPosClps">
+                                            <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                                          </a>
+                                    </div>                                    
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="collapse" id="divClosedPosClps">
+                                    <div class="container-fluid">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr style="text-align:center;">
+                                                      <!-- <th scope="col">TradeID</th> -->
+                                                      <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">End Date Time</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">Symbol</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">Expiry</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">Strike</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">Qty</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">Capital</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
+                                                    </tr>
+                                                  </thead>
+                                                  <tbody id="divTodayTrades">
+    
+                                                  </tbody>
+                                            </table>
+                                        </div>
+                                        <!-- <div class="row" id="divTodayTrades">
+                                        </div> -->
+                                    </div>                    
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <h4>Algo Messages</h4>
+                                    </div>
+                                    <div class="col-5">
+
+                                    </div>
+                                    <div class="col-1" style="text-align: right;">
+                                        <a data-bs-toggle="collapse" href="#divAlgoMsgsClps" role="button" aria-expanded="false" aria-controls="divAlgoMsgsClps">
+                                            <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                                          </a>
+                                    </div>                                    
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="collapse" id="divAlgoMsgsClps">
+                                    <input type="button" onclick="fnTestJsFunc();" value="Test Js Func" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="container-fluid">
+                            Testing Phase
+                            <button onclick="fnClearLocalStorageRealTemp();">Clear LS</button>
+                            <button onclick="fnShowRealPositionsTest();">Trade Book</button>
+                            <button onclick="fnCloseRealPositionsTest();">Close Position</button>
+                            <button onclick="fnPlaceBasketOrderTest();">Place Basket Order</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<%- include('partials/aliceSettings.ejs') %>
+
+<script src="/js/aliceLive.js"></script>
+<script src="/js/aliceSettings.js"></script>
