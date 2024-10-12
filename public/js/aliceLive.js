@@ -9,6 +9,7 @@ window.addEventListener("DOMContentLoaded", function(){
     fnGetSetTraderLoginStatus();
     fnGetSetAutoTraderStatus();
     fnGetSetOptionStrike();
+    fnGetSetConfStepsDDL();
 });
 
 function fnGetSetAppStatus(){
@@ -53,8 +54,7 @@ function fnSetDefaultLotNos(){
     }
 }
 
-function fnSetLotsByQtyMulLossAmt()
-{
+function fnSetLotsByQtyMulLossAmt(){
     let vQtyMul = localStorage.getItem("RealQtyMul");
     let objLots = document.getElementById("txtManualLots");
     let vTotLossAmt = localStorage.getItem("RealTotLossAmt");
@@ -96,8 +96,7 @@ function fnTestJsFunc(){
     console.log(vDDLVal);
 }
 
-async function fnInitiateBuyManualRealTrade(pCEorPE)
-{
+async function fnInitiateBuyManualRealTrade(pCEorPE){
     let objCurrPosiLst = localStorage.getItem("RealCurrPositionS");
 
     //check if any position is Open. Only One Open trade is allowed here.

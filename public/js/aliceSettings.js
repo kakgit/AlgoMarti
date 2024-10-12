@@ -1,14 +1,17 @@
 
-function fnShowSettingsMdl()
-{
+function fnChangeConfSteps(objThis){
+    localStorage.setItem("ConfStepsS", objThis.value);
+}
+
+function fnShowSettingsMdl(){
     $('#mdlSettingsAB').modal('show');
 }
 
-function fnGetSymbolList() {
-    var objSelSym = document.getElementById("ddlSymbol");
-    var objSelManSym = document.getElementById("ddlManualSymbol");
+function fnGetSymbolList(){
+    let objSelSym = document.getElementById("ddlSymbol");
+    let objSelManSym = document.getElementById("ddlManualSymbol");
 
-    var objSybLst = localStorage.getItem("SymbolListS");
+    let objSybLst = localStorage.getItem("SymbolListS");
 
     objSybLst = JSON.parse(objSybLst);
     //console.log(objSybLst);
@@ -18,9 +21,9 @@ function fnGetSymbolList() {
     objSelSym.innerHTML = "<option value=''>Select Symbol</option>";
     objSelManSym.innerHTML = "<option value=''>Select Symbol</option>"
     if (objSybLst != null) {
-        for (var i = 0; i < objSybLst.Symbol.length; i++) {
-            var vVal = objSybLst.Symbol[i].SymbolName;
-            var vDispName = objSybLst.Symbol[i].TradeName;
+        for (let i = 0; i < objSybLst.Symbol.length; i++) {
+            let vVal = objSybLst.Symbol[i].SymbolName;
+            let vDispName = objSybLst.Symbol[i].TradeName;
             
             objSelSym.innerHTML += "<option value=\"" + vVal + "\">" + vDispName + "</option>";
             objSelManSym.innerHTML += "<option value=\"" + vVal + "\">" + vDispName + "</option>";
@@ -29,24 +32,23 @@ function fnGetSymbolList() {
     }
 }
 
-function fnGetExpiryList()
-{
-    var objSelSym = document.getElementById("ddlSymbol");
-    var objSymName = document.getElementById("txtSymbolName");
-    var objTradeName = document.getElementById("txtTradeName");
-    var objToken = document.getElementById("txtToken");
-    var objLotSize = document.getElementById("txtLotSize");
-    var objMaxLotsLimit = document.getElementById("txtMaxLotsLimit");
-    var objStrikeInterval = document.getElementById("txtStrikeInterval");
-    var objStopLoss = document.getElementById("txtStopLoss");
-    var objTakeProfit = document.getElementById("txtTakeProfit");
-    var objHidLotSize = document.getElementById("txtHidLotSize");
-    var objEditCB = document.getElementById("swtEditSymbol");
-    var objSelExp = document.getElementById("ddlExpiry");
-    var objSelManExp = document.getElementById("ddlManualExpiry");
-    var objSybLst = localStorage.getItem("SymbolListS");
-    var objExpEditCB = document.getElementById("swtEditExpiry");
-    var objExpiryDate = document.getElementById("txtExpiryDate");
+function fnGetExpiryList(){
+    let objSelSym = document.getElementById("ddlSymbol");
+    let objSymName = document.getElementById("txtSymbolName");
+    let objTradeName = document.getElementById("txtTradeName");
+    let objToken = document.getElementById("txtToken");
+    let objLotSize = document.getElementById("txtLotSize");
+    let objMaxLotsLimit = document.getElementById("txtMaxLotsLimit");
+    let objStrikeInterval = document.getElementById("txtStrikeInterval");
+    let objStopLoss = document.getElementById("txtStopLoss");
+    let objTakeProfit = document.getElementById("txtTakeProfit");
+    let objHidLotSize = document.getElementById("txtHidLotSize");
+    let objEditCB = document.getElementById("swtEditSymbol");
+    let objSelExp = document.getElementById("ddlExpiry");
+    let objSelManExp = document.getElementById("ddlManualExpiry");
+    let objSybLst = localStorage.getItem("SymbolListS");
+    let objExpEditCB = document.getElementById("swtEditExpiry");
+    let objExpiryDate = document.getElementById("txtExpiryDate");
 
     objSymName.value = "";
     objTradeName.value = "";
@@ -68,11 +70,11 @@ function fnGetExpiryList()
     objSelManExp.innerHTML = "<option value=''>Select Expiry</option>";
 
     if (objSybLst != null) {
-        for (var i = 0; i < objSybLst.Symbol.length; i++) {
+        for (let i = 0; i < objSybLst.Symbol.length; i++) {
             if (objSybLst.Symbol[i].SymbolName == objSelSym.value) {
                 objHidLotSize.value = objSybLst.Symbol[i].LotSize;
-                for (var j = 0; j < objSybLst.Symbol[i].ExpiryDates.length; j++) {
-                    var vOption = objSybLst.Symbol[i].ExpiryDates[j];
+                for (let j = 0; j < objSybLst.Symbol[i].ExpiryDates.length; j++) {
+                    let vOption = objSybLst.Symbol[i].ExpiryDates[j];
                     objSelExp.innerHTML += "<option value=\"" + vOption + "\">" + vOption + "</option>";
                     objSelManExp.innerHTML += "<option value=\"" + vOption + "\">" + vOption + "</option>";
                 }
@@ -81,23 +83,22 @@ function fnGetExpiryList()
     }
 }
 
-function fnEditSymbol()
-{
-    var objSelSym = document.getElementById("ddlSymbol");
-    var objSymName = document.getElementById("txtSymbolName");
-    var objTradeName = document.getElementById("txtTradeName");
-    var objToken = document.getElementById("txtToken");
-    var objExchange = document.getElementById("ddlExchange");
-    var objContracts = document.getElementById("ddlContracts");
-    var objMaxLotsLimit = document.getElementById("txtMaxLotsLimit");
-    var objLotSize = document.getElementById("txtLotSize");
-    var objStrikeInterval = document.getElementById("txtStrikeInterval");
-    var objStopLoss = document.getElementById("txtStopLoss");
-    var objTakeProfit = document.getElementById("txtTakeProfit");
-    var objSybLst = localStorage.getItem("SymbolListS");
-    var objEditCB = document.getElementById("swtEditSymbol");
+function fnEditSymbol(){
+    let objSelSym = document.getElementById("ddlSymbol");
+    let objSymName = document.getElementById("txtSymbolName");
+    let objTradeName = document.getElementById("txtTradeName");
+    let objToken = document.getElementById("txtToken");
+    let objExchange = document.getElementById("ddlExchange");
+    let objContracts = document.getElementById("ddlContracts");
+    let objMaxLotsLimit = document.getElementById("txtMaxLotsLimit");
+    let objLotSize = document.getElementById("txtLotSize");
+    let objStrikeInterval = document.getElementById("txtStrikeInterval");
+    let objStopLoss = document.getElementById("txtStopLoss");
+    let objTakeProfit = document.getElementById("txtTakeProfit");
+    let objSybLst = localStorage.getItem("SymbolListS");
+    let objEditCB = document.getElementById("swtEditSymbol");
 
-    var objGDispMessage = document.getElementById("spnSettingsMsg");
+    let objGDispMessage = document.getElementById("spnSettingsMsg");
 
     if (objSelSym.value === "") {
         objGDispMessage.className = "badge bg-danger";
@@ -108,7 +109,7 @@ function fnEditSymbol()
     else {
         objSybLst = JSON.parse(objSybLst);
         if (objSybLst != null && objEditCB.checked == true) {
-            for (var i = 0; i < objSybLst.Symbol.length; i++) {
+            for (let i = 0; i < objSybLst.Symbol.length; i++) {
                 if (objSybLst.Symbol[i].SymbolName == objSelSym.value) {
                     objSymName.value = objSybLst.Symbol[i].SymbolName;
                     objTradeName.value = objSybLst.Symbol[i].TradeName;
@@ -139,20 +140,19 @@ function fnEditSymbol()
     }
 }
 
-function fnDeleteSymbol()
-{
-    var objSelSym = document.getElementById("ddlSymbol");
-    var objSymName = document.getElementById("txtSymbolName");
-    var objTradeName = document.getElementById("txtTradeName");
-    var objToken = document.getElementById("txtToken");
-    var objMaxLotsLimit = document.getElementById("txtMaxLotsLimit");
-    var objLotSize = document.getElementById("txtLotSize");
-    var objStrikeInterval = document.getElementById("txtStrikeInterval");
-    var objStopLoss = document.getElementById("txtStopLoss");
-    var objTakeProfit = document.getElementById("txtTakeProfit");
-    var objSybLst = localStorage.getItem("SymbolListS");
-    var objEditCB = document.getElementById("swtEditSymbol");
-    var objGDispMessage = document.getElementById("spnSettingsMsg");
+function fnDeleteSymbol(){
+    let objSelSym = document.getElementById("ddlSymbol");
+    let objSymName = document.getElementById("txtSymbolName");
+    let objTradeName = document.getElementById("txtTradeName");
+    let objToken = document.getElementById("txtToken");
+    let objMaxLotsLimit = document.getElementById("txtMaxLotsLimit");
+    let objLotSize = document.getElementById("txtLotSize");
+    let objStrikeInterval = document.getElementById("txtStrikeInterval");
+    let objStopLoss = document.getElementById("txtStopLoss");
+    let objTakeProfit = document.getElementById("txtTakeProfit");
+    let objSybLst = localStorage.getItem("SymbolListS");
+    let objEditCB = document.getElementById("swtEditSymbol");
+    let objGDispMessage = document.getElementById("spnSettingsMsg");
 
     const objDate = new Date();
     let vSecDt = objDate.valueOf();
@@ -165,15 +165,15 @@ function fnDeleteSymbol()
     }
     else {
         if (confirm("Do You Want To Delete " + objSelSym.value + " Data?")) {
-            var vExistingData = JSON.parse(objSybLst);
-            for (var i = 0; i < vExistingData.Symbol.length; i++) {
+            let vExistingData = JSON.parse(objSybLst);
+            for (let i = 0; i < vExistingData.Symbol.length; i++) {
                 if (vExistingData.Symbol[i].SymbolName == objSelSym.value) {
                     vExistingData.Symbol.splice(i, 1);
                 }
             }
 
             vExistingData.UpdDt = vSecDt;
-            var vEditedItems = JSON.stringify(vExistingData);
+            let vEditedItems = JSON.stringify(vExistingData);
             localStorage.setItem("SymbolListS", vEditedItems);
 
             //Save to DB code Here
@@ -196,8 +196,7 @@ function fnDeleteSymbol()
     }
 }
 
-function fnSaveSymbolAttrToDB(pSymbolDetails)
-{
+function fnSaveSymbolAttrToDB(pSymbolDetails){
     let vAction = JSON.stringify({
         "jsonName" : "abSymbs",
         "JsonStr" : pSymbolDetails,
@@ -247,25 +246,24 @@ function fnChangeContracts(pThis) {
     objSelContract.value = pThis.value;
 }
 
-function fnDeleteLocalStorageSymbol()
-{
-    var objGDispMessage = document.getElementById("spnSettingsMsg");
+function fnDeleteLocalStorageSymbol(){
+    let objGDispMessage = document.getElementById("spnSettingsMsg");
 
     const vSymDet = { Symbol: [] };
-    var vFirstItem = JSON.stringify(vSymDet);
+    let vFirstItem = JSON.stringify(vSymDet);
 
     //Save to DB code Here
     fnSaveSymbolAttrToDB(vFirstItem);
 
     localStorage.setItem("SymbolListS", vFirstItem);
 
-    var objSymName = document.getElementById("txtSymbolName");
-    var objMaxLotsLimit = document.getElementById("txtMaxLotsLimit");
-    var objLotSize = document.getElementById("txtLotSize");
-    var objStrikeInterval = document.getElementById("txtStrikeInterval");
-    var objHidLotSize = document.getElementById("txtHidLotSize");
-    var objStopLoss = document.getElementById("txtStopLoss");
-    var objTakeProfit = document.getElementById("txtTakeProfit");
+    let objSymName = document.getElementById("txtSymbolName");
+    let objMaxLotsLimit = document.getElementById("txtMaxLotsLimit");
+    let objLotSize = document.getElementById("txtLotSize");
+    let objStrikeInterval = document.getElementById("txtStrikeInterval");
+    let objHidLotSize = document.getElementById("txtHidLotSize");
+    let objStopLoss = document.getElementById("txtStopLoss");
+    let objTakeProfit = document.getElementById("txtTakeProfit");
 
     objSymName.value = "";
     objMaxLotsLimit.value = 10;
@@ -283,23 +281,22 @@ function fnDeleteLocalStorageSymbol()
     // console.log("All Symbol Date Removed & Set to NULL");    
 }
 
-function fnAddEditSymbolDetails()
-{
-    var objSelSym = document.getElementById("ddlSymbol");
-    var objGDispMessage = document.getElementById("spnSettingsMsg");
-    var objSymName = document.getElementById("txtSymbolName");
-    var objTradeName = document.getElementById("txtTradeName");
-    var objToken = document.getElementById("txtToken");
-    var objMaxLotsLimit = document.getElementById("txtMaxLotsLimit");
-    var objLotSize = document.getElementById("txtLotSize");
-    var objStrikeInterval = document.getElementById("txtStrikeInterval");
-    var objStopLoss = document.getElementById("txtStopLoss");
-    var objTakeProfit = document.getElementById("txtTakeProfit");
-    var objExchange = document.getElementById("ddlExchange");
-    var objContracts = document.getElementById("ddlContracts");
-    var objEditCB = document.getElementById("swtEditSymbol");
+function fnAddEditSymbolDetails(){
+    let objSelSym = document.getElementById("ddlSymbol");
+    let objGDispMessage = document.getElementById("spnSettingsMsg");
+    let objSymName = document.getElementById("txtSymbolName");
+    let objTradeName = document.getElementById("txtTradeName");
+    let objToken = document.getElementById("txtToken");
+    let objMaxLotsLimit = document.getElementById("txtMaxLotsLimit");
+    let objLotSize = document.getElementById("txtLotSize");
+    let objStrikeInterval = document.getElementById("txtStrikeInterval");
+    let objStopLoss = document.getElementById("txtStopLoss");
+    let objTakeProfit = document.getElementById("txtTakeProfit");
+    let objExchange = document.getElementById("ddlExchange");
+    let objContracts = document.getElementById("ddlContracts");
+    let objEditCB = document.getElementById("swtEditSymbol");
 
-    var objSybLst = localStorage.getItem("SymbolListS");
+    let objSybLst = localStorage.getItem("SymbolListS");
 
     const objDate = new Date();
     let vSecDt = objDate.valueOf();
@@ -326,7 +323,7 @@ function fnAddEditSymbolDetails()
     }
     else if ((objSybLst == null) || (objSybLst == "")) {
         const vSymDet = { UpdDt: vSecDt, Symbol: [{ SymbolName: objSymName.value, TradeName: objTradeName.value, Token: objToken.value, Exchange: objExchange.options[objExchange.selectedIndex].text, Contract: objContracts.value, LotSize: objLotSize.value, MaxLots: objMaxLotsLimit.value, StrikeInterval: objStrikeInterval.value, StopLoss: objStopLoss.value, TakeProfit: objTakeProfit.value, ExpiryDates: [] }] };
-        var vFirstItem = JSON.stringify(vSymDet);
+        let vFirstItem = JSON.stringify(vSymDet);
         localStorage.setItem("SymbolListS", vFirstItem);
 
         //Save to DB code Here
@@ -348,10 +345,10 @@ function fnAddEditSymbolDetails()
     }
     else
     {
-        var vExistingData = JSON.parse(objSybLst);
+        let vExistingData = JSON.parse(objSybLst);
 
         if (objEditCB.checked == true) {
-            for (var i = 0; i < vExistingData.Symbol.length; i++) {
+            for (let i = 0; i < vExistingData.Symbol.length; i++) {
                 if (vExistingData.Symbol[i].SymbolName == objSelSym.value) {
                     vExistingData.Symbol[i].SymbolName = objSymName.value;
                     vExistingData.Symbol[i].TradeName = objTradeName.value;
@@ -367,7 +364,7 @@ function fnAddEditSymbolDetails()
             }
 
             vExistingData.UpdDt = vSecDt;
-            var vEditedItems = JSON.stringify(vExistingData);
+            let vEditedItems = JSON.stringify(vExistingData);
             localStorage.setItem("SymbolListS", vEditedItems);
 
             //Save to DB code Here
@@ -381,7 +378,7 @@ function fnAddEditSymbolDetails()
         else {
             vExistingData.UpdDt = vSecDt;
             vExistingData.Symbol.push({ SymbolName: objSymName.value, TradeName: objTradeName.value, Token: objToken.value, Exchange: objExchange.options[objExchange.selectedIndex].text, Contract: objContracts.value, LotSize: objLotSize.value, MaxLots: objMaxLotsLimit.value, StrikeInterval: objStrikeInterval.value, StopLoss: objStopLoss.value, TakeProfit: objTakeProfit.value, ExpiryDates: [] });
-            var vAddlItems = JSON.stringify(vExistingData);
+            let vAddlItems = JSON.stringify(vExistingData);
             localStorage.setItem("SymbolListS", vAddlItems);
 
             //Save to DB code Here
@@ -408,8 +405,7 @@ function fnAddEditSymbolDetails()
     }
 }
 
-function fnResetAllDetails()
-{
+function fnResetAllDetails(){
     var objExpEditCB = document.getElementById("swtEditExpiry");
     var objExpiryDate = document.getElementById("txtExpiryDate");
     var objSymName = document.getElementById("txtSymbolName");
@@ -435,8 +431,7 @@ function fnResetAllDetails()
     objExpEditCB.checked = false;
 }
 
-function fnEditExpiry()
-{
+function fnEditExpiry(){
     var objSelExp = document.getElementById("ddlExpiry");
     var objExpDate = document.getElementById("txtExpiryDate");
     var objEditCB = document.getElementById("swtEditExpiry");
@@ -459,8 +454,7 @@ function fnEditExpiry()
     }
 }
 
-function fnDeleteExpiry()
-{
+function fnDeleteExpiry(){
     var objSelSym = document.getElementById("ddlSymbol");
     var objSelExp = document.getElementById("ddlExpiry");
     var objExpDate = document.getElementById("txtExpiryDate");
@@ -506,8 +500,7 @@ function fnDeleteExpiry()
     }
 }
 
-function fnAddEditExpiryDetails()
-{
+function fnAddEditExpiryDetails(){
     var objSelSym = document.getElementById("ddlSymbol");
     var objSelExp = document.getElementById("ddlExpiry");
     var objExpDate = document.getElementById("txtExpiryDate");
@@ -566,8 +559,7 @@ function fnAddEditExpiryDetails()
     }
 }
 
-function fnGetSelSymbolData(pSymbolVal)
-{
+function fnGetSelSymbolData(pSymbolVal){
     let objSelExp = document.getElementById("ddlManualExpiry");
     let objSybLst = localStorage.getItem("SymbolListS");
     let objStrikeInterval = document.getElementById("hidStrikeInterval");
@@ -631,8 +623,7 @@ function fnGetSelSymbolData(pSymbolVal)
     }
 }
 
-function fnUploadFiles()
-{
+function fnUploadFiles(){
     const objFiles = document.getElementById("flsSelectFiles");
     const objFormData = new FormData();
 
@@ -709,8 +700,7 @@ function getSymbolsDataFile(){
     });
 }
 
-function fnShowTraderLoginMdl(objThis)
-{
+function fnShowTraderLoginMdl(objThis){
     let isAppLoginStatus = localStorage.getItem("AppMsgStatusS");
 
     //console.log("Login Status: " + isAppLoginStatus);
@@ -730,8 +720,7 @@ function fnShowTraderLoginMdl(objThis)
     }
 }
 
-function fnSetUserProfileDets()
-{
+function fnSetUserProfileDets(){
     let isLsTraderLogin = localStorage.getItem("isTraderLogin");
     let objUserDets = localStorage.getItem("UserDetS");
     let objClientId = document.getElementById("txtClientIdUP");
@@ -777,8 +766,7 @@ function fnSetUserProfileDets()
     }
 }
 
-function fnLoginAliceBlue()
-{
+function fnLoginAliceBlue(){
     let objClientId = document.getElementById("txtClientId");
     let objApiKey = document.getElementById("txtApiKey");
     let objEncKey = document.getElementById("hidEncKey");
@@ -878,8 +866,7 @@ function fnLoginAliceBlue()
     }
 }
 
-function fnClearPrevLoginSession()
-{
+function fnClearPrevLoginSession(){
     let objSession = document.getElementById("hidSession");
 
     localStorage.removeItem("lsLoginDate");
@@ -894,8 +881,7 @@ function fnClearPrevLoginSession()
     fnSetUserProfileDets();
 }
 
-function fnGetSetTraderLoginStatus()
-{
+function fnGetSetTraderLoginStatus(){
     let lsPrevSessionDate = localStorage.getItem("lsLoginDate");
     let lsAliceBlueID = localStorage.getItem("lsAliceBlueID");
     let lsApiKey = localStorage.getItem("lsAliceBlueApiKey");
@@ -928,8 +914,7 @@ function fnGetSetTraderLoginStatus()
     }
 }
 
-function fnGetSetAutoTraderStatus()
-{
+function fnGetSetAutoTraderStatus(){
     let isLsTraderLogin = localStorage.getItem("isTraderLogin");
     let isLsAutoTrader = localStorage.getItem("isAutoTrader");
 
@@ -945,8 +930,7 @@ function fnGetSetAutoTraderStatus()
     }
 }
 
-function fnToggleAutoTrader()
-{
+function fnToggleAutoTrader(){
     let isLsTraderLogin = localStorage.getItem("isTraderLogin");
     let isLsAutoTrader = localStorage.getItem("isAutoTrader");
     
@@ -974,8 +958,7 @@ function fnToggleAutoTrader()
     }
 }
 
-function fnPositionStatus()
-{
+function fnPositionStatus(){
     let objBtnPosition = document.getElementById("btnPositionStatus");
 
     if(localStorage.getItem("CurrPositionS") === null)
@@ -1009,7 +992,6 @@ function fnPositionStatus()
 
 function fnChangeOptionStrike(objThis){
     localStorage.setItem("StrikeOptionS", objThis.value);
-    //alert(objThis.value);
 }
 
 function fnGetSetOptionStrike(){
@@ -1024,8 +1006,19 @@ function fnGetSetOptionStrike(){
     }
 }
 
-function fnGetCurrStrike(pDirec)
-{
+function fnGetSetConfStepsDDL(){
+    let vCurrCS = localStorage.getItem("ConfStepsS");
+    let objDDLConfSteps = document.getElementById("ddlConfSteps");
+
+    if(vCurrCS === "" || vCurrCS === null){
+        objDDLConfSteps.value = "111111";
+    }
+    else{
+        objDDLConfSteps.value = vCurrCS;
+    }
+}
+
+function fnGetCurrStrike(){
     let objClientId = document.getElementById("txtClientId");
     let objSession = document.getElementById("hidSession");
     let objSymbol = document.getElementById("ddlManualSymbol");
@@ -1034,7 +1027,6 @@ function fnGetCurrStrike(pDirec)
     let objManualStrikePrice = document.getElementById("txtManualStrike");
     let objActualStrikePrice = document.getElementById("txtActualStrike");
     let objSelToken = document.getElementById("hidToken");
-    let objDDLStrikeOption = document.getElementById("ddlOptionStrike");
 
     if(objSession.value === "")
     {
@@ -1046,12 +1038,6 @@ function fnGetCurrStrike(pDirec)
     }
     else
     {
-        let vStrikeOption = parseInt(objDDLStrikeOption.value) * parseInt(objStrikeInterval.value);
-
-        if(pDirec === "PE"){
-            vStrikeOption = -(vStrikeOption);
-        }
-
         let vHeaders = new Headers();
         vHeaders.append("Content-Type", "application/json");
 
@@ -1068,9 +1054,9 @@ function fnGetCurrStrike(pDirec)
             if(objResult.status === "success")
             {
                 //console.log(objResult);
-                objManualStrikePrice.value = parseInt(objResult.data.RoundedStrike) + vStrikeOption;
+                objManualStrikePrice.value = objResult.data.ActualStrike;
                 objActualStrikePrice.value = objResult.data.ActualStrike;
-            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+                fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
             else if(objResult.status === "danger")
             {

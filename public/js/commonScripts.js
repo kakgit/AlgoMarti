@@ -13,21 +13,18 @@ window.addEventListener("DOMContentLoaded", function(){
 
 });
 
-function fnChangeBtnProps(pId, pClassName, pDispText)
-{
+function fnChangeBtnProps(pId, pClassName, pDispText){
     let objBtn = document.getElementById(pId);
 
     objBtn.innerText = pDispText;
     objBtn.className = pClassName;
 }
 
-function fnGetSetDefaultValue()
-{
+function fnGetSetDefaultValue(){
     //alert(localStorage.getItem("lsRecords"));
     let objRecordsDdl = document.getElementById("ddlDispRecNos");
     //let lsRecords = localStorage.getItem("lsRecords") || 10;
-    if(localStorage.getItem("lsRecords") === null || localStorage.getItem("lsRecords") === "")
-    {
+    if(localStorage.getItem("lsRecords") === null || localStorage.getItem("lsRecords") === ""){
         localStorage.setItem("lsRecords", 0);
     }
     objRecordsDdl.value = localStorage.getItem("lsRecords");
@@ -56,8 +53,7 @@ function fnDisplayShortText(pTxt, pLength) {
   return pTxt;
 }
 
-function fnFillPagination(pRecCount, pDispLocId)
-{
+function fnFillPagination(pRecCount, pDispLocId){
     let vRecPerPage = localStorage.getItem("lsRecords");
     let vPages = 1;
 
@@ -106,8 +102,7 @@ function fnFillPagination(pRecCount, pDispLocId)
     objUl.innerHTML = vHtml;
 }
 
-function fnSetCurrPaginationNo(pClickedPage, pAction)
-{
+function fnSetCurrPaginationNo(pClickedPage, pAction){
   let vCurrPage = document.getElementById("hidCurrPage");
 
   if(pAction === "next")
@@ -126,13 +121,11 @@ function fnSetCurrPaginationNo(pClickedPage, pAction)
   fnGetUserData();
 }
 
-function fnClearStorage()
-{
+function fnClearStorage(){
   localStorage.removeItem("lsRecords");
 }
 
-function fnGetCurrDate()
-{
+function fnGetCurrDate(){
   const vNow = new Date(Date.now());
 
   let vDay = vNow.getDate();
@@ -148,8 +141,7 @@ function fnGetCurrDate()
   return vDateTimeStr;
 }
 
-function fnSetCurrDate(pDate)
-{
+function fnSetCurrDate(pDate){
   let dtNow = new Date(pDate);
   
   console.log("Parameter: " + pDate);
@@ -164,8 +156,7 @@ function fnSetCurrDate(pDate)
   console.log("Converted to to Local DT en-US: " + dtNow.toLocaleString("en-IN"));
 }
 
-function fnLoginStatus()
-{
+function fnLoginStatus(){
   let objLoginTxt = document.getElementById("lblAppLoginTxt");
   let objSession = document.getElementById("hidSession");
   let objTraderStatus = document.getElementById("btnTraderStatus");
@@ -192,8 +183,7 @@ function fnLoginStatus()
   }
 }
 
-function fnAppLogin()
-{
+function fnAppLogin(){
   let objLoginTxt = document.getElementById("lblAppLoginTxt");
 
   localStorage.setItem("AppMsgStatusS", true);

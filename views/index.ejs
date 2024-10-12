@@ -70,7 +70,7 @@
                                         Confirmation Steps
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
-                                        <select id="ddlConfSteps" class="form-select">
+                                        <select id="ddlConfSteps" class="form-select" onchange="fnChangeConfSteps(this);">
                                             <option value="111111">1-1-1-1-1-1</option>
                                             <option value="222222">2-2-2-2-2-2</option>
                                             <option value="333333">3-3-3-3-3-3</option>
@@ -97,9 +97,8 @@
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <div class="input-group mb-3">
-                                            <button class="btn btn-danger" type="button" id="button-addon1" onclick="fnGetCurrStrike('PE');"><i class="fa fa-arrow-down" aria-hidden="true"></i></button>
                                             <input id="txtManualStrike" type="number" min="1" class="form-control" placeholder="Strike Price" />
-                                            <button class="btn btn-success" type="button" id="button-addon2" onclick="fnGetCurrStrike('CE');"><i class="fa fa-arrow-up" aria-hidden="true"></i></button>
+                                            <button class="btn btn-warning" type="button" id="button-addon2" onclick="fnGetCurrStrike();"><i class="fa fa-search" aria-hidden="true"></i></button>
                                         </div>                                                   
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
@@ -148,7 +147,7 @@
                                         </div>
                                     </div>
                                     <div class="col-12 col-lg-12 col-md-12">
-                                        <input type="text" id="hidSession" class="form-control" placeholder="Session" />
+                                        <input type="hidden" id="hidSession" class="form-control" placeholder="Session" />
                                         <input type="hidden" id="hidStrikeInterval" placeholder="Strike Interval" />
                                         <input type="hidden" id="hidToken" placeholder="Script Token" />
                                         <input type="hidden" id="hidExchange" placeholder="Exchange" />
@@ -156,7 +155,7 @@
                                         <input type="hidden" id="hidMaxLotsLimit" placeholder="Lots Limit" />
                                         <input type="hidden" id="txtDateToTime" placeholder="DateToTime" />
                                         <input type="hidden" id="txtActualStrike" placeholder="Actual Strike" />
-                                        <input type="text" id="hidTradeToken" placeholder="Option Token" />
+                                        <input type="hidden" id="hidTradeToken" placeholder="Option Token" />
                                     </div>
                                 </div>
                             </div>

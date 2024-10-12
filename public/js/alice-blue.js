@@ -12,6 +12,8 @@ window.addEventListener("DOMContentLoaded", function(){
 
     fnGetSetOptionStrike();
 
+    fnGetSetConfStepsDDL();
+
     fnSetUserProfileDets();
 
     const objTxtMsg = document.getElementById("txtMessageToAll");
@@ -72,8 +74,7 @@ window.addEventListener("DOMContentLoaded", function(){
     });
 });
 
-function fnCheckTradeStep(pObjMsg)
-{
+function fnCheckTradeStep(pObjMsg){
     let objConfSteps = document.getElementById("ddlConfSteps");
 
     let vVal = objConfSteps.value;
@@ -111,8 +112,7 @@ function fnCheckTradeStep(pObjMsg)
     }
 }
 
-function fnGetSetAllStatus()
-{
+function fnGetSetAllStatus(){
     let bAppStatus = localStorage.getItem("AppMsgStatusS");
     let objLoginTxt = document.getElementById("lblAppLoginTxt");
 
@@ -143,8 +143,7 @@ function fnGetSetAllStatus()
     fnSetTodayTradeDetails();
 }
 
-function fnLoadDefaultSLTP()
-{
+function fnLoadDefaultSLTP(){
     let vDefSLTPLS = localStorage.getItem("DDLDefSLTP");
     let objDefSLTP = document.getElementById("ddlTrailSLTP");
 
@@ -172,8 +171,7 @@ function fnSetDefaultLotNos(){
     }
 }
 
-function fnSetLotsByQtyMulLossAmt()
-{
+function fnSetLotsByQtyMulLossAmt(){
     let vQtyMul = localStorage.getItem("QtyMul");
     let objLots = document.getElementById("txtManualLots");
     let vTotLossAmt = localStorage.getItem("TotLossAmt");
@@ -196,8 +194,7 @@ function fnSetLotsByQtyMulLossAmt()
     }
 }
 
-function fnLoadTimerSwitchSetting()
-{
+function fnLoadTimerSwitchSetting(){
     let vTimerSwitchS = localStorage.getItem("TimerSwtS");
     let objTimerSwitch = document.getElementById("swtAutoChkPosition");
 
@@ -210,8 +207,7 @@ function fnLoadTimerSwitchSetting()
     fnCheckTradeTimer();
 }
 
-function fnSetTodayTradeDetails()
-{
+function fnSetTodayTradeDetails(){
     let objTodayTrades = localStorage.getItem("TradesListS");
     let objTodayTradeList = document.getElementById("divTodayTrades");
 
@@ -248,8 +244,7 @@ function fnSetTodayTradeDetails()
     }
 }
 
-function fnDeleteThisTrade(pTradeId)
-{
+function fnDeleteThisTrade(pTradeId){
     let objTodayTrades = localStorage.getItem("TradesListS");
     let vJsonData = JSON.parse(objTodayTrades);
 
@@ -265,7 +260,7 @@ function fnDeleteThisTrade(pTradeId)
     }
 }
 
-function fnCheckTradeTimer() {
+function fnCheckTradeTimer(){
     var objTimeMS = document.getElementById("txtTimeMS");
     var objTimerSwitch = document.getElementById("swtAutoChkPosition");
     var objCurrPosiLst = localStorage.getItem("CurrPositionS");
@@ -304,8 +299,7 @@ function fnCheckTradeTimer() {
     fnGetCurrentPrice();
 }
 
-function fnShowTraderLoginMdl(objThis)
-{
+function fnShowTraderLoginMdl(objThis){
     let isAppLoginStatus = localStorage.getItem("AppMsgStatusS");
 
     //console.log(isAppLoginStatus);
@@ -325,8 +319,7 @@ function fnShowTraderLoginMdl(objThis)
     }
 }
 
-function fnClearLocalStorageTemp()
-{
+function fnClearLocalStorageTemp(){
     // console.log("Before: " + localStorage.getItem("isTraderLogin"));
     // localStorage.removeItem("lsAliceBlueID");
     // localStorage.removeItem("lsAliceBlueApiKey");
@@ -340,6 +333,7 @@ function fnClearLocalStorageTemp()
     localStorage.removeItem("TotLossAmt");
     localStorage.removeItem("UserDetS");
     localStorage.setItem("TradeStep", 0);
+    localStorage.removeItem("ConfStepsS");
     // console.log(localStorage.getItem("CurrPositionS"));
     // console.log(localStorage.getItem("TradesListS"));
 
@@ -347,8 +341,7 @@ function fnClearLocalStorageTemp()
     fnSetUserProfileDets();
 }
 
-function fnSendMessageToAll()
-{
+function fnSendMessageToAll(){
     const objMsg = document.getElementById("txtMessageToAll");
 
     socket.emit("UserMessage", objMsg.value);
@@ -362,15 +355,13 @@ function fnExecTradeToAll(pSymbol, pDirec){
     socket.emit("SendTrdToAll", objMsg);
 }
 
-function fnClearMessage()
-{
+function fnClearMessage(){
     const objDivMsgs = document.getElementById("divMessages");
 
     objDivMsgs.innerHTML = "";
 }
 
-function fnLoadCnfStatus()
-{
+function fnLoadCnfStatus(){
     let lsCnfAtr = localStorage.getItem("lsCnfAtr");
     //console.log(lsCnfAtr);
 
@@ -413,8 +404,7 @@ function fnLoadCnfStatus()
     }
 }
 
-function fnGetUserProfileDets()
-{
+function fnGetUserProfileDets(){
     let objClientId = document.getElementById("txtClientId");
     let objSession = document.getElementById("hidSession");
 
@@ -470,8 +460,7 @@ function fnGetUserProfileDets()
     }
 }
 
-function fnShowHideMarginData()
-{
+function fnShowHideMarginData(){
     let objDivMarginData = document.getElementById("divMarginData");
 
     if(objDivMarginData.style.display === "none")
@@ -484,8 +473,7 @@ function fnShowHideMarginData()
         }
 }
 
-function fnSaveConfirmations(pFrm, pSymName, pStatus)
-{
+function fnSaveConfirmations(pFrm, pSymName, pStatus){
     let lsCnfAtr = localStorage.getItem("lsCnfAtr");
 
     lsCnfAtr = JSON.parse(lsCnfAtr);
@@ -536,16 +524,14 @@ function fnSaveConfirmations(pFrm, pSymName, pStatus)
     });
 }
 
-function fnShowMyProfileMdl()
-{
+function fnShowMyProfileMdl(){
     fnGenMessage("Profile Details", `badge bg-primary`, "spnABProfile");
     $('#mdlUserProfile').modal('show');
 
     //console.log("Profile - " + localStorage.getItem("UserDetS"));
 }
 
-function fnSaveProfileDetails()
-{
+function fnSaveProfileDetails(){
     let objClientId = document.getElementById("txtClientIdUP");
     let objFullName = document.getElementById("txtFullNameUP");
     let objMobileNumber = document.getElementById("txtClientMobileUP");
@@ -588,8 +574,7 @@ function fnSaveProfileDetails()
     }
 }
 
-function fnGetCurrentPrice()
-{
+function fnGetCurrentPrice(){
     let objCurrPosiLst = localStorage.getItem("CurrPositionS");
 
     if (objCurrPosiLst === null)
@@ -683,8 +668,7 @@ function fnGetCurrentPrice()
     fnPositionStatus();
 }
 
-async function fnInitiateBuyManualTrade(pCEorPE)
-{
+async function fnInitiateBuyManualTrade(pCEorPE){
     let objCurrPosiLst = localStorage.getItem("CurrPositionS");
 
     //check if any position is Open. Only One Open trade is allowed here.
@@ -852,8 +836,7 @@ function fnExecPaperTrade(pDirec){
     }
 }
 
-function fnClearTradedFields()
-{
+function fnClearTradedFields(){
     let objSymbol = document.getElementById("ddlManualSymbol");
 
     objSymbol.value = "";
@@ -865,8 +848,7 @@ This Function is called from "fnAPTGetCurrentPrice", "fnAPTGetStatus".
 If Position is available, Displays the current trade details on the right side in AMT Page.
 Calculates profit and loss as per Stop Loss and Take Profit and sends it "fnAPTUpdateTradeStatus" to further processing
 */
-function fnSetCurrentTradeDetails()
-{
+function fnSetCurrentTradeDetails(){
     let objCurrPosiLst = localStorage.getItem("CurrPositionS");
     let objSymbol = document.getElementById("lblSymbol");
     let objExpiry = document.getElementById("lblExpiry");
@@ -992,8 +974,7 @@ function fnSetCurrentTradeDetails()
     }
 }
 
-function fnUpdateTradeStatus(pPL, pSLAmt, pTPAmt, pTrailSLAmt, pCurrBuyingPrice, pCurrSellingPrice, pBorS)
-{
+function fnUpdateTradeStatus(pPL, pSLAmt, pTPAmt, pTrailSLAmt, pCurrBuyingPrice, pCurrSellingPrice, pBorS){
     let objLots = document.getElementById("txtManualLots");
     let objQty = document.getElementById("txtManualBuyQty");
     let objTSLChecked = document.getElementById("cbTrailingSL");
@@ -1095,8 +1076,7 @@ function fnUpdateTradeStatus(pPL, pSLAmt, pTPAmt, pTrailSLAmt, pCurrBuyingPrice,
     }
 }
 
-function fnUpdateSLTP()
-{
+function fnUpdateSLTP(){
     let objStopLoss = document.getElementById("txtUpdStopLoss");
     let objTakeProfit = document.getElementById("txtUpdTakeProfit");
     let objCurrPosiLst = localStorage.getItem("CurrPositionS");
@@ -1140,8 +1120,7 @@ function fnUpdateSLTP()
 }
 
 // check this later for Multiplying lots on Loss
-function fnManualCloseTrade()
-{
+function fnManualCloseTrade(){
     // let objLots = document.getElementById("txtManualLots");
     let objCurrPosiLst = localStorage.getItem("CurrPositionS");
 
@@ -1166,8 +1145,7 @@ function fnManualCloseTrade()
 }
 
 //Transfers data from CurrPositionS to TradesListS
-function fnCloseTrade()
-{
+function fnCloseTrade(){
     let objTodayTrades = localStorage.getItem("TradesListS");
 
     const vDate = new Date();
@@ -1218,8 +1196,7 @@ function fnCloseTrade()
     fnPositionStatus();
 }
 
-function fnInitiateAutoTrade(pObjMsg)
-{
+function fnInitiateAutoTrade(pObjMsg){
     let objCurrPosiLst = localStorage.getItem("CurrPositionS");
 
     if (objCurrPosiLst === null){
@@ -1279,6 +1256,10 @@ function fnExecAutoPaperTrade(pObjMsg){
     let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
 
     let vStrikeOption = parseInt(objDDLStrikeOption.value) * parseInt(objStrikeInterval.value);
+
+    if(pObjMsg.direction === "PE"){
+        vStrikeOption = -(vStrikeOption);
+    }
 
     let vHeaders = new Headers();
     vHeaders.append("Content-Type", "application/json");
@@ -1588,8 +1569,7 @@ function fnSetNextTradeSettings(pPL){
     }
 }
 
-function fnChangeQtyMultiplier(pThis)
-{
+function fnChangeQtyMultiplier(pThis){
     localStorage.setItem("QtyMul", pThis.value);
 }
 
@@ -1610,8 +1590,7 @@ function fnSetTradeStep(){
     }
 }
 
-function fnTestMe()
-{
+function fnTestMe(){
     console.log("TotLossAmt - " + localStorage.getItem("TotLossAmt"));
     console.log("TradeStep - " + localStorage.getItem("TradeStep"));
     console.log("QtyMul - " + localStorage.getItem("QtyMul"));

@@ -210,52 +210,30 @@ exports.fnGetExecutedTradeRate = async (req, res) => {
   let vSymbol = req.body.Symbol;
   let vDateToTime = req.body.DateToTime;
 
-  let objSpotPrice = "";
+  try {
+    if (vActualStrikeRate !== "") {
+      let vRoundedStrike = parseInt(vActualStrikeRate) + parseInt(vStrikeOption);
+      let objTokenData = await fnGetTradeToken(vCorP, vActualStrikeRate, vRoundedStrike, vContract, vSource, vSymbol, vDateToTime);
 
-  if (vActualStrikeRate !== "") {
-    let objTokenData = await fnGetTradeToken(vCorP, vCurrStrikeRate, vStrikeOption, vContract, vSource, vSymbol, vDateToTime);
-
-    if (objTokenData.data.TradeToken !== "") {
       let objTradeDetails = await fnGetTradeDetails(vContract, objTokenData.data.TradeToken, vClientId, vSession, objTokenData.data.ActualStrike, objTokenData.data.RoundedStrike);
 
       res.send({ status: objTradeDetails.status, message: objTradeDetails.message, data: objTradeDetails.data });
     }
     else {
-      res.send({ status: "warning", message: "Received Token Data is Invalid, Please Check!", data: "" });
+      let objSpotPrice = await fnGetSpotPrice(vExchange, vToken, vClientId, vSession);
+      let vRoundedStrike = await fnGetRoundedStrikePrice(objSpotPrice.data, vStrikeInterval);
+      vRoundedStrike.data.RoundedStrike = parseInt(vRoundedStrike.data.ActualStrike) + parseInt(vStrikeOption);
+
+      let objTokenData = await fnGetTradeToken(vCorP, vRoundedStrike.data.ActualStrike, vRoundedStrike.data.RoundedStrike, vContract, vSource, vSymbol, vDateToTime);
+
+      let objTradeDetails = await fnGetTradeDetails(vContract, objTokenData.data.TradeToken, vClientId, vSession, objTokenData.data.ActualStrike, objTokenData.data.RoundedStrike);
+
+      res.send({ status: objTradeDetails.status, message: objTradeDetails.message, data: objTradeDetails.data });
     }
   }
-  else {
-    try {
-      objSpotPrice = await fnGetSpotPrice(vExchange, vToken, vClientId, vSession);
-
-      if (objSpotPrice.data !== "") {
-        let vStrike = await fnGetRoundedStrikePrice(objSpotPrice.data, vStrikeInterval);
-        vStrike.data.RoundedStrike = parseInt(vStrike.data.ActualStrike) + parseInt(vStrikeOption);
-
-        if (vStrike.data.RoundedStrike !== "") {
-          let objTokenData = await fnGetTradeToken(vCorP, vStrike.data.RoundedStrike, vStrikeOption, vContract, vSource, vSymbol, vDateToTime);
-
-          if (objTokenData.data.TradeToken !== "") {
-            let objTradeDetails = await fnGetTradeDetails(vContract, objTokenData.data.TradeToken, vClientId, vSession, objTokenData.data.ActualStrike, objTokenData.data.RoundedStrike);
-
-            res.send({ status: objTradeDetails.status, message: objTradeDetails.message, data: objTradeDetails.data });
-          }
-          else {
-            res.send({ status: "warning", message: "Received Token Data is Invalid, Please Check!", data: "" });
-          }
-        }
-        else {
-          res.send({ status: "warning", message: "Received Strike Price is Invalid, Please Check!", data: "" });
-        }
-      }
-      else {
-        res.send({ status: "warning", message: "Received LTP for the Symbol is Empty, Please Check!", data: "" });
-      }
-    }
-    catch (err) {
-      console.log("At Executed Trade: " + err.data);
-      res.send({ status: err.status, message: err.message, data: err.data });
-    }
+  catch (err) {
+    console.log("At Executed Trade: " + err.data);
+    res.send({ status: err.status, message: err.message, data: err.data });
   }
 };
 
@@ -762,7 +740,7 @@ const fnGetTradeToken = async (pCorP, pActualStrike, pRoundedStrike, pContract, 
           for (let i = 0; i < vData[pContract].length; i++) {
             if ((vData[pContract][i].symbol === pSymbol) && (vData[pContract][i].expiry_date === parseInt(pDateToTime)) && (parseFloat(vData[pContract][i].strike_price) === parseFloat(pRoundedStrike)) && (vData[pContract][i].option_type === pCorP)) {
               vNewToken = vData[pContract][i].token;
-              //console.log(vData[pContract][i].token + " ,");
+              // console.log(vData[pContract][i].token + " ,");
             }
           }
 
