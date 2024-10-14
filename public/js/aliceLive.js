@@ -1,3 +1,4 @@
+let vTradeInst = 0;
 
 window.addEventListener("DOMContentLoaded", function(){
 
@@ -254,6 +255,49 @@ function fnPlaceBasketOrderTest(){
     });
 }
 
+function fnPlaceNormalOrderTest(){
+    let objClientId = document.getElementById("txtClientId");
+    let objSession = document.getElementById("hidSession");
+    let vDate = new Date();
+    let vRandId = vDate.valueOf();
+
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let objRequestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: JSON.stringify({ ClientID: objClientId.value, Session: objSession.value, RandId: vRandId }),
+        redirect: 'follow'
+    };
+    
+    fetch("/alice-blue/placeNormalOrder", objRequestOptions)
+    .then(objResponse => objResponse.json())
+    .then(objResult => {
+        if(objResult.status === "success")
+        {
+            console.log(objResult);
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "danger")
+        {
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "warning")
+        {
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else
+        {
+            fnGenMessage("Error to Place Normal Order.", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        console.log('error: ', error);
+        fnGenMessage("Error in Placing New Trade", `badge bg-danger`, "spnGenMsg");
+    });
+}
+
 function fnCloseRealPositionsTest(){
     let objClientId = document.getElementById("txtClientId");
     let objSession = document.getElementById("hidSession");
@@ -341,4 +385,108 @@ function fnClearLocalStorageRealTemp(){
     localStorage.removeItem("RealTotLossAmt");
     localStorage.setItem("RealTradeStep", 0);
     console.log("LS Cleared!");
+}
+
+function fnCheckRealTradeTimer(){
+    var objTimeMS = document.getElementById("txtTimeMS");
+    var objTimerSwitch = document.getElementById("swtAutoChkPosition");
+    var objCurrPosiLst = localStorage.getItem("RealCurrPositionS");
+    
+    if (isNaN(parseInt(objTimeMS.value)) || (parseInt(objTimeMS.value) < 5)) {
+        objTimeMS.value = 5;
+    }
+
+    let vTimer = 1000 * parseInt(objTimeMS.value);
+
+    if (objTimerSwitch.checked)
+    {
+        localStorage.setItem("TimerSwtS", "true");
+
+        if (objCurrPosiLst !== null) {
+            clearInterval(vTradeInst);
+
+            vTradeInst = setInterval(fnGetRealCurrentPrice, vTimer);
+            //vTradeInst = setInterval(fnTestMe, vTimer);
+
+            fnGenMessage("Auto Check for Current Price is On!", `badge bg-success`, "spnGenMsg");
+        }
+        else
+        {
+            clearInterval(vTradeInst);
+            fnGenMessage("No Open Trade, Will start when the trade is Open", `badge bg-warning`, "spnGenMsg");
+        }
+        // alert("vTradeInst: " + vTradeInst);
+    }
+    else {
+        localStorage.setItem("TimerSwtS", "false");
+        clearInterval(vTradeInst);
+
+        fnGenMessage("Auto Check for Current Price is Off!", `badge bg-danger`, "spnGenMsg");
+    }
+    fnGetRealCurrentPrice();
+}
+
+function fnGetRealCurrentPrice(){
+
+}
+
+// check this later for Multiplying lots on Loss
+function fnManualCloseRealTrade(){
+    // let objLots = document.getElementById("txtManualLots");
+    let objCurrPosiLst = localStorage.getItem("RealCurrPositionS");
+
+    if (objCurrPosiLst === null)
+    {
+        fnGenMessage("No Open Positions to Close!", `badge bg-warning`, "spnGenMsg");
+    }
+    else
+    {
+        fnCloseRealTrade();
+    }
+}
+
+//Transfers data from CurrPositionS to TradesListS
+function fnCloseRealTrade(){
+    let objTodayTrades = localStorage.getItem("RealTradesListS");
+
+    const vDate = new Date();
+    let vMonth = vDate.getMonth() + 1;
+    let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
+
+    let objCurrPosiLst = localStorage.getItem("RealCurrPositionS");
+    let objCurrTrade = JSON.parse(objCurrPosiLst);
+    objCurrTrade.TradeData[0].ExitDT = vToday;
+
+    let vPL = ((parseFloat(objCurrTrade.TradeData[0].SellPrice) - parseFloat(objCurrTrade.TradeData[0].BuyPrice)) * parseFloat(objCurrTrade.TradeData[0].Quantity)).toFixed(2);
+
+    if (objTodayTrades === null || objTodayTrades === "")
+    {
+        objTodayTrades = {
+            TradeList: [{ TradeID: objCurrTrade.TradeData[0].TradeID, ClientID: objCurrTrade.TradeData[0].ClientID, Symbol: objCurrTrade.TradeData[0].Symbol, Expiry: objCurrTrade.TradeData[0].Expiry, Strike: objCurrTrade.TradeData[0].Strike, OptionType: objCurrTrade.TradeData[0].OptionType, Quantity: objCurrTrade.TradeData[0].Quantity, BuyPrice: objCurrTrade.TradeData[0].BuyPrice, SellPrice: objCurrTrade.TradeData[0].SellPrice, ProfitLoss: vPL, StopLoss: objCurrTrade.TradeData[0].StopLoss, TakeProfit: objCurrTrade.TradeData[0].TakeProfit, EntryDT: objCurrTrade.TradeData[0].EntryDT, ExitDT: vToday }]
+        };
+        objTodayTrades = JSON.stringify(objTodayTrades);
+        localStorage.setItem("RealTradesListS", objTodayTrades);
+    }
+    else
+    {
+        let vExistingData = JSON.parse(objTodayTrades);
+        vExistingData.TradeList.push({ TradeID: objCurrTrade.TradeData[0].TradeID, ClientID: objCurrTrade.TradeData[0].ClientID, Symbol: objCurrTrade.TradeData[0].Symbol, Expiry: objCurrTrade.TradeData[0].Expiry, Strike: objCurrTrade.TradeData[0].Strike, OptionType: objCurrTrade.TradeData[0].OptionType, Quantity: objCurrTrade.TradeData[0].Quantity, BuyPrice: objCurrTrade.TradeData[0].BuyPrice, SellPrice: objCurrTrade.TradeData[0].SellPrice, ProfitLoss: vPL, StopLoss: objCurrTrade.TradeData[0].StopLoss, TakeProfit: objCurrTrade.TradeData[0].TakeProfit, EntryDT: objCurrTrade.TradeData[0].EntryDT, ExitDT: vToday });
+        let vAddNewItem = JSON.stringify(vExistingData);
+        localStorage.setItem("RealTradesListS", vAddNewItem);
+    }
+    let objExcTradeDtls = JSON.stringify(objCurrTrade);
+
+    localStorage.setItem("RealCurrPositionS", objExcTradeDtls);
+
+    fnGenMessage("Position Closed!", `badge bg-success`, "spnGenMsg");
+    getSymbolsDataFile();
+
+    clearInterval(vTradeInst);
+    localStorage.removeItem("RealCurrPositionS");
+
+    fnSetNextTradeSettings(vPL);
+    fnResetOpenPositionDetails();
+    fnSetLotsByQtyMulLossAmt();
+    fnSetTodayTradeDetails();
+    fnPositionStatus();
 }

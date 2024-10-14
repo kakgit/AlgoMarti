@@ -975,6 +975,7 @@ function fnSetCurrentTradeDetails(){
 }
 
 function fnUpdateTradeStatus(pPL, pSLAmt, pTPAmt, pTrailSLAmt, pCurrBuyingPrice, pCurrSellingPrice, pBorS){
+
     let objLots = document.getElementById("txtManualLots");
     let objQty = document.getElementById("txtManualBuyQty");
     let objTSLChecked = document.getElementById("cbTrailingSL");
@@ -985,30 +986,24 @@ function fnUpdateTradeStatus(pPL, pSLAmt, pTPAmt, pTrailSLAmt, pCurrBuyingPrice,
 
     // console.log("SP: " + pCurrSellingPrice + " T-SL: " + pTrailSLAmt + " PL: " + pPL + " DiffLoss: " + vDiffLoss)
     // console.log("TP: " + pTPAmt)
-    if (objTSLChecked.checked)
-    {
-        if (parseFloat(pCurrSellingPrice) <= parseFloat(pTrailSLAmt))
-        {
-            if (parseInt(pPL) < 0)
-            {
+    if (objTSLChecked.checked){
+        if (parseFloat(pCurrSellingPrice) <= parseFloat(pTrailSLAmt)){
+            if (parseInt(pPL) < 0){
                 localStorage.setItem("TotLossAmt", parseInt(vTotLossAmt) + parseInt(pPL));
-                let vNextQty = parseInt(objLots.value) * 2;
+                let vNextQty = parseInt(objLots.value) * 3;
                 localStorage.setItem("QtyMul", vNextQty);
                 objLots.value = vNextQty;
 
                 vTradeStep++;
 
-                if(vTradeStep < 6)
-                {
+                if(vTradeStep < 6){
                     localStorage.setItem("TradeStep", vTradeStep);
                 }
-                else
-                {
+                else{
                     localStorage.setItem("TradeStep", 0);
                 }
             }
-            else if (parseInt(vDiffLoss) < 0)
-            {
+            else if (parseInt(vDiffLoss) < 0){
                 localStorage.setItem("TotLossAmt", parseInt(vTotLossAmt) - parseInt(pPL));
                 let vNextQty = Math.round(Math.abs(parseInt(vDiffLoss)) / Math.abs(parseInt(vTotLossAmt))) * parseInt(objLots.value);
                 localStorage.setItem("QtyMul", vNextQty);
@@ -1016,17 +1011,14 @@ function fnUpdateTradeStatus(pPL, pSLAmt, pTPAmt, pTrailSLAmt, pCurrBuyingPrice,
 
                 vTradeStep++;
 
-                if(vTradeStep < 6)
-                {
+                if(vTradeStep < 6){
                     localStorage.setItem("TradeStep", vTradeStep);
                 }
-                else
-                {
+                else{
                     localStorage.setItem("TradeStep", 0);
                 }
             }
-            else
-            {
+            else{
                 localStorage.setItem("TotLossAmt", 0);
                 localStorage.setItem("QtyMul", 1);
                 localStorage.setItem("TradeStep", 0);
@@ -1034,15 +1026,12 @@ function fnUpdateTradeStatus(pPL, pSLAmt, pTPAmt, pTrailSLAmt, pCurrBuyingPrice,
             }
             fnCloseTrade();
         }
-        else
-        {
+        else{
             fnGenMessage("Position is Open, keep watching...", `badge bg-warning`, "spnGenMsg");
         }
     }
-    else
-    {
-        if (parseInt(pPL) >= parseInt(pTPAmt))
-        {
+    else{
+        if (parseInt(pPL) >= parseInt(pTPAmt)){
             localStorage.setItem("QtyMul", 1);
             objLots.value = 1;
 
@@ -1050,27 +1039,23 @@ function fnUpdateTradeStatus(pPL, pSLAmt, pTPAmt, pTrailSLAmt, pCurrBuyingPrice,
 
             fnCloseTrade();
         }
-        else if (parseInt(pPL) <= parseInt(pSLAmt))
-        {
-            let vNextQty = parseInt(objLots.value) * 2;
+        else if (parseInt(pPL) <= parseInt(pSLAmt)){
+            let vNextQty = parseInt(objLots.value) * 3;
             localStorage.setItem("QtyMul", vNextQty);
             objLots.value = vNextQty;
 
             vTradeStep++;
 
-            if(vTradeStep < 6)
-            {
+            if(vTradeStep < 6){
                 localStorage.setItem("TradeStep", vTradeStep);
             }
-            else
-            {
+            else{
                 localStorage.setItem("TradeStep", 0);
             }
 
             fnCloseTrade();
         }
-        else
-        {
+        else{
             fnGenMessage("Position is Open, keep watching...", `badge bg-warning`, "spnGenMsg");
         }
     }
@@ -1121,6 +1106,7 @@ function fnUpdateSLTP(){
 
 // check this later for Multiplying lots on Loss
 function fnManualCloseTrade(){
+
     // let objLots = document.getElementById("txtManualLots");
     let objCurrPosiLst = localStorage.getItem("CurrPositionS");
 
@@ -1534,7 +1520,7 @@ function fnSetNextTradeSettings(pPL){
 
     if(parseFloat(pPL) < 0) {
         localStorage.setItem("TotLossAmt", vNewLossAmt);
-        let vNextQty = parseInt(vOldQtyMul) * 2;
+        let vNextQty = parseInt(vOldQtyMul) * 3;
         localStorage.setItem("QtyMul", vNextQty);
         objLots.value = vNextQty;
 

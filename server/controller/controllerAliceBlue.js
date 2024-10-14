@@ -360,8 +360,8 @@ exports.fnGetTradeBook = async (req, res) => {
 exports.fnPlaceBasketOrder = async (req, res) => {
   let vClientId = req.body.ClientID;
   let vSession = req.body.Session;
-  //let vRandId = req.body.RandId;
-  let vRandId = "1728446812442";
+  let vRandId = req.body.RandId;
+  //let vRandId = "1728446812442";
 
   let objData, objTradeDtls = "";
   let bHasTrade = false;
@@ -405,6 +405,64 @@ exports.fnPlaceBasketOrder = async (req, res) => {
 
     //console.log(objData.data);
   } catch (err) {
+    //console.log("At fnGetRealClosedPosiDetails: " + err.data);
+    res.send({ "status": err.status, "message": err.message, "data": err.data });
+  }
+}
+
+exports.fnPlaceNormalOrder = async (req, res) => {
+  let vClientId = req.body.ClientID;
+  let vSession = req.body.Session;
+  let vRandId = req.body.RandId;
+
+  let objData, objTradeDtls = "";
+  let bHasTrade = false;
+  let vOrderQty = 0;
+  let vAvgPrice = 0;
+  let vOrdersCount = 0;
+
+  try {
+    objData = await fnExecNormalOrder(vClientId, vSession, vRandId);
+
+    if (objData.data.length > 0) {
+      for (let i = 0; i < objData.data.length; i++) {
+        if (objData.data[i].stat === "Ok") {
+          console.log("Data: " + objData.data[i].stat + " - " + objData.data[i].NOrdNo);
+          bHasTrade = true;
+        }
+      }
+    }
+
+    if(bHasTrade){
+      objTradeDtls = await fnGetTradePositions(vClientId, vSession, vRandId);
+
+      for(let i=0; i < objTradeDtls.data.length; i++){
+        if(objTradeDtls.data[i].remarks === vRandId && objTradeDtls.data[i].Status === "complete"){
+          vOrderQty += parseInt(objTradeDtls.data[i].Fillshares);
+          vAvgPrice += parseFloat(objTradeDtls.data[i].Avgprc);
+
+          vOrdersCount++;
+        }
+      }
+
+      if(vOrderQty === 0){
+        res.send({ "status": "warning", "message": "Normal Order is incomplete..", "data": { Qty: vOrderQty, AvgPrice: vAvgPrice } });
+      }
+      else{
+        vAvgPrice = vAvgPrice / vOrdersCount;
+
+        console.log("Avg Price: " + vAvgPrice);
+        res.send({ "status": "success", "message": "Traded Qty and Rate Details!", "data": { Qty: vOrderQty, AvgPrice: vAvgPrice } });
+        }
+    }
+    else{
+      objTradeDtls = { RandId: vRandId }
+      res.send({ "status": "danger", "message": "Error in Basket Order!", "data": objTradeDtls });
+    }
+
+    //console.log(objData.data);
+  }
+  catch (err) {
     //console.log("At fnGetRealClosedPosiDetails: " + err.data);
     res.send({ "status": err.status, "message": err.message, "data": err.data });
   }
@@ -508,6 +566,49 @@ const fnExecBasketOrder = async (pClientId, pSession, pRandId) => {
   return objData;
 }
 
+const fnExecNormalOrder = async (pClientId, pSession, pRandId) => {
+  const objData = new Promise((resolve, reject) => {
+    let objParams = JSON.stringify([
+      {
+        "complexty": "regular",
+        "discqty": "0",
+        "exch": "NSE",
+        "pCode": "MIS",
+        "prctyp": "MKT",
+        "price": "0",
+        "qty": 1,
+        "ret": "DAY",
+        "symbol_id": "3499",
+        "trading_symbol": "TATASTEEL-EQ",
+        "transtype": "B",
+        "trigPrice": "0",
+        "orderTag": pRandId
+      }
+    ]);
+
+    let objConfig = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: 'https://ant.aliceblueonline.com/rest/AliceBlueAPIService/api/placeOrder/executePlaceOrder',
+      headers: {
+        'Authorization': 'Bearer ' + pClientId + ' ' + pSession,
+        'Content-Type': 'application/json'
+      },
+      data: objParams
+    };
+
+    axios.request(objConfig)
+      .then((objResponse) => {
+        resolve({ "status": "success", "message": "Success - Order Placed", "data": objResponse.data });
+      })
+      .catch((error) => {
+        console.log(error.message);
+        reject({ "status": "danger", "message": "Error in Placing the Order, Please Check!", "data": error.message });
+      });
+  });
+  return objData;
+}
+
 const fnGetRealTradeBookDetails = async (pClientId, pSession) => {
   const objData = new Promise((resolve, reject) => {
     let objParams = "";
@@ -560,7 +661,7 @@ const fnGetTradePositions = async (pClientId, pSession, pRandId) => {
       })
       .catch((error) => {
         console.log(error.message);
-        reject({ "status": "danger", "message": "Error in to Receive Orderbook, Please Check!", "data": error.message });
+        reject({ "status": "danger", "message": "Error to Receive Order Details. " + error.message, "data": error.message });
       });
   });
   

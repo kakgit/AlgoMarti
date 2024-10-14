@@ -50,6 +50,7 @@ route.post("/alice-blue/getJsonFiles", abController.fnGetJsonFilesData);
 route.post("/alice-blue/sqOffPositions", abController.fnSqOffPositions);
 route.post("/alice-blue/getTradeBook", abController.fnGetTradeBook);
 route.post("/alice-blue/placeBasketOrder", abController.fnPlaceBasketOrder);
+route.post("/alice-blue/placeNormalOrder", abController.fnPlaceNormalOrder);
 
 //AliceBlue Real Trade Routes
 route.post("/alice-blue/getOrderPlacedDetails", abController.fnOrderPlacedDetails);

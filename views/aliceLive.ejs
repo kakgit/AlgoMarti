@@ -207,13 +207,92 @@
                                     <div class="col-1" style="text-align: right;">
                                         <a data-bs-toggle="collapse" href="#divOpenPosClps" role="button" aria-expanded="true" aria-controls="divOpenPosClps">
                                             <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
-                                          </a>
+                                        </a>
                                     </div>                                    
                                 </div>
                             </div>
                             <div class="card-body">
                                 <div class="collapse show" id="divOpenPosClps">
-                                    sad asd asda sdasd asdas asdasd asd asdas dasd ads sadas dasd asdsa dasdasdkljasdkjh kjasdhajks hasjkdhasjk hdaskjdhaskjh daskjdhaksjhdakjdhasjkdhaskjdh
+                                    <div class="row">
+                                        <div class="col-6 col-lg-6">
+                                            <div class="row">
+                                                <div class="col-6" style="font-size:14px; color:cornflowerblue">Entry Date Time</div>
+                                                <div class="col-6" style="text-align:right; font-size:14px; white-space:nowrap; color:cornflowerblue" id="lblEntryDate">00-00-0000 00:00:00</div>
+                                                <div class="col-4" style="font-weight:bold; white-space:nowrap; font-size:14px;" id="lblSymbol">SYMBOL NAME</div>
+                                                <div class="col-2" style="font-weight:bold; white-space:nowrap; font-size:14px;" id="lblStrike">000000</div>
+                                                <div class="col-1" style="font-weight:bold; white-space:nowrap; font-size:14px;" id="lblOptionType">OT</div>
+                                                <div class="col-5" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align:right;" id="lblExpiry">YYYY-MM-DD</div>
+                                                <div class="col-12">&nbsp;</div>
+                
+                                                <div class="col-2" style="color:white; white-space:nowrap; font-size:14px; text-align: center;">QTY</div>
+                                                <div class="col-3" style="color:green; white-space:nowrap; font-size:14px; text-align: center;" id="lblBuyPriceInd">BUY PRICE</div>
+                                                <div class="col-4" style="color:red; white-space:nowrap; font-size:14px; text-align: center;" id="lblSellPriceInd">SELL PRICE</div>
+                                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">P & L</div>
+                
+                                                <div class="col-2" style="color:white; white-space:nowrap; font-size:14px; text-align: center;" id="lblQty">0</div>
+                                                <div class="col-3" style="color:green; white-space:nowrap; font-size:14px; text-align: center;" id="lblBuyPrice">0.00</div>
+                                                <div class="col-4" style="color:red; white-space:nowrap; font-size:14px; text-align: center;" id="lblSellPrice">0.00</div>
+                                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;" id="lblProfitLoss">0.00</div>
+
+                                                <div class="col-12">&nbsp;</div>
+
+                                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">T-SL</div>
+                                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">On SL</div>
+                                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">On TP</div>
+                                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">Capital:</div>
+                
+                                                <div class="col-3" style="text-align:center; color:orange; white-space:nowrap; text-align: center;" id="lblTrailSL">0.00</div>
+                                                <div class="col-3" style="text-align:center; color:red; white-space:nowrap; text-align: center;" id="lblLossOnSL">0.00</div>
+                                                <div class="col-3" style="text-align:center; color:green; white-space:nowrap; text-align: center;" id="lblProfitOnTP">0.00</div>
+                                                <div class="col-3" id="lblCapital" style="font-weight:bold; white-space:nowrap; text-align: center;">0.00</div>
+
+                                                <div class="col-12">&nbsp;</div>
+
+                                                <div class="col-6" style="text-align:center; white-space:nowrap; font-size:14px;"><button class="btn btn-outline-info btn-block" id="btnGetLatestPrice" onclick="fnCheckRealTradeTimer();"><b>GET CURRENT PRICE</b></button></div>
+                                                <div class="col-6" style="text-align:center; white-space:nowrap; font-size:14px;"><button class="btn btn-outline-danger btn-block" id="btnClosePosition" onclick="fnManualCloseRealTrade();"><b>CLOSE POSITION</b></button></div>
+    
+                                            </div>
+                                        </div>
+                                        <div class="col-6 col-lg-6">
+                                            <div class="row">
+                                                <div class="col-4">
+                                                    <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                                                        <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtAutoChkPosition" name="swtAutoChkPosition" onchange="fnCheckRealTradeTimer();" />
+                                                        <label for="swtAutoChkPosition" style="cursor:pointer;">Auto Check Every</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <input type="number" class="form-control" placeholder="Timer" id="txtTimeMS" value="5" maxlength="3" />
+                                                </div>
+                                                <div class="col-5" onclick="document.getElementById('txtMCurrPrice').type='text';">
+                                                    <input type="hidden" class="form-control" placeholder="Sell Price" id="txtMCurrPrice" value="" />
+                                                </div>
+
+                                                <div class="col-12">&nbsp;</div>
+
+                                                <div class="col-12">
+                                                    <select id="ddlTrailSLTP" class="form-select" onchange="fnSetDDLTrailSLTP(this);">
+                                                        <option value=0 selected="true">NO SL or TP</option>
+                                                        <option value=1>Strict SL or TP</option>
+                                                        <option value=2>Trail by SL Points</option>
+                                                        <option value=3>Trail SL After TP</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-12">
+                                                    &nbsp;
+                                                </div>
+                                                <div class="col-4">
+                                                    <input type="text" class="form-control" placeholder="SL" id="txtUpdStopLoss" />
+                                                </div>
+                                                <div class="col-4">
+                                                    <input type="text" class="form-control" placeholder="TP" id="txtUpdTakeProfit" />
+                                                </div>
+                                                <div class="col-4">
+                                                    <button class="btn btn-outline-info btn-block" id="btnUpdateSLTP" onclick="fnUpdateSLTP();"><b>UPDATE</b></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -292,6 +371,9 @@
                             <button onclick="fnShowRealPositionsTest();">Trade Book</button>
                             <button onclick="fnCloseRealPositionsTest();">Close Position</button>
                             <button onclick="fnPlaceBasketOrderTest();">Place Basket Order</button>
+                            <button onclick="fnPlaceBracketOrderTest();">Bracket Order</button>
+                            <button onclick="fnPlaceCoverOrderTest();">Cover Order</button>
+                            <button onclick="fnPlaceNormalOrderTest();">Normal Order</button>
                         </div>
                     </div>
                 </div>
