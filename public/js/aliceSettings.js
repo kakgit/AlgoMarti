@@ -658,7 +658,11 @@ function getSymbolsDataFile(){
 
     let vOldSybDt = localStorage.getItem("SymbolListS");
     vOldSybDt = JSON.parse(vOldSybDt);
-    // alert(vOldSybDt.UpdDt);
+
+    if(vOldSybDt === null || vOldSybDt.UpdDt === null || vOldSybDt.UpdDt === ""){
+        vOldSybDt = {};
+        vOldSybDt.UpdDt = 0;
+    }
 
     let objRequestOptions = {
     method: 'POST',
@@ -673,12 +677,16 @@ function getSymbolsDataFile(){
         if(objResult.status === "success")
         {
             let vNewSybDt = JSON.parse(objResult.data);
-
-            if(vNewSybDt.UpdDt > vOldSybDt.UpdDt){
-                //console.log(objResult.data);
+            if(parseInt(vNewSybDt.UpdDt) > parseInt(vOldSybDt.UpdDt)){
 
                 localStorage.setItem("SymbolListS", objResult.data);
+
+                fnGetSymbolList();
+
                 fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+            else{
+                fnGetSymbolList();
             }
         }
         else if(objResult.status === "danger")
@@ -696,7 +704,7 @@ function getSymbolsDataFile(){
     })
     .catch(error => {
         console.log('error: ', error);
-        fnGenMessage("Error to fetch JSON Data", `badge bg-danger`, "spnGenMsg");
+        fnGenMessage("Error to fetch JSON Data. " + error, `badge bg-danger`, "spnGenMsg");
     });
 }
 

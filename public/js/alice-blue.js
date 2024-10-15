@@ -6,8 +6,6 @@ window.addEventListener("DOMContentLoaded", function(){
 
     fnLoadCnfStatus();
 
-    fnGetSymbolList();
-
     fnGetSetAllStatus();
 
     fnGetSetOptionStrike();
@@ -798,7 +796,7 @@ function fnExecPaperTrade(pDirec){
 
                     var objExcTradeDtls = JSON.stringify(vExcTradeDtls);
 
-                    console.log(objExcTradeDtls);
+                    //console.log(objExcTradeDtls);
 
                     if (objResult.data.ReqStatus == "Ok")
                     {
@@ -990,7 +988,7 @@ function fnUpdateTradeStatus(pPL, pSLAmt, pTPAmt, pTrailSLAmt, pCurrBuyingPrice,
         if (parseFloat(pCurrSellingPrice) <= parseFloat(pTrailSLAmt)){
             if (parseInt(pPL) < 0){
                 localStorage.setItem("TotLossAmt", parseInt(vTotLossAmt) + parseInt(pPL));
-                let vNextQty = parseInt(objLots.value) * 3;
+                let vNextQty = parseInt(objLots.value) * 2;
                 localStorage.setItem("QtyMul", vNextQty);
                 objLots.value = vNextQty;
 
@@ -1040,7 +1038,7 @@ function fnUpdateTradeStatus(pPL, pSLAmt, pTPAmt, pTrailSLAmt, pCurrBuyingPrice,
             fnCloseTrade();
         }
         else if (parseInt(pPL) <= parseInt(pSLAmt)){
-            let vNextQty = parseInt(objLots.value) * 3;
+            let vNextQty = parseInt(objLots.value) * 2;
             localStorage.setItem("QtyMul", vNextQty);
             objLots.value = vNextQty;
 
@@ -1520,7 +1518,7 @@ function fnSetNextTradeSettings(pPL){
 
     if(parseFloat(pPL) < 0) {
         localStorage.setItem("TotLossAmt", vNewLossAmt);
-        let vNextQty = parseInt(vOldQtyMul) * 3;
+        let vNextQty = parseInt(vOldQtyMul) * 2;
         localStorage.setItem("QtyMul", vNextQty);
         objLots.value = vNextQty;
 
