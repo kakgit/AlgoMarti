@@ -637,7 +637,7 @@ function fnGetCurrentPrice(){
 
                         //fnSetCurrentTradeDetails();
 
-                        // console.log(localStorage.getItem("CurrPositionS"));
+                        //console.log(localStorage.getItem("CurrPositionS"));
                     }
                     else
                     {
@@ -1389,6 +1389,7 @@ function fnSetCurrTradeSLTP(){
         objTakeProfit.value = vTPPoints;
 
         if(objDDLTrailSLTP.value === "1") {
+            //Strict SL & TP
             vSLPrice = parseFloat(vCurrBuyingPrice) - parseFloat(vSLPoints);
             vTPPrice = parseFloat(vCurrBuyingPrice) + parseFloat(vTPPoints);
 
@@ -1408,14 +1409,39 @@ function fnSetCurrTradeSLTP(){
             }
         }
         else if(objDDLTrailSLTP.value === "2"){
-
+            //Trail by SL Points
             objCurrTrade.TradeData[0].ProfitLoss = vPL;
 
             if(parseFloat(vCurrSellingPrice) >= (parseFloat(vTrailSLPrice) + parseFloat(vSLPoints)) && (parseFloat(vCurrSellingPrice) > (parseFloat(vCurrBuyingPrice) + parseFloat(vSLPoints)))){
                 vTrailSLPrice = parseFloat(vCurrSellingPrice) - parseFloat(vSLPoints);
                 objCurrTrade.TradeData[0].TrailSL = vTrailSLPrice;
 
-                //It is Important to Not to Save CurrPositionS After fnCloseTrade Function
+                //It is Important Not to Save CurrPositionS After fnCloseTrade Function
+                let objExcTradeDtls = JSON.stringify(objCurrTrade);
+                localStorage.setItem("CurrPositionS", objExcTradeDtls);
+            }
+
+            objTrailSL.innerText = parseFloat(vTrailSLPrice).toFixed(2);
+            objLossOnSL.innerText = ((parseFloat(vTrailSLPrice) - parseFloat(vCurrBuyingPrice)) * parseFloat(vTotQtyToTrade)).toFixed(2);
+            objProfitOnTP.innerText = "Trailling";
+            objCapital.innerText = (parseFloat(vCurrBuyingPrice) * parseFloat(vTotQtyToTrade)).toFixed(2);
+            
+            if(parseFloat(vCurrSellingPrice) <= parseFloat(vTrailSLPrice)){
+                //It is Important, Not to Save CurrPositionS After fnCloseTrade Function
+                let objExcTradeDtls = JSON.stringify(objCurrTrade);
+                localStorage.setItem("CurrPositionS", objExcTradeDtls);
+
+                fnCloseTrade();
+            }
+        }
+        else if(objDDLTrailSLTP.value === "3"){
+            //Trail SL After TP
+            objCurrTrade.TradeData[0].ProfitLoss = vPL;
+
+            if(parseFloat(vCurrSellingPrice) >= (parseFloat(vTrailSLPrice) + parseFloat(vSLPoints)) && (parseFloat(vCurrSellingPrice) >= (parseFloat(vCurrBuyingPrice) + parseFloat(vTPPoints)))){
+                vTrailSLPrice = parseFloat(vCurrSellingPrice) - parseFloat(vSLPoints);
+                objCurrTrade.TradeData[0].TrailSL = vTrailSLPrice;
+                //It is Important, Not to Save CurrPositionS After fnCloseTrade Function
                 let objExcTradeDtls = JSON.stringify(objCurrTrade);
                 localStorage.setItem("CurrPositionS", objExcTradeDtls);
             }
@@ -1433,16 +1459,31 @@ function fnSetCurrTradeSLTP(){
                 fnCloseTrade();
             }
         }
-        else if(objDDLTrailSLTP.value === "3"){
- 
+        else if(objDDLTrailSLTP.value === "4"){
+            let vLossPoints = (Math.abs(localStorage.getItem("TotLossAmt")))/objCurrTrade.TradeData[0].Quantity;
+            let vBufferAmt = (parseFloat(vLossPoints) * 20)/100;
+            let vFirstTSL = parseFloat(vLossPoints) + parseFloat(vBufferAmt);
+
             objCurrTrade.TradeData[0].ProfitLoss = vPL;
 
-            if(parseFloat(vCurrSellingPrice) >= (parseFloat(vTrailSLPrice) + parseFloat(vSLPoints)) && (parseFloat(vCurrSellingPrice) >= (parseFloat(vCurrBuyingPrice) + parseFloat(vTPPoints)))){
+            // console.log("Loss Points: " + vLossPoints);
+            // console.log("vFirstTSL: " + vFirstTSL);
+            // console.log("Curr PL: " + vPL);
+
+            if(parseFloat(vCurrSellingPrice) >= (parseFloat(vTrailSLPrice) + parseFloat(vSLPoints)) && (parseFloat(vCurrSellingPrice) > (parseFloat(vCurrBuyingPrice) + parseFloat(vSLPoints)))){
                 vTrailSLPrice = parseFloat(vCurrSellingPrice) - parseFloat(vSLPoints);
                 objCurrTrade.TradeData[0].TrailSL = vTrailSLPrice;
-                //It is Important to Not to Save CurrPositionS After fnCloseTrade Function
+
+                //It is Important Not to Save CurrPositionS After fnCloseTrade Function
                 let objExcTradeDtls = JSON.stringify(objCurrTrade);
                 localStorage.setItem("CurrPositionS", objExcTradeDtls);
+            }
+            else if((parseFloat(vCurrSellingPrice) >= (parseFloat(vCurrBuyingPrice) +  vFirstTSL)) && (parseFloat(vLossPoints) > 0)){
+                vTrailSLPrice = parseFloat(vCurrBuyingPrice) + parseFloat(vFirstTSL);
+                objCurrTrade.TradeData[0].TrailSL = vTrailSLPrice;
+                let objExcTradeDtls = JSON.stringify(objCurrTrade);
+                localStorage.setItem("CurrPositionS", objExcTradeDtls);
+                // console.log("Else condition");
             }
 
             objTrailSL.innerText = parseFloat(vTrailSLPrice).toFixed(2);
@@ -1459,6 +1500,7 @@ function fnSetCurrTradeSLTP(){
             }
         }
         else {
+            //No SL or TP
             objTrailSL.innerText = "NO T-SL";
             objLossOnSL.innerText = "NO SL";
             objProfitOnTP.innerText = "NO TP";
@@ -1469,6 +1511,7 @@ function fnSetCurrTradeSLTP(){
             localStorage.setItem("CurrPositionS", objExcTradeDtls);
         }
     }
+    // console.log("Res: " + localStorage.getItem("CurrPositionS"));
 }
 
 function fnResetOpenPositionDetails(){
