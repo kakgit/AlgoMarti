@@ -2095,6 +2095,22 @@ function fnSetTodayOptTradeDetails(){
     }
 }
 
+function fnDeleteThisTrade(pTradeId){
+    let objTodayTrades = localStorage.getItem("OptTradesListS");
+    let vJsonData = JSON.parse(objTodayTrades);
+
+    if(confirm("Are You Sure, You Want to Delete This Trade?")){
+        for (let i = 0; i < vJsonData.TradeList.length; i++) {
+            if(vJsonData.TradeList[i].TradeID === pTradeId) {
+                vJsonData.TradeList.splice(i, 1);
+            }
+        }
+        let vEditedItems = JSON.stringify(vJsonData);
+        localStorage.setItem("OptTradesListS", vEditedItems);
+        fnSetTodayOptTradeDetails();
+    }
+}
+
 function fnTest(){
 
 }
