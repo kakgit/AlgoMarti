@@ -13,6 +13,13 @@ window.addEventListener("DOMContentLoaded", function(){
 
 });
 
+function fnShowMyProfileMdl(){
+    fnGenMessage("Profile Details", `badge bg-primary`, "spnABProfile");
+    $('#mdlUserProfile').modal('show');
+
+    //console.log("Profile - " + localStorage.getItem("UserDetS"));
+}
+
 function fnChangeBtnProps(pId, pClassName, pDispText){
     let objBtn = document.getElementById(pId);
 
@@ -41,7 +48,7 @@ function fnSearchTable(objThis, pContentId) {
 function fnGenMessage(pMsg, pStyle, pSpnId) {
   objSpan = document.getElementById(pSpnId);
 
-  objSpan.innerText = pMsg;
+  objSpan.innerHTML = pMsg;
   objSpan.className = pStyle;
 }
 
@@ -156,38 +163,29 @@ function fnSetCurrDate(pDate){
   console.log("Converted to to Local DT en-US: " + dtNow.toLocaleString("en-IN"));
 }
 
-function fnLoginStatus(){
-  let objLoginTxt = document.getElementById("lblAppLoginTxt");
-  let objSession = document.getElementById("hidSession");
-  let objTraderStatus = document.getElementById("btnTraderStatus");
+function fnShowHideMarginData(){
+  let objDivMarginData = document.getElementById("divMarginData");
 
-  if(objLoginTxt.innerText === "LOGOUT")
-  {
-    localStorage.setItem("AppMsgStatusS", false);
-    localStorage.setItem("isTraderLogin", false);
-    localStorage.removeItem("lsAliceBlueSession", "");
-    localStorage.removeItem("UserDetS");
-
-    objSession.value = "";
-
-    objLoginTxt.innerText = "LOGIN";
-
-    fnSetUserProfileDets();
-    fnGenMessage("App is Logged Out!", `badge bg-success`, "spnGenMsg");
-    fnGenMessage("TRADER - Disconnected", `badge bg-danger`, "btnTraderStatus");
-    //fnChangeBtnProps(objTraderStatus.id, "badge bg-danger", "TRADER - Disconnected");
+  if(objDivMarginData.style.display === "none"){
+    objDivMarginData.style.display = "block";
   }
-  else
-  {
-    $('#mdlAppLogin').modal('show');
+  else{
+    objDivMarginData.style.display = "none";
   }
 }
 
-function fnAppLogin(){
-  let objLoginTxt = document.getElementById("lblAppLoginTxt");
+function fnChangeOptionStrike(objThis){
+    localStorage.setItem("StrikeOptionS", objThis.value);
+}
 
-  localStorage.setItem("AppMsgStatusS", true);
-  objLoginTxt.innerText = "LOGOUT";
-  $('#mdlAppLogin').modal('hide');
-  fnGenMessage("App is Logged In!", `badge bg-success`, "spnGenMsg");
+function fnGetSetOptionStrike(){
+    let vCurrOS = localStorage.getItem("StrikeOptionS");
+    let objDDLStrikeOption = document.getElementById("ddlOptionStrike");
+
+    if(vCurrOS === "" || vCurrOS === null){
+        objDDLStrikeOption.value = 0;
+    }
+    else{
+        objDDLStrikeOption.value = vCurrOS;
+    }
 }

@@ -54,7 +54,7 @@ exports.fnLoginFinvasia = async (req, res) => {
       //console.log(error);
       res.send({"status": "danger", "message": error.message});
     }
-  }
+}
 
 async function fnGetSHA256Updated(pText)
 {

@@ -458,19 +458,6 @@ function fnGetUserProfileDets(){
     }
 }
 
-function fnShowHideMarginData(){
-    let objDivMarginData = document.getElementById("divMarginData");
-
-    if(objDivMarginData.style.display === "none")
-        {
-            objDivMarginData.style.display = "block";
-        }
-    else
-        {
-            objDivMarginData.style.display = "none";
-        }
-}
-
 function fnSaveConfirmations(pFrm, pSymName, pStatus){
     let lsCnfAtr = localStorage.getItem("lsCnfAtr");
 
@@ -520,13 +507,6 @@ function fnSaveConfirmations(pFrm, pSymName, pStatus){
         console.log('error: ', error);
         fnGenMessage("ErrorC: Unable to Update JSON Details.", `badge bg-danger`, "spnGenMsg");
     });
-}
-
-function fnShowMyProfileMdl(){
-    fnGenMessage("Profile Details", `badge bg-primary`, "spnABProfile");
-    $('#mdlUserProfile').modal('show');
-
-    //console.log("Profile - " + localStorage.getItem("UserDetS"));
 }
 
 function fnSaveProfileDetails(){
@@ -758,8 +738,7 @@ function fnExecPaperTrade(pDirec){
             fetch("/alice-blue/getExecutedTradeRate", objRequestOptions)
             .then(objResponse => objResponse.json())
             .then(objResult => {
-                if(objResult.status === "success")
-                {
+                if(objResult.status === "success"){
                     //Code Later to check the available Capital and adjust the Qty as per available Capital if Qty exceeds
                     var vQtyToTrade = parseInt(objManualLots.value) * parseInt(objManualQty.value);
 

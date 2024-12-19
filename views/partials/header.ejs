@@ -31,7 +31,7 @@
                     <li><a class="dropdown-item" href="/live-trade/samco">Samco</a></li>
                 </ul>
             </li> -->
-            <li><a href="/aboutUs" class="nav-link px-2 text-white">About Us</a></li>
+            <li><a href="/kotakLive" class="nav-link px-2 text-white">Kotak Neo</a></li>
             <li><a href="/contactUs" class="nav-link px-2 text-white">Contact Us</a></li>
         
             <li><a href="/finvasia" class="nav-link px-2 text-white">Finvasia</a></li>
@@ -129,100 +129,4 @@ data-bs-backdrop="false" aria-hidden="true">
         </div>
     </div>
 </div>
-</div>
-
-<!--Disabled Backdrop Modal for Profile Settings-->
-<div class="modal fade text-left" id="mdlUserProfile" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
-    data-bs-backdrop="false" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-secondary">
-                <h4 class="modal-title" id="myModalLabel4">My Profile</h4>
-                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
-            </div>
-            <div class="modal-body">
-                <!-- // Basic multiple Column Form section start -->
-                <section id="multiple-column-form">
-                    <div class="row match-height">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-header text-center">
-                                    &nbsp;<span id="spnABProfile" class="badge bg-primary">Profile Details</span>
-                                </div>
-                                <div class="card-content">
-                                    <div class="card-body">
-                                        <form class="form">
-                                            <div class="row">
-                                                <div class="col-md-6 col-12">
-                                                    <div class="form-group">
-                                                        <label for="txtClientIdUP">Client ID</label>
-                                                        <div class="input-group mb-3">
-                                                            <button class="btn btn-primary" type="button" id="button-addon1" onclick="fnGetUserProfileDets();"><i class="fa fa-share" aria-hidden="true"></i></button>
-                                                            <input id="txtClientIdUP" type="text" class="form-control" disabled="true" />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 col-12">
-                                                    <div class="form-group">
-                                                        <label for="txtFullNameUP">Full Name</label>
-                                                        <input type="text" id="txtFullNameUP" class="form-control" value="" disabled="true" />
-                                                    </div>
-                                                </div> 
-                                                <div class="col-md-6 col-12">
-                                                    <div class="form-group">
-                                                        <label for="txtClientMobileUP">Mobile Number</label>
-                                                        <input type="text" id="txtClientMobileUP" class="form-control" value="" disabled="true" />
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 col-12">
-                                                    <div class="form-group">
-                                                        <label for="txtClientEmailUP">E-Mail</label>
-                                                        <input type="text" id="txtClientEmailUP" class="form-control" value="" disabled="true" />
-                                                    </div>
-                                                </div> 
-                                                <div class="col-md-6 col-12">
-                                                    <div class="form-group">
-                                                        <label for="txtClientStatusUP">Account Status</label>
-                                                        <input type="text" id="txtClientStatusUP" class="form-control" value="" disabled="true" />
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 col-12">
-
-                                                </div> 
-                                                <div class="col-md-6 col-12">
-                                                    <div class="form-group">
-                                                        <label for="txtRealMarginUP" onclick="fnShowHideMarginData();">Available Cash Margin</label>
-                                                        <input type="text" id="txtRealMarginUP" class="form-control" value="" disabled="true" />
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 col-12">
-                                                    <div class="form-group">
-                                                        <label for="txtPaperMarginUP">Paper Trade Margin</label>
-                                                        <input type="number" min="100000" max="10000000" id="txtPaperMarginUP" class="form-control" value="500000" step="100000" />
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-12 col-12">
-                                                    <div id="divMarginData" style="display: none;"></div>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
-                    <i class="bx bx-x d-block d-sm-none"></i>
-                    <span class="d-none d-sm-block">CLOSE</span>
-                </button>
-                <button id="btnSubmit" type="button" class="btn btn-primary ms-1" onclick="fnSaveProfileDetails();">
-                    <i class="bx bx-check d-block d-sm-none"></i>
-                    <span class="d-none d-sm-block">SUBMIT</span>
-                </button>
-            </div>
-        </div>
-    </div>
 </div>

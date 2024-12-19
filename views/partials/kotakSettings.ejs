@@ -1,0 +1,357 @@
+<!--Disabled Backdrop Modal for Trader Settings-->
+<div class="modal fade text-left" id="mdlKotakSettings" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
+    data-bs-backdrop="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h4 class="modal-title" id="myModalLabel4">Kotak Neo Settings</h4>
+                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close"
+                    style="cursor: pointer;"></i>
+            </div>
+            <div class="modal-body">
+                <!-- // Basic multiple Column Form section start -->
+                <section id="multiple-column-form">
+                    <div class="row match-height">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header text-center">
+                                    <span id="spnKotakNeoSettings" class="badge bg-primary">Please Input Details</span>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                                    <li class="nav-item" role="presentation">
+                                                        <button class="nav-link" id="home-tab" data-bs-toggle="tab" data-bs-target="#tabNseCash" type="button"
+                                                            role="tab" aria-controls="home" aria-selected="false">NSE Cash</button>
+                                                    </li>
+                                                    <li class="nav-item" role="presentation">
+                                                        <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#tabFutures" type="button"
+                                                            role="tab" aria-controls="profile" aria-selected="false">Futures</button>
+                                                    </li>
+                                                    <li class="nav-item" role="presentation">
+                                                        <button class="nav-link active" id="contact-tab" data-bs-toggle="tab" data-bs-target="#tabOptions" type="button"
+                                                            role="tab" aria-controls="contact" aria-selected="true">Options</button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <select id="ddlRecentDates" onchange="fnUpdDldLink(this.value);">
+                                                    
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="tab-content" id="myTabContent">
+                                            <div class="tab-pane fade" id="tabNseCash" role="tabpanel" aria-labelledby="home-tab">
+                                                <div class="container-fluid">
+                                                    <div class="row">
+                                                        <div class="col-sm-6">
+                                                            Click the Link to Download 'nse_cm.csv' file
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            Upload the Downloaded 'nse_cm.csv' file to Server
+                                                        </div>
+                                                        <div class="col-sm-12">
+                                                            &nbsp;
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            <a id="lnkNseCm" href="https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/2024-12-08/transformed/nse_cm.csv">NSE_CM.CSV</a>
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            <form>
+                                                                <fieldset>
+                                                                    <div class="input-group">
+                                                                        <input type="file" class="form-control"
+                                                                            id="flsSelectFiles" name="flsSelectFiles"
+                                                                            aria-describedby="inputGroupFileAddon04"
+                                                                            aria-label="Upload" accept=".csv" />
+                                                                        <input class="btn btn-primary" type="button"
+                                                                            value="Upload" onclick="fnUploadFiles('flsSelectFiles', 'setNseCmCsv2NseCashJson');" />
+                                                                    </div>
+                                                                </fieldset>
+                                                            </form>
+                                                        </div>
+                                                        <div class="col-sm-12">
+                                                            &nbsp;
+                                                        </div>
+                                                        <div class="col-sm-2">
+                                                            Stop loss %
+                                                        </div>
+                                                        <div class="col-sm-2">
+                                                            Take Profit %
+                                                        </div>
+                                                        <div class="col-sm-8">
+                                                        </div>
+                                                        <div class="col-sm-2">
+                                                            <input type="text" class="form-control" id="txtNseCashSL" name="txtNseCashSL" value="1" />
+                                                        </div>
+                                                        <div class="col-sm-2">
+                                                            <input type="text" class="form-control" id="txtNseCashTP" name="txtNseCashTP" value="2" />
+                                                        </div>
+                                                        <div class="col-sm-2">
+                                                            <input class="btn btn-primary" type="button" value="Save" onclick="fnAddEditNseCashSLTP();" />
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="tab-pane fade" id="tabFutures" role="tabpanel" aria-labelledby="profile-tab">
+                                                This is some placeholder content the Home tab's associated content. Clicking another tab will toggle the visibility of this one for the next. The tab JavaScript swaps classes to control the content visibility and styling. You can use it with tabs, pills, and any other .nav-powered navigation.
+                                            </div>
+                                            <div class="tab-pane fade show active" id="tabOptions" role="tabpanel" aria-labelledby="contact-tab">
+                                                <div class="container-fluid">
+                                                    <div class="row">
+                                                        <div class="col-sm-6">
+                                                            Click the Link to Download 'nse_fo.csv' file for NSE Options
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            Upload the Downloaded 'nse_fo.csv' file to Server
+                                                        </div>
+                                                        <div class="col-sm-12">
+                                                            &nbsp;
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            <a id="lnkNseFo" href="https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/2024-12-08/transformed/nse_fo.csv">NSE_FO.CSV</a>
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            <form>
+                                                                <fieldset>
+                                                                    <div class="input-group">
+                                                                        <input type="file" class="form-control"
+                                                                            id="flsSelectNseFO" name="flsSelectNseFO"
+                                                                            aria-describedby="inputGroupFileAddon04"
+                                                                            aria-label="Upload" accept=".csv" />
+                                                                        <input class="btn btn-primary" type="button"
+                                                                            value="Upload" onclick="fnUploadFiles('flsSelectNseFO', 'setNseFoCsv2OptJson');" />
+                                                                    </div>
+                                                                </fieldset>
+                                                            </form>
+                                                        </div>
+                                                        <div class="col-sm-12">
+                                                            &nbsp;
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            Click the Link to Download 'bse_fo.csv' file for BSE Options
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            Upload the Downloaded 'bse_fo.csv' file to Server
+                                                        </div>
+                                                        <div class="col-sm-12">
+                                                            &nbsp;
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            <a id="lnkBseFo" href="https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/2024-12-09/transformed/bse_fo.csv">BSE_FO.CSV</a>
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            <form>
+                                                                <fieldset>
+                                                                    <div class="input-group">
+                                                                        <input type="file" class="form-control"
+                                                                            id="flsSelectBseFO" name="flsSelectBseFO"
+                                                                            aria-describedby="inputGroupFileAddon04"
+                                                                            aria-label="Upload" accept=".csv" />
+                                                                        <input class="btn btn-primary" type="button"
+                                                                            value="Upload" onclick="fnUploadFiles('flsSelectBseFO', 'setBseFoCsv2OptJson');" />
+                                                                    </div>
+                                                                </fieldset>
+                                                            </form>
+                                                        </div>
+                                                        <div class="col-sm-12">
+                                                            &nbsp;
+                                                        </div>
+                                                        <!-- <div class="col-sm-2">
+                                                            Stop loss %
+                                                        </div>
+                                                        <div class="col-sm-2">
+                                                            Take Profit %
+                                                        </div>
+                                                        <div class="col-sm-8">
+                                                        </div>
+                                                        <div class="col-sm-2">
+                                                            <input type="text" class="form-control" id="txtNseCashSL" name="txtNseCashSL" value="1" />
+                                                        </div>
+                                                        <div class="col-sm-2">
+                                                            <input type="text" class="form-control" id="txtNseCashTP" name="txtNseCashTP" value="2" />
+                                                        </div>
+                                                        <div class="col-sm-2">
+                                                            <input class="btn btn-primary" type="button" value="Save" onclick="fnAddEditNseCashSLTP();" />
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                        </div> -->
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                    <i class="bx bx-x d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">CLOSE</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Disabled Backdrop Modal for Trader Login-->
+<div class="modal fade text-left" id="mdlKotakLogin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
+    data-bs-backdrop="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h4 class="modal-title" id="myModalLabel4">Kotak Neo Login Details</h4>
+                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
+            </div>
+            <div class="modal-body">
+                <!-- // Basic multiple Column Form section start -->
+                <section id="multiple-column-form">
+                    <div class="row match-height">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header text-center">
+                                    &nbsp;<span id="spnKotakNeoLogin" class="badge bg-primary">Please Input Login Details</span>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <form class="form">
+                                            <div class="row">
+                                                <div class="col-md-6 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtUserNameAPI">API User Name</label>
+                                                        <input type="text" id="txtUserNameAPI" class="form-control" value="client62845" placeholder="API User Name" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtPasswordAPI">API Password</label>
+                                                        <input type="text" id="txtPasswordAPI" class="form-control" value="OcC4Snr3" placeholder="API Password" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtConsumerKey">Consumer Key</label>
+                                                        <input type="text" id="txtConsumerKey" class="form-control" value="NHbQHP1M5Z6djc1KG3yXjR0RXDga" placeholder="Consumer Key" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtConsumerSecret">Consumer Secret</label>
+                                                        <input type="text" id="txtConsumerSecret" class="form-control" value="9DzmzfGKdeq2yFOS5BrbNfjwAooa" placeholder="Consumer Secret" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtMobileNo">Client Mobile No / Pan No</label>
+                                                        <input type="text" id="txtMobileNo" class="form-control" value="+916301904398" placeholder="Mobile No" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtPassword">Client Password</label>
+                                                        <input type="text" id="txtPassword" class="form-control" value="Lion@113" placeholder="Password" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtPassword">M-Pin</label>
+                                                        <input type="text" id="txtMpin" class="form-control" value="231277" placeholder="M-Pin" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                    <i class="bx bx-x d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">CLOSE</span>
+                </button>
+                <button id="btnSubmit" type="button" class="btn btn-primary ms-1" onclick="fnLoginKotakNeo();">
+                    <i class="bx bx-check d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">SUBMIT</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Disabled Backdrop Modal for Profile Settings-->
+<div class="modal fade text-left" id="mdlUserProfile" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
+    data-bs-backdrop="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h4 class="modal-title" id="myModalLabel4">My Profile</h4>
+                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
+            </div>
+            <div class="modal-body">
+                <!-- // Basic multiple Column Form section start -->
+                <section id="multiple-column-form">
+                    <div class="row match-height">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header text-center">
+                                    &nbsp;<span id="spnABProfile" class="badge bg-primary">Profile Details</span>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <form class="form">
+                                            <div class="row">
+                                                <div class="col-md-6 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtClientIdUP">Client ID</label>
+                                                        <div class="input-group mb-3">
+                                                            <input id="txtClientIdUP" type="text" class="form-control" disabled="true" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtClientMobileUP">Mobile Number</label>
+                                                        <input type="text" id="txtClientMobileUP" class="form-control" value="" disabled="true" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtRealMarginUP" onclick="fnShowHideMarginData();">Available Cash Margin</label>
+                                                        <input type="text" id="txtRealMarginUP" class="form-control" value="" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-12 col-12">
+                                                    <div id="divMarginData" style="display: none;"></div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                    <i class="bx bx-x d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">CLOSE</span>
+                </button>
+                <button id="btnSubmit" type="button" class="btn btn-primary ms-1" onclick="fnSaveProfileDetails();">
+                    <i class="bx bx-check d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">SUBMIT</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

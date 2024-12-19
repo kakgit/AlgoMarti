@@ -99,7 +99,7 @@
                                         <div class="input-group mb-3">
                                             <input id="txtManualStrike" type="number" min="1" class="form-control" placeholder="Strike Price" />
                                             <button class="btn btn-warning" type="button" id="button-addon2" onclick="fnGetCurrStrike();"><i class="fa fa-search" aria-hidden="true"></i></button>
-                                        </div>                                                   
+                                        </div>
                                     </div>
                                     <div class="col-6 col-lg-3 col-md-6">
                                         <input type="text" class="form-control" placeholder="MARKET" id="txtManualTradePrice" />
@@ -227,10 +227,10 @@
                                 <div class="col-12">
                                     <select id="ddlTrailSLTP" class="form-select" onchange="fnSetDDLTrailSLTP(this);">
                                         <option value=0>NO SL or TP</option>
-                                        <option value=1>Strict SL or TP</option>
+                                        <option value=1 selected="true">Strict SL or TP</option>
                                         <option value=2>Trail by SL Points</option>
                                         <option value=3>Trail SL After TP</option>
-                                        <option value=4 selected="true">Trail by Prev Loss</option>
+                                        <option value=4>Trail by Prev Loss</option>
                                     </select>
                                 </div>
 

@@ -109,9 +109,10 @@ app.post("/tv-msg-mahesh", (req, res) => {
 
 const storage = multer.diskStorage({
     destination: function(req, file, callback){
-        callback(null, __dirname + "/public/json");
+        callback(null, __dirname + "/public/uploads");
     },
     filename: function(req, file, callback){
+
         callback(null, file.originalname);
     }
 });
@@ -119,12 +120,11 @@ const storage = multer.diskStorage({
 const objUploads = multer({storage: storage});
 
 app.post("/uploadsAB", objUploads.array("files"), (req, res) => {
-    // console.log(req.body);
     // console.log(req.files);
+    //console.log("File Name:  " + req.body.pFileName);
 
     //res.json({status: "files received"});
     res.json({"status": "success", "message": "File/s Uploaded Successfully!"});
-
 });
 
 app.use('/', require('./server/routes/router.js'));

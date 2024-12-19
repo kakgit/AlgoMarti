@@ -51,7 +51,7 @@ function fnSetDefaultLotNos(){
     if(vStartLots === null || vStartLots === "" || vStartLots === "0"){
         localStorage.setItem("RealStartLotNo", 1);
         objTxtLots.value = 1;
-        alert(vStartLots);
+        // alert(vStartLots);
     }
 }
 

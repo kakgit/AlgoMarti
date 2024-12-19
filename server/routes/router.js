@@ -11,6 +11,7 @@ const usersController = require('../controller/controllerUsers.js');
 const tvConfsController = require('../controller/controllerJSON.js');
 const abController = require("../controller/controllerAliceBlue.js");
 const aliceLiveController = require("../controller/controllerAliceLive.js");
+const kotakLiveController = require("../controller/controllerKotakLive.js");
 
 //home Routes
 route.get("/", homeServices.defaultRoute);
@@ -20,6 +21,9 @@ route.get("/mahesh", homeServices.signalsTV);
 
 //Alice Live Route
 route.get("/aliceLive", aliceLiveServices.defaultRoute);
+
+//Alice Live Route
+route.get("/kotakLive", kotakLiveController.defaultRoute);
 
 //Samco Routes
 route.get("/samco", samcoServices.defaultRoute);
@@ -54,6 +58,20 @@ route.post("/alice-blue/placeNormalOrder", abController.fnPlaceNormalOrder);
 
 //AliceBlue Real Trade Routes
 route.post("/alice-blue/getOrderPlacedDetails", abController.fnOrderPlacedDetails);
+
+//Kotak Neo Routes
+route.post("/kotakNeo/getLoginDetails", kotakLiveController.fnLoginKotakNeo)
+route.post("/kotakNeo/setNseCmCsv2NseCashJson", kotakLiveController.fnNseCmCsv2NseCashJson)
+route.post("/kotakNeo/setNseFoCsv2OptJson", kotakLiveController.fnNseFoCsv2OptJson)
+route.post("/kotakNeo/setBseFoCsv2OptJson", kotakLiveController.fnBseFoCsv2OptJson)
+route.post("/kotakNeo/getJsonFiles", kotakLiveController.fnGetJsonFilesData);
+route.post("/kotakNeo/placeNormalOrder", kotakLiveController.fnPlaceNormalOrder);
+route.post("/kotakNeo/getOrderBook", kotakLiveController.fnGetOrderBook);
+route.post("/kotakNeo/getTradeBook", kotakLiveController.fnGetTradeBook);
+route.post("/kotakNeo/placeCloseTrade", kotakLiveController.fnPlaceCloseTrade);
+route.post("/kotakNeo/getToken4OptRate", kotakLiveController.fnGetTokenforOptionRate);
+route.post("/kotakNeo/placeOptNrmlOrder", kotakLiveController.fnPlaceOptionNormalOrder);
+route.post("/kotakNeo/placeCloseOptTrade", kotakLiveController.fnPlaceCloseOptTrade);
 
 //Update JSON file Routes
 route.post("/json/uorcJSON", tvConfsController.fnUpdJsons);
