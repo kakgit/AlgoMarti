@@ -94,6 +94,14 @@ app.post("/tv-msg", (req, res) => {
     return;
 });
 
+app.post("/c3mh/:symb/:optTyp", (req, res) => {
+
+    let objMsg = {Symbol: req.params.symb, OptionType: req.params.optTyp};
+
+    io.emit("c3mh", objMsg);
+    res.send({ status: "success", message: "Message Sent", data: objMsg });
+});
+
 app.post("/tv-msg-mahesh", (req, res) => {
     const vSymbolName = req.body.symbolName;
     const vIndType = req.body.indType;
