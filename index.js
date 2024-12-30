@@ -99,7 +99,7 @@ app.post("/c3mh/:symb/:optTyp", (req, res) => {
     let objMsg = {Symbol: req.params.symb, OptionType: req.params.optTyp};
 
     io.emit("c3mh", objMsg);
-    res.send({ status: "success", message: "Message Sent", data: objMsg });
+    res.send({ status: "success", message: objMsg.OptionType + " Trade Received!", data: objMsg });
 });
 
 app.post("/tv-msg-mahesh", (req, res) => {

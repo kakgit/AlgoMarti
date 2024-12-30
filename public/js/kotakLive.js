@@ -76,7 +76,7 @@ function fnEmitTradeForAll(pOptionType){
             if(objResult.status === "success"){
 
                 console.log(objResult);
-                //fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+                fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
             else if(objResult.status === "danger"){
                 fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
@@ -95,12 +95,12 @@ function fnEmitTradeForAll(pOptionType){
     }
 }
 
-function fnInnitiateAutoTrade(pMsg){
+async function fnInnitiateAutoTrade(pMsg){
     try{
         let isLsAutoTrader = localStorage.getItem("isAutoTrader");
 
         if(isLsAutoTrader === "false"){
-            fnGenMessage("Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
+            fnGenMessage("Trade Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
         }
         else{
             let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
@@ -108,34 +108,95 @@ function fnInnitiateAutoTrade(pMsg){
 
             if(objCurrPos === null || objCurrPos === ""){
                 if(((vTradeSide === "true") && (pMsg.OptionType === "CE")) || ((vTradeSide === "false") && (pMsg.OptionType === "PE")) || (vTradeSide === "-1")){
-                    console.log("New Trade Executed");
+                    let objSymbData = await fnExecSelSymbData(pMsg.Symbol);
+
+                    if(objSymbData.status === "success"){
+                        fnExecOptionTrade("B", pMsg.OptionType);
+                        // console.log(objSymbData);
+                        // console.log("New Trade Executed");
+                        // fnGenMessage("Success - "+ pMsg.OptionType +" Trade Executed!", "badge bg-success", "spnGenMsg");
+                    }
+                    else{
+                        fnGenMessage("Error At Auto Trade for - "+ pMsg.OptionType +" Trade!", "badge bg-warning", "spnGenMsg");
+                    }
                 }
                 else{
-                    console.log("No Trade");
+                    //console.log("No Trade");
+                    fnGenMessage(pMsg.OptionType +" Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
                 }
             }
             else{
                 if(objCurrPos.TradeData[0].OptionType === pMsg.OptionType){
-                    console.log(pMsg.OptionType + " Position is Already Running");
+                    //console.log(pMsg.OptionType + " Position is Already Running");
+                    fnGenMessage(pMsg.OptionType +" Trade Message Received, But another "+ pMsg.OptionType +" Position is Already Open!", "badge bg-warning", "spnGenMsg");
                 }
                 else{
                     if(((vTradeSide === "true") && (pMsg.OptionType === "CE")) || ((vTradeSide === "false") && (pMsg.OptionType === "PE")) || (vTradeSide === "-1")){
+                        if(objCurrPos.TradeData[0].IsRealTrade === "true"){
+                            let objClsTrd = await fnInitClsOptRealTrade();
+
+                            if(objClsTrd.status === "success"){
+                                let objSymbData = await fnExecSelSymbData(pMsg.Symbol);
+
+                                if(objSymbData.status === "success"){
+                                    fnExecOptionTrade("B", pMsg.OptionType);
+                                }
+                                else{
+                                    fnGenMessage("Error At Auto Trade for - "+ pMsg.OptionType +" Trade!", "badge bg-warning", "spnGenMsg");
+                                }
+                            }
+                            else{
+                                fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                            }
+                        }
+                        else{
+                            let objClsTrd = await fnInitClsOptPaperTrade();
+
+                            if(objClsTrd.status === "success"){
+                                let objSymbData = await fnExecSelSymbData(pMsg.Symbol);
+
+                                if(objSymbData.status === "success"){
+                                    fnExecOptionTrade("B", pMsg.OptionType);
+                                }
+                                else{
+                                    fnGenMessage("Error At Auto Trade for - "+ pMsg.OptionType +" Trade!", "badge bg-warning", "spnGenMsg");
+                                }
+                            }
+                            else{
+                                fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                            }
+                        }
+
                         console.log("Old Trade is Closed and New trade is Opened");
+                        fnGenMessage("Old Trade is Closed and new "+ pMsg.OptionType +" Position is Opened!", "badge bg-success", "spnGenMsg");
                     }
                     else{
-                        console.log("Old Trade is Closed and waiting for New Trade");
+                        if(objCurrPos.TradeData[0].IsRealTrade === "true"){
+                            let objClsTrd = await fnInitClsOptRealTrade();
+
+                            if(objClsTrd.status === "success"){
+                                fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                            }
+                            else{
+                                fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                            }
+                        }
+                        else{
+                            let objClsTrd = await fnInitClsOptPaperTrade();
+
+                            if(objClsTrd.status === "success"){
+                                fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                            }
+                            else{
+                                fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                            }
+                        }
+
+                        //console.log("Old Trade is Closed and waiting for New Trade");
+                        fnGenMessage(pMsg.OptionType + " Trade Message Received, Old Trade is Closed and waiting for New Trade!", "badge bg-warning", "spnGenMsg");
                     }
                 }
             }
-
-            // if (objCurrPos === null){
-            //     fnGetSelSymbolData(pMsg.Symbol);
-            //     //fnGetSymb4AutoTrade(pMsg.OptionType);
-            // }
-            // else if(objCurrPos.TradeData[0].OptionType === pMsg.OptionType){
-            //     fnGenMessage(pMsg.OptionType + " Position is already Open!", `badge bg-warning`, "spnGenMsg");
-            // }
-            // //alert(pMsg.OptionType);
         }
     }
     catch(err){
