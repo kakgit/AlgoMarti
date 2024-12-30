@@ -662,35 +662,39 @@ exports.fnPlaceOptionNormalOrder = async (req, res) => {
     let vStrikePrice = req.body.StrikePrice;
     let vCurrRate = req.body.CurrRate;
     let vMaxOrderQty = req.body.MaxOptQty;
+    let vIsRealTrade = req.body.IsRealTrade;
+    let objOrderData = {OrderData: []};
+    let objTempOrderBook = "";
 
     try{
-        //Single to Multiple Trade Orders for Real Trades. comment it if paper trade is on
-        // let vLoopNos = Math.ceil(parseInt(vOrderQty) / parseInt(vMaxOrderQty));
-        // let vExecTempQty = vOrderQty;
-        // let objOrderData = {OrderData: []};
+        if(vIsRealTrade === "true"){
+            //Single to Multiple Trade Orders for Real Trades. comment it if paper trade is on
+            // let vLoopNos = Math.ceil(parseInt(vOrderQty) / parseInt(vMaxOrderQty));
+            // let vExecTempQty = vOrderQty;
 
-        // for(let i=0; i<vLoopNos; i++){
-        //     if(i === (vLoopNos - 1)){
-        //         let vTempData = await fnExecOptNrmlOrder(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vExecTempQty) * parseInt(vLotSize)), vLotSize);
-        //         objOrderData.OrderData.push(vTempData.data);
-        //     }
-        //     else{
-        //         let vTempData = await fnExecOptNrmlOrder(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vMaxOrderQty) * parseInt(vLotSize)), vLotSize);
-        //         objOrderData.OrderData.push(vTempData.data);
-        //     }
-        //     vExecTempQty = parseInt(vExecTempQty) - parseInt(vMaxOrderQty);
-        // }
+            // for(let i=0; i<vLoopNos; i++){
+            //     if(i === (vLoopNos - 1)){
+            //         let vTempData = await fnExecOptNrmlOrder(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vExecTempQty) * parseInt(vLotSize)), vLotSize);
+            //         objOrderData.OrderData.push(vTempData.data);
+            //     }
+            //     else{
+            //         let vTempData = await fnExecOptNrmlOrder(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vMaxOrderQty) * parseInt(vLotSize)), vLotSize);
+            //         objOrderData.OrderData.push(vTempData.data);
+            //     }
+            //     vExecTempQty = parseInt(vExecTempQty) - parseInt(vMaxOrderQty);
+            // }
 
-        // let objTempOrderBook = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
-        // objTempOrderBook = objTempOrderBook.data;
-        //Single to Multiple Trade Orders for Real Trades
-
-
-        //Single Order for Paper Trade. comment it if Real trade is on
-        let objOrderData = { OrderData: [{ "stat": "Ok", "nOrdNo": "241216000405363", "tid": "server2_2451094", "stCode": 200 }] };
-        
-        let objTempOrderBook = await fnTempOrderBook(parseInt(vOrderQty), parseInt(vLotSize), vToken, vExchSeg, vBorS, vTrdSymbol, vOptionType, vSearchSymbol, vStrikePrice, vCurrRate);
-        //Single Order for Paper Trade
+            // objTempOrderBook = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
+            // objTempOrderBook = objTempOrderBook.data;
+            //Single to Multiple Trade Orders for Real Trades
+        }
+        else{
+            //Single Order for Paper Trade. comment it if Real trade is on
+            objOrderData = { OrderData: [{ "stat": "Ok", "nOrdNo": "241216000405363", "tid": "server2_2451094", "stCode": 200 }] };
+            
+            objTempOrderBook = await fnTempOrderBook(parseInt(vOrderQty), parseInt(vLotSize), vToken, vExchSeg, vBorS, vTrdSymbol, vOptionType, vSearchSymbol, vStrikePrice, vCurrRate);
+            //Single Order for Paper Trade
+        }
 
         let vCumFilledQty = 0;
         let vCumPrice = 0;
@@ -714,7 +718,7 @@ exports.fnPlaceOptionNormalOrder = async (req, res) => {
         // console.log(vCumPrice);
         
         if(vCumFilledQty > 0){
-            let vOrdrCnfData = { TradeID:"", SymToken: vToken, ClientID: "", SearchSymbol: vSearchSymbol, TrdSymbol: vTrdSymbol, Expiry: vExpiryDt, Strike: (parseInt(vStrikePrice)/100), ByorSl: vBorS, OptionType: vOptionType, LotSize: vLotSize, Quantity: vCumFilledQty, BuyPrice: vCumPrice, SellPrice: vCumPrice, ProfitLoss: 0, StopLoss: 10, TakeProfit: 20, TrailSL: 0, EntryDT: "", ExitDT: "", ExchSeg: vExchSeg, MaxOrderQty: vMaxOrderQty };
+            let vOrdrCnfData = { TradeID:"", SymToken: vToken, ClientID: "", SearchSymbol: vSearchSymbol, TrdSymbol: vTrdSymbol, Expiry: vExpiryDt, Strike: (parseInt(vStrikePrice)/100), ByorSl: vBorS, OptionType: vOptionType, LotSize: vLotSize, Quantity: vCumFilledQty, BuyPrice: vCumPrice, SellPrice: vCumPrice, ProfitLoss: 0, StopLoss: 10, TakeProfit: 20, TrailSL: 0, EntryDT: "", ExitDT: "", ExchSeg: vExchSeg, MaxOrderQty: vMaxOrderQty, IsRealTrade: vIsRealTrade };
 
             res.send({ status: "success", message: "Order Placed Successfully", data: vOrdrCnfData });    
         }

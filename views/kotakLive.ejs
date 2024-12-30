@@ -21,16 +21,16 @@
         <section class="row">
             <div class="col-12 col-lg-12">
                 <div class="row" style="text-align: center;">
-                    <div class="col-6 col-lg-4 col-md-6">
+                    <div class="col-6 col-lg-3 col-md-6">
                         <button class="badge bg-danger" onclick="fnShowTraderLoginMdl(this);" id="btnTraderStatus">TRADER - Disconnected</button>
                     </div>
-                    <div class="col-6 col-lg-4 col-md-6">
+                    <div class="col-6 col-lg-3 col-md-6">
                         <button class="badge bg-danger" onclick="fnToggleAutoTrader();" id="btnAutoTraderStatus">Auto Trader - OFF</button>
                     </div>
-                    <!-- <div class="col-6 col-lg-3 col-md-6">
-                        <button class="badge bg-success" onclick="fnToggleRealTrade();" id="btnRealTradeStatus">Paper Trade - ON</button>
-                    </div> -->
-                    <div class="col-6 col-lg-4 col-md-6">
+                    <div class="col-6 col-lg-3 col-md-6">
+                        <button class="badge bg-warning" onclick="fnToggleRealTrade();" id="btnRealTradeStatus">Paper Trade - ON</button>
+                    </div>
+                    <div class="col-6 col-lg-3 col-md-6">
                         <button class="badge bg-success" onclick="fnPositionStatus()" id="btnPositionStatus">No Open Position</button>
                     </div>
                     <div class="col-12">&nbsp;</div>
@@ -40,7 +40,7 @@
                         <div class="card">
                             <div class="card-header">
                                 <div class="row">
-                                    <div class="col-5">
+                                    <div class="col-3">
                                         <h4>Manual Trader</h4>
                                     </div>
                                     <div class="col-2">
@@ -48,6 +48,20 @@
                                             <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtMartingale" name="swtMartingale" onchange="fnChangeMarti();" />
                                             <label for="swtMartingale" style="cursor:pointer;">Martingale</label>
                                         </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <form name="frmSide">
+                                            <div class="tw-toggle" style="white-space: nowrap;">
+                                                <input id="txtBN1" type="radio" name="rdoTradeSide" value="false" onclick="fnTradeSide();" />
+                                                <label class="toggle toggle-yes" for="txtBN1"><i class="fa fa-arrow-down"></i></label>
+                                                <input id="txtBN2" checked type="radio" name="rdoTradeSide" value="-1" onclick="fnTradeSide();" />
+                                                <label class="toggle toggle-yes" for="txtBN2"><i class="fa fa-minus"></i></label>
+                                                <input id="txtBN3" type="radio" name="rdoTradeSide" value="true" onclick="fnTradeSide();" />
+                                                <label class="toggle toggle-yes" for="txtBN3"><i class="fa fa-arrow-up"></i></label>
+                                                <span></span>
+                                                <label for="TradeSide">Side</label>
+                                            </div>
+                                        </form>
                                     </div>
                                     <div class="col-2" style="text-align: right;">Start With </div>
                                     <div class="col-1"><input type="text" class="form-control" min="1" value="1" maxlength="3" id="txtStartLotNos" onchange="fnChangeStartLotNos(this);" /></div>
@@ -173,7 +187,7 @@
                                                         </select>                
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
-                                                        <select id="ddlOptionsSymbols" class="form-select" onchange="fnGetSelSymbolData();" placeholder="NSE Cash Symbols">
+                                                        <select id="ddlOptionsSymbols" class="form-select" onchange="fnGetSelSymbolData(this.value);" placeholder="NSE Cash Symbols">
                                                             <option value=''>Select Option Symbol</option>
                                                         </select>
                                                     </div>
@@ -232,13 +246,11 @@
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
                                                         <div class="d-grid gap-1">
-                                                            <button class="btn btn-outline-warning" onclick="fnGetOrderBook();" style="display: block;"><b>GET ORDERBOOK</b></button>
                                                             <button class="btn btn-outline-danger" onclick="fnEmitTradeForAll('PE');" style="display: block;"><b>Buy PE for ALL</b></button>
                                                         </div>
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
                                                         <div class="d-grid gap-1">
-                                                            <button class="btn btn-outline-warning" onclick="fnGetTradeBook();" style="display: block;"><b>GET TRADEBOOK</b></button>
                                                             <button class="btn btn-outline-success" onclick="fnEmitTradeForAll('CE');" style="display: block;"><b>Buy CE for ALL</b></button>
                                                         </div>
                                                     </div>
@@ -485,10 +497,13 @@
                             <div class="card-header">
                                 <div class="row">
                                     <div class="col-6">
-                                        <h4>Algo Messages</h4>
+                                        <h4>Order / Trade Book</h4>
                                     </div>
-                                    <div class="col-5">
+                                    <div class="col-4">
 
+                                    </div>
+                                    <div class="col-1">
+                                        <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnGetOrderTradeBook();"></i>
                                     </div>
                                     <div class="col-1" style="text-align: right;">
                                         <a data-bs-toggle="collapse" href="#divAlgoMsgsClps" role="button" aria-expanded="true" aria-controls="divAlgoMsgsClps">

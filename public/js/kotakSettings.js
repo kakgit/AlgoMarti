@@ -188,6 +188,7 @@ function fnShowTraderLoginMdl(objThis){
     else{
         fnClearPrevLoginSession();
         fnGetSetAutoTraderStatus();
+        fnGetSetRealTradeStatus();
 
         fnGenMessage("Trader Disconnected Successfully!", `badge bg-warning`, "spnGenMsg");
     }
@@ -258,13 +259,12 @@ function fnGetSetTraderLoginStatus(){
         gIsTraderLogin = true;
     }
     fnGetSetAutoTraderStatus();
+    fnGetSetRealTradeStatus();
     fnGetSetAllStatus();
 }
 
 function fnGetSetAutoTraderStatus(){
-
     let isLsAutoTrader = localStorage.getItem("isAutoTrader");
-
     let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
 
     if(gIsTraderLogin === true && isLsAutoTrader === "true")
@@ -274,6 +274,22 @@ function fnGetSetAutoTraderStatus(){
     else
     {
         fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
+        localStorage.setItem("isAutoTrader", false);
+    }
+}
+
+function fnGetSetRealTradeStatus(){
+    let isLsRealTrader = localStorage.getItem("isRealTrade");
+    let objRealTraderStatus = document.getElementById("btnRealTradeStatus");
+
+    if(isLsRealTrader === "true")
+    {
+        fnChangeBtnProps(objRealTraderStatus.id, "badge bg-success", "Real Trade - ON");
+    }
+    else
+    {
+        fnChangeBtnProps(objRealTraderStatus.id, "badge bg-warning", "Paper Trade - ON");
+        localStorage.setItem("isRealTrade", false);
     }
 }
 
@@ -301,6 +317,23 @@ function fnToggleAutoTrader(){
         fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
         fnGenMessage("Auto Trading Mode is OFF!", `badge bg-danger`, "spnGenMsg");
         localStorage.setItem("isAutoTrader", false);
+    }
+}
+
+function fnToggleRealTrade(){
+    let isLsRealTrader = localStorage.getItem("isRealTrade");
+
+    let objRealTraderStatus = document.getElementById("btnRealTradeStatus");
+
+    if(isLsRealTrader === null || isLsRealTrader === "true"){
+        fnChangeBtnProps(objRealTraderStatus.id, "badge bg-warning", "Paper Trade - ON");
+        fnGenMessage("Paper Trading Mode is ON!", `badge bg-success`, "spnGenMsg");
+        localStorage.setItem("isRealTrade", false);
+}
+    else{
+        fnChangeBtnProps(objRealTraderStatus.id, "badge bg-success", "Real Trade - ON");
+        fnGenMessage("Real Trading Mode is ON!", `badge bg-success`, "spnGenMsg");
+        localStorage.setItem("isRealTrade", true);
     }
 }
 
@@ -532,11 +565,11 @@ function fnGetIndSymSettings(){
   
     gIndData = {
         UpdDt: vSecDt, Symbol: [
-            { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty 50', SearchSymbol: 'NIFTY', Token: 1, Segment: 'nse_cm', LotSize: 25, MaxLots: 72, StrikeInterval: 50, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2024-12-26', '2025-01-02', '2025-01-09'] },
-            { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty Bank', SearchSymbol: 'BANKNIFTY', Token: 2, Segment: 'nse_cm', LotSize: 15, MaxLots: 60, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2024-12-24', '2025-01-29', '2025-02-26', '2025-03-26'] },
+            { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty 50', SearchSymbol: 'NIFTY', Token: 1, Segment: 'nse_cm', LotSize: 25, MaxLots: 72, StrikeInterval: 50, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-01-02', '2025-01-09', '2024-01-26'] },
+            { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty Bank', SearchSymbol: 'BANKNIFTY', Token: 2, Segment: 'nse_cm', LotSize: 15, MaxLots: 60, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-01-29', '2025-02-26', '2025-03-16'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty Fin Service', SearchSymbol: 'FINNIFTY', Token: 3, Segment: 'nse_cm', LotSize: 25, MaxLots: 72, StrikeInterval: 50, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2024-12-31', '2025-01-28', '2025-02-25'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'NIFTY MID SELECT', SearchSymbol: 'MIDCPNIFTY', Token: 4, Segment: 'nse_cm', LotSize: 50, MaxLots: 110, StrikeInterval: 25, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2024-12-30', '2025-01-27', '2025-02-24'] },
-            { JsonFileName: 'bse_idx_opt.json', SymbolName: 'SENSEX', SearchSymbol: 'SENSEX', Token: 5, Segment: 'bse_cm', LotSize: 10, MaxLots: 50, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2024-12-20', '2024-12-27', '2025-01-03', '2025-01-10', '2025-01-17'] },
+            { JsonFileName: 'bse_idx_opt.json', SymbolName: 'SENSEX', SearchSymbol: 'SENSEX', Token: 5, Segment: 'bse_cm', LotSize: 10, MaxLots: 50, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-01-03', '2025-01-10', '2025-01-17'] },
             { JsonFileName: 'bse_idx_opt.json', SymbolName: 'BANKEX', SearchSymbol: 'BANKEX', Token: 6, Segment: 'bse_cm', LotSize: 15, MaxLots: 40, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2024-12-30', '2025-01-27', '2025-02-24'] },
         ] };
 
