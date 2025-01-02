@@ -19,13 +19,32 @@ let gCurrTSL = 0;
 
 let gTSLCrossed = false;
 
+let gTempQty = 4;
+
 window.addEventListener("DOMContentLoaded", function(){
 
     fnGetSetAppStatus();
 
     socket.on("c3mh", (pMsg) => {
+        let objLiveMsgs = JSON.parse(localStorage.getItem("msgsCI"));
+        let vDate = new Date();
+        let vMonth = vDate.getMonth() + 1;
+        let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
+
+        if(objLiveMsgs === null || objLiveMsgs === ""){
+            objLiveMsgs = JSON.stringify({ TrdMsgs: [{ MsgId: vDate.valueOf(), MsgDT: vToday, SymbID: pMsg.Symbol, OptType: pMsg.OptionType }]});
+            localStorage.setItem("msgsCI", objLiveMsgs);
+        }
+        else{
+            // objLiveMsgs = JSON.parse(objLiveMsgs);
+            let vTempMsg = { MsgId: vDate.valueOf(), MsgDT: vToday, SymbID: pMsg.Symbol, OptType: pMsg.OptionType };
+
+            objLiveMsgs.TrdMsgs.push(vTempMsg);
+            localStorage.setItem("msgsCI", JSON.stringify(objLiveMsgs));
+        }
+        console.log(objLiveMsgs);
+
         fnInnitiateAutoTrade(pMsg);
-        // console.log(localStorage.getItem("isAutoTrader"));
     });
 });
 
@@ -49,6 +68,22 @@ function fnGetSetAllStatus(){
     }
     else{
         fnClearTraderFields();
+    }
+}
+
+function fnSet50PrctQty(){
+    let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
+    let objBtn50Prct = document.getElementById("btn50PerClose");
+
+    if(objCurrPos !== null || objCurrPos !== ""){
+        if(objCurrPos.TradeData[0].Quantity >= 4){
+            objBtn50Prct.disabled = false;
+        }
+        else{
+            objBtn50Prct.disabled = true;
+        }
+        console.log(objCurrPos);
+        console.log("Qty: " + objCurrPos.TradeData[0].Quantity);
     }
 }
 
@@ -1019,6 +1054,7 @@ function fnClearLocalStorageTemp(){
     localStorage.removeItem("StartLotNoR");
     localStorage.removeItem("QtyMulR");
     localStorage.removeItem("TotLossAmtR");
+    localStorage.removeItem("msgsCI");
     // localStorage.removeItem("UserDetS");
     // localStorage.setItem("TradeStep", 0);
     // localStorage.removeItem("ConfStepsS");
@@ -1856,7 +1892,7 @@ function fnSetInitOptTrdDtls(){
         objProfitLoss.innerText = ((parseFloat(gSellPrice) - parseFloat(gBuyPrice)) * parseInt(gLotSize) * parseInt(gQty)).toFixed(2);
 
         fnStartStreamOptPrc();
-        // fnRestartStreamOptPrc();
+        fnSet50PrctQty();
         fnLoadOptTimerSwitchSetting();
 
         fnGenMessage("<span class='blink'>Position Is Open</span>", `badge bg-warning`, "btnPositionStatus");
