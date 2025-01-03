@@ -19,8 +19,6 @@ let gCurrTSL = 0;
 
 let gTSLCrossed = false;
 
-let gTempQty = 4;
-
 window.addEventListener("DOMContentLoaded", function(){
 
     fnGetSetAppStatus();
@@ -82,9 +80,9 @@ function fnSet50PrctQty(){
         else{
             objBtn50Prct.disabled = true;
         }
-        console.log(objCurrPos);
         console.log("Qty: " + objCurrPos.TradeData[0].Quantity);
     }
+    console.log(objCurrPos);
 }
 
 function fnEmitTradeForAll(pOptionType){
@@ -168,7 +166,7 @@ async function fnInnitiateAutoTrade(pMsg){
                 else{
                     if(((vTradeSide === "true") && (pMsg.OptionType === "CE")) || ((vTradeSide === "false") && (pMsg.OptionType === "PE")) || (vTradeSide === "-1")){
                         if(objCurrPos.TradeData[0].IsRealTrade === "true"){
-                            let objClsTrd = await fnInitClsOptRealTrade();
+                            let objClsTrd = await fnInitClsOptRealTrade(0);
 
                             if(objClsTrd.status === "success"){
                                 let objSymbData = await fnExecSelSymbData(pMsg.Symbol);
@@ -185,7 +183,7 @@ async function fnInnitiateAutoTrade(pMsg){
                             }
                         }
                         else{
-                            let objClsTrd = await fnInitClsOptPaperTrade();
+                            let objClsTrd = await fnInitClsOptPaperTrade(0);
 
                             if(objClsTrd.status === "success"){
                                 let objSymbData = await fnExecSelSymbData(pMsg.Symbol);
@@ -207,7 +205,7 @@ async function fnInnitiateAutoTrade(pMsg){
                     }
                     else{
                         if(objCurrPos.TradeData[0].IsRealTrade === "true"){
-                            let objClsTrd = await fnInitClsOptRealTrade();
+                            let objClsTrd = await fnInitClsOptRealTrade(0);
 
                             if(objClsTrd.status === "success"){
                                 fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
@@ -217,7 +215,7 @@ async function fnInnitiateAutoTrade(pMsg){
                             }
                         }
                         else{
-                            let objClsTrd = await fnInitClsOptPaperTrade();
+                            let objClsTrd = await fnInitClsOptPaperTrade(0);
 
                             if(objClsTrd.status === "success"){
                                 fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
@@ -2206,6 +2204,45 @@ function fnCheckOptSellingPosition(){
     }
 }
 
+async function fnClose50PrctOptTrade(){
+    try{
+        let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
+
+        if (objCurrPos === null){
+            fnGenMessage("No Open Positions to Close!", `badge bg-warning`, "spnGenMsg");
+        }
+        else{
+            let v50PrctQty = Math.round(parseInt(objCurrPos.TradeData[0].Quantity) / 2);
+
+            if(objCurrPos.TradeData[0].IsRealTrade === "true"){
+                let objClsTrd = await fnInitClsOptRealTrade(v50PrctQty);
+
+                if(objClsTrd.status === "success"){
+                    fnSetInitOptTrdDtls();
+                    fnGenMessage("Partial Qty Closed!", `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                }
+                else{
+                    fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                }
+            }
+            else{
+                let objClsTrd = await fnInitClsOptPaperTrade(v50PrctQty);
+
+                if(objClsTrd.status === "success"){
+                    fnSetInitOptTrdDtls();
+                    fnGenMessage("Partial Qty Closed!", `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                }
+                else{
+                    fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                }
+            }
+        }
+    }
+    catch(err){
+        fnGenMessage(err.message, `badge bg-${err.status}`, "spnGenMsg");
+    }
+}
+
 async function fnCloseOptTrade(){
     try{
         let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
@@ -2215,7 +2252,7 @@ async function fnCloseOptTrade(){
         }
         else{
             if(objCurrPos.TradeData[0].IsRealTrade === "true"){
-                let objClsTrd = await fnInitClsOptRealTrade();
+                let objClsTrd = await fnInitClsOptRealTrade(0);
 
                 if(objClsTrd.status === "success"){
                     fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
@@ -2225,7 +2262,7 @@ async function fnCloseOptTrade(){
                 }
             }
             else{
-                let objClsTrd = await fnInitClsOptPaperTrade();
+                let objClsTrd = await fnInitClsOptPaperTrade(0);
 
                 if(objClsTrd.status === "success"){
                     fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
@@ -2241,7 +2278,7 @@ async function fnCloseOptTrade(){
     }
 }
 
-function fnInitClsOptPaperTrade(){
+function fnInitClsOptPaperTrade(pQty){
     const objClsTrd = new Promise((resolve, reject) => {
         let objHsServerId = document.getElementById("txtHsServerId");
         let objSid = document.getElementById("txtSid");
@@ -2249,6 +2286,15 @@ function fnInitClsOptPaperTrade(){
         let objKotakSession = document.getElementById("txtKotakSession");
         let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
         let objLTP = document.getElementById("txtCurrentRate");
+        let vToClsQty = 0;
+        let vToCntuQty = parseInt(objCurrPos.TradeData[0].Quantity) - parseInt(pQty);
+
+        if(pQty === 0){
+            vToClsQty = objCurrPos.TradeData[0].Quantity;
+        }
+        else{
+            vToClsQty = pQty;
+        }
 
         const vDate = new Date();
         let vMonth = vDate.getMonth() + 1;
@@ -2268,37 +2314,44 @@ function fnInitClsOptPaperTrade(){
         objCurrPos.TradeData[0].ExitDT = vToday;
         objCurrPos.TradeData[0].SellPrice = objLTP.value;
 
-        let vPL = ((parseFloat(objCurrPos.TradeData[0].SellPrice) - parseFloat(objCurrPos.TradeData[0].BuyPrice)) * parseFloat(objCurrPos.TradeData[0].Quantity) * parseFloat(objCurrPos.TradeData[0].LotSize)).toFixed(2);
+        let vPL = ((parseFloat(objCurrPos.TradeData[0].SellPrice) - parseFloat(objCurrPos.TradeData[0].BuyPrice)) * parseFloat(vToClsQty) * parseFloat(objCurrPos.TradeData[0].LotSize)).toFixed(2);
 
         if (objTodayTrades === null || objTodayTrades === ""){
             objTodayTrades = {
-                TradeList: [{ TradeID: objCurrPos.TradeData[0].TradeID, ClientID: objCurrPos.TradeData[0].ClientID, Symbol: objCurrPos.TradeData[0].SearchSymbol, Expiry: objCurrPos.TradeData[0].Expiry, Strike: objCurrPos.TradeData[0].Strike, OptionType: objCurrPos.TradeData[0].OptionType, Quantity: objCurrPos.TradeData[0].Quantity, LotSize: objCurrPos.TradeData[0].LotSize, BuyPrice: objCurrPos.TradeData[0].BuyPrice, SellPrice: objCurrPos.TradeData[0].SellPrice, ProfitLoss: vPL, StopLoss: objCurrPos.TradeData[0].StopLoss, TakeProfit: objCurrPos.TradeData[0].TakeProfit, EntryDT: objCurrPos.TradeData[0].EntryDT, ExitDT: vToday, IsRealTrade: objCurrPos.TradeData[0].IsRealTrade }]
+                TradeList: [{ TradeID: objCurrPos.TradeData[0].TradeID, ClientID: objCurrPos.TradeData[0].ClientID, Symbol: objCurrPos.TradeData[0].SearchSymbol, Expiry: objCurrPos.TradeData[0].Expiry, Strike: objCurrPos.TradeData[0].Strike, OptionType: objCurrPos.TradeData[0].OptionType, Quantity: vToClsQty, LotSize: objCurrPos.TradeData[0].LotSize, BuyPrice: objCurrPos.TradeData[0].BuyPrice, SellPrice: objCurrPos.TradeData[0].SellPrice, ProfitLoss: vPL, StopLoss: objCurrPos.TradeData[0].StopLoss, TakeProfit: objCurrPos.TradeData[0].TakeProfit, EntryDT: objCurrPos.TradeData[0].EntryDT, ExitDT: vToday, IsRealTrade: objCurrPos.TradeData[0].IsRealTrade }]
             };
             objTodayTrades = JSON.stringify(objTodayTrades);
             localStorage.setItem("OptTradesListS", objTodayTrades);
         }
         else{
             let vExistingData = JSON.parse(objTodayTrades);
-            vExistingData.TradeList.push({ TradeID: objCurrPos.TradeData[0].TradeID, ClientID: objCurrPos.TradeData[0].ClientID, Symbol: objCurrPos.TradeData[0].SearchSymbol, Expiry: objCurrPos.TradeData[0].Expiry, Strike: objCurrPos.TradeData[0].Strike, OptionType: objCurrPos.TradeData[0].OptionType, Quantity: objCurrPos.TradeData[0].Quantity, LotSize: objCurrPos.TradeData[0].LotSize, BuyPrice: objCurrPos.TradeData[0].BuyPrice, SellPrice: objCurrPos.TradeData[0].SellPrice, ProfitLoss: vPL, StopLoss: objCurrPos.TradeData[0].StopLoss, TakeProfit: objCurrPos.TradeData[0].TakeProfit, EntryDT: objCurrPos.TradeData[0].EntryDT, ExitDT: vToday, IsRealTrade: objCurrPos.TradeData[0].IsRealTrade });
+            vExistingData.TradeList.push({ TradeID: objCurrPos.TradeData[0].TradeID, ClientID: objCurrPos.TradeData[0].ClientID, Symbol: objCurrPos.TradeData[0].SearchSymbol, Expiry: objCurrPos.TradeData[0].Expiry, Strike: objCurrPos.TradeData[0].Strike, OptionType: objCurrPos.TradeData[0].OptionType, Quantity: vToClsQty, LotSize: objCurrPos.TradeData[0].LotSize, BuyPrice: objCurrPos.TradeData[0].BuyPrice, SellPrice: objCurrPos.TradeData[0].SellPrice, ProfitLoss: vPL, StopLoss: objCurrPos.TradeData[0].StopLoss, TakeProfit: objCurrPos.TradeData[0].TakeProfit, EntryDT: objCurrPos.TradeData[0].EntryDT, ExitDT: vToday, IsRealTrade: objCurrPos.TradeData[0].IsRealTrade });
             let vAddNewItem = JSON.stringify(vExistingData);
             localStorage.setItem("OptTradesListS", vAddNewItem);
         }
-        clearInterval(vTradeInst);
-        // clearInterval(gStreamInst);
 
-        localStorage.removeItem("KotakCurrOptPosiS");
+        if(pQty === 0){
+            clearInterval(vTradeInst);
+            // clearInterval(gStreamInst);
+            localStorage.removeItem("KotakCurrOptPosiS");
+            fnResetOpenPositionDetails();
+            resumeandpause('cp', '1');
+            fnGenMessage("No Open Position", `badge bg-success`, "btnPositionStatus");
+        }
+        else{
+            objCurrPos.TradeData[0].Quantity = vToCntuQty;
+            localStorage.setItem("KotakCurrOptPosiS", JSON.stringify(objCurrPos));
+        }
+
         fnSetNextOptTradeSettings(objLTP.value);
-        fnResetOpenPositionDetails();
-        resumeandpause('cp', '1');
         fnSetTodayOptTradeDetails();
-        fnGenMessage("No Open Position", `badge bg-success`, "btnPositionStatus");
 
         resolve({ "status": "success", "message": "Option Paper Trade Closed Successfully!", "data": "" });
     });
     return objClsTrd;
 }
 
-function fnInitClsOptRealTrade(){
+function fnInitClsOptRealTrade(pQty){
     let objHsServerId = document.getElementById("txtHsServerId");
     let objSid = document.getElementById("txtSid");
     let objAccessToken = document.getElementById("txtAccessToken");
