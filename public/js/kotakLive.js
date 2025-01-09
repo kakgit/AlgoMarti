@@ -2076,7 +2076,7 @@ function fnCheckOptBuyingPosition(){
         break;
     case 3:
         objOnSL.innerText = (gDiffSL * gLotSize * gQty).toFixed(2);
-        objOnTP.innerText = (gDiffTP * gLotSize * gQty).toFixed(2);
+        objOnTP.innerText = "No TP"; //(gDiffTP * gLotSize * gQty).toFixed(2);
 
         if(parseFloat(vLTP.value) >= parseFloat(gAmtTP)){
             gCurrTSL = (parseFloat(gAmtTP) + parseFloat(gDiffSL)).toFixed(2);
@@ -2097,10 +2097,18 @@ function fnCheckOptBuyingPosition(){
             console.log("T-SL Hit, Trade Closed");
             fnCloseOptTrade();
         }
-        console.log("Trail Afr TP: " + gCurrTSL);
+        else{
+            if(gCurrTSL > 0){
+                objOnSL.innerText = ((parseFloat(gCurrTSL) - parseFloat(gBuyPrice)) * gLotSize * gQty).toFixed(2);
+            }
+            console.log("Trail Afr TP: " + gCurrTSL);            
+        }
         break;
         // default:
         //   code to be executed if n is different from case 1 and 2
+    case 4:
+        console.log("no 4")
+      break;        
     }
     // const b = performance.now();
     // console.log('It took ' + (b - a) + ' ms.');
@@ -2339,11 +2347,12 @@ function fnInitClsOptPaperTrade(pQty){
             fnGenMessage("No Open Position", `badge bg-success`, "btnPositionStatus");
         }
         else{
+            // localStorage.setItem("QtyMulR", vToCntuQty);
             objCurrPos.TradeData[0].Quantity = vToCntuQty;
             localStorage.setItem("KotakCurrOptPosiS", JSON.stringify(objCurrPos));
         }
 
-        fnSetNextOptTradeSettings(objLTP.value);
+        fnSetNextOptTradeSettings(objLTP.value, vToClsQty);
         fnSetTodayOptTradeDetails();
 
         resolve({ "status": "success", "message": "Option Paper Trade Closed Successfully!", "data": "" });
@@ -2464,7 +2473,7 @@ function fnInitClsOptRealTrade(pQty){
     console.log("CurrPos: " + localStorage.getItem("KotakCurrOptPosiS"));
 }
 
-function fnSetNextOptTradeSettings(pAvgPrice){
+function fnSetNextOptTradeSettings(pAvgPrice, pQty){
     let objQty = document.getElementById("txtOptionsQty");
     let vOldLossAmt = localStorage.getItem("TotLossAmtR");
     let vOldQtyMul = localStorage.getItem("QtyMulR");
@@ -2479,16 +2488,16 @@ function fnSetNextOptTradeSettings(pAvgPrice){
     console.log("Avg Prc: " + pAvgPrice);
     console.log("Buy Prc: " + gBuyPrice);
     console.log("Sell Prc: " + gSellPrice);
-    console.log("Qty: " + gQty);
+    console.log("Qty: " + pQty);
     console.log("Lot Size: " + gLotSize);
     console.log("Trans Type: " + gByorSl);
 
     //Do Opposite
     if(gByorSl === "B"){
-        vAmtPL = ((parseFloat(pAvgPrice) - parseFloat(gBuyPrice)) * parseInt(gLotSize) * parseInt(gQty)).toFixed(2);
+        vAmtPL = ((parseFloat(pAvgPrice) - parseFloat(gBuyPrice)) * parseInt(gLotSize) * parseInt(pQty)).toFixed(2);
     }
     else if(gByorSl === "S"){
-        vAmtPL = ((parseFloat(gSellPrice) - parseFloat(pAvgPrice)) * parseInt(gLotSize) * parseInt(gQty)).toFixed(2);
+        vAmtPL = ((parseFloat(gSellPrice) - parseFloat(pAvgPrice)) * parseInt(gLotSize) * parseInt(pQty)).toFixed(2);
     }
     else{
         vAmtPL = 0;
