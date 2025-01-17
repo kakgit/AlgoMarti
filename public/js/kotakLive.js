@@ -48,6 +48,9 @@ window.addEventListener("DOMContentLoaded", function(){
 
 function fnGetSetAllStatus(){
     if(gIsTraderLogin){
+        let vTraderTab = localStorage.getItem("TraderTab");
+
+        fnSetDefaultTraderTab();
         fnSetRecentDates();
         fnGetSetUserProfileData();
         fnGetNseCashSettings();
@@ -58,8 +61,12 @@ function fnGetSetAllStatus(){
         fnGetSetOptionStrike();
         fnSetInitOptTrdDtls();
         fnSetInitialTradeDetails();
-        fnLoadTimerSwitchSetting();
-        fnLoadOptTimerSwitchSetting();
+        if(vTraderTab === "cash"){
+            fnLoadTimerSwitchSetting();
+        }
+        else{
+            fnLoadOptTimerSwitchSetting();
+        }
         fnLoadMartiSwitchSettings();
         fnLoadTradeSide();
         fnSetTodayOptTradeDetails();
@@ -1053,6 +1060,7 @@ function fnClearLocalStorageTemp(){
     localStorage.removeItem("QtyMulR");
     localStorage.removeItem("TotLossAmtR");
     localStorage.removeItem("msgsCI");
+    localStorage.removeItem("TraderTab");
     // localStorage.removeItem("UserDetS");
     // localStorage.setItem("TradeStep", 0);
     // localStorage.removeItem("ConfStepsS");

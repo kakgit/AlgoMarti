@@ -76,14 +76,13 @@
                             <div class="card-body">
                                 <div class="collapse show" id="divTraderClps">
                                     <ul class="nav nav-tabs" id="tabManualTrader" role="tablist">
-                                        <li class="nav-item" role="presentation">
-                                            <button class="nav-link" id="btnTabNseCash" data-bs-toggle="tab" data-bs-target="#tabMTNseCash" type="button"
-                                                role="tab" aria-controls="home" aria-selected="true">NSE Cash</button>
+                                        <li class="nav-item" role="presentation" onclick="fnSetCurrTraderTab('cash');">
+                                            <button class="nav-link" id="btnTabNseCash" data-bs-toggle="tab" data-bs-target="#tabMTNseCash" type="button" role="tab" aria-controls="home" aria-selected="true">NSE Cash</button>
                                         </li>
-                                        <li class="nav-item" role="presentation">
+                                        <li class="nav-item" role="presentation" onclick="fnSetCurrTraderTab('futures');">
                                             <button class="nav-link" id="btnTabFutures" data-bs-toggle="tab" data-bs-target="#tabMTFutures" type="button" role="tab" aria-controls="profile" aria-selected="false">Futures</button>
                                         </li>
-                                        <li class="nav-item" role="presentation">
+                                        <li class="nav-item" role="presentation" onclick="fnSetCurrTraderTab('options');">
                                             <button class="nav-link active" id="btnTabOptions" data-bs-toggle="tab" data-bs-target="#tabMTOptions" type="button" role="tab" aria-controls="contact" aria-selected="false">Options</button>
                                         </li>
                                     </ul>
