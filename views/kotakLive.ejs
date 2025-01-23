@@ -77,7 +77,7 @@
                                 <div class="collapse show" id="divTraderClps">
                                     <ul class="nav nav-tabs" id="tabManualTrader" role="tablist">
                                         <li class="nav-item" role="presentation" onclick="fnSetCurrTraderTab('cash');">
-                                            <button class="nav-link" id="btnTabNseCash" data-bs-toggle="tab" data-bs-target="#tabMTNseCash" type="button" role="tab" aria-controls="home" aria-selected="true">NSE Cash</button>
+                                            <button class="nav-link" id="btnTabCash" data-bs-toggle="tab" data-bs-target="#tabMTNseCash" type="button" role="tab" aria-controls="home" aria-selected="true">NSE Cash</button>
                                         </li>
                                         <li class="nav-item" role="presentation" onclick="fnSetCurrTraderTab('futures');">
                                             <button class="nav-link" id="btnTabFutures" data-bs-toggle="tab" data-bs-target="#tabMTFutures" type="button" role="tab" aria-controls="profile" aria-selected="false">Futures</button>
@@ -361,7 +361,7 @@
                                             <div class="row">
                                                 <div class="col-4">
                                                     <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                                        <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtAutoChkPosition" name="swtAutoChkPosition" onchange="fnCheckTradeTimer();" />
+                                                        <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtAutoChkPosition" name="swtAutoChkPosition" onchange="fnExecTradeTimer();" />
                                                         <label for="swtAutoChkPosition" style="cursor:pointer;">Auto Check Every</label>
                                                     </div>
                                                 </div>

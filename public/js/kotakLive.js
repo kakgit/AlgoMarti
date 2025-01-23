@@ -1125,6 +1125,17 @@ function fnChangeMarti(){
     //alert(objMartiSwitch.checked);    
 }
 
+function fnExecTradeTimer(){
+    var objCurrPosiLst = localStorage.getItem("KotakCurrOptPosiS");
+
+    if(objCurrPosiLst !== null){
+        fnCheckOptTradeTimer();
+    }
+    else{
+        fnCheckTradeTimer();
+    }
+}
+
 function fnCheckTradeTimer(){
     var objTimeMS = document.getElementById("txtTimeMS");
     var objTimerSwitch = document.getElementById("swtAutoChkPosition");
