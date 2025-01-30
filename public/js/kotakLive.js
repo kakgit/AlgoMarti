@@ -1850,6 +1850,7 @@ function fnGetEpochBySegmentSeldExpiry(PIdxSegment, pSelExpiry){
 
 function fnSetInitOptTrdDtls(){
     let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
+    let objTrdVals = JSON.parse(localStorage.getItem("5SecData"));
     let objBuyPrice = document.getElementById("lblBuyPrice");
     let objSellPrice = document.getElementById("lblSellPrice");
     let objEntryDate = document.getElementById("lblEntryDate");
@@ -1874,6 +1875,11 @@ function fnSetInitOptTrdDtls(){
         objExpiry.innerText = objCurrPos.TradeData[0].Expiry;
         objLotSize.innerText = objCurrPos.TradeData[0].LotSize;
         objQty.innerText = objCurrPos.TradeData[0].Quantity;
+
+        //Update Later, first check where to change the values
+        // if(objTrdVals === null){
+
+        // }
 
         gBuyPrice = objCurrPos.TradeData[0].BuyPrice;
         gSellPrice = objCurrPos.TradeData[0].SellPrice;
