@@ -785,9 +785,11 @@ async function fnExecOptionTrade(pBuySel, pOptionType){
                         // console.log(objExcTradeDtls);
                         localStorage.setItem("KotakCurrOptPosiS", objExcTradeDtls);
                         localStorage.setItem("QtyMulR", objNrmlOrdr.data.Quantity);
+                        localStorage.removeItem("TKotak5SecAttr");
 
                         fnGenMessage(objNrmlOrdr.message, `badge bg-${objNrmlOrdr.status}`, "spnGenMsg");
                         fnSetInitOptTrdDtls();
+                        fnGetSelSymbolData(0);
                     }
                     else{
                         fnGenMessage(objNrmlOrdr.message, `badge bg-${objNrmlOrdr.status}`, "spnGenMsg");
