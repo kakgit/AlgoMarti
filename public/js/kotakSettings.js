@@ -570,11 +570,11 @@ function fnGetIndSymSettings(){
   
     gIndData = {
         UpdDt: vSecDt, Symbol: [
-            { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty 50', SearchSymbol: 'NIFTY', Token: 1, Segment: 'nse_cm', LotSize: 75, MaxLots: 72, StrikeInterval: 50, StopLoss: 5, TakeProfit: 10, ExpiryDates: ['2025-02-06', '2025-02-13', '2025-02-20', '2025-02-27'] },
+            { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty 50', SearchSymbol: 'NIFTY', Token: 1, Segment: 'nse_cm', LotSize: 75, MaxLots: 72, StrikeInterval: 50, StopLoss: 5, TakeProfit: 15, ExpiryDates: ['2025-02-13', '2025-02-20', '2025-02-27'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty Bank', SearchSymbol: 'BANKNIFTY', Token: 2, Segment: 'nse_cm', LotSize: 15, MaxLots: 60, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-02-27', '2025-03-27'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty Fin Service', SearchSymbol: 'FINNIFTY', Token: 3, Segment: 'nse_cm', LotSize: 25, MaxLots: 72, StrikeInterval: 50, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-02-27', '2025-03-27'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'NIFTY MID SELECT', SearchSymbol: 'MIDCPNIFTY', Token: 4, Segment: 'nse_cm', LotSize: 50, MaxLots: 110, StrikeInterval: 25, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-02-27', '2025-03-27'] },
-            { JsonFileName: 'bse_idx_opt.json', SymbolName: 'SENSEX', SearchSymbol: 'SENSEX', Token: 5, Segment: 'bse_cm', LotSize: 20, MaxLots: 50, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-02-04', '2025-02-11', '2025-02-18', '2025-02-25'] },
+            { JsonFileName: 'bse_idx_opt.json', SymbolName: 'SENSEX', SearchSymbol: 'SENSEX', Token: 5, Segment: 'bse_cm', LotSize: 20, MaxLots: 50, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-02-11', '2025-02-18', '2025-02-25'] },
             { JsonFileName: 'bse_idx_opt.json', SymbolName: 'BANKEX', SearchSymbol: 'BANKEX', Token: 6, Segment: 'bse_cm', LotSize: 15, MaxLots: 40, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-02-25', '2025-03-25'] },
         ] };
 
