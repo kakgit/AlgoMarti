@@ -1,5 +1,5 @@
 {
-    "UpdDt": 1739244989254,
+    "UpdDt": 1739460858704,
     "Symbol": [
         {
             "pSymbol": "37007",
@@ -4514,6 +4514,54 @@
             "MaxPerOrdQty": 600
         },
         {
+            "pSymbol": "37870",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025FEB56300CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 5630000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "37871",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025FEB56300PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 5630000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "37872",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025FEB56400CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 5640000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "37873",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025FEB56400PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 5640000,
+            "MaxPerOrdQty": 600
+        },
+        {
             "pSymbol": "37886",
             "pExchSeg": "nse_fo",
             "pSymbolName": "NIFTYNXT50",
@@ -4538,6 +4586,30 @@
             "MaxPerOrdQty": 600
         },
         {
+            "pSymbol": "37891",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025MAR56300CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 5630000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "37892",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025MAR56300PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 5630000,
+            "MaxPerOrdQty": 600
+        },
+        {
             "pSymbol": "37893",
             "pExchSeg": "nse_fo",
             "pSymbolName": "NIFTYNXT50",
@@ -4559,6 +4631,30 @@
             "pExchange": "NSE",
             "pExpiryDate": 1427553000,
             "pStrikePrice": 7160000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "37895",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025MAR56400CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 5640000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "37896",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025MAR56400PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 5640000,
             "MaxPerOrdQty": 600
         },
         {
@@ -5546,6 +5642,18 @@
             "MaxPerOrdQty": 600
         },
         {
+            "pSymbol": "38080",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10650CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1065000,
+            "MaxPerOrdQty": 2800
+        },
+        {
             "pSymbol": "38082",
             "pExchSeg": "nse_fo",
             "pSymbolName": "NIFTYNXT50",
@@ -5618,6 +5726,18 @@
             "MaxPerOrdQty": 600
         },
         {
+            "pSymbol": "38092",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10650PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1065000,
+            "MaxPerOrdQty": 2800
+        },
+        {
             "pSymbol": "38093",
             "pExchSeg": "nse_fo",
             "pSymbolName": "NIFTYNXT50",
@@ -5654,6 +5774,30 @@
             "MaxPerOrdQty": 600
         },
         {
+            "pSymbol": "38105",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10675CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1067500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "38106",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10675PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1067500,
+            "MaxPerOrdQty": 2800
+        },
+        {
             "pSymbol": "38118",
             "pExchSeg": "nse_fo",
             "pSymbolName": "NIFTYNXT50",
@@ -5666,6 +5810,18 @@
             "MaxPerOrdQty": 600
         },
         {
+            "pSymbol": "38119",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10725CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1072500,
+            "MaxPerOrdQty": 2800
+        },
+        {
             "pSymbol": "38120",
             "pExchSeg": "nse_fo",
             "pSymbolName": "NIFTYNXT50",
@@ -5676,6 +5832,18 @@
             "pExpiryDate": 1427553000,
             "pStrikePrice": 7350000,
             "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "38121",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10725PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1072500,
+            "MaxPerOrdQty": 2800
         },
         {
             "pSymbol": "38148",
@@ -9770,6 +9938,54 @@
             "MaxPerOrdQty": 600
         },
         {
+            "pSymbol": "43410",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB9900CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 990000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43411",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB9900PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 990000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43413",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10000CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1000000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43414",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10000PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1000000,
+            "MaxPerOrdQty": 2800
+        },
+        {
             "pSymbol": "43416",
             "pExchSeg": "nse_fo",
             "pSymbolName": "MIDCPNIFTY",
@@ -9962,6 +10178,78 @@
             "MaxPerOrdQty": 2800
         },
         {
+            "pSymbol": "43620",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10625CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1062500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43621",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10625PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1062500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43624",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10650CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1065000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43625",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10650PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1065000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43631",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10675CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1067500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43632",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10675PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1067500,
+            "MaxPerOrdQty": 2800
+        },
+        {
             "pSymbol": "43634",
             "pExchSeg": "nse_fo",
             "pSymbolName": "MIDCPNIFTY",
@@ -9986,6 +10274,78 @@
             "MaxPerOrdQty": 2800
         },
         {
+            "pSymbol": "43659",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10725CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1072500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43660",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10725PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1072500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43662",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10750CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1075000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43664",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10750PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1075000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43668",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10775CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1077500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43669",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10775PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1077500,
+            "MaxPerOrdQty": 2800
+        },
+        {
             "pSymbol": "43670",
             "pExchSeg": "nse_fo",
             "pSymbolName": "MIDCPNIFTY",
@@ -10007,6 +10367,78 @@
             "pExchange": "NSE",
             "pExpiryDate": 1425133800,
             "pStrikePrice": 1080000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43673",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10825CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1082500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43678",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10825PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1082500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43685",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10850CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1085000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43686",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10850PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1085000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43697",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10875CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1087500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "43698",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25FEB10875PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 1087500,
             "MaxPerOrdQty": 2800
         },
         {
@@ -16175,6 +16607,246 @@
             "pExchange": "NSE",
             "pExpiryDate": 1425738600,
             "pStrikePrice": 2550000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45406",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321300CE",
+            "pOptionType": "CE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2130000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45407",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321300PE",
+            "pOptionType": "PE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2130000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45408",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321350CE",
+            "pOptionType": "CE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2135000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45409",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321350PE",
+            "pOptionType": "PE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2135000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45410",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321400CE",
+            "pOptionType": "CE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2140000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45411",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321400PE",
+            "pOptionType": "PE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2140000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45412",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321450CE",
+            "pOptionType": "CE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2145000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45413",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321450PE",
+            "pOptionType": "PE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2145000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45414",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321500CE",
+            "pOptionType": "CE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2150000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45415",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321500PE",
+            "pOptionType": "PE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2150000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45416",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321550CE",
+            "pOptionType": "CE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2155000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45417",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321550PE",
+            "pOptionType": "PE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2155000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45419",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321600CE",
+            "pOptionType": "CE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2160000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45420",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321600PE",
+            "pOptionType": "PE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2160000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45423",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321650CE",
+            "pOptionType": "CE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2165000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45425",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321650PE",
+            "pOptionType": "PE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2165000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45426",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321700CE",
+            "pOptionType": "CE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2170000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45427",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321700PE",
+            "pOptionType": "PE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2170000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45428",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321750CE",
+            "pOptionType": "CE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2175000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "45429",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY2531321750PE",
+            "pOptionType": "PE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1426343400,
+            "pStrikePrice": 2175000,
             "MaxPerOrdQty": 1800
         },
         {
@@ -24650,6 +25322,54 @@
             "MaxPerOrdQty": 900
         },
         {
+            "pSymbol": "80698",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR51000CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5100000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "80699",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR51000PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5100000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "80772",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR51500CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5150000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "80773",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR51500PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5150000,
+            "MaxPerOrdQty": 600
+        },
+        {
             "pSymbol": "80782",
             "pExchSeg": "nse_fo",
             "pSymbolName": "NIFTYNXT50",
@@ -25499,6 +26219,30 @@
             "pExchange": "NSE",
             "pExpiryDate": 1425133800,
             "pStrikePrice": 2450000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "76025",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "FINNIFTY",
+            "pTrdSymbol": "FINNIFTY25FEB21850CE",
+            "pOptionType": "CE",
+            "pLotSize": 65,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 2185000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "76026",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "FINNIFTY",
+            "pTrdSymbol": "FINNIFTY25FEB21850PE",
+            "pOptionType": "PE",
+            "pLotSize": 65,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 2185000,
             "MaxPerOrdQty": 1800
         },
         {
@@ -26486,6 +27230,54 @@
             "MaxPerOrdQty": 600
         },
         {
+            "pSymbol": "81070",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR56300CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5630000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81071",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR56300PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5630000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81072",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR56400CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5640000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81073",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR56400PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5640000,
+            "MaxPerOrdQty": 600
+        },
+        {
             "pSymbol": "81074",
             "pExchSeg": "nse_fo",
             "pSymbolName": "NIFTYNXT50",
@@ -26507,6 +27299,102 @@
             "pExchange": "NSE",
             "pExpiryDate": 1429972200,
             "pStrikePrice": 5650000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81076",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR56600CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5660000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81077",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR56600PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5660000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81078",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR56700CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5670000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81079",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR56700PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5670000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81080",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR56800CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5680000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81081",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR56800PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5680000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81082",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR56900CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5690000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81083",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR56900PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5690000,
             "MaxPerOrdQty": 600
         },
         {
@@ -26534,6 +27422,102 @@
             "MaxPerOrdQty": 600
         },
         {
+            "pSymbol": "81088",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR57100CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5710000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81089",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR57100PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5710000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81090",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR57200CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5720000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81091",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR57200PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5720000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81092",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR57300CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5730000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81093",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR57300PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5730000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81094",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR57400CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5740000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81095",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR57400PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5740000,
+            "MaxPerOrdQty": 600
+        },
+        {
             "pSymbol": "81096",
             "pExchSeg": "nse_fo",
             "pSymbolName": "NIFTYNXT50",
@@ -26555,6 +27539,30 @@
             "pExchange": "NSE",
             "pExpiryDate": 1429972200,
             "pStrikePrice": 5750000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81098",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR57600CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5760000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81099",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR57600PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5760000,
             "MaxPerOrdQty": 600
         },
         {
@@ -26726,6 +27734,78 @@
             "MaxPerOrdQty": 1800
         },
         {
+            "pSymbol": "81100",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR57700CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5770000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81101",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR57700PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5770000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81102",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR57800CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5780000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81103",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR57800PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5780000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81104",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR57900CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5790000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81105",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR57900PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5790000,
+            "MaxPerOrdQty": 600
+        },
+        {
             "pSymbol": "81106",
             "pExchSeg": "nse_fo",
             "pSymbolName": "NIFTYNXT50",
@@ -26747,6 +27827,30 @@
             "pExchange": "NSE",
             "pExpiryDate": 1429972200,
             "pStrikePrice": 5800000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81109",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR58100CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5810000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "81110",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025APR58100PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 5810000,
             "MaxPerOrdQty": 600
         },
         {
@@ -30938,6 +32042,30 @@
             "MaxPerOrdQty": 1800
         },
         {
+            "pSymbol": "77596",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR9900CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 990000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77597",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR9900PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 990000,
+            "MaxPerOrdQty": 2800
+        },
+        {
             "pSymbol": "82040",
             "pExchSeg": "nse_fo",
             "pSymbolName": "NIFTYNXT50",
@@ -31008,6 +32136,78 @@
             "pExpiryDate": 1429972200,
             "pStrikePrice": 7200000,
             "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "77604",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10000CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1000000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77607",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10000PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1000000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77631",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10100CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1010000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77634",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10100PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1010000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77688",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10200CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1020000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77689",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10200PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1020000,
+            "MaxPerOrdQty": 2800
         },
         {
             "pSymbol": "82101",
@@ -31130,6 +32330,78 @@
             "MaxPerOrdQty": 2800
         },
         {
+            "pSymbol": "77732",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10625CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1062500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77733",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10625PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1062500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77734",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10650CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1065000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77735",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10650PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1065000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77736",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10675CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1067500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77737",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10675PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1067500,
+            "MaxPerOrdQty": 2800
+        },
+        {
             "pSymbol": "77738",
             "pExchSeg": "nse_fo",
             "pSymbolName": "MIDCPNIFTY",
@@ -31151,6 +32423,78 @@
             "pExchange": "NSE",
             "pExpiryDate": 1429972200,
             "pStrikePrice": 1070000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77741",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10725CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1072500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77744",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10725PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1072500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77745",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10750CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1075000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77746",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10750PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1075000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77747",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10775CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1077500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77748",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10775PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1077500,
             "MaxPerOrdQty": 2800
         },
         {
@@ -31178,6 +32522,78 @@
             "MaxPerOrdQty": 2800
         },
         {
+            "pSymbol": "77751",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10825CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1082500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77763",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10825PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1082500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77764",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10850CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1085000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77765",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10850PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1085000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77766",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10875CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1087500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77770",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10875PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1087500,
+            "MaxPerOrdQty": 2800
+        },
+        {
             "pSymbol": "77771",
             "pExchSeg": "nse_fo",
             "pSymbolName": "MIDCPNIFTY",
@@ -31202,6 +32618,78 @@
             "MaxPerOrdQty": 2800
         },
         {
+            "pSymbol": "77773",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10925CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1092500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77774",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10925PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1092500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77775",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10950CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1095000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77776",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10950PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1095000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77777",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10975CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1097500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77778",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR10975PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1097500,
+            "MaxPerOrdQty": 2800
+        },
+        {
             "pSymbol": "77779",
             "pExchSeg": "nse_fo",
             "pSymbolName": "MIDCPNIFTY",
@@ -31223,6 +32711,30 @@
             "pExchange": "NSE",
             "pExpiryDate": 1429972200,
             "pStrikePrice": 1100000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77781",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR11025CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1102500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "77789",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25APR11025PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 1102500,
             "MaxPerOrdQty": 2800
         },
         {
@@ -32820,6 +34332,30 @@
             "pExpiryDate": 1425133800,
             "pStrikePrice": 2460000,
             "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "49476",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10625CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1062500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "49477",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10625PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1062500,
+            "MaxPerOrdQty": 2800
         },
         {
             "pSymbol": "54118",
@@ -36672,6 +38208,102 @@
             "pExpiryDate": 1425133800,
             "pStrikePrice": 1470000,
             "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "79247",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY25APR21300CE",
+            "pOptionType": "CE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 2130000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "79248",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY25APR21300PE",
+            "pOptionType": "PE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 2130000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "79249",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY25APR21350CE",
+            "pOptionType": "CE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 2135000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "79250",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY25APR21350PE",
+            "pOptionType": "PE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 2135000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "79251",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY25APR21400CE",
+            "pOptionType": "CE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 2140000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "79252",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY25APR21400PE",
+            "pOptionType": "PE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 2140000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "79253",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY25APR21450CE",
+            "pOptionType": "CE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 2145000,
+            "MaxPerOrdQty": 1800
+        },
+        {
+            "pSymbol": "79254",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTY",
+            "pTrdSymbol": "NIFTY25APR21450PE",
+            "pOptionType": "PE",
+            "pLotSize": 75,
+            "pExchange": "NSE",
+            "pExpiryDate": 1429972200,
+            "pStrikePrice": 2145000,
+            "MaxPerOrdQty": 1800
         },
         {
             "pSymbol": "79256",
@@ -45602,6 +47234,30 @@
             "MaxPerOrdQty": 1800
         },
         {
+            "pSymbol": "35047",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025FEB56600CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 5660000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "35048",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025FEB56600PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1425133800,
+            "pStrikePrice": 5660000,
+            "MaxPerOrdQty": 600
+        },
+        {
             "pSymbol": "35219",
             "pExchSeg": "nse_fo",
             "pSymbolName": "NIFTY",
@@ -45758,6 +47414,30 @@
             "MaxPerOrdQty": 600
         },
         {
+            "pSymbol": "35385",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR9900CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 990000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "35388",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR9900PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 990000,
+            "MaxPerOrdQty": 2800
+        },
+        {
             "pSymbol": "35389",
             "pExchSeg": "nse_fo",
             "pSymbolName": "NIFTYNXT50",
@@ -45818,6 +47498,18 @@
             "MaxPerOrdQty": 600
         },
         {
+            "pSymbol": "35398",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10000CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1000000,
+            "MaxPerOrdQty": 2800
+        },
+        {
             "pSymbol": "35413",
             "pExchSeg": "nse_fo",
             "pSymbolName": "NIFTYNXT50",
@@ -45828,6 +47520,18 @@
             "pExpiryDate": 1427553000,
             "pStrikePrice": 5400000,
             "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "35415",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10000PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1000000,
+            "MaxPerOrdQty": 2800
         },
         {
             "pSymbol": "35416",
@@ -46070,6 +47774,54 @@
             "MaxPerOrdQty": 600
         },
         {
+            "pSymbol": "35493",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10750CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1075000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "35494",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10750PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1075000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "35495",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10775CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1077500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "35496",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10775PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1077500,
+            "MaxPerOrdQty": 2800
+        },
+        {
             "pSymbol": "35497",
             "pExchSeg": "nse_fo",
             "pSymbolName": "MIDCPNIFTY",
@@ -46091,6 +47843,18 @@
             "pExchange": "NSE",
             "pExpiryDate": 1427553000,
             "pStrikePrice": 1080000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "35499",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10825CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1082500,
             "MaxPerOrdQty": 2800
         },
         {
@@ -46118,6 +47882,18 @@
             "MaxPerOrdQty": 600
         },
         {
+            "pSymbol": "35509",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10825PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1082500,
+            "MaxPerOrdQty": 2800
+        },
+        {
             "pSymbol": "35512",
             "pExchSeg": "nse_fo",
             "pSymbolName": "NIFTYNXT50",
@@ -46130,6 +47906,18 @@
             "MaxPerOrdQty": 600
         },
         {
+            "pSymbol": "35514",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10850CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1085000,
+            "MaxPerOrdQty": 2800
+        },
+        {
             "pSymbol": "35521",
             "pExchSeg": "nse_fo",
             "pSymbolName": "NIFTYNXT50",
@@ -46139,6 +47927,66 @@
             "pExchange": "NSE",
             "pExpiryDate": 1427553000,
             "pStrikePrice": 5650000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "35523",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10850PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1085000,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "35529",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10875CE",
+            "pOptionType": "CE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1087500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "35530",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "MIDCPNIFTY",
+            "pTrdSymbol": "MIDCPNIFTY25MAR10875PE",
+            "pOptionType": "PE",
+            "pLotSize": 120,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 1087500,
+            "MaxPerOrdQty": 2800
+        },
+        {
+            "pSymbol": "35531",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025MAR56600CE",
+            "pOptionType": "CE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 5660000,
+            "MaxPerOrdQty": 600
+        },
+        {
+            "pSymbol": "35532",
+            "pExchSeg": "nse_fo",
+            "pSymbolName": "NIFTYNXT50",
+            "pTrdSymbol": "NIFTYNXT5025MAR56600PE",
+            "pOptionType": "PE",
+            "pLotSize": 25,
+            "pExchange": "NSE",
+            "pExpiryDate": 1427553000,
+            "pStrikePrice": 5660000,
             "MaxPerOrdQty": 600
         },
         {
