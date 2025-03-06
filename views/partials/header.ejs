@@ -1,76 +1,80 @@
 
 <header class="p-3 text-bg-dark">
     <div class="container">
-      <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
-        <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
-            <img src="/img/logoAlgo.png" height="40px" />
-        </a>
-
-        <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-            <li><a href="/" class="nav-link px-2 text-white">Home</a></li>
-            <li><a href="/mahesh" class="nav-link px-2 text-white">Signals</a></li>
-            <li><a href="/" class="nav-link px-2 text-white">Paper Trading</a></li>
-            <li><a href="/aliceLive" class="nav-link px-2 text-white">Live Trading</a></li>
-            <!-- <li class="nav-item dropdown">
-                <button class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    Paper Trading
-                </button>
-                <ul class="dropdown-menu dropdown-menu-dark">
-                    <li><a class="dropdown-item" href="/paper-trade/alice-blue">Alice Blue</a></li>
-                    <li><a class="dropdown-item" href="/paper-trade/finvasia">Finvasia</a></li>
-                    <li><a class="dropdown-item" href="/paper-trade/samco">Samco</a></li>
-                </ul>
-            </li>
-            <li class="nav-item dropdown">
-                <button class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    Live Trading
-                </button>
-                <ul class="dropdown-menu dropdown-menu-dark">
-                    <li><a class="dropdown-item" href="/live-trade/alice-blue">Alice Blue</a></li>
-                    <li><a class="dropdown-item" href="/live-trade/finvasia">Finvasia</a></li>
-                    <li><a class="dropdown-item" href="/live-trade/samco">Samco</a></li>
-                </ul>
-            </li> -->
-            <li><a href="/kotakLive" class="nav-link px-2 text-white">Kotak Neo</a></li>
-            <li><a href="/contactUs" class="nav-link px-2 text-white">Contact Us</a></li>
-        
-            <li><a href="/finvasia" class="nav-link px-2 text-white">Finvasia</a></li>
-            <li><a href="/mngUsers" class="nav-link px-2 text-white">Users</a></li>
-        </ul>
-
-        <div class="text-end">
-            <div class="form-check form-switch fs-6">
-                <div class="row" style="text-align: right;">
-                    <div class="col-6">
-                    <input class="form-check-input  me-0" type="checkbox" id="toggle-dark"
-                        style="cursor: pointer" />
-                    
-                    <i class="fa fa-moon-o" style="color: cornflowerblue;" aria-hidden="true"></i>
-
-                </div>
-                <div class="col-6">
-                    <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-right mb-md-0">
-                        <li class="nav-item dropdown">
-                            <button class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                Profile
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-dark">
-                                <li><a class="dropdown-item" href="javascript: void(null);" onclick="fnShowMyProfileMdl();">My Profile</a></li>
-                                <li><a id="lblAppLoginTxt" class="dropdown-item" href="javascript: fnLoginStatus();">LOGOUT</a></li>
-                            </ul>
-                        </li>
+        <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+            <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
+                <img src="/img/logoAlgo.png" height="40px" />
+            </a>
+    
+            <ul class="nav col-9 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+                <li><a href="/" class="nav-link px-2 text-white">Home</a></li>
+                <li><a href="/kotakLive" class="nav-link px-2 text-white">Kotak Neo</a></li>
+                <!-- <li><a href="/mahesh" class="nav-link px-2 text-white">Signals</a></li> -->
+                <li><a href="/" class="nav-link px-2 text-white">Paper Trading</a></li>
+                <!-- <li><a href="/aliceLive" class="nav-link px-2 text-white">Live Trading</a></li> -->
+                <!-- <li class="nav-item dropdown">
+                    <button class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        Paper Trading
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                        <li><a class="dropdown-item" href="/paper-trade/alice-blue">Alice Blue</a></li>
+                        <li><a class="dropdown-item" href="/paper-trade/finvasia">Finvasia</a></li>
+                        <li><a class="dropdown-item" href="/paper-trade/samco">Samco</a></li>
                     </ul>
-                </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <button class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        Live Trading
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                        <li><a class="dropdown-item" href="/live-trade/alice-blue">Alice Blue</a></li>
+                        <li><a class="dropdown-item" href="/live-trade/finvasia">Finvasia</a></li>
+                        <li><a class="dropdown-item" href="/live-trade/samco">Samco</a></li>
+                    </ul>
+                </li> -->
+                <li><a href="/contactUs" class="nav-link px-2 text-white">Contact Us</a></li>
+                <!-- <li><a href="/finvasia" class="nav-link px-2 text-white">Finvasia</a></li> -->
+                <!-- <li><a href="/mngUsers" class="nav-link px-2 text-white">Users</a></li> -->
+            </ul>
+            <ul class="nav col-3 col-lg-auto me-lg-auto mb-2 justify-content-end mb-md-0">
+                <li><span id="spnLoginGreetings" class="nav-link px-2 text-white"></span></li>
+            </ul>
+    
+            <div class="text-end">
+                <div class="form-check form-switch fs-6">
+                    <div class="row" style="text-align: right;">
+                        <div class="col-6">
+                            <input class="form-check-input  me-0" type="checkbox" id="toggle-dark"
+                                style="cursor: pointer" />
+    
+                            <i class="fa fa-moon-o" style="color: cornflowerblue;" aria-hidden="true"></i>
+                        </div>
+                        <div class="col-6">
+                            <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-right mb-md-0">
+                                <li class="nav-item dropdown">
+                                    <button class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                                        Account
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-dark">
+                                        <!-- <li><a class="dropdown-item" href="javascript: void(null);" onclick="fnShowMyProfileMdl();">My Profile</a></li> -->
+                                        <li id="liChangePwd" style="display: none;"><a class="dropdown-item" href="javascript: void(null);" onclick="fnDisplayChangePwd();">Change Password</a></li>
+                                        <li><a id="lblAppLoginTxt" class="dropdown-item"
+                                                href="javascript: fnLoginStatus();">LOGOUT</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-      </div>
     </div>
   </header>
 
-  <!--Disabled Backdrop Modal for APP Login-->
+  <!--To Login to App, Disabled Backdrop Modal for APP Login-->
 <div class="modal fade text-left" id="mdlAppLogin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
-data-bs-backdrop="false" aria-hidden="true">
+data-bs-backdrop="false">
 <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
     <div class="modal-content">
         <div class="modal-header bg-secondary">
@@ -79,7 +83,7 @@ data-bs-backdrop="false" aria-hidden="true">
         </div>
         <div class="modal-body">
             <!-- // Basic multiple Column Form section start -->
-            <section id="multiple-column-form">
+            <section>
                 <div class="row match-height">
                     <div class="col-12">
                         <div class="card">
@@ -105,7 +109,6 @@ data-bs-backdrop="false" aria-hidden="true">
                                             <div class="col-md-6 col-12">
                                                 <div class="form-group">
                                                     <a href="javascript: void(null);" class="btn btn-outline-primary"><i class="fa fa-cogs" aria-hidden="true" style="color: orangered;"></i> Forgot Password?</a>
-                                                    
                                                 </div>
                                             </div>
                                         </div>
@@ -129,4 +132,65 @@ data-bs-backdrop="false" aria-hidden="true">
         </div>
     </div>
 </div>
+</div>
+
+<!-- To Change Password, primary theme Modal -->
+<div class="modal fade text-left" id="mdlChangePwdJ" tabindex="-1" role="dialog" aria-labelledby="myModalLabel160">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title white" id="myModalLabel160">Change Password
+                </h5>
+                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close"
+                    style="cursor: pointer;"></i>
+            </div>
+            <div class="modal-body">
+                <section>
+                    <div class="row match-height">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header text-center">
+                                    &nbsp;<span id="spnChgPwdMsg" class="badge bg-primary">Please Input New Password</span>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-12 col-12">
+                                                <div class="form-group">
+                                                    <label for="txtCurrPwd">Current Password</label>
+                                                    <input type="password" id="txtCurrPwd" class="form-control" value="" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12 col-12">
+                                                <div class="form-group">
+                                                    <label for="txtNewPwd">New Password</label>
+                                                    <input type="password" id="txtNewPwd" class="form-control" value="" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12 col-12">
+                                                <div class="form-group">
+                                                    <label for="txtNewConfPwd">Confirm New Password</label>
+                                                    <input type="password" id="txtNewConfPwd" class="form-control" value="" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                    <i class="bx bx-x d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">Close</span>
+                </button>
+                <button type="button" class="btn btn-primary ms-1" onclick="fnSubmitChangePwd();">
+                    <i class="bx bx-check d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">SUBMIT</span>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>

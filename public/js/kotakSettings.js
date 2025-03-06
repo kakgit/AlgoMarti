@@ -1,20 +1,4 @@
 
-function fnGetSetAppStatus(){
-    let bAppStatus = localStorage.getItem("AppMsgStatusS");
-    let objLoginTxt = document.getElementById("lblAppLoginTxt");
-
-    if (bAppStatus === "true") {
-        objLoginTxt.innerText = "LOGOUT";
-        fnGenMessage("App is Logged In!", `badge bg-success`, "spnGenMsg");
-    }
-    else {
-        objLoginTxt.innerText = "LOGIN";
-        fnGenMessage("App is Not Logged In!", `badge bg-warning`, "spnGenMsg");
-        $('#mdlAppLogin').modal('show');
-    }
-    fnGetSetTraderLoginStatus();
-}
-
 function fnSetRecentDates(){
     let objRecentDates = document.getElementById("ddlRecentDates");
 
@@ -164,39 +148,34 @@ function fnEncodeToBase64(){
     // alert(vRes);
 }
 
-function fnClearPrevLoginSession(){
-    let objSession = document.getElementById("txtKotakSession");
-    gIsTraderLogin = false;
-    localStorage.removeItem("lsLoginDate");
-    localStorage.removeItem("lsKotakNeoSession");
-
-    localStorage.removeItem("isAutoTrader");
-    localStorage.removeItem("KotakUserDetS");
-    objSession.value = "";
-    fnChangeBtnProps("btnTraderStatus", "badge bg-danger", "Trader - Disconnected");
-}
-
 function fnShowTraderLoginMdl(objThis){
-    let isAppLoginStatus = localStorage.getItem("AppMsgStatusS");
+    let bAppStatus = localStorage.getItem("AppMsgStatusS");
 
-    if(isAppLoginStatus === "false"){
-        $('#mdlAppLogin').modal('show');
+    if(bAppStatus === "false"){
+        //$('#mdlAppLogin').modal('show');
+        fnGenMessage("First Login to App for Trading Account Login!", `badge bg-warning`, "spnGenMsg");
+        fnGetSetAllStatus();
     }
     else if(objThis.className === "badge bg-danger"){
         $('#mdlKotakLogin').modal('show');
+        fnGetSetAllStatus();
     }
     else{
-        fnClearPrevLoginSession();
-        fnGetSetAutoTraderStatus();
-        fnGetSetRealTradeStatus();
-
+        fnClearPrevTraderSession();
+        fnGetSetTraderLoginStatus();
         fnGenMessage("Trader Disconnected Successfully!", `badge bg-warning`, "spnGenMsg");
     }
-    fnGetSetAllStatus();
+}
+
+function fnClearPrevTraderSession(){
+  gIsTraderLogin = false;
+  localStorage.removeItem("lsKotakNeoSession");
+  localStorage.removeItem("isAutoTrader");
+  localStorage.removeItem("KotakUserDetS");
 }
 
 function fnGetSetTraderLoginStatus(){
-    let lsPrevSessionDate = localStorage.getItem("lsLoginDate");
+    let bAppStatus = localStorage.getItem("AppMsgStatusS");
 
     let lsKotakConsumerKey = localStorage.getItem("lsKotakConsumerKey");
     let lsKotakConsumerSecret = localStorage.getItem("lsKotakConsumerSecret");
@@ -239,7 +218,7 @@ function fnGetSetTraderLoginStatus(){
     objSubUserId.value = lsSub;
     objHsServerId.value = lsHsServerID;
 
-    if (lsPrevSessionDate != (vToday) || objClientId.value == "") {
+    if (bAppStatus === "false") {
         localStorage.removeItem("lsKotakNeoSession");
         localStorage.removeItem("lsKotakViewToken");
         localStorage.removeItem("lsKotakAccessToken");
@@ -570,11 +549,11 @@ function fnGetIndSymSettings(){
   
     gIndData = {
         UpdDt: vSecDt, Symbol: [
-            { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty 50', SearchSymbol: 'NIFTY', Token: 1, Segment: 'nse_cm', LotSize: 75, MaxLots: 24, StrikeInterval: 50, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-03-06', '2025-03-13', '2025-03-20', '2025-03-27', '2025-04-03', '2025-04-24'] },
+            { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty 50', SearchSymbol: 'NIFTY', Token: 1, Segment: 'nse_cm', LotSize: 75, MaxLots: 24, StrikeInterval: 50, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-03-13', '2025-03-20', '2025-03-27', '2025-04-03', '2025-04-24'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty Bank', SearchSymbol: 'BANKNIFTY', Token: 2, Segment: 'nse_cm', LotSize: 30, MaxLots: 30, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-03-27', '2025-04-24'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty Fin Service', SearchSymbol: 'FINNIFTY', Token: 3, Segment: 'nse_cm', LotSize: 65, MaxLots: 27, StrikeInterval: 50, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-03-27', '2025-04-24'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'NIFTY MID SELECT', SearchSymbol: 'MIDCPNIFTY', Token: 4, Segment: 'nse_cm', LotSize: 120, MaxLots: 23, StrikeInterval: 25, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-03-27', '2025-04-24'] },
-            { JsonFileName: 'bse_idx_opt.json', SymbolName: 'SENSEX', SearchSymbol: 'SENSEX', Token: 5, Segment: 'bse_cm', LotSize: 20, MaxLots: 50, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-03-04', '2025-03-11', '2025-03-18', '2025-03-25', '2025-04-01', '2025-04-08', '2025-04-15', '2025-04-22', '2025-04-29'] },
+            { JsonFileName: 'bse_idx_opt.json', SymbolName: 'SENSEX', SearchSymbol: 'SENSEX', Token: 5, Segment: 'bse_cm', LotSize: 20, MaxLots: 50, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-03-11', '2025-03-18', '2025-03-25', '2025-04-01', '2025-04-08', '2025-04-15', '2025-04-22', '2025-04-29'] },
             { JsonFileName: 'bse_idx_opt.json', SymbolName: 'BANKEX', SearchSymbol: 'BANKEX', Token: 6, Segment: 'bse_cm', LotSize: 30, MaxLots: 30, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-03-25', '2025-04-29'] },
         ] };
 
@@ -664,28 +643,6 @@ function fnLoadDefaultSLTP(){
     {
         objDefSLTP.value = localStorage.getItem("DDLDefSLTP");
     }
-}
-
-function fnLoginStatus(){
-  let objLoginTxt = document.getElementById("lblAppLoginTxt");
-  let objSession = document.getElementById("txtKotakSession");
-
-  if(objLoginTxt.innerText === "LOGOUT")
-  {
-    localStorage.setItem("AppMsgStatusS", false);
-
-    fnClearPrevLoginSession();
-  }
-  else
-  {
-    $('#mdlAppLogin').modal('show');
-  }
-}
-
-function fnAppLogin(){
-  localStorage.setItem("AppMsgStatusS", true);
-  $('#mdlAppLogin').modal('hide');
-  fnGetSetAppStatus();
 }
 
 function fnSetCurrTraderTab(pTabType){

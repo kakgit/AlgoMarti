@@ -30,7 +30,7 @@ function fnGetSetAppStatus(){
     else {
         objLoginTxt.innerText = "LOGIN";
         fnGenMessage("App is Not Logged In!", `badge bg-warning`, "spnGenMsg");
-        $('#mdlAppLogin').modal('show');
+        //$('#mdlAppLogin').modal('show');
     }
 
     fnGetSetTraderLoginStatus();

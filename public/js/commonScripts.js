@@ -10,14 +10,223 @@ const socket = io();
 // });
 
 window.addEventListener("DOMContentLoaded", function(){
-
+  fnGetSetAppStatus();
 });
 
+function fnGetSetAppStatus(){
+  let bAppStatus = localStorage.getItem("AppMsgStatusS");
+  let objAppCred = JSON.parse(localStorage.getItem("AppCredS"));
+  let objLoginTxt = document.getElementById("lblAppLoginTxt");
+  let objSpnGreet = document.getElementById("spnLoginGreetings");
+  let objLiPwd = document.getElementById("liChangePwd");
+
+  let lsPrevSessionDate = localStorage.getItem("lsLoginDate");
+  const vDate = new Date();
+  let vToday = vDate.getDate();
+
+  if(lsPrevSessionDate === null || lsPrevSessionDate === ""){
+    lsPrevSessionDate = 0;
+  }
+
+  if ((parseInt(vToday) === parseInt(lsPrevSessionDate)) && (bAppStatus === "true")) {
+      objLoginTxt.innerText = "LOGOUT";
+      objSpnGreet.innerText = "Hi, " + objAppCred.FullName;
+      objLiPwd.style.display = "block";
+      fnGenMessage("App is Logged In!", `badge bg-success`, "spnGenMsg");
+  }
+  else {
+      objLoginTxt.innerText = "LOGIN";
+      objSpnGreet.innerText = "";
+      objLiPwd.style.display = "none";
+      localStorage.setItem("lsLoginDate", 0);
+      localStorage.setItem("AppMsgStatusS", false);
+      document.getElementById("txtLoginEmailId").value = localStorage.getItem("AppLoginEmail");
+      fnGenMessage("App is Not Logged In!", `badge bg-warning`, "spnGenMsg");
+      // $('#mdlAppLogin').modal('show');
+  }
+}
+
+async function fnAppLogin(){
+  let objEmailId = document.getElementById("txtLoginEmailId");
+  let objPassword = document.getElementById("txtLoginPassword");
+
+  if(objEmailId.value === ""){
+    fnGenMessage("Please Input Email ID!", `badge bg-warning`, "spnAppLogin");
+    objEmailId.focus();
+  }
+  else if(objPassword.value === ""){
+    fnGenMessage("Please Input Password!", `badge bg-warning`, "spnAppLogin");
+    objPassword.focus();
+  }
+  else{
+    let objUserDet = await fnGetUserDetByEmailPass(objEmailId.value, objPassword.value);
+
+    if(objUserDet.status === "success"){
+      //console.log(objUserDet.data);
+
+      fnGenMessage(objUserDet.message, `badge bg-${objUserDet.status}`, "spnGenMsg");
+
+      localStorage.setItem("AppCredS", JSON.stringify(objUserDet.data));
+      localStorage.setItem("AppMsgStatusS", true);
+
+      const vDate = new Date();
+      let vToday = vDate.getDate();
+      localStorage.setItem("lsLoginDate", vToday);
+      localStorage.setItem("AppLoginEmail", objUserDet.data.EmailId);
+
+      window.location.reload();
+    }
+    else if(objUserDet.status === "warning"){
+      fnGenMessage(objUserDet.message, `badge bg-${objUserDet.status}`, "spnAppLogin");
+       localStorage.setItem("AppMsgStatusS", false);
+   }
+    else{
+      fnGenMessage(objUserDet.message, `badge bg-${objUserDet.status}`, "spnAppLogin");
+      localStorage.setItem("AppMsgStatusS", false);
+    }    
+  }
+}
+
+async function fnSubmitChangePwd(){
+  let objCurrPwd = document.getElementById("txtCurrPwd");
+  let objNewPwd = document.getElementById("txtNewPwd");
+  let objNewConfPwd = document.getElementById("txtNewConfPwd");
+  let objAppCred = JSON.parse(localStorage.getItem("AppCredS"));
+
+  if(objCurrPwd.value === ""){
+    fnGenMessage("Please Input Current Password!", `badge bg-warning`, "spnChgPwdMsg");
+    objCurrPwd.focus();
+  }
+  else if(objNewPwd.value === ""){
+    fnGenMessage("Please Input New Password!", `badge bg-warning`, "spnChgPwdMsg");
+    objNewPwd.focus();
+  }
+  else if(objNewPwd.value !== objNewConfPwd.value){
+    fnGenMessage("New Password and Confirm New Password must be Same!", `badge bg-warning`, "spnChgPwdMsg");
+    objNewConfPwd.focus();
+  }
+  else{
+    let objUserDet = await fnGetChangePwdStatus(objCurrPwd.value, objNewPwd.value, objAppCred.UserId, objAppCred.Password);
+    if(objUserDet.status === "success"){
+
+      fnLoginStatus();
+      fnGenMessage(objUserDet.message, `badge bg-${objUserDet.status}`, "spnGenMsg");
+    }
+    else{
+      fnGenMessage(objUserDet.message, `badge bg-${objUserDet.status}`, "spnChgPwdMsg");
+    }
+  }
+}
+
+function fnGetChangePwdStatus(pCurrPwd, pNewPwd, pUserId, pEncPwd){
+  const objUserDet = new Promise((resolve, reject) => {
+
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let objRequestData = {
+        method: 'POST',
+        headers: vHeaders,
+        body: JSON.stringify({ CurrPwd: pCurrPwd, NewPwd: pNewPwd, UserId: pUserId, EncPwd: pEncPwd }),
+        redirect: 'follow'
+    };
+
+    fetch("/Users/getUserChangedPwdStatus", objRequestData)
+        .then(objResponse => objResponse.json())
+        .then(objResult => {
+
+            resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });            
+        })
+        .catch(error => {
+            console.log('error: ', error);
+            fnGenMessage("Error in Updating Password! " + error, `badge bg-danger`, "spnGenMsg");
+            reject({ "status": "danger", "message": "Error in Updating Password!", "data": "" });
+        });
+    });
+    return objUserDet;
+}
+
+function fnGetUserDetByEmailPass(pEmailId, pPassword){
+  const objUserDet = new Promise((resolve, reject) => {
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let objRequestData = {
+        method: 'POST',
+        headers: vHeaders,
+        body: JSON.stringify({ EmailId: pEmailId, Password: pPassword }),
+        redirect: 'follow'
+    };
+
+    fetch("/Users/getUserDetByEmailPass", objRequestData)
+        .then(objResponse => objResponse.json())
+        .then(objResult => {
+
+            resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });            
+        })
+        .catch(error => {
+            console.log('error: ', error);
+            fnGenMessage("Error in Getting Login Details! " + error, `badge bg-danger`, "spnGenMsg");
+            reject({ "status": "danger", "message": "Error in Getting Login Details!", "data": "" });
+        });
+    });
+    return objUserDet;
+}
+
+function fnLoginStatus(){
+  let objLoginTxt = document.getElementById("lblAppLoginTxt");
+  // let objSession = document.getElementById("txtKotakSession");
+
+  if(objLoginTxt.innerText === "LOGOUT")
+  {
+    localStorage.setItem("AppMsgStatusS", false);
+
+    fnClearPrevLoginSession();
+
+    window.location.reload();
+  }
+  else
+  {
+    fnGenMessage("Please Input Login Details!", `badge bg-primary`, "spnAppLogin");
+    document.getElementById("txtLoginPassword").value = "";
+    $('#mdlAppLogin').modal('show');
+  }
+}
+
+function fnDisplayChangePwd(){
+  let objAppCred = JSON.parse(localStorage.getItem("AppCredS"));
+
+  if(objAppCred.IsActive){
+    $('#mdlChangePwdJ').modal('show');
+  }
+  else{
+    fnGenMessage("Your Login is InActive, Contact Admin!", `badge bg-warning`, "spnGenMsg");
+  }
+}
+
+function fnClearPrevLoginSession(){
+  //let objSession = document.getElementById("txtKotakSession");
+  gIsTraderLogin = false;
+  localStorage.removeItem("lsLoginDate");
+  localStorage.removeItem("lsKotakNeoSession");
+  localStorage.removeItem("AppCredS");
+
+  localStorage.removeItem("isAutoTrader");
+  localStorage.removeItem("KotakUserDetS");
+  //objSession.value = "";
+  //fnChangeBtnProps("btnTraderStatus", "badge bg-danger", "Trader - Disconnected");
+}
+
 function fnShowMyProfileMdl(){
+  if(gIsTraderLogin){
     fnGenMessage("Profile Details", `badge bg-primary`, "spnABProfile");
     $('#mdlUserProfile').modal('show');
+  }
+  else{
+    fnGenMessage("Login to Trading Account to Display Profile!", `badge bg-danger`, "spnGenMsg");
+  }
 
-    //console.log("Profile - " + localStorage.getItem("UserDetS"));
+  //console.log("Profile - " + localStorage.getItem("UserDetS"));
 }
 
 function fnChangeBtnProps(pId, pClassName, pDispText){
@@ -188,4 +397,9 @@ function fnGetSetOptionStrike(){
     else{
         objDDLStrikeOption.value = vCurrOS;
     }
+}
+
+function fnGetIdFromDate(){
+    const vDate = new Date();
+    return vDate.valueOf();
 }

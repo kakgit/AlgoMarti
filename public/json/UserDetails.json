@@ -1,0 +1,27 @@
+{
+    "UpdDt": 1741150605788,
+    "UserDet": [
+        {
+            "UserId": 1740834367766,
+            "FullName": "Anil Kumar K",
+            "EmailId": "kamarthi.anil@gmail.com",
+            "Password": "$2a$10$Z6JLZnf5zrOPLb0Gt1AzPeBpXhXQfmZfQyAQlqhjo0.bbnxfZIWXa",
+            "PhoneNumber": "+916301904398",
+            "IsActive": true,
+            "IsAdmin": true,
+            "CreatedAt": "2025-03-01T13:06:07.931Z",
+            "UpdatedAt": "2025-03-05T05:10:29.430Z"
+        },
+        {
+            "UserId": 1740935571846,
+            "FullName": "James Kaka",
+            "EmailId": "anil.acton@gmail.com",
+            "Password": "$2a$10$wNrmwcsU1sNOJrt.ug3jYO6moLTUPA1Inp4ihpRZ3bVbjyJUppCq.",
+            "PhoneNumber": "+919676974919",
+            "IsActive": true,
+            "IsAdmin": true,
+            "CreatedAt": "2025-03-02T17:12:52.036Z",
+            "UpdatedAt": "2025-03-05T04:56:45.788Z"
+        }
+    ]
+}

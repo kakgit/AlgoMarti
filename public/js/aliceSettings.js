@@ -1113,7 +1113,7 @@ function fnLoginStatus(){
   }
   else
   {
-    $('#mdlAppLogin').modal('show');
+    //$('#mdlAppLogin').modal('show');
   }
 }
 

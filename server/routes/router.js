@@ -43,6 +43,16 @@ route.post('/api/tvMsgs/:id', tvMsgsController.fnDelTvMsgById);
 
 route.get('/mngUsers', usersController.fnUsersDefault);
 route.post('/api/actionUsers', usersController.fnActions);
+route.post('/Users/saveUserDetails', usersController.fnSaveUserDetails);
+route.post('/Users/saveAdminDetails', usersController.fnSaveAdminDetails);
+route.post('/Users/getUserDetByEmailPass', usersController.fnGetUserDetByEmailPass);
+route.post('/Users/getUserChangedPwdStatus', usersController.fnGetUserChangedPwd);
+route.post('/Users/deleteUserDetails', usersController.fnDeleteUserDetails);
+route.post('/Users/toggleAdmUserRights', usersController.fnToggleAdmUserRights);
+route.post('/Users/toggleUserActiveState', usersController.fnToggleUserActiveState);
+route.post('/Users/getUserJsonDataById', usersController.fnGetUserJsonDataById);
+route.post('/Users/updateUserJsonDetails', usersController.fnUpdateUserJsonDataById);
+route.get('/Users/getUserJsonData', usersController.fnLoadUserDetFromJson);
 
 //AliceBlue Routes
 route.post("/alice-blue/getSession", abController.fnLoginAliceBlue);

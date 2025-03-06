@@ -20,8 +20,7 @@ let gCurrTSL = 0;
 let gTSLCrossed = false;
 
 window.addEventListener("DOMContentLoaded", function(){
-
-    fnGetSetAppStatus();
+    fnGetSetTraderLoginStatus();
 
     socket.on("c3mh", (pMsg) => {
         let objLiveMsgs = JSON.parse(localStorage.getItem("msgsCI"));
