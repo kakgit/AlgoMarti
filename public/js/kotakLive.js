@@ -563,7 +563,6 @@ function fnGetSetUserProfileData(){
         objRealMargin.value = localStorage.getItem("lsNetLimit");
     }
     else{
-
         objClientId.value = "";
         objMobileNo.value = "";
         objRealMargin.value = 0.00;
@@ -784,7 +783,6 @@ async function fnExecOptionTrade(pBuySel, pOptionType){
                         // console.log(objExcTradeDtls);
                         localStorage.setItem("KotakCurrOptPosiS", objExcTradeDtls);
                         localStorage.setItem("QtyMulR", objNrmlOrdr.data.Quantity);
-                        localStorage.removeItem("TKotak5SecAttr");
 
                         fnGenMessage(objNrmlOrdr.message, `badge bg-${objNrmlOrdr.status}`, "spnGenMsg");
                         fnSetInitOptTrdDtls();
@@ -2050,24 +2048,23 @@ function fnCheckOptBuyingPosition(){
 
     switch(parseInt(objSelSLTP.value)){
     case 0:
-      objTrailSL.innerText = "No T-SL";
-      objOnSL.innerText = "No SL";
-      objOnTP.innerText = "No TP";
-      break;
+        objTrailSL.innerText = "No T-SL";
+        objOnSL.innerText = "No SL";
+        objOnTP.innerText = "No TP";
+        break;
     case 1:
-      objTrailSL.innerText = "No T-SL";
-      objOnSL.innerText = (gDiffSL * gLotSize * gQty).toFixed(2);
-      objOnTP.innerText = (gDiffTP * gLotSize * gQty).toFixed(2);
+        objTrailSL.innerText = "No T-SL";
+        objOnSL.innerText = (gDiffSL * gLotSize * gQty).toFixed(2);
+        objOnTP.innerText = (gDiffTP * gLotSize * gQty).toFixed(2);
 
-      if((parseFloat(vLTP.value) <= gAmtSL) || (parseFloat(vLTP.value) >= gAmtTP)){
+        if((parseFloat(vLTP.value) <= gAmtSL) || (parseFloat(vLTP.value) >= gAmtTP)){
+            fnCloseOptTrade();
+        }
+        else{
+            fnGenMessage("Position is Open, keep watching...", `badge bg-warning`, "spnGenMsg");
+        }
 
-        fnCloseOptTrade();
-      }
-      else{
-        fnGenMessage("Position is Open, keep watching...", `badge bg-warning`, "spnGenMsg");
-      }
-
-      break;
+        break;
     case 2:
         if(!gTSLCrossed){
             gCurrTSL = (parseFloat(gBuyPrice) - parseFloat(gDiffSL)).toFixed(2);
@@ -2133,8 +2130,27 @@ function fnCheckOptBuyingPosition(){
         // default:
         //   code to be executed if n is different from case 1 and 2
     case 4:
-        console.log("no 4")
-      break;        
+        let vLossAmt = Math.abs(parseFloat(localStorage.getItem("TotLossAmtR")) * 2);
+
+        objTrailSL.innerText = "No T-SL";
+        objOnSL.innerText = (gDiffSL * gLotSize * gQty).toFixed(2);
+        objOnTP.innerText = (gDiffTP * gLotSize * gQty).toFixed(2);
+
+        // console.log(vLossAmt);
+        // console.log(vPLVal);
+
+        if((vLossAmt > 0) && (vPLVal >= vLossAmt)){
+            fnClose50PrctOptTrade();
+            // console.log("Exec 50%");
+        }
+        else if((parseFloat(vLTP.value) <= gAmtSL) || (parseFloat(vLTP.value) >= gAmtTP)){
+            fnCloseOptTrade();
+        }
+        else{
+        fnGenMessage("Position is Open, keep watching...", `badge bg-warning`, "spnGenMsg");
+        }
+
+        break;
     }
     // const b = performance.now();
     // console.log('It took ' + (b - a) + ' ms.');
