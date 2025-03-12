@@ -53,6 +53,7 @@ function fnGetSetAllStatus(){
         fnSetRecentDates();
         fnGetSetUserProfileData();
         fnGetNseCashSettings();
+        fnGetOptSettings();
         fnGetIndSymSettings();
         fnSetDefaultLotNos();
         fnLoadDefaultSLTP();
@@ -250,8 +251,8 @@ function fnGetSymb4AutoTrade(pOptionType){
     let objSpot = document.getElementById("hidSpotPrice");
     let objSegment = document.getElementById("hidSegment");
     let objLotSize = document.getElementById("txtOptionLotSize");
-    let objStopLoss = document.getElementById("txtOptionsSL1");
-    let objTakeProfit = document.getElementById("txtOptionsTP1");
+    // let objStopLoss = document.getElementById("txtOptionsSL1");
+    // let objTakeProfit = document.getElementById("txtOptionsTP1");
     let objStrikeInterval = document.getElementById("hidOptStrikeInterval");
     let objSpotOption = document.getElementById("hidSpotOption");
     let objMaxQty = document.getElementById("hidMaxQty");
@@ -265,8 +266,8 @@ function fnGetSymb4AutoTrade(pOptionType){
             vSymName =  gIndData.Symbol[i].SymbolName;
             objSegment.value = gIndData.Symbol[i].Segment;
             objLotSize.value = gIndData.Symbol[i].LotSize;
-            objStopLoss.value = gIndData.Symbol[i].StopLoss;
-            objTakeProfit.value = gIndData.Symbol[i].TakeProfit;
+            // objStopLoss.value = gIndData.Symbol[i].StopLoss;
+            // objTakeProfit.value = gIndData.Symbol[i].TakeProfit;
             objStrikeInterval.value = gIndData.Symbol[i].StrikeInterval;
             objMaxQty.value = gIndData.Symbol[i].MaxLots;
         }
@@ -280,8 +281,8 @@ function fnGetSymb4AutoTrade(pOptionType){
         objSearchSymbol.value = "";
         objSegment.value = "";
         objLotSize.value = "";
-        objStopLoss.value = "";
-        objTakeProfit.value = "";
+        // objStopLoss.value = "";
+        // objTakeProfit.value = "";
         objSpot.value = "";
         objStrikeInterval.value = "";
         objSpotOption.value = "";
@@ -349,6 +350,7 @@ function fnGetSymb4AutoTrade(pOptionType){
 
 function fnClearTraderFields(){
     fnGetNseCashSettings();
+    fnGetOptSettings();
     // fnGetIndSymSettings();
 }
 
@@ -432,8 +434,8 @@ function fnExecSelSymbData(pThisVal){
         let objSpot = document.getElementById("hidSpotPrice");
         let objSegment = document.getElementById("hidSegment");
         let objLotSize = document.getElementById("txtOptionLotSize");
-        let objStopLoss = document.getElementById("txtOptionsSL1");
-        let objTakeProfit = document.getElementById("txtOptionsTP1");
+        // let objStopLoss = document.getElementById("txtOptionsSL1");
+        // let objTakeProfit = document.getElementById("txtOptionsTP1");
         let objStrikeInterval = document.getElementById("hidOptStrikeInterval");
         let objSpotOption = document.getElementById("hidSpotOption");
         let objMaxQty = document.getElementById("hidMaxQty");
@@ -447,8 +449,8 @@ function fnExecSelSymbData(pThisVal){
                 vSymName =  gIndData.Symbol[i].SymbolName;
                 objSegment.value = gIndData.Symbol[i].Segment;
                 objLotSize.value = gIndData.Symbol[i].LotSize;
-                objStopLoss.value = gIndData.Symbol[i].StopLoss;
-                objTakeProfit.value = gIndData.Symbol[i].TakeProfit;
+                // objStopLoss.value = gIndData.Symbol[i].StopLoss;
+                // objTakeProfit.value = gIndData.Symbol[i].TakeProfit;
                 objStrikeInterval.value = gIndData.Symbol[i].StrikeInterval;
                 objMaxQty.value = gIndData.Symbol[i].MaxLots;
             }
@@ -460,8 +462,8 @@ function fnExecSelSymbData(pThisVal){
             objSearchSymbol.value = "";
             objSegment.value = "";
             objLotSize.value = "";
-            objStopLoss.value = "";
-            objTakeProfit.value = "";
+            // objStopLoss.value = "";
+            // objTakeProfit.value = "";
             objSpot.value = "";
             objStrikeInterval.value = "";
             objSpotOption.value = "";
@@ -758,12 +760,18 @@ async function fnExecOptionTrade(pBuySel, pOptionType){
                         let vPerTP = parseFloat(objTakeProfit.value);
 
                         if(gByorSl === "B"){
-                            gAmtSL = (vAvgPrice - ((vAvgPrice * vPerSL)/100)).toFixed(2);
-                            gAmtTP = (vAvgPrice + ((vAvgPrice * vPerTP)/100)).toFixed(2);
+                            // Change for Percentage or Point
+                            // gAmtSL = (vAvgPrice - ((vAvgPrice * vPerSL)/100)).toFixed(2);
+                            // gAmtTP = (vAvgPrice + ((vAvgPrice * vPerTP)/100)).toFixed(2);
+                            gAmtSL = (vAvgPrice - vPerSL).toFixed(2);
+                            gAmtTP = (vAvgPrice + vPerTP).toFixed(2);
                         }
                         else if(gByorSl === "S"){
-                            gAmtSL = (vAvgPrice + ((vAvgPrice * vPerSL)/100)).toFixed(2);
-                            gAmtTP = (vAvgPrice - ((vAvgPrice * vPerTP)/100)).toFixed(2);                                
+                            // Change for Percentage or Point
+                            // gAmtSL = (vAvgPrice + ((vAvgPrice * vPerSL)/100)).toFixed(2);
+                            // gAmtTP = (vAvgPrice - ((vAvgPrice * vPerTP)/100)).toFixed(2);                                
+                            gAmtSL = (vAvgPrice + vPerSL).toFixed(2);
+                            gAmtTP = (vAvgPrice - vPerTP).toFixed(2);                                
                         }
                         else{
                             gAmtSL = 0;
@@ -776,6 +784,9 @@ async function fnExecOptionTrade(pBuySel, pOptionType){
                         objNrmlOrdr.data.EntryDT = vToday;
                         objNrmlOrdr.data.StopLoss = gAmtSL;
                         objNrmlOrdr.data.TakeProfit = gAmtTP;
+                        objNrmlOrdr.data.PointSL = vPerSL;
+                        objNrmlOrdr.data.PointTP = vPerTP;
+
 
                         let vExcTradeDtls = { TradeData: [objNrmlOrdr.data] };
 
@@ -1863,6 +1874,10 @@ function fnSetInitOptTrdDtls(){
     let objProfitLoss = document.getElementById("lblProfitLoss");
     let objLblBP = document.getElementById("lblBuyPriceInd");
     let objLblSP = document.getElementById("lblSellPriceInd");
+
+    let objCurrTradeSL = document.getElementById("txtUpdStopLoss");
+    let objCurrTradeTP = document.getElementById("txtUpdTakeProfit");
+
     gTSLCrossed = false;
     gCurrTSL = 0;
 
@@ -1875,6 +1890,8 @@ function fnSetInitOptTrdDtls(){
         objLotSize.innerText = objCurrPos.TradeData[0].LotSize;
         objQty.innerText = objCurrPos.TradeData[0].Quantity;
 
+        objCurrTradeSL.value = objCurrPos.TradeData[0].PointSL;
+        objCurrTradeTP.value = objCurrPos.TradeData[0].PointTP;
         //Update Later, first check where to change the values
         // if(objTrdVals === null){
 
@@ -2028,6 +2045,47 @@ function fnCheckOptTradeTimer(){
 
         fnGenMessage("Auto Check for Current Price is Off!", `badge bg-danger`, "spnGenMsg");
     }
+}
+
+function fnUpdateOptSLTP(){
+    let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
+    let objCurrSL = document.getElementById("txtUpdStopLoss");
+    let objCurrTP = document.getElementById("txtUpdTakeProfit");
+    let objLTP = document.getElementById("txtCurrentRate");
+
+    if(objCurrPos !== null){
+        if(gByorSl === "B"){
+            // Change for Percentage or Point
+            // gAmtSL = (gBuyPrice - ((gBuyPrice * objCurrSL.value)/100)).toFixed(2);
+            // gAmtTP = (gBuyPrice + ((gBuyPrice * objCurrTP.value)/100)).toFixed(2);
+            gAmtSL = (gBuyPrice - parseInt(objCurrSL.value)).toFixed(2);
+            gAmtTP = (gBuyPrice + parseInt(objCurrTP.value)).toFixed(2);
+        }
+        else if(gByorSl === "S"){
+            // Change for Percentage or Point
+            // gAmtSL = (gBuyPrice + ((gBuyPrice * objCurrSL.value)/100)).toFixed(2);
+            // gAmtTP = (gBuyPrice - ((gBuyPrice * objCurrTP.value)/100)).toFixed(2);                                
+            gAmtSL = (gBuyPrice + parseInt(objCurrSL.value)).toFixed(2);
+            gAmtTP = (gBuyPrice - parseInt(objCurrTP.value)).toFixed(2);                                
+        }
+        else{
+            gAmtSL = 0;
+            gAmtTP = 0;                                
+        }
+
+        objCurrPos.TradeData[0].PointSL = objCurrSL.value;
+        objCurrPos.TradeData[0].PointTP = objCurrTP.value;
+        objCurrPos.TradeData[0].StopLoss = gAmtSL;
+        objCurrPos.TradeData[0].TakeProfit = gAmtTP;
+        objCurrPos.TradeData[0].SellPrice = objLTP.value;
+
+        let objUpdTradeDtls = JSON.stringify(objCurrPos);
+        localStorage.setItem("KotakCurrOptPosiS", objUpdTradeDtls);
+
+        fnSetInitOptTrdDtls();
+        // console.log(localStorage.getItem("KotakCurrOptPosiS"));
+    }
+    // console.log("Buy Price: " + gBuyPrice);
 }
 
 function fnCheckOptBuyingPosition(){

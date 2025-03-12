@@ -490,6 +490,59 @@ function fnSaveProfileDetails(){
     $('#mdlUserProfile').modal('hide');
 }
 
+function fnAddEditOptSLTP(){
+    let objOptSL = document.getElementById("txtOptionsSL");
+    let objOptTP = document.getElementById("txtOptionsTP");
+
+    let objVars = localStorage.getItem("OptVars");
+
+    if (objOptSL.value == "") {
+        fnGenMessage("Please Input Stop loss %", `badge bg-danger`, "spnKotakNeoSettings");
+    }
+    else if (objOptTP.value == "") {
+        fnGenMessage("Please Input Take Profit %", `badge bg-danger`, "spnKotakNeoSettings");
+    }
+    else if ((objVars == null) || (objVars == "")){
+        const vVarsDet = { StopLoss: objOptSL.value, TakeProfit: objOptTP.value };
+        let vFirstItem = JSON.stringify(vVarsDet);
+        localStorage.setItem("OptVars", vFirstItem);
+
+        fnGetOptSettings();
+
+        fnGenMessage("Options SL and TP Added!", `badge bg-success`, "spnKotakNeoSettings");
+    }
+    else{
+        let vExistingData = JSON.parse(objVars);
+        vExistingData.StopLoss = objOptSL.value;
+        vExistingData.TakeProfit = objOptTP.value;
+
+        let vEditedItems = JSON.stringify(vExistingData);
+        localStorage.setItem("OptVars", vEditedItems);
+
+        fnGetOptSettings();
+        fnGenMessage("Options SL and TP Updated.", `badge bg-success`, "spnKotakNeoSettings");
+    }
+}
+
+function fnGetOptSettings(){
+    let objOptSL = document.getElementById("txtOptionsSL");
+    let objOptTP = document.getElementById("txtOptionsTP");
+    let objOptSL1 = document.getElementById("txtOptionsSL1");
+    let objOptTP1 = document.getElementById("txtOptionsTP1");
+
+    let objVars = localStorage.getItem("OptVars");
+
+    if(objVars === null || objVars === "")
+        objVars = JSON.stringify({ StopLoss: 10, TakeProfit: 20 });
+
+    objVars = JSON.parse(objVars);
+
+    objOptSL.value = objVars.StopLoss;
+    objOptTP.value = objVars.TakeProfit;
+    objOptSL1.value = objVars.StopLoss;
+    objOptTP1.value = objVars.TakeProfit;
+}
+
 function fnAddEditNseCashSLTP(){
     let objNseCashSL = document.getElementById("txtNseCashSL");
     let objNseCashTP = document.getElementById("txtNseCashTP");
@@ -553,7 +606,7 @@ function fnGetIndSymSettings(){
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty Bank', SearchSymbol: 'BANKNIFTY', Token: 2, Segment: 'nse_cm', LotSize: 30, MaxLots: 30, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-03-27', '2025-04-24'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty Fin Service', SearchSymbol: 'FINNIFTY', Token: 3, Segment: 'nse_cm', LotSize: 65, MaxLots: 27, StrikeInterval: 50, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-03-27', '2025-04-24'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'NIFTY MID SELECT', SearchSymbol: 'MIDCPNIFTY', Token: 4, Segment: 'nse_cm', LotSize: 120, MaxLots: 23, StrikeInterval: 25, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-03-27', '2025-04-24'] },
-            { JsonFileName: 'bse_idx_opt.json', SymbolName: 'SENSEX', SearchSymbol: 'SENSEX', Token: 5, Segment: 'bse_cm', LotSize: 20, MaxLots: 50, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-03-11', '2025-03-18', '2025-03-25', '2025-04-01', '2025-04-08', '2025-04-15', '2025-04-22', '2025-04-29'] },
+            { JsonFileName: 'bse_idx_opt.json', SymbolName: 'SENSEX', SearchSymbol: 'SENSEX', Token: 5, Segment: 'bse_cm', LotSize: 20, MaxLots: 50, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-03-18', '2025-03-25', '2025-04-01', '2025-04-08', '2025-04-15', '2025-04-22', '2025-04-29'] },
             { JsonFileName: 'bse_idx_opt.json', SymbolName: 'BANKEX', SearchSymbol: 'BANKEX', Token: 6, Segment: 'bse_cm', LotSize: 30, MaxLots: 30, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-03-25', '2025-04-29'] },
         ] };
 

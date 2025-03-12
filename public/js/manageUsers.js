@@ -297,68 +297,6 @@ function fnSaveUserDetails(pAorE){
     }
 }
 
-async function fnAddNewUserDetails(){
-    const vNow = fnGetCurrDate();
-
-    let vHeaders = new Headers();
-    vHeaders.append("Content-Type", "application/json");
-
-    let vAction = JSON.stringify({
-        "action": "aDd",
-        "fullName" : "Anil",
-        "phoneNumber" : "1231231232",
-        "eMailId" : "asds@asad.com",
-        "password" : "aaa",
-        "isActive" : true
-        // "createdAt" : vNow,
-        // "updatedAt" : vNow
-    });
-
-    let requestOptions = {
-        method: 'POST',
-        headers: vHeaders,
-        body: vAction,
-        redirect: 'follow'
-    };
-    
-    //console.log(vAction);
-
-    document.getElementById("divLoading").style.visibility = "visible";
-    
-    //await new Promise(resolve => setTimeout(resolve, 3000));
-
-    fetch("/api/actionUsers", requestOptions)
-        .then(response => response.json())
-        .then(result => {
-            //console.log(result);
-            if(result.status === "success")
-            {
-                fnGetUserData();
-                fnGenMessage(result.message, `badge bg-${result.status}`, "spnGenMessage");
-            }
-            else if(result.status === "danger")
-            {
-                if(result.data.code === 11000)
-                {
-                    fnGenMessage("Email-ID Already exists, Pls Check.", `badge bg-${result.status}`, "spnGenMessage");
-                }
-                else
-                {
-                    fnGenMessage("New Code " + result.message, `badge bg-${result.status}`, "spnGenMessage");
-                }
-            }
-            else
-            {
-                fnGenMessage(result.message, `badge bg-${result.status}`, "spnGenMessage");
-            }
-        })
-        .catch(error => {
-            console.log('error: ', error);
-            fnGenMessage("Error: Unable to Add User Details.", `badge bg-danger`, "spnGenMessage");
-        });
-    document.getElementById("divLoading").style.visibility = "hidden";
-}
-
 function fnDelUserDetails(pRecId){
     if(confirm("Are You Sure, You Want to Delete this Record?"))
     {    

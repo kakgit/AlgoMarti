@@ -1,4 +1,5 @@
 const socket = io();
+var gCaptchaCode;
 
 // $(document).ready(function () {
 //   $("#myInput").on("keyup", function () {
@@ -12,6 +13,33 @@ const socket = io();
 window.addEventListener("DOMContentLoaded", function(){
   fnGetSetAppStatus();
 });
+
+function createCaptcha(pLength){
+  //clear the contents of captcha div first 
+  document.getElementById('divCaptcha').innerHTML = "";
+  var charsArray =
+  "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@!#$%^&*";
+  var lengthOtp = pLength;
+  var captcha = [];
+  for (var i = 0; i < lengthOtp; i++) {
+    //below code will not allow Repetition of Characters
+    var index = Math.floor(Math.random() * charsArray.length + 1); //get the next character from the array
+    if (captcha.indexOf(charsArray[index]) == -1)
+      captcha.push(charsArray[index]);
+    else i--;
+  }
+  var canv = document.createElement("canvas");
+  canv.id = "captcha";
+  canv.width = 100;
+  canv.height = 50;
+  var ctx = canv.getContext("2d");
+  ctx.font = "25px Georgia";
+  ctx.color = ("white");
+  ctx.strokeText(captcha.join(""), 0, 30);
+  //storing captcha so that can validate you can save it somewhere else according to your specific requirements
+  gCaptchaCode = captcha.join("");
+  document.getElementById("divCaptcha").appendChild(canv); // adds the canvas to the body element
+}
 
 function fnGetSetAppStatus(){
   let bAppStatus = localStorage.getItem("AppMsgStatusS");
@@ -49,6 +77,7 @@ function fnGetSetAppStatus(){
 async function fnAppLogin(){
   let objEmailId = document.getElementById("txtLoginEmailId");
   let objPassword = document.getElementById("txtLoginPassword");
+  let objCapcha = document.getElementById("txtCaptcha");
 
   if(objEmailId.value === ""){
     fnGenMessage("Please Input Email ID!", `badge bg-warning`, "spnAppLogin");
@@ -57,6 +86,12 @@ async function fnAppLogin(){
   else if(objPassword.value === ""){
     fnGenMessage("Please Input Password!", `badge bg-warning`, "spnAppLogin");
     objPassword.focus();
+  }
+  else if(objCapcha.value !== gCaptchaCode){
+    fnGenMessage("Invalid Captcha, Re-enter Again!", `badge bg-warning`, "spnAppLogin");
+    objCapcha.value = "";
+    createCaptcha(4);
+    objCapcha.focus();
   }
   else{
     let objUserDet = await fnGetUserDetByEmailPass(objEmailId.value, objPassword.value);
@@ -78,13 +113,114 @@ async function fnAppLogin(){
     }
     else if(objUserDet.status === "warning"){
       fnGenMessage(objUserDet.message, `badge bg-${objUserDet.status}`, "spnAppLogin");
+      objCapcha.value = "";
+      createCaptcha(4);
+
        localStorage.setItem("AppMsgStatusS", false);
    }
     else{
       fnGenMessage(objUserDet.message, `badge bg-${objUserDet.status}`, "spnAppLogin");
+      objCapcha.value = "";
+      createCaptcha(4);
       localStorage.setItem("AppMsgStatusS", false);
     }    
   }
+}
+
+async function fnValidateForgotPassword(){
+  let objEmailId = document.getElementById("txtLoginEmailId");
+  let objCapcha = document.getElementById("txtCaptcha");
+
+  if(objEmailId.value === ""){
+    fnGenMessage("Please Input Email ID!", `badge bg-warning`, "spnAppLogin");
+    objEmailId.focus();
+  }
+  else if(objCapcha.value !== gCaptchaCode){
+    fnGenMessage("Invalid Captcha, Re-enter Again!", `badge bg-warning`, "spnAppLogin");
+    objCapcha.value = "";
+    createCaptcha(4);
+    objCapcha.focus();
+  }
+  else{
+    let vRandomPassword = generatePassword(10);
+
+    let objUserDet = await fnCheckEmailSendPwd(objEmailId.value, vRandomPassword);
+
+    if(objUserDet.status === "success"){
+
+      fnSendEmail(objEmailId.value, vRandomPassword);
+      fnGenMessage(objUserDet.message, `badge bg-${objUserDet.status}`, "spnAppLogin");
+      objCapcha.value = "";
+      createCaptcha(4);
+    }
+  else{
+      fnGenMessage(objUserDet.message, `badge bg-${objUserDet.status}`, "spnAppLogin");
+      objCapcha.value = "";
+      createCaptcha(4);
+      objCapcha.focus();
+    }
+  }
+}
+
+function generatePassword(pLength) {
+  var length = pLength,
+      charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+      retVal = "";
+  for (var i = 0, n = charset.length; i < length; ++i) {
+      retVal += charset.charAt(Math.floor(Math.random() * n));
+  }
+  return retVal;
+}
+
+function fnCheckEmailSendPwd(pEmailId, pRandPwd){
+    const objUserDet = new Promise((resolve, reject) => {
+
+        let vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+
+        let objRequestData = {
+            method: 'POST',
+            headers: vHeaders,
+            body: JSON.stringify({ EmailId: pEmailId, RandPwd: pRandPwd }),
+            redirect: 'follow'
+        };
+
+        fetch("/Users/getEmailSavePwd", objRequestData)
+            .then(objResponse => objResponse.json())
+            .then(objResult => {
+
+                resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });            
+            })
+            .catch(error => {
+                console.log('error: ', error);
+                fnGenMessage("Error in E-Mail ID, Please Check!.", `badge bg-danger`, "spnAppLogin");
+                reject({ "status": "danger", "message": "Error in Sending E-Mail, Contact Admin!", "data": "" });
+            });
+    });
+    return objUserDet;
+}
+
+function fnSendEmail(pEmailId, pRandPwd){
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let objRequestData = {
+        method: 'POST',
+        headers: vHeaders,
+        body: JSON.stringify({ EmailId: pEmailId, RandPwd: pRandPwd }),
+        redirect: 'follow'
+    };
+
+    fetch("/Users/sendPwdByEmail", objRequestData)
+        .then(objResponse => objResponse.json())
+        .then(objResult => {
+
+            fnGenMessage(objResult.message, `badge bg-success`, "spnAppLogin");
+        })
+        .catch(error => {
+            console.log('error: ', error);
+            fnGenMessage("Error in E-Mail ID!.", `badge bg-danger`, "spnAppLogin");
+        });
 }
 
 async function fnSubmitChangePwd(){
@@ -189,6 +325,7 @@ function fnLoginStatus(){
   {
     fnGenMessage("Please Input Login Details!", `badge bg-primary`, "spnAppLogin");
     document.getElementById("txtLoginPassword").value = "";
+    createCaptcha(4);
     $('#mdlAppLogin').modal('show');
   }
 }

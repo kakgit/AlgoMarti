@@ -106,9 +106,28 @@ data-bs-backdrop="false">
                                                     <input type="password" id="txtLoginPassword" class="form-control" value="" />
                                                 </div>
                                             </div>
+                                            <div class="col-md-6 col-6">
+                                                <div class="form-group">
+                                                    <label for="txtCaptcha">Captcha</label>
+                                                    <input type="text" id="txtCaptcha" class="form-control" value="" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-5 col-5">
+                                                <label>&nbsp;</label>
+                                                <div class="form-group">
+                                                    <div id="divCaptcha" style="background-color: aliceblue; padding-left: 30px;">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-1 col-1">
+                                                <label>&nbsp;</label>
+                                                <div>
+                                                    <i class="fa fa-refresh" aria-hidden="true" style="color: orangered; font-weight: bold; font-size: xx-large;" onclick="createCaptcha(4);"></i>
+                                                </div>
+                                            </div>
                                             <div class="col-md-6 col-12">
                                                 <div class="form-group">
-                                                    <a href="javascript: void(null);" class="btn btn-outline-primary"><i class="fa fa-cogs" aria-hidden="true" style="color: orangered;"></i> Forgot Password?</a>
+                                                    <a href="javascript: void(null);" class="btn btn-outline-primary" onclick="fnValidateForgotPassword();"><i class="fa fa-cogs" aria-hidden="true" style="color: orangered;"></i> Forgot Password?</a>
                                                 </div>
                                             </div>
                                         </div>

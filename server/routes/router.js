@@ -53,6 +53,8 @@ route.post('/Users/toggleUserActiveState', usersController.fnToggleUserActiveSta
 route.post('/Users/getUserJsonDataById', usersController.fnGetUserJsonDataById);
 route.post('/Users/updateUserJsonDetails', usersController.fnUpdateUserJsonDataById);
 route.get('/Users/getUserJsonData', usersController.fnLoadUserDetFromJson);
+route.post('/Users/getEmailSavePwd', usersController.fnCheckEmailSavePwd);
+route.post('/Users/sendPwdByEmail', usersController.fnSendPwdByEmail);
 
 //AliceBlue Routes
 route.post("/alice-blue/getSession", abController.fnLoginAliceBlue);

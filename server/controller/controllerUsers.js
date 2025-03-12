@@ -2,6 +2,7 @@ const mdlUsers = require('../model/mdlUsers.js');
 const bcrypt = require("bcryptjs");
 const path = require('path');
 const fs = require('fs');
+const nodemailer = require('nodemailer');
 
 exports.fnUsersDefault = (req, res) => {
 
@@ -419,6 +420,111 @@ exports.fnUpdateUserJsonDataById = async (req, res) => {
     catch (error) {
         res.send({ "status": "danger", "message": error.message, "data": error.data });        
     }
+}
+
+exports.fnCheckEmailSavePwd = async (req, res) => {
+    let vEmailId = req.body.EmailId;
+    let vRandPwd = req.body.RandPwd;
+
+    try {
+        let vUserData = await fnGetUserJsonData();
+        let vIfExists = false;
+
+        if(vUserData.status === "success"){
+            const vHashedPass = await fnGetHashedPassword(vRandPwd);
+            const vNow = new Date();
+
+            vUserData.data.UpdDt = vNow;
+
+            for(let i=0; i<vUserData.data.UserDet.length;i++){
+                if(vUserData.data.UserDet[i].EmailId === vEmailId){
+                    vIfExists = true;
+                    vUserData.data.UserDet[i].Password = vHashedPass;
+                    vUserData.data.UserDet[i].UpdatedAt = vNow;
+                }
+            }
+
+            if(vIfExists){
+                let vSavedData = await fnSaveUserJsonData(vUserData.data);
+
+                if(vSavedData.status === "success"){
+                    res.send({"status": vSavedData.status, "message": "New Password Updated!", "data": "" });
+                }
+                else{
+                    res.send({"status": vSavedData.status, "message": vSavedData.message, "data": ""});
+                }
+            }
+            else{
+                res.send({"status": "warning", "message": "Invalid Email ID, Please Check!", "data": "" });
+            }
+        }
+        else{
+            res.send({"status": vUserData.status, "message": vUserData.message, "data": ""});
+        }
+    }
+    catch (error) {
+        res.send({ "status": "danger", "message": error.message, "data": "" });        
+    }
+}
+
+// const fnGetEmailSentData = async (pEmailId, pRandPwd) => {
+//     return new Promise((resolve, reject) => {
+//         let transporter = nodemailer.createTransport({
+//             service: 'gmail',
+//             auth: {
+//                 user: 'anil.acton@gmail.com',
+//                 pass: 'qzit izge lzxc xphv'
+//             }
+//         });
+//         let mailOptions = {
+//             from: 'anil.acton@gmail.com',
+//             to: pEmailId,
+//             subject: 'Temporarory Password from optionyze',
+//             text: pRandPwd
+//         };
+    
+//         transporter.sendMail(mailOptions, function(error, info){
+//             if (error) {
+//                 console.log(error);
+//                 reject({ "status": "warning", "message": "Error sending E-Mail, Contact Admin!", "data": jsonObj });
+//             }
+//             else {
+//                 console.log('Email sent: ' + info.response);
+//                 resolve({ "status": "success", "message": "Temporary Password Sent, Please Check Your E-Mail!", "data": "" });
+//             }
+//         });
+//     });
+// }
+
+exports.fnSendPwdByEmail = async(req, res) => {
+    let vEmailId = req.body.EmailId;
+    let vRandPwd = req.body.RandPwd;
+
+    let transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'anil.acton@gmail.com',
+            pass: 'qzit izge lzxc xphv'
+        }
+    });
+
+    let mailOptions = {
+        from: 'anil.acton@gmail.com',
+        to: vEmailId,
+        subject: 'Temporarory Password from optionyze',
+        text: vRandPwd
+    };
+
+    transporter.sendMail(mailOptions, function(error, info){
+        if (error) {
+            console.log("error is " + error);
+            res.send({"status": "warning", "message": "Error in Sending Email, Contact Admin!", "data": "" });
+        } 
+        else {
+            console.log('Email sent: ' + info.response);
+            res.send({"status": "success", "message": "New Password Send to E-Mail!", "data": "" });
+        }
+    });
 }
 
 const fnGetUserJsonData = async () => {
