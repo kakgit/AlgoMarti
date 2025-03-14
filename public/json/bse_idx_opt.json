@@ -1,5 +1,5 @@
 {
-    "UpdDt": 1741267541762,
+    "UpdDt": 1741920058920,
     "Symbol": [
         {
             "pSymbol": "1159412",
@@ -38,114 +38,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "859304",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173100PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7310000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859309",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176100CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7610000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859310",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178400CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7840000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859311",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172400CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7240000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859312",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174700CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7470000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859318",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174100PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7410000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859319",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176400PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7640000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859320",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178700PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7870000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859324",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172700PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7270000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "1159465",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -170,18 +62,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "859331",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171000PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7100000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "859335",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -194,42 +74,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "859336",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174000CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7400000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859337",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176300CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7630000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859338",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178600CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7860000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "1159472",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -239,150 +83,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1750789799,
             "pStrikePrice": 7800000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859343",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172600CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7260000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859344",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174900CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7490000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859348",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180300CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8030000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859351",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178000PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7800000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859354",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172000PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7200000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859355",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174300PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7430000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859356",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176600PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7660000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859357",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178900PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7890000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859359",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172900PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7290000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859362",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180600PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8060000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859368",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174200CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7420000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859391",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181200PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8120000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -422,18 +122,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "859420",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180900CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8090000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "1159598",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -443,30 +131,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1861468199,
             "pStrikePrice": 7800000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859469",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180900PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8090000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859496",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181100CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8110000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -482,30 +146,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "859504",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181400PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8140000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859510",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181300CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8130000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "1159651",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -515,78 +155,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1845743399,
             "pStrikePrice": 7800000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859537",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181100PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8110000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859546",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181000CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8100000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859551",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181300PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8130000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859556",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181200CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8120000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859563",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181400CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8140000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859587",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181000PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8100000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -1046,18 +614,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "859673",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181500CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8150000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "864102",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -1355,18 +911,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1743532199,
             "pStrikePrice": 7940000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859702",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181500PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8150000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -11438,18 +10982,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "873991",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170300PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7030000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "873994",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -12194,18 +11726,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "874170",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170300CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7030000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "874171",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -12302,18 +11822,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "874193",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169800CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6980000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "874196",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -12374,18 +11882,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "874206",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170100PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7010000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "874208",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -12431,18 +11927,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1743532199,
             "pStrikePrice": 6980000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "874222",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170000CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7000000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -12518,30 +12002,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "874245",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169600PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6960000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "874250",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170200CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7020000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "874259",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX50",
@@ -12563,18 +12023,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1742927399,
             "pStrikePrice": 7020000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "874262",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169500CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6950000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -12662,18 +12110,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "874276",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169800PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6980000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "874278",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -12708,18 +12144,6 @@
             "pExpiryDate": 1742927399,
             "pStrikePrice": 2260000,
             "MaxPerOrdQty": 1800
-        },
-        {
-            "pSymbol": "874287",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169700CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6970000,
-            "MaxPerOrdQty": 1000
         },
         {
             "pSymbol": "874288",
@@ -12818,30 +12242,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "874307",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169900CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6990000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "874308",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170000PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7000000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "874311",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -12926,18 +12326,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "874332",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170200PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7020000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "874339",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -12946,18 +12334,6 @@
             "pLotSize": 20,
             "pExchange": "BSE",
             "pExpiryDate": 1744136999,
-            "pStrikePrice": 6950000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "874340",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169500PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
             "pStrikePrice": 6950000,
             "MaxPerOrdQty": 1000
         },
@@ -13058,18 +12434,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "874360",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169700PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6970000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "874361",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -13079,18 +12443,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1745951399,
             "pStrikePrice": 6980000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "874369",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169600CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6960000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -13199,18 +12551,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1742927399,
             "pStrikePrice": 7020000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "874384",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169900PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6990000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -13739,18 +13079,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1742322599,
             "pStrikePrice": 7020000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "874505",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170100CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7010000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -22502,18 +21830,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "875980",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168200PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6820000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "875983",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -23138,18 +22454,6 @@
             "MaxPerOrdQty": 1800
         },
         {
-            "pSymbol": "876064",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168400PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6840000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "876066",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -23282,18 +22586,6 @@
             "MaxPerOrdQty": 1800
         },
         {
-            "pSymbol": "876100",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168300CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6830000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "876103",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -23390,18 +22682,6 @@
             "MaxPerOrdQty": 1800
         },
         {
-            "pSymbol": "876128",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168600PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6860000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "876132",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -23436,18 +22716,6 @@
             "pExpiryDate": 1742927399,
             "pStrikePrice": 2220000,
             "MaxPerOrdQty": 1800
-        },
-        {
-            "pSymbol": "876137",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169300CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6930000,
-            "MaxPerOrdQty": 1000
         },
         {
             "pSymbol": "876140",
@@ -24014,18 +23282,6 @@
             "MaxPerOrdQty": 900
         },
         {
-            "pSymbol": "876339",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169100PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6910000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "876343",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -24158,18 +23414,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "876375",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169000CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6900000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "876377",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -24264,18 +23508,6 @@
             "pExpiryDate": 1742927399,
             "pStrikePrice": 2220000,
             "MaxPerOrdQty": 1800
-        },
-        {
-            "pSymbol": "876400",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169300PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6930000,
-            "MaxPerOrdQty": 1000
         },
         {
             "pSymbol": "876401",
@@ -24384,18 +23616,6 @@
             "pExpiryDate": 1742927399,
             "pStrikePrice": 2210000,
             "MaxPerOrdQty": 1800
-        },
-        {
-            "pSymbol": "876427",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169200CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6920000,
-            "MaxPerOrdQty": 1000
         },
         {
             "pSymbol": "876429",
@@ -24576,18 +23796,6 @@
             "pExpiryDate": 1748370599,
             "pStrikePrice": 5130000,
             "MaxPerOrdQty": 900
-        },
-        {
-            "pSymbol": "876496",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169400CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6940000,
-            "MaxPerOrdQty": 1000
         },
         {
             "pSymbol": "876497",
@@ -24842,18 +24050,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "876611",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169000PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6900000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "876612",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -25022,18 +24218,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "876679",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169200PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6920000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "876680",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -25070,18 +24254,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "876689",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168500CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6850000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "876704",
             "pExchSeg": "bse_fo",
             "pSymbolName": "BANKEX",
@@ -25115,18 +24287,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1742322599,
             "pStrikePrice": 6890000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "876714",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169100CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6910000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -25175,18 +24335,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1759256999,
             "pStrikePrice": 6800000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "876727",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168800PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6880000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -25250,18 +24398,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "876756",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531169400PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6940000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "876757",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -25283,18 +24419,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1748370599,
             "pStrikePrice": 6900000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "876771",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168700CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6870000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -25526,18 +24650,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "876860",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168900CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6890000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "876865",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -25634,18 +24746,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "876886",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168300PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6830000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "876889",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -25727,18 +24827,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1742927399,
             "pStrikePrice": 6880000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "876926",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168200CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6820000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -25860,18 +24948,6 @@
             "pExpiryDate": 1745951399,
             "pStrikePrice": 2235000,
             "MaxPerOrdQty": 1800
-        },
-        {
-            "pSymbol": "876964",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168500PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6850000,
-            "MaxPerOrdQty": 1000
         },
         {
             "pSymbol": "876965",
@@ -26222,18 +25298,6 @@
             "MaxPerOrdQty": 1800
         },
         {
-            "pSymbol": "877006",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168400CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6840000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "877010",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -26326,18 +25390,6 @@
             "pLotSize": 20,
             "pExchange": "BSE",
             "pExpiryDate": 1744136999,
-            "pStrikePrice": 6870000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "877042",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168700PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
             "pStrikePrice": 6870000,
             "MaxPerOrdQty": 1000
         },
@@ -26462,18 +25514,6 @@
             "MaxPerOrdQty": 1800
         },
         {
-            "pSymbol": "877080",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168600CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6860000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "877085",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -26566,18 +25606,6 @@
             "pLotSize": 20,
             "pExchange": "BSE",
             "pExpiryDate": 1744136999,
-            "pStrikePrice": 6890000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "877124",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168900PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
             "pStrikePrice": 6890000,
             "MaxPerOrdQty": 1000
         },
@@ -26738,18 +25766,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "877181",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168800CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6880000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "877188",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -26772,18 +25788,6 @@
             "pExpiryDate": 1745951399,
             "pStrikePrice": 2230000,
             "MaxPerOrdQty": 1800
-        },
-        {
-            "pSymbol": "877242",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168100CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6810000,
-            "MaxPerOrdQty": 1000
         },
         {
             "pSymbol": "877247",
@@ -26878,18 +25882,6 @@
             "pLotSize": 20,
             "pExchange": "BSE",
             "pExpiryDate": 1744136999,
-            "pStrikePrice": 6810000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "877294",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168100PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
             "pStrikePrice": 6810000,
             "MaxPerOrdQty": 1000
         },
@@ -29018,18 +28010,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "877811",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168000CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6800000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "877813",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -29675,18 +28655,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1745346599,
             "pStrikePrice": 7190000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "877922",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531168000PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 6800000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -30578,6 +29546,174 @@
             "MaxPerOrdQty": 1000
         },
         {
+            "pSymbol": "878055",
+            "pExchSeg": "bse_fo",
+            "pSymbolName": "SENSEX",
+            "pTrdSymbol": "SENSEX2542279000PE",
+            "pOptionType": "PE",
+            "pLotSize": 20,
+            "pExchange": "BSE",
+            "pExpiryDate": 1745346599,
+            "pStrikePrice": 7900000,
+            "MaxPerOrdQty": 1000
+        },
+        {
+            "pSymbol": "878057",
+            "pExchSeg": "bse_fo",
+            "pSymbolName": "BANKEX",
+            "pTrdSymbol": "BANKEX25MAY59500CE",
+            "pOptionType": "CE",
+            "pLotSize": 30,
+            "pExchange": "BSE",
+            "pExpiryDate": 1748370599,
+            "pStrikePrice": 5950000,
+            "MaxPerOrdQty": 900
+        },
+        {
+            "pSymbol": "878065",
+            "pExchSeg": "bse_fo",
+            "pSymbolName": "SENSEX",
+            "pTrdSymbol": "SENSEX2542279200PE",
+            "pOptionType": "PE",
+            "pLotSize": 20,
+            "pExchange": "BSE",
+            "pExpiryDate": 1745346599,
+            "pStrikePrice": 7920000,
+            "MaxPerOrdQty": 1000
+        },
+        {
+            "pSymbol": "878068",
+            "pExchSeg": "bse_fo",
+            "pSymbolName": "SENSEX",
+            "pTrdSymbol": "SENSEX2542279100CE",
+            "pOptionType": "CE",
+            "pLotSize": 20,
+            "pExchange": "BSE",
+            "pExpiryDate": 1745346599,
+            "pStrikePrice": 7910000,
+            "MaxPerOrdQty": 1000
+        },
+        {
+            "pSymbol": "878072",
+            "pExchSeg": "bse_fo",
+            "pSymbolName": "SENSEX",
+            "pTrdSymbol": "SENSEX2542278800PE",
+            "pOptionType": "PE",
+            "pLotSize": 20,
+            "pExchange": "BSE",
+            "pExpiryDate": 1745346599,
+            "pStrikePrice": 7880000,
+            "MaxPerOrdQty": 1000
+        },
+        {
+            "pSymbol": "878082",
+            "pExchSeg": "bse_fo",
+            "pSymbolName": "SENSEX",
+            "pTrdSymbol": "SENSEX2542278900CE",
+            "pOptionType": "CE",
+            "pLotSize": 20,
+            "pExchange": "BSE",
+            "pExpiryDate": 1745346599,
+            "pStrikePrice": 7890000,
+            "MaxPerOrdQty": 1000
+        },
+        {
+            "pSymbol": "878085",
+            "pExchSeg": "bse_fo",
+            "pSymbolName": "BANKEX",
+            "pTrdSymbol": "BANKEX25MAY59500PE",
+            "pOptionType": "PE",
+            "pLotSize": 30,
+            "pExchange": "BSE",
+            "pExpiryDate": 1748370599,
+            "pStrikePrice": 5950000,
+            "MaxPerOrdQty": 900
+        },
+        {
+            "pSymbol": "878109",
+            "pExchSeg": "bse_fo",
+            "pSymbolName": "SENSEX",
+            "pTrdSymbol": "SENSEX2542278900PE",
+            "pOptionType": "PE",
+            "pLotSize": 20,
+            "pExchange": "BSE",
+            "pExpiryDate": 1745346599,
+            "pStrikePrice": 7890000,
+            "MaxPerOrdQty": 1000
+        },
+        {
+            "pSymbol": "878115",
+            "pExchSeg": "bse_fo",
+            "pSymbolName": "SENSEX",
+            "pTrdSymbol": "SENSEX2542278800CE",
+            "pOptionType": "CE",
+            "pLotSize": 20,
+            "pExchange": "BSE",
+            "pExpiryDate": 1745346599,
+            "pStrikePrice": 7880000,
+            "MaxPerOrdQty": 1000
+        },
+        {
+            "pSymbol": "878128",
+            "pExchSeg": "bse_fo",
+            "pSymbolName": "SENSEX",
+            "pTrdSymbol": "SENSEX2542279300CE",
+            "pOptionType": "CE",
+            "pLotSize": 20,
+            "pExchange": "BSE",
+            "pExpiryDate": 1745346599,
+            "pStrikePrice": 7930000,
+            "MaxPerOrdQty": 1000
+        },
+        {
+            "pSymbol": "878144",
+            "pExchSeg": "bse_fo",
+            "pSymbolName": "SENSEX",
+            "pTrdSymbol": "SENSEX2542279100PE",
+            "pOptionType": "PE",
+            "pLotSize": 20,
+            "pExchange": "BSE",
+            "pExpiryDate": 1745346599,
+            "pStrikePrice": 7910000,
+            "MaxPerOrdQty": 1000
+        },
+        {
+            "pSymbol": "878147",
+            "pExchSeg": "bse_fo",
+            "pSymbolName": "SENSEX",
+            "pTrdSymbol": "SENSEX2542279000CE",
+            "pOptionType": "CE",
+            "pLotSize": 20,
+            "pExchange": "BSE",
+            "pExpiryDate": 1745346599,
+            "pStrikePrice": 7900000,
+            "MaxPerOrdQty": 1000
+        },
+        {
+            "pSymbol": "878152",
+            "pExchSeg": "bse_fo",
+            "pSymbolName": "SENSEX",
+            "pTrdSymbol": "SENSEX2542279300PE",
+            "pOptionType": "PE",
+            "pLotSize": 20,
+            "pExchange": "BSE",
+            "pExpiryDate": 1745346599,
+            "pStrikePrice": 7930000,
+            "MaxPerOrdQty": 1000
+        },
+        {
+            "pSymbol": "878159",
+            "pExchSeg": "bse_fo",
+            "pSymbolName": "SENSEX",
+            "pTrdSymbol": "SENSEX2542279200CE",
+            "pOptionType": "CE",
+            "pLotSize": 20,
+            "pExchange": "BSE",
+            "pExpiryDate": 1745346599,
+            "pStrikePrice": 7920000,
+            "MaxPerOrdQty": 1000
+        },
+        {
             "pSymbol": "883048",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -30890,18 +30026,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "860023",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170500CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7050000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "860034",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -30947,18 +30071,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1742927399,
             "pStrikePrice": 7040000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "860069",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170700CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7070000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -31046,18 +30158,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "860182",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170500PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7050000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "855703",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -31106,18 +30206,6 @@
             "MaxPerOrdQty": 900
         },
         {
-            "pSymbol": "860210",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170400CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7040000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "860221",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -31127,18 +30215,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1742927399,
             "pStrikePrice": 7040000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "860229",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170700PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7070000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -31490,18 +30566,6 @@
             "MaxPerOrdQty": 1800
         },
         {
-            "pSymbol": "860587",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170600CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7060000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "860626",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -31562,18 +30626,6 @@
             "MaxPerOrdQty": 1800
         },
         {
-            "pSymbol": "860701",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170400PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7040000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "860707",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX50",
@@ -31595,18 +30647,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1877192999,
             "pStrikePrice": 8400000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "860752",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170600PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7060000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -40538,18 +39578,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "861988",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181600CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8160000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "861991",
             "pExchSeg": "bse_fo",
             "pSymbolName": "BANKEX",
@@ -40790,18 +39818,6 @@
             "MaxPerOrdQty": 900
         },
         {
-            "pSymbol": "862002",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181800CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8180000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "862028",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX50",
@@ -40812,18 +39828,6 @@
             "pExpiryDate": 1745951399,
             "pStrikePrice": 2530000,
             "MaxPerOrdQty": 1800
-        },
-        {
-            "pSymbol": "862031",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181600PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8160000,
-            "MaxPerOrdQty": 1000
         },
         {
             "pSymbol": "862032",
@@ -40862,30 +39866,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "862043",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181800PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8180000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "862051",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181700CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8170000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "862054",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -40919,18 +39899,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1745951399,
             "pStrikePrice": 8160000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "862088",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181700PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8170000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -40982,18 +39950,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "862126",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182200PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8220000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "862133",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -41006,18 +39962,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "862134",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182100CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8210000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "862137",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -41027,18 +39971,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1745951399,
             "pStrikePrice": 8220000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "862143",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182400PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8240000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -41064,18 +39996,6 @@
             "pExpiryDate": 1745951399,
             "pStrikePrice": 6010000,
             "MaxPerOrdQty": 900
-        },
-        {
-            "pSymbol": "862152",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182300CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8230000,
-            "MaxPerOrdQty": 1000
         },
         {
             "pSymbol": "862153",
@@ -41114,18 +40034,6 @@
             "MaxPerOrdQty": 900
         },
         {
-            "pSymbol": "862165",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182500CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8250000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "862174",
             "pExchSeg": "bse_fo",
             "pSymbolName": "BANKEX",
@@ -41147,18 +40055,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1745951399,
             "pStrikePrice": 8200000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "862193",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182100PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8210000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -41198,18 +40094,6 @@
             "MaxPerOrdQty": 1800
         },
         {
-            "pSymbol": "862202",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182000CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8200000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "862203",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -41219,18 +40103,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1745951399,
             "pStrikePrice": 8210000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "862207",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182300PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8230000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -41270,18 +40142,6 @@
             "MaxPerOrdQty": 1800
         },
         {
-            "pSymbol": "862218",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182200CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8220000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "862219",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -41291,30 +40151,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1745951399,
             "pStrikePrice": 8230000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "862220",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181900PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8190000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "862224",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182500PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8250000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -41400,18 +40236,6 @@
             "pExpiryDate": 1745951399,
             "pStrikePrice": 2540000,
             "MaxPerOrdQty": 1800
-        },
-        {
-            "pSymbol": "862254",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182000PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8200000,
-            "MaxPerOrdQty": 1000
         },
         {
             "pSymbol": "862256",
@@ -41558,18 +40382,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "862312",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531181900CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8190000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "862317",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -41627,18 +40439,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1742322599,
             "pStrikePrice": 8250000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "862351",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182400CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8240000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -41760,18 +40560,6 @@
             "pExpiryDate": 1745951399,
             "pStrikePrice": 6060000,
             "MaxPerOrdQty": 900
-        },
-        {
-            "pSymbol": "862989",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182800CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8280000,
-            "MaxPerOrdQty": 1000
         },
         {
             "pSymbol": "862990",
@@ -41954,18 +40742,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "863021",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182600PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8260000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "863022",
             "pExchSeg": "bse_fo",
             "pSymbolName": "BANKEX",
@@ -42038,18 +40814,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "863039",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182800PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8280000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "863042",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -42084,18 +40848,6 @@
             "pExpiryDate": 1745951399,
             "pStrikePrice": 6050000,
             "MaxPerOrdQty": 900
-        },
-        {
-            "pSymbol": "863052",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182700CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8270000,
-            "MaxPerOrdQty": 1000
         },
         {
             "pSymbol": "863054",
@@ -42242,18 +40994,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "863093",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531183200CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8320000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "863096",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX50",
@@ -42302,18 +41042,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "863100",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531183500PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8350000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "863101",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -42335,18 +41063,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1745951399,
             "pStrikePrice": 8280000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "863106",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531183400CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8340000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -42398,18 +41114,6 @@
             "MaxPerOrdQty": 1800
         },
         {
-            "pSymbol": "863118",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531183600CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8360000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "863122",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -42419,18 +41123,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1742322599,
             "pStrikePrice": 8310000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "863123",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531183000PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8300000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -42455,18 +41147,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1745951399,
             "pStrikePrice": 8300000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "863133",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531183200PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8320000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -42518,18 +41198,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "863144",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531183100CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8310000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "863145",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -42552,18 +41220,6 @@
             "pExpiryDate": 1745951399,
             "pStrikePrice": 2570000,
             "MaxPerOrdQty": 1800
-        },
-        {
-            "pSymbol": "863151",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531183400PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8340000,
-            "MaxPerOrdQty": 1000
         },
         {
             "pSymbol": "863153",
@@ -42602,18 +41258,6 @@
             "MaxPerOrdQty": 900
         },
         {
-            "pSymbol": "863158",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531183300CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8330000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "863159",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -42636,42 +41280,6 @@
             "pExpiryDate": 1745951399,
             "pStrikePrice": 6100000,
             "MaxPerOrdQty": 900
-        },
-        {
-            "pSymbol": "863166",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531183600PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8360000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "863168",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182900CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8290000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "863172",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531183500CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8350000,
-            "MaxPerOrdQty": 1000
         },
         {
             "pSymbol": "863173",
@@ -42746,18 +41354,6 @@
             "MaxPerOrdQty": 900
         },
         {
-            "pSymbol": "863190",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531183100PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8310000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "863191",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -42779,18 +41375,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1742322599,
             "pStrikePrice": 8280000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "863197",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531183000CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8300000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -42818,30 +41402,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "863200",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182700PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8270000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "863204",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531183300PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8330000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "863205",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -42864,18 +41424,6 @@
             "pExpiryDate": 1745951399,
             "pStrikePrice": 6040000,
             "MaxPerOrdQty": 900
-        },
-        {
-            "pSymbol": "863214",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182600CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8260000,
-            "MaxPerOrdQty": 1000
         },
         {
             "pSymbol": "863216",
@@ -42914,66 +41462,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "863223",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531182900PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8290000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858835",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176500CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7650000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858836",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178800CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7880000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858840",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172800CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7280000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858841",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180500CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8050000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "858845",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -42983,66 +41471,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1877192999,
             "pStrikePrice": 7900000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858851",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178200PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7820000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858853",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172200PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7220000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858854",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174500PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7450000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858856",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176800PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7680000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858859",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170800PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7080000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -43058,222 +41486,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "858865",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180800PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8080000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858870",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178100CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7810000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858873",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172100CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7210000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858874",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174400CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7440000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858875",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176700CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7670000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858881",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180700CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8070000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858885",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176100PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7610000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858886",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178400PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7840000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858888",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172400PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7240000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858889",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174700PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7470000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858892",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180100PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8010000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858901",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176000CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7600000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858902",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178300CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7830000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858904",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172300CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7230000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858905",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174600CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7460000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858906",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176900CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7690000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858907",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170900CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7090000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858909",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180000CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8000000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "858917",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -43286,126 +41498,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "858918",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174000PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7400000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858919",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176300PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7630000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858920",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178600PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7860000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858922",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172600PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7260000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858923",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174900PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7490000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858924",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179300CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7930000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858927",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175600CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7560000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858928",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177900CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7790000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858930",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180300PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8030000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858934",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171900CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7190000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "858940",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -43415,258 +41507,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1742927399,
             "pStrikePrice": 7080000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858941",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176200CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7620000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858942",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178500CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7850000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858944",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172500CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7250000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858945",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174800CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7480000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858949",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180200CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8020000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858953",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174200PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7420000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858954",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176500PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7650000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858955",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178800PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7880000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858958",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172800PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7280000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858959",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177200CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7720000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858960",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179500CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7950000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858962",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173500CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7350000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858964",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175800CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7580000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858966",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180500PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8050000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858976",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174100CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7410000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858977",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179800PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7980000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858984",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180400CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8040000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858994",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178100PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7810000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858996",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172100PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7210000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858998",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174400PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7440000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "858999",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176700PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7670000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -45842,342 +43682,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "859001",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175100CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7510000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859002",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177400CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7740000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859003",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179700CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7970000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859004",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171400CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7140000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859005",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173700CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7370000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859006",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180700PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8070000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859012",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179100PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7910000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859015",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172000CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7200000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859016",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175400PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7540000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859017",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177700PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7770000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859019",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171700PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7170000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859022",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180600CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8060000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859025",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176000PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7600000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859026",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172300PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7230000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859028",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179000CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7900000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859031",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173000CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7300000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859032",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175300CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7530000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859033",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177600CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7760000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859034",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179900CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7990000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859035",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180000PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8000000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859038",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171600CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7160000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859039",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173900CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7390000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859044",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177000PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7700000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859046",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179300PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7930000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859049",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173300PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7330000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859050",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175600PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7560000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859052",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177900PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7790000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859054",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171900PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7190000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "859055",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -46187,78 +43691,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1742927399,
             "pStrikePrice": 7080000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859057",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179200CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7920000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859060",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173200CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7320000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859061",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175500CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7550000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859063",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177800CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7780000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859064",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180200PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8020000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859065",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171800CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7180000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -46274,102 +43706,6 @@
             "MaxPerOrdQty": 1800
         },
         {
-            "pSymbol": "859070",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177200PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7720000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859071",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179500PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7950000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859072",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171200PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7120000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859073",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173500PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7350000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859074",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175800PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7580000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859076",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180100CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8010000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859082",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177100CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7710000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859083",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179400CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7940000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "859086",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX50",
@@ -46380,54 +43716,6 @@
             "pExpiryDate": 1742927399,
             "pStrikePrice": 2315000,
             "MaxPerOrdQty": 1800
-        },
-        {
-            "pSymbol": "859087",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171100CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7110000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859088",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173400CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7340000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859089",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175700CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7570000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859091",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180400PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8040000,
-            "MaxPerOrdQty": 1000
         },
         {
             "pSymbol": "840925",
@@ -46490,66 +43778,6 @@
             "MaxPerOrdQty": 1800
         },
         {
-            "pSymbol": "859102",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175100PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7510000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859103",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177400PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7740000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859104",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179700PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7970000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859105",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171400PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7140000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859106",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173700PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7370000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "859114",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -46559,162 +43787,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1742927399,
             "pStrikePrice": 7100000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859118",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175000CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7500000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859119",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177300CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7730000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859120",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179600CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7960000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859122",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171300CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7130000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859124",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173600CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7360000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859125",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175900CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7590000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859130",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179000PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7900000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859132",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173000PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7300000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859133",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175300PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7530000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859134",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177600PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7760000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859135",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179900PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7990000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859139",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171600PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7160000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859140",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173900PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7390000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -46730,126 +43802,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "859150",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175200CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7520000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859153",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177500CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7750000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859154",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179800CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7980000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859155",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171500CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7150000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859156",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173800CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7380000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859163",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179200PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7920000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859166",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173200PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7320000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859167",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175500PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7550000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859168",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177800PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7780000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859170",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171800PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7180000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "859173",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX50",
@@ -46862,198 +43814,6 @@
             "MaxPerOrdQty": 1800
         },
         {
-            "pSymbol": "859182",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179100CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7910000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859183",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173100CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7310000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859185",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175400CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7540000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859187",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177700CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7770000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859189",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171700CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7170000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859195",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177100PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7710000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859196",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179400PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7940000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859199",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171100PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7110000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859200",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173400PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7340000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859201",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175700PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7570000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859204",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176400CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7640000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859205",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178700CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7870000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859209",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172700CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7270000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859216",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177000CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7700000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859218",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171000CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7100000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859219",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173300CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7330000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "859224",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -47063,90 +43823,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1742927399,
             "pStrikePrice": 7100000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859226",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175000PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7500000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859227",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177300PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7730000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859228",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531179600PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7960000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859231",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171300PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7130000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859233",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173600PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7360000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859234",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175900PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7590000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859235",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178000CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7800000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -47162,114 +43838,6 @@
             "MaxPerOrdQty": 1000
         },
         {
-            "pSymbol": "859241",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174300CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7430000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859242",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176600CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7660000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859243",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178900CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7890000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859248",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172900CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7290000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859255",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178300PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7830000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859256",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171200CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7120000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859257",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174600PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7460000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859258",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176900PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7690000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859260",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170900PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7090000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "859266",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -47279,66 +43847,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1742927399,
             "pStrikePrice": 7120000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859270",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531175200PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7520000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859271",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531177500PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7750000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859273",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531171500PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7150000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859274",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531173800PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7380000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859275",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178200CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7820000,
             "MaxPerOrdQty": 1000
         },
         {
@@ -47354,54 +43862,6 @@
             "MaxPerOrdQty": 1800
         },
         {
-            "pSymbol": "859278",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172200CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7220000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859279",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174500CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7450000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859280",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176800CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7680000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859283",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531170800CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7080000,
-            "MaxPerOrdQty": 1000
-        },
-        {
             "pSymbol": "859287",
             "pExchSeg": "bse_fo",
             "pSymbolName": "SENSEX",
@@ -47411,66 +43871,6 @@
             "pExchange": "BSE",
             "pExpiryDate": 1742927399,
             "pStrikePrice": 7110000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859288",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531180800CE",
-            "pOptionType": "CE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 8080000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859290",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531176200PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7620000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859291",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531178500PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7850000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859296",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531172500PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7250000,
-            "MaxPerOrdQty": 1000
-        },
-        {
-            "pSymbol": "859297",
-            "pExchSeg": "bse_fo",
-            "pSymbolName": "SENSEX",
-            "pTrdSymbol": "SENSEX2531174800PE",
-            "pOptionType": "PE",
-            "pLotSize": 20,
-            "pExchange": "BSE",
-            "pExpiryDate": 1741717799,
-            "pStrikePrice": 7480000,
             "MaxPerOrdQty": 1000
         }
     ]
