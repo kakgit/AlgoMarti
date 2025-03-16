@@ -2394,7 +2394,7 @@ function fnInitClsOptPaperTrade(pQty){
         let objKotakSession = document.getElementById("txtKotakSession");
         let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
         let objLTP = document.getElementById("txtCurrentRate");
-        let vToClsQty = 0;
+        let vToClsQty, vCharges = 0;
         let vToCntuQty = parseInt(objCurrPos.TradeData[0].Quantity) - parseInt(pQty);
 
         if(pQty === 0){
@@ -2423,17 +2423,18 @@ function fnInitClsOptPaperTrade(pQty){
         objCurrPos.TradeData[0].SellPrice = objLTP.value;
 
         let vPL = ((parseFloat(objCurrPos.TradeData[0].SellPrice) - parseFloat(objCurrPos.TradeData[0].BuyPrice)) * parseFloat(vToClsQty) * parseFloat(objCurrPos.TradeData[0].LotSize)).toFixed(2);
+        vCharges = fnCalcTradeCharges(objCurrPos.TradeData[0].BuyPrice, objCurrPos.TradeData[0].SellPrice, vToClsQty, objCurrPos.TradeData[0].LotSize);
 
         if (objTodayTrades === null || objTodayTrades === ""){
             objTodayTrades = {
-                TradeList: [{ TradeID: objCurrPos.TradeData[0].TradeID, ClientID: objCurrPos.TradeData[0].ClientID, Symbol: objCurrPos.TradeData[0].SearchSymbol, Expiry: objCurrPos.TradeData[0].Expiry, Strike: objCurrPos.TradeData[0].Strike, OptionType: objCurrPos.TradeData[0].OptionType, Quantity: vToClsQty, LotSize: objCurrPos.TradeData[0].LotSize, BuyPrice: objCurrPos.TradeData[0].BuyPrice, SellPrice: objCurrPos.TradeData[0].SellPrice, ProfitLoss: vPL, StopLoss: objCurrPos.TradeData[0].StopLoss, TakeProfit: objCurrPos.TradeData[0].TakeProfit, EntryDT: objCurrPos.TradeData[0].EntryDT, ExitDT: vToday, IsRealTrade: objCurrPos.TradeData[0].IsRealTrade }]
+                TradeList: [{ TradeID: objCurrPos.TradeData[0].TradeID, ClientID: objCurrPos.TradeData[0].ClientID, Symbol: objCurrPos.TradeData[0].SearchSymbol, Expiry: objCurrPos.TradeData[0].Expiry, Strike: objCurrPos.TradeData[0].Strike, OptionType: objCurrPos.TradeData[0].OptionType, Quantity: vToClsQty, LotSize: objCurrPos.TradeData[0].LotSize, BuyPrice: objCurrPos.TradeData[0].BuyPrice, SellPrice: objCurrPos.TradeData[0].SellPrice, ProfitLoss: vPL, Charges: vCharges, StopLoss: objCurrPos.TradeData[0].StopLoss, TakeProfit: objCurrPos.TradeData[0].TakeProfit, EntryDT: objCurrPos.TradeData[0].EntryDT, ExitDT: vToday, IsRealTrade: objCurrPos.TradeData[0].IsRealTrade }]
             };
             objTodayTrades = JSON.stringify(objTodayTrades);
             localStorage.setItem("OptTradesListS", objTodayTrades);
         }
         else{
             let vExistingData = JSON.parse(objTodayTrades);
-            vExistingData.TradeList.push({ TradeID: objCurrPos.TradeData[0].TradeID, ClientID: objCurrPos.TradeData[0].ClientID, Symbol: objCurrPos.TradeData[0].SearchSymbol, Expiry: objCurrPos.TradeData[0].Expiry, Strike: objCurrPos.TradeData[0].Strike, OptionType: objCurrPos.TradeData[0].OptionType, Quantity: vToClsQty, LotSize: objCurrPos.TradeData[0].LotSize, BuyPrice: objCurrPos.TradeData[0].BuyPrice, SellPrice: objCurrPos.TradeData[0].SellPrice, ProfitLoss: vPL, StopLoss: objCurrPos.TradeData[0].StopLoss, TakeProfit: objCurrPos.TradeData[0].TakeProfit, EntryDT: objCurrPos.TradeData[0].EntryDT, ExitDT: vToday, IsRealTrade: objCurrPos.TradeData[0].IsRealTrade });
+            vExistingData.TradeList.push({ TradeID: objCurrPos.TradeData[0].TradeID, ClientID: objCurrPos.TradeData[0].ClientID, Symbol: objCurrPos.TradeData[0].SearchSymbol, Expiry: objCurrPos.TradeData[0].Expiry, Strike: objCurrPos.TradeData[0].Strike, OptionType: objCurrPos.TradeData[0].OptionType, Quantity: vToClsQty, LotSize: objCurrPos.TradeData[0].LotSize, BuyPrice: objCurrPos.TradeData[0].BuyPrice, SellPrice: objCurrPos.TradeData[0].SellPrice, ProfitLoss: vPL, Charges: vCharges, StopLoss: objCurrPos.TradeData[0].StopLoss, TakeProfit: objCurrPos.TradeData[0].TakeProfit, EntryDT: objCurrPos.TradeData[0].EntryDT, ExitDT: vToday, IsRealTrade: objCurrPos.TradeData[0].IsRealTrade });
             let vAddNewItem = JSON.stringify(vExistingData);
             localStorage.setItem("OptTradesListS", vAddNewItem);
         }
@@ -2452,12 +2453,36 @@ function fnInitClsOptPaperTrade(pQty){
             localStorage.setItem("KotakCurrOptPosiS", JSON.stringify(objCurrPos));
         }
 
-        fnSetNextOptTradeSettings(objLTP.value, vToClsQty);
+        fnSetNextOptTradeSettings(objLTP.value, vToClsQty, vCharges);
         fnSetTodayOptTradeDetails();
 
         resolve({ "status": "success", "message": "Option Paper Trade Closed Successfully!", "data": "" });
     });
     return objClsTrd;
+}
+
+function fnCalcTradeCharges(pBuyPrice, pSellPrice, pClsQty, pLotSize){
+    let vAmtBuy = parseFloat(pBuyPrice) * parseInt(pClsQty) * parseInt(pLotSize);
+    let vAmtSell = parseFloat(pSellPrice) * parseInt(pClsQty) * parseInt(pLotSize);
+    let vTurnOver = vAmtBuy + vAmtSell;
+    let vPrctSTT = 0.1 / 100;
+    let vPrctSebiTO = 0.0001 / 100;
+    let vPrctTransChr = 0.03503 / 100;
+    let vPrctGST = 18 / 100;
+    let vPrctStmpDuty = 0.003 / 100;
+    let vAmtBrokerage, vAmtSTT, vAmtSebiTO, vAmtTransChr, vAmtGST, vAmtStmpDuty, vAmtTotalCharges = 0;
+
+    vAmtBrokerage = 20;
+    vAmtSTT = parseFloat(vAmtSell) * vPrctSTT;
+    vAmtSebiTO = vTurnOver * vPrctSebiTO;
+    vAmtTransChr = vTurnOver * vPrctTransChr;
+    vAmtGST = (vAmtBrokerage + vAmtSebiTO + vAmtTransChr) * vPrctGST;
+    vAmtStmpDuty = vAmtBuy * vPrctStmpDuty;
+
+    vAmtTotalCharges = vAmtBrokerage + vAmtSTT + vAmtSebiTO + vAmtTransChr + vAmtGST + vAmtStmpDuty;
+    //console.log("Charges: " + vAmtTotalCharges);
+
+    return (vAmtTotalCharges).toFixed(2);
 }
 
 function fnInitClsOptRealTrade(pQty){
@@ -2562,7 +2587,7 @@ function fnInitClsOptRealTrade(pQty){
     // clearInterval(gStreamInst);
 
     localStorage.removeItem("KotakCurrOptPosiS");
-    fnSetNextOptTradeSettings(objLTP.value);
+    fnSetNextOptTradeSettings(objLTP.value, pQty);
     fnResetOpenPositionDetails();
     resumeandpause('cp', '1');
     fnSetTodayOptTradeDetails();
@@ -2573,7 +2598,7 @@ function fnInitClsOptRealTrade(pQty){
     console.log("CurrPos: " + localStorage.getItem("KotakCurrOptPosiS"));
 }
 
-function fnSetNextOptTradeSettings(pAvgPrice, pQty){
+function fnSetNextOptTradeSettings(pAvgPrice, pQty, pCharges){
     let objQty = document.getElementById("txtOptionsQty");
     let vOldLossAmt = localStorage.getItem("TotLossAmtR");
     let vOldQtyMul = localStorage.getItem("QtyMulR");
@@ -2605,7 +2630,7 @@ function fnSetNextOptTradeSettings(pAvgPrice, pQty){
     console.log("A-PL: " + vAmtPL);
     console.log("Old Loss Amt: " + vOldLossAmt);
 
-    let vNewLossAmt = parseFloat(vOldLossAmt) + parseFloat(vAmtPL);
+    let vNewLossAmt = parseFloat(vOldLossAmt) + parseFloat(vAmtPL) - parseFloat(pCharges);
 
     console.log("New Loss Amt: " + vNewLossAmt);
 
@@ -2653,6 +2678,9 @@ function fnSetTodayOptTradeDetails(){
         let vTempHtml = "";
         let vJsonData = JSON.parse(objTodayTrades);
         let vNetProfit = 0;
+        let vNoOfTrades = 0;
+        let vPrevCapital = 0;
+        let vCharges = 0;
 
         for (let i = 0; i < vJsonData.TradeList.length; i++) {
             vTempHtml += '<tr>';
@@ -2665,15 +2693,24 @@ function fnSetTodayOptTradeDetails(){
             vTempHtml += '<td style="text-wrap: nowrap; text-align:right;">' + vJsonData.TradeList[i].Quantity + '</td>';
             vTempHtml += '<td style="text-wrap: nowrap; color:green;text-align:right;">' + vJsonData.TradeList[i].BuyPrice + '</td>';
             vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + vJsonData.TradeList[i].SellPrice + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + vJsonData.TradeList[i].Charges + '</td>';
 
             let vCapital = vJsonData.TradeList[i].LotSize * vJsonData.TradeList[i].Quantity * vJsonData.TradeList[i].BuyPrice;
-            vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (vCapital).toFixed(2) + '</td>';
-            vTempHtml += '<td style="text-wrap: nowrap; font-weight:bold;text-align:right;">' + vJsonData.TradeList[i].ProfitLoss + '</td>';
 
-            vNetProfit += parseFloat(vJsonData.TradeList[i].ProfitLoss);
+            if(vCapital > vPrevCapital){
+                vPrevCapital = vCapital;
+            }
+            vCharges += parseFloat(vJsonData.TradeList[i].Charges);
+            let vTradePL = parseFloat(vJsonData.TradeList[i].ProfitLoss) - parseFloat(vJsonData.TradeList[i].Charges);
+
+            vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (vCapital).toFixed(2) + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap; font-weight:bold;text-align:right;">' + (vTradePL).toFixed(2) + '</td>';
+
+            vNetProfit += vTradePL;
+            vNoOfTrades += 1;
             vTempHtml += '</tr>';
         }
-        vTempHtml += '<tr><td colspan="8" Style="text-align:right;font-weight:bold;color:orange;">NET PROFIT & LOSS</td><td></td><td style="font-weight:bold;text-align:right;color:orange;">' + (vNetProfit).toFixed(2) + '</td></tr>';
+        vTempHtml += '<tr><td>Total Trades</td><td>'+ vNoOfTrades +'</td><td colspan="6"></td><td Style="text-align:right;font-weight:bold;color:red;">'+ (vCharges).toFixed(2) +'</td><td Style="text-align:right;font-weight:bold;color:orange;">'+ (vPrevCapital).toFixed(2) +'</td><td style="font-weight:bold;text-align:right;color:orange;">' + (vNetProfit).toFixed(2) + '</td></tr>';
 
         objTodayTradeList.innerHTML = vTempHtml;
     }
