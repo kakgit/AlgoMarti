@@ -1,6 +1,6 @@
 function connectHsm(token, sid)
 {
-    let url = "wss://mlhsm.kotaksecurities.com"; <!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
+    let url = "wss://mlhsm.kotaksecurities.com"; //<!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
     userWS = new HSWebSocket(url);
     console.log(document.getElementById('channel_number').value)
 
@@ -47,7 +47,7 @@ function subscribe_scrip(typeRequest,scrips,channel_number)
 
 function connectHsi(token,sid,handshakeServerId)
 {
-    let url = "wss://mlhsi.kotaksecurities.com/realtime?sId="+handshakeServerId;  <!--qhsiftws.kotaksecurities.online(b2b),qhsi.kotaksecurities.online/realtime  -->
+    let url = "wss://mlhsi.kotaksecurities.com/realtime?sId="+handshakeServerId;  //<!--qhsiftws.kotaksecurities.online(b2b),qhsi.kotaksecurities.online/realtime  -->
     hsWs = new HSIWebSocket(url);
 
     hsWs.onopen = function () {

@@ -81,7 +81,7 @@ function fnSet50PrctQty(){
     let objBtn50Prct = document.getElementById("btn50PerClose");
 
     if(objCurrPos !== null || objCurrPos !== ""){
-        if(objCurrPos.TradeData[0].Quantity >= 4){
+        if(objCurrPos.TradeData[0].Quantity >= 2){
             objBtn50Prct.disabled = false;
         }
         else{
@@ -2194,11 +2194,11 @@ function fnCheckOptBuyingPosition(){
         objOnSL.innerText = (gDiffSL * gLotSize * gQty).toFixed(2);
         objOnTP.innerText = (gDiffTP * gLotSize * gQty).toFixed(2);
 
-        console.log(vPLVal);
-        console.log(vLossAmt);
+        // console.log(vPLVal);
+        // console.log(vLossAmt);
         console.log(gQty);
 
-        if((vLossAmt > 0) && (vPLVal >= vLossAmt) && (gQty >= 4)){
+        if((vLossAmt > 0) && (vPLVal >= vLossAmt) && (gQty > 1)){
             fnClose50PrctOptTrade();
             // console.log("Exec 50%");
         }
