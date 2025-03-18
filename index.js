@@ -115,6 +115,19 @@ app.post("/tv-msg-mahesh", (req, res) => {
     return;
 });
 
+app.post("/tv-msg-trend", (req, res) => {
+    const vHigh = req.body.High;
+    const vLow = req.body.Low;
+    const vClose = req.body.Close;
+    
+    const objMsg = JSON.stringify({ High15M: vHigh, Low15M: vLow, Close15M: vClose });
+
+    //console.log(objMsg);
+    io.emit("CdlTrend", objMsg);
+
+    res.send("success");
+});
+
 const storage = multer.diskStorage({
     destination: function(req, file, callback){
         callback(null, __dirname + "/public/uploads");

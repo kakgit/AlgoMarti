@@ -43,6 +43,24 @@ window.addEventListener("DOMContentLoaded", function(){
 
         fnInnitiateAutoTrade(pMsg);
     });
+
+    socket.on("CdlTrend", (pMsg) => {
+        let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
+        let objJson = JSON.parse(pMsg);
+        let vPivotPoint = (objJson.High15M + objJson.Low15M + objJson.Close15M)/3;
+
+        if(objJson.Close15M < vPivotPoint){
+            objTradeSideVal.value = false;
+        }
+        else if(objJson.Close15M > vPivotPoint){
+            objTradeSideVal.value = true;
+        }
+        else{
+            objTradeSideVal.value = -1;
+        }
+        fnTradeSide();
+        //console.log(vPivotPoint);
+    });
 });
 
 function fnGetSetAllStatus(){
