@@ -2194,10 +2194,11 @@ function fnCheckOptBuyingPosition(){
         objOnSL.innerText = (gDiffSL * gLotSize * gQty).toFixed(2);
         objOnTP.innerText = (gDiffTP * gLotSize * gQty).toFixed(2);
 
-        // console.log(vLossAmt);
-        // console.log(vPLVal);
+        console.log(vPLVal);
+        console.log(vLossAmt);
+        console.log(gQty);
 
-        if((vLossAmt > 0) && (vPLVal >= vLossAmt)){
+        if((vLossAmt > 0) && (vPLVal >= vLossAmt) && (gQty >= 4)){
             fnClose50PrctOptTrade();
             // console.log("Exec 50%");
         }
