@@ -50,10 +50,10 @@ window.addEventListener("DOMContentLoaded", function(){
         let vPivotPoint = (objJson.High15M + objJson.Low15M + objJson.Close15M)/3;
 
         if(objJson.Close15M < vPivotPoint){
-            objTradeSideVal.value = false;
+            objTradeSideVal.value = true;
         }
         else if(objJson.Close15M > vPivotPoint){
-            objTradeSideVal.value = true;
+            objTradeSideVal.value = false;
         }
         else{
             objTradeSideVal.value = -1;
@@ -228,31 +228,31 @@ async function fnInnitiateAutoTrade(pMsg){
                         console.log("Old Trade is Closed and New trade is Opened");
                         fnGenMessage("Old Trade is Closed and new "+ pMsg.OptionType +" Position is Opened!", "badge bg-success", "spnGenMsg");
                     }
-                    else{
-                        if(objCurrPos.TradeData[0].IsRealTrade === "true"){
-                            let objClsTrd = await fnInitClsOptRealTrade(0);
+                    // else{
+                    //     if(objCurrPos.TradeData[0].IsRealTrade === "true"){
+                    //         let objClsTrd = await fnInitClsOptRealTrade(0);
 
-                            if(objClsTrd.status === "success"){
-                                fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
-                            }
-                            else{
-                                fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
-                            }
-                        }
-                        else{
-                            let objClsTrd = await fnInitClsOptPaperTrade(0);
+                    //         if(objClsTrd.status === "success"){
+                    //             fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                    //         }
+                    //         else{
+                    //             fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                    //         }
+                    //     }
+                    //     else{
+                    //         let objClsTrd = await fnInitClsOptPaperTrade(0);
 
-                            if(objClsTrd.status === "success"){
-                                fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
-                            }
-                            else{
-                                fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
-                            }
-                        }
+                    //         if(objClsTrd.status === "success"){
+                    //             fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                    //         }
+                    //         else{
+                    //             fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                    //         }
+                    //     }
 
-                        //console.log("Old Trade is Closed and waiting for New Trade");
-                        fnGenMessage(pMsg.OptionType + " Trade Message Received, Old Trade is Closed and waiting for New Trade!", "badge bg-warning", "spnGenMsg");
-                    }
+                    //     //console.log("Old Trade is Closed and waiting for New Trade");
+                    //     fnGenMessage(pMsg.OptionType + " Trade Message Received, Old Trade is Closed and waiting for New Trade!", "badge bg-warning", "spnGenMsg");
+                    // }
                 }
             }
         }
@@ -2206,7 +2206,8 @@ function fnCheckOptBuyingPosition(){
         // default:
         //   code to be executed if n is different from case 1 and 2
     case 4:
-        let vLossAmt = Math.abs(parseFloat(localStorage.getItem("TotLossAmtR")) * 2);
+        // let vLossAmt = Math.abs(parseFloat(localStorage.getItem("TotLossAmtR")) * 2);
+        let vLossAmt = Math.abs(parseFloat(localStorage.getItem("TotLossAmtR")));
 
         objTrailSL.innerText = "No T-SL";
         objOnSL.innerText = (gDiffSL * gLotSize * gQty).toFixed(2);
