@@ -61,6 +61,22 @@ window.addEventListener("DOMContentLoaded", function(){
         fnTradeSide();
         //console.log(vPivotPoint);
     });
+
+    socket.on("CdlEmaTrend", (pMsg) => {
+        let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
+        let objJson = JSON.parse(pMsg);
+
+        if(objJson.Direc === "UP"){
+            objTradeSideVal.value = true;
+        }
+        else if(objJson.Direc === "DN"){
+            objTradeSideVal.value = false;
+        }
+        else{
+            objTradeSideVal.value = -1;
+        }
+        fnTradeSide();
+    });
 });
 
 function fnGetSetAllStatus(){

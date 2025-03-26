@@ -128,6 +128,17 @@ app.post("/tv-msg-trend", (req, res) => {
     res.send("success");
 });
 
+app.post("/tv-msg-ema-trend", (req, res) => {
+    const vDirec = req.body.Direc;
+    
+    const objMsg = JSON.stringify({ Direc: vDirec });
+
+    //console.log(objMsg);
+    io.emit("CdlEmaTrend", objMsg);
+
+    res.send("success");
+});
+
 const storage = multer.diskStorage({
     destination: function(req, file, callback){
         callback(null, __dirname + "/public/uploads");
