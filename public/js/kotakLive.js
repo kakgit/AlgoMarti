@@ -2206,8 +2206,8 @@ function fnCheckOptBuyingPosition(){
         // default:
         //   code to be executed if n is different from case 1 and 2
     case 4:
-        // let vLossAmt = Math.abs(parseFloat(localStorage.getItem("TotLossAmtR")) * 2);
-        let vLossAmt = Math.abs(parseFloat(localStorage.getItem("TotLossAmtR")));
+        let vLossAmt = Math.abs(parseFloat(localStorage.getItem("TotLossAmtR")) * 1.3);
+        // let vLossAmt = Math.abs(parseFloat(localStorage.getItem("TotLossAmtR")));
 
         objTrailSL.innerText = "No T-SL";
         objOnSL.innerText = (gDiffSL * gLotSize * gQty).toFixed(2);
