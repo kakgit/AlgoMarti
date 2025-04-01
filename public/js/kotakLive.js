@@ -1164,6 +1164,9 @@ function fnLoadMartiSwitchSettings(){
 }
 
 function fnLoadTradeSide(){
+    if(localStorage.getItem("TradeSideSwtS") === null){
+        localStorage.setItem("TradeSideSwtS", "-1");
+    }
     let lsTradeSideSwitchS = localStorage.getItem("TradeSideSwtS");
     let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
 
