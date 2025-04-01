@@ -44,6 +44,28 @@ window.addEventListener("DOMContentLoaded", function(){
         fnInnitiateAutoTrade(pMsg);
     });
 
+    socket.on("tv-exec", (pMsg) => {
+        let objLiveMsgs = JSON.parse(localStorage.getItem("msgsCI"));
+        let vDate = new Date();
+        let vMonth = vDate.getMonth() + 1;
+        let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
+
+        if(objLiveMsgs === null || objLiveMsgs === ""){
+            objLiveMsgs = JSON.stringify({ TrdMsgs: [{ MsgId: vDate.valueOf(), MsgDT: vToday, SymbID: pMsg.Symbol, OptType: pMsg.OptionType }]});
+            localStorage.setItem("msgsCI", objLiveMsgs);
+        }
+        else{
+            // objLiveMsgs = JSON.parse(objLiveMsgs);
+            let vTempMsg = { MsgId: vDate.valueOf(), MsgDT: vToday, SymbID: pMsg.Symbol, OptType: pMsg.OptionType };
+
+            objLiveMsgs.TrdMsgs.push(vTempMsg);
+            localStorage.setItem("msgsCI", JSON.stringify(objLiveMsgs));
+        }
+        console.log(objLiveMsgs);
+
+        fnInnitiateAutoTrade(pMsg);
+    });
+
     socket.on("CdlTrend", (pMsg) => {
         let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
         let objJson = JSON.parse(pMsg);

@@ -102,6 +102,17 @@ app.post("/c3mh/:symb/:optTyp", (req, res) => {
     res.send({ status: "success", message: objMsg.OptionType + " Trade Received!", data: objMsg });
 });
 
+
+app.post("/tv-exec-msg", (req, res) => {
+    const vSymbolName = req.body.symbol;
+    const vDirection = req.body.direc;
+
+    let objMsg = {Symbol: vSymbolName, OptionType: vDirection};
+
+    io.emit("tv-exec", objMsg);
+    res.send({ status: "success", message: objMsg.OptionType + " Trade Received!", data: objMsg });
+});
+
 app.post("/tv-msg-mahesh", (req, res) => {
     const vSymbolName = req.body.symbolName;
     const vIndType = req.body.indType;

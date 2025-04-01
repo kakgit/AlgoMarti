@@ -1,0 +1,88 @@
+
+
+<!--Disabled Backdrop Modal for Trader Login-->
+<div class="modal fade text-left" id="mdlDeltaLogin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
+    data-bs-backdrop="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h4 class="modal-title" id="myModalLabel4">Delta Exchange Login Details</h4>
+                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
+            </div>
+            <div class="modal-body">
+                <!-- // Basic multiple Column Form section start -->
+                <section id="multiple-column-form">
+                    <div class="row match-height">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header text-center">
+                                    &nbsp;<span id="spnKotakNeoLogin" class="badge bg-primary">Please Input Login Details</span>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <form class="form">
+                                            <div class="row">
+                                                <div class="col-md-6 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtUserNameAPI">API User Name</label>
+                                                        <input type="text" id="txtUserNameAPI" class="form-control" value="client62845" placeholder="API User Name" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtPasswordAPI">API Password</label>
+                                                        <input type="text" id="txtPasswordAPI" class="form-control" value="OcC4Snr3" placeholder="API Password" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtConsumerKey">Consumer Key</label>
+                                                        <input type="text" id="txtConsumerKey" class="form-control" value="NHbQHP1M5Z6djc1KG3yXjR0RXDga" placeholder="Consumer Key" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtConsumerSecret">Consumer Secret</label>
+                                                        <input type="text" id="txtConsumerSecret" class="form-control" value="9DzmzfGKdeq2yFOS5BrbNfjwAooa" placeholder="Consumer Secret" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtMobileNo">Client Mobile No / Pan No</label>
+                                                        <input type="text" id="txtMobileNo" class="form-control" value="+916301904398" placeholder="Mobile No" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtPassword">Client Password</label>
+                                                        <input type="text" id="txtPassword" class="form-control" value="Lion@113" placeholder="Password" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtPassword">M-Pin</label>
+                                                        <input type="text" id="txtMpin" class="form-control" value="231277" placeholder="M-Pin" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                    <i class="bx bx-x d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">CLOSE</span>
+                </button>
+                <button id="btnSubmit" type="button" class="btn btn-primary ms-1" onclick="fnLoginDeltaExc();">
+                    <i class="bx bx-check d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">SUBMIT</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

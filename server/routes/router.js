@@ -12,6 +12,7 @@ const tvConfsController = require('../controller/controllerJSON.js');
 const abController = require("../controller/controllerAliceBlue.js");
 const aliceLiveController = require("../controller/controllerAliceLive.js");
 const kotakLiveController = require("../controller/controllerKotakLive.js");
+const deltaDemoController = require("../controller/controllerDeltaDemo.js");
 
 //home Routes
 route.get("/", homeServices.defaultRoute);
@@ -24,6 +25,9 @@ route.get("/aliceLive", aliceLiveServices.defaultRoute);
 
 //Alice Live Route
 route.get("/kotakLive", kotakLiveController.defaultRoute);
+
+//Delta Demo Route
+route.get("/deltaDemo", deltaDemoController.defaultRoute);
 
 //Samco Routes
 route.get("/samco", samcoServices.defaultRoute);
@@ -84,6 +88,9 @@ route.post("/kotakNeo/placeCloseTrade", kotakLiveController.fnPlaceCloseTrade);
 route.post("/kotakNeo/getToken4OptRate", kotakLiveController.fnGetTokenforOptionRate);
 route.post("/kotakNeo/placeOptNrmlOrder", kotakLiveController.fnPlaceOptionNormalOrder);
 route.post("/kotakNeo/placeCloseOptTrade", kotakLiveController.fnPlaceCloseOptTrade);
+
+//Delta Expchange Routes
+route.post("/deltaExc/getLoginDetails", deltaDemoController.fnExecTraderLogin)
 
 //Update JSON file Routes
 route.post("/json/uorcJSON", tvConfsController.fnUpdJsons);
