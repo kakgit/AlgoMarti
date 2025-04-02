@@ -769,6 +769,7 @@ async function fnExecOptionTrade(pBuySel, pOptionType){
     let objOptQty = document.getElementById("txtOptionsQty");
     let objMaxQty = document.getElementById("hidMaxQty");
     let isRealTrade = localStorage.getItem("isRealTrade");
+    let objLossBadge = document.getElementById("spnLossTrd");
 
     try{
         if(gIsTraderLogin === false){
@@ -850,6 +851,7 @@ async function fnExecOptionTrade(pBuySel, pOptionType){
                         // console.log(objExcTradeDtls);
                         localStorage.setItem("KotakCurrOptPosiS", objExcTradeDtls);
                         localStorage.setItem("QtyMulR", objNrmlOrdr.data.Quantity);
+                        objLossBadge.style.visibility = "hidden";
 
                         fnGenMessage(objNrmlOrdr.message, `badge bg-${objNrmlOrdr.status}`, "spnGenMsg");
                         fnSetInitOptTrdDtls();
@@ -2664,6 +2666,7 @@ function fnSetNextOptTradeSettings(pAvgPrice, pQty, pCharges){
     let vOldLossAmt = localStorage.getItem("TotLossAmtR");
     let vOldQtyMul = localStorage.getItem("QtyMulR");
     let objMartiSwitch = document.getElementById("swtMartingale");
+    let objLossBadge = document.getElementById("spnLossTrd");
 
     if(vOldLossAmt === null)
         vOldLossAmt = 0;
@@ -2697,6 +2700,7 @@ function fnSetNextOptTradeSettings(pAvgPrice, pQty, pCharges){
 
     if(parseFloat(vAmtPL) < 0) {
         localStorage.setItem("TotLossAmtR", vNewLossAmt);
+        objLossBadge.style.visibility = "visible";
 
         if(objMartiSwitch.checked){
             let vNextQty = parseInt(vOldQtyMul) * 2;
