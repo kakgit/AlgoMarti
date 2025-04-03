@@ -40,11 +40,14 @@ function fnLoginDeltaExc(){
             localStorage.setItem("lsLoginDate", vToday);
 
             $('#mdlDeltaLogin').modal('hide');
+            console.log(JSON.parse(objResult.data));
+
             // fnGetSetTraderLoginStatus();
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
         else if(objResult.status === "danger"){
             // fnClearPrevLoginSession();
+            console.log(objResult.data)
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
         else if(objResult.status === "warning"){
@@ -60,4 +63,20 @@ function fnLoginDeltaExc(){
         // fnClearPrevLoginSession();
         fnGenMessage("Error to Fetch with Login Details.", `badge bg-danger`, "spnGenMsg");
     });
+}
+
+function fnTest(){
+    const objDate = new Date();
+    let vTimeStamp = (objDate.valueOf()).toString();
+    var myDate = new Date(vTimeStamp);
+
+    const timestamp = String(Math.floor(Date.now() / 1000));
+
+    // var result;
+    // time = parseInt(time);
+    // var msec = time/1000; // convert __REALTIME_TIMESTAMP to milliseconds from microseconds
+    // var myDate = new Date(msec);
+    // var isoDate = myDate.toISOString();
+
+    console.log(timestamp);
 }
