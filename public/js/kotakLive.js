@@ -2701,6 +2701,7 @@ function fnSetNextOptTradeSettings(pAvgPrice, pQty, pCharges){
     if(parseFloat(vAmtPL) < 0) {
         localStorage.setItem("TotLossAmtR", vNewLossAmt);
         objLossBadge.style.visibility = "visible";
+        objLossBadge.className = "badge rounded-pill text-bg-danger";
 
         if(objMartiSwitch.checked){
             let vNextQty = parseInt(vOldQtyMul) * 2;
@@ -2723,6 +2724,9 @@ function fnSetNextOptTradeSettings(pAvgPrice, pQty, pCharges){
         }
     }
     else {
+        objLossBadge.style.visibility = "visible";
+        objLossBadge.className = "badge rounded-pill text-bg-success";
+
         localStorage.removeItem("TotLossAmtR");
         localStorage.removeItem("QtyMulR");
         // localStorage.setItem("TradeStep", 0);

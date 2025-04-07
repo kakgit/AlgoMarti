@@ -14,7 +14,7 @@ const bodyparser = require("body-parser");
 const path = require("path");
 const { Server } = require("socket.io");
 
-const connectDB = require("./server/database/connection.js");
+// const connectDB = require("./server/database/connection.js");
 
 const app = express();
 app.use(cors());
@@ -24,7 +24,7 @@ dotenv.config({path: 'config.env'});
 const vPort = process.env.PORT || 8080;
 
 //mongoDB Connection caller
-connectDB();
+//connectDB();
 
 const server = http.createServer(app);
 const io = new Server(server);
@@ -101,7 +101,6 @@ app.post("/c3mh/:symb/:optTyp", (req, res) => {
     io.emit("c3mh", objMsg);
     res.send({ status: "success", message: objMsg.OptionType + " Trade Received!", data: objMsg });
 });
-
 
 app.post("/tv-exec-msg", (req, res) => {
     const vSymbolName = req.body.symbol;

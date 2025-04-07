@@ -71,75 +71,33 @@
                             <div class="card-body">
                                 <div class="collapse show" id="divTraderClps">
                                     <ul class="nav nav-tabs" id="tabManualTrader" role="tablist">
-                                        <li class="nav-item" role="presentation" onclick="fnSetCurrTraderTab('cash');">
-                                            <button class="nav-link" id="btnTabCash" data-bs-toggle="tab" data-bs-target="#tabMTNseCash" type="button" role="tab" aria-controls="home" aria-selected="true">NSE Cash</button>
-                                        </li>
                                         <li class="nav-item" role="presentation" onclick="fnSetCurrTraderTab('futures');">
-                                            <button class="nav-link" id="btnTabFutures" data-bs-toggle="tab" data-bs-target="#tabMTFutures" type="button" role="tab" aria-controls="profile" aria-selected="false">Futures</button>
+                                            <button class="nav-link active" id="btnTabFutures" data-bs-toggle="tab" data-bs-target="#tabMTFutures" type="button" role="tab" aria-controls="profile" aria-selected="false">Futures</button>
                                         </li>
                                         <li class="nav-item" role="presentation" onclick="fnSetCurrTraderTab('options');">
-                                            <button class="nav-link active" id="btnTabOptions" data-bs-toggle="tab" data-bs-target="#tabMTOptions" type="button" role="tab" aria-controls="contact" aria-selected="false">Options</button>
+                                            <button class="nav-link" id="btnTabOptions" data-bs-toggle="tab" data-bs-target="#tabMTOptions" type="button" role="tab" aria-controls="contact" aria-selected="false">Options</button>
                                         </li>
                                     </ul>
                                     <div class="tab-content" id="TabMTContent">
-                                        <div class="tab-pane fade" id="tabMTNseCash" role="tabpanel" aria-labelledby="home-tab">
+                                        <div class="tab-pane fade show active" id="tabMTFutures" role="tabpanel" aria-labelledby="futures-tab">
                                             <div class="container-fluid">
                                                 <div class="row">
                                                     <div class="col-6 col-lg-3 col-md-6">
-                                                        Symbols List
+                                                        <input type="button" value="Start WS" onclick="fnStartWS();" />
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
-                                                        Quantity
+                                                        <div style="color:green; white-space:nowrap; font-size:14px; text-align: center;" id="lblBuyPrice">BUY PRICE</div>
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
-                                                        Stop Loss %
+                                                        <div style="color:red; white-space:nowrap; font-size:14px; text-align: center;" id="lblSellPrice">SELL PRICE</div>
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
-                                                        Take Profit %
-                                                    </div>
-    
-                                                    <div class="col-6 col-lg-3 col-md-6">
-                                                        <select id="ddlNseCashSymbols" class="form-select" onchange="//fnGetSelSymbolData(this.value);" placeholder="NSE Cash Symbols">
-                                                            <option value=''>Select NSE Symbol</option>
-                                                            <option value='3499'>TATASTEEL-EQ</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="col-6 col-lg-3 col-md-6">
-                                                        <input type="number" min="1" class="form-control" placeholder="Quantity" id="txtManualQty" value="1" />
-                                                    </div>
-                                                    <div class="col-6 col-lg-3 col-md-6">
-                                                        <input type="text" class="form-control" id="txtNseCashSL1" name="txtNseCashSL1" value="" />
-                                                    </div>
-                                                    <div class="col-6 col-lg-3 col-md-6">
-                                                        <input type="text" class="form-control" id="txtNseCashTP1" name="txtNseCashTP1" value="" />
-                                                    </div>
-                                                    <div class="col-6 col-lg-3 col-md-6">
-                                                        <div class="d-grid gap-1">
-                                                            <button class="btn btn-outline-warning" onclick="fnGetOrderBook();"><b>GET ORDERBOOK</b></button>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6 col-lg-3 col-md-6">
-                                                        <div class="d-grid gap-1">
-                                                            <button class="btn btn-outline-warning" onclick="fnGetTradeBook();"><b>GET TRADEBOOK</b></button>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6 col-lg-3 col-md-6">
-                                                        <div class="d-grid gap-1">
-                                                            <button class="btn btn-outline-success" onclick="fnInitiateManualCM('nse_cm', 'B');"><b>BUY</b></button>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6 col-lg-3 col-md-6">
-                                                        <div class="d-grid gap-1">
-                                                            <button class="btn btn-outline-danger" onclick="fnInitiateManualCM('nse_cm', 'S');"><b>SELL</b></button>
-                                                        </div>
+                                                        <input type="button" value="Close WS" onclick="fnCloseWS();" />
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="tab-pane fade" id="tabMTFutures" role="tabpanel" aria-labelledby="profile-tab">
-                                            This is some placeholder content the Home tab's associated content. Clicking another tab will toggle the visibility of this one for the next. The tab JavaScript swaps classes to control the content visibility and styling. You can use it with tabs, pills, and any other .nav-powered navigation.
-                                        </div>
-                                        <div class="tab-pane fade show active" id="tabMTOptions" role="tabpanel" aria-labelledby="contact-tab">
+                                        <div class="tab-pane fade" id="tabMTOptions" role="tabpanel" aria-labelledby="contact-tab">
                                             <div class="container-fluid">
                                                 <div class="row">
                                                     <div class="col-6 col-lg-3 col-md-6">

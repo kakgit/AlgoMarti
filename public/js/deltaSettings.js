@@ -34,49 +34,74 @@ function fnLoginDeltaExc(){
     fetch("/deltaExc/getLoginDetails", requestOptions)
     .then(response => response.json())
     .then(objResult => {
+        console.log(objResult);
+
         if(objResult.status === "success"){
-            const vDate = new Date();
-            let vToday = vDate.getDate();            
-            localStorage.setItem("lsLoginDate", vToday);
-
             $('#mdlDeltaLogin').modal('hide');
-            console.log(JSON.parse(objResult.data));
+            console.log(objResult.data);
 
-            // fnGetSetTraderLoginStatus();
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
-        else if(objResult.status === "danger"){
-            // fnClearPrevLoginSession();
-            console.log(objResult.data)
-            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-        }
-        else if(objResult.status === "warning"){
-            // fnClearPrevLoginSession();
-            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-        }
-        else{
-            // fnClearPrevLoginSession();
-            fnGenMessage("Error in Login, Contact Admin.", `badge bg-danger`, "spnGenMsg");
-        }
+        // else if(objResult.status === "danger"){
+        //     // fnClearPrevLoginSession();
+        //     console.log(objResult.data)
+        //     fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        // }
+        // else if(objResult.status === "warning"){
+        //     // fnClearPrevLoginSession();
+        //     fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        // }
+        // else{
+        //     // fnClearPrevLoginSession();
+        //     fnGenMessage("Error in Login, Contact Admin.", `badge bg-danger`, "spnGenMsg");
+        // }
     })
     .catch(error => {
         // fnClearPrevLoginSession();
+        console.log(error);
         fnGenMessage("Error to Fetch with Login Details.", `badge bg-danger`, "spnGenMsg");
     });
 }
 
-function fnTest(){
-    const objDate = new Date();
-    let vTimeStamp = (objDate.valueOf()).toString();
-    var myDate = new Date(vTimeStamp);
+function fnToggleAutoTrader(){
+    let bAppStatus = JSON.parse(localStorage.getItem("AppMsgStatusS"));
+    let isLsAutoTrader = localStorage.getItem("isDelAutoTrader");
+    
+    let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
 
-    const timestamp = String(Math.floor(Date.now() / 1000));
+    if(bAppStatus){
+        if(isLsAutoTrader === null || isLsAutoTrader === "false"){
+            fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-success", "Auto Trader - ON");
+            fnGenMessage("Auto Trading Mode is ON!", `badge bg-success`, "spnGenMsg");
+            localStorage.setItem("isDelAutoTrader", true);
+        }
+        else{
+            fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
+            fnGenMessage("Auto Trading Mode is OFF!", `badge bg-danger`, "spnGenMsg");
+            localStorage.setItem("isDelAutoTrader", false);
+        }
+    }
+    else{
+        fnGenMessage("Login to Account to Start Auto Trading!", `badge bg-warning`, "spnGenMsg");
+    }
+}
 
-    // var result;
-    // time = parseInt(time);
-    // var msec = time/1000; // convert __REALTIME_TIMESTAMP to milliseconds from microseconds
-    // var myDate = new Date(msec);
-    // var isoDate = myDate.toISOString();
+function fnSetCurrTraderTab(pTabType){
+    if(pTabType === "futures"){
+        localStorage.setItem("DelTraderTab", "futures");
+    }
+    else{
+        localStorage.setItem("DelTraderTab", "options");        
+    }
+}
 
-    console.log(timestamp);
+function fnSetDefaultTraderTab(){
+    let vTraderTab = localStorage.getItem("DelTraderTab");
+
+    if(vTraderTab === "futures"){
+        $('#btnTabFutures').trigger('click');
+    }
+    else{
+        $('#btnTabOptions').trigger('click');
+    }
 }
