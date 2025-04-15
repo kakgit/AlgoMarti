@@ -7,10 +7,10 @@ const DeltaRestClient = require("delta-rest-client");
 
 exports.defaultRoute = (req, res) => {
     //res.send("Crud Application");
-    res.render("deltaDemo.ejs");
+    res.render("deltaLive.ejs");
 }
 
-exports.fnExecTraderLogin = async (req, res) => {
+exports.fnGetUserWallet = async (req, res) => {
     //Live Account
     let vApiKey = 'zhckjOdxFmHCTFx664ZpJ5H7Oxb3Db';
     let vApiSecret = 'IqSL4kBct7CakpEDH9grdWuAgjM0zg4KgB3yGoRjj4xPZm8Qz57LWLaVWqCK';
@@ -23,17 +23,17 @@ exports.fnExecTraderLogin = async (req, res) => {
             let objResult = JSON.parse(response.data.toString());
 
             if(objResult.success){
-                console.log("\wallet:\n----\n", JSON.stringify(objResult));
-                console.log("\wallet:\n----\n", objResult.success);
+                // console.log("\wallet:\n----\n", JSON.stringify(objResult));
+                // console.log("\wallet:\n----\n", objResult.success);
                 res.send({ "status": "success", "message": "Wallet Information Feched!", "data": objResult });
             }
             else{
-                console.log("Failed....");
-                res.send({ "status": "warning", "message": "Error", "data": "" });
+                // console.log("Failed....");
+                res.send({ "status": "warning", "message": "Error: Contact Admin!", "data": objResult });
             }
         })
         .catch(function(objError) {
-            console.log(objError);
+            // console.log(objError);
             res.send({ "status": "danger", "message": objError.response.text, "data": objError });
         });
         // Get List of Products

@@ -2,7 +2,8 @@
 let gIsTraderLogin = false;
 let userKotakWS = "";
 let vTradeInst = 0;
-// let gStreamInst = 0;
+// let vCurrRateInst = 0;
+let gStreamInst = 0;
 let gIndData = {};
 
 let gBuyPrice = 0;
@@ -887,33 +888,33 @@ function fnGetTokenDetails4Option(pFileName, pSearchSymbol, pOptionType, pExpiry
             redirect: 'follow'
             };
 
-            fetch("/kotakNeo/getToken4OptRate", objRequestOptions)
-            .then(objResponse => objResponse.json())
-            .then(objResult => {
-                if(objResult.status === "success"){
+        fetch("/kotakNeo/getToken4OptRate", objRequestOptions)
+        .then(objResponse => objResponse.json())
+        .then(objResult => {
+            if(objResult.status === "success"){
 
-                    //fnGetCurrRate(objResult);
-                    // fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-                    resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
-                }
-                else if(objResult.status === "danger"){
-                    //fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-                    reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
-                }
-                else if(objResult.status === "warning"){
-                    // fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-                    reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
-                }
-                else{
-                    // fnGenMessage("Error to Fetch Option Details.", `badge bg-danger`, "spnGenMsg");
-                    reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
-                }
-            })
-            .catch(error => {
-                console.log('error: ', error);
-                // fnGenMessage("Error in feaching Option Symbol.", `badge bg-danger`, "spnGenMsg");
-                reject({ "status": "danger", "message": "Error At Token Details", "data": "" });
-            });
+                //fnGetCurrRate(objResult);
+                // fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+                resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+            else if(objResult.status === "danger"){
+                //fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+            else if(objResult.status === "warning"){
+                // fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+            else{
+                // fnGenMessage("Error to Fetch Option Details.", `badge bg-danger`, "spnGenMsg");
+                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+        })
+        .catch(error => {
+            console.log('error: ', error);
+            // fnGenMessage("Error in feaching Option Symbol.", `badge bg-danger`, "spnGenMsg");
+            reject({ "status": "danger", "message": "Error At Token Details", "data": "" });
+        });
     });
 
     return objOptToken;
@@ -1133,6 +1134,7 @@ function fnClearLocalStorageTemp(){
     // localStorage.setItem("TradeStep", 0);
     // localStorage.removeItem("ConfStepsS");
     clearInterval(vTradeInst);
+    // clearInterval(vCurrRateInst);
 
     console.log("Curr Posi: " + localStorage.getItem("KotakCurrPosiS"));
     fnSetTodayOptTradeDetails();
@@ -1224,6 +1226,7 @@ function fnCheckTradeTimer(){
 
         if (objCurrPosiLst !== null) {
             clearInterval(vTradeInst);
+            // clearInterval(vCurrRateInst);
 
             switch(gByorSl){
                 case "B":
@@ -1245,12 +1248,14 @@ function fnCheckTradeTimer(){
         else
         {
             clearInterval(vTradeInst);
+            // clearInterval(vCurrRateInst);
             fnGenMessage("No Open Trade, Will start when the trade is Open", `badge bg-warning`, "spnGenMsg");
         }
     }
     else {
         localStorage.setItem("TimerSwtS", "false");
         clearInterval(vTradeInst);
+        // clearInterval(vCurrRateInst);
 
         fnGenMessage("Auto Check for Current Price is Off!", `badge bg-danger`, "spnGenMsg");
     }
@@ -1661,6 +1666,7 @@ function fnInitiateCloseTrade(){
             //         else if(objResult.data.data[i].ordSt === "complete"){
                         
             //             clearInterval(vTradeInst);
+            //             clearInterval(vCurrRateInst);
             //             localStorage.removeItem("KotakCurrPosiS");
             //             fnResetOpenPositionDetails();
             //             fnSetNextTradeSettings(objResult.data.data[i].avgPrc);
@@ -1991,6 +1997,7 @@ function fnSetInitOptTrdDtls(){
         }
         objProfitLoss.innerText = ((parseFloat(gSellPrice) - parseFloat(gBuyPrice)) * parseInt(gLotSize) * parseInt(gQty)).toFixed(2);
 
+        fnRestartStreamOptPrc();
         fnStartStreamOptPrc();
         fnSet50PrctQty();
         fnLoadOptTimerSwitchSetting();
@@ -2025,6 +2032,7 @@ function fnStartStreamOptPrc(){
 
         userKotakWS.onclose = function () {
             //objLTP.value = "";
+            userKotakWS = "";
             fnGenMessage("Connection is Closed!", `badge bg-warning`, "spnGenMsg");
             //fnLogTA("[Socket]: Disconnected !\n");
         }
@@ -2047,6 +2055,17 @@ function fnStartStreamOptPrc(){
                 fnSubscribeScript('mws', vStreamObj, vChannelNo);
             }
         }
+    }
+}
+
+function fnCloseWS(){
+    // console.log("Sess: " + userKotakWS)
+    if(userKotakWS === ""){
+        console.log("No Connection is Open!");
+    }
+    else{
+        userKotakWS.close();
+        console.log("Connection is Closed!");
     }
 }
 
@@ -2080,9 +2099,11 @@ function fnCheckOptTradeTimer(){
 
         if (objCurrPosiLst !== null) {
             clearInterval(vTradeInst);
+            // clearInterval(vCurrRateInst);
 
             switch(gByorSl){
                 case "B":
+                    // vCurrRateInst = setInterval(fnGetBackupCurrRate, vTimer);
                     vTradeInst = setInterval(fnCheckOptBuyingPosition, vTimer);
                     break;
                 case "S":
@@ -2097,15 +2118,79 @@ function fnCheckOptTradeTimer(){
         else
         {
             clearInterval(vTradeInst);
+            // clearInterval(vCurrRateInst);
             fnGenMessage("No Open Trade, Will start when the trade is Open", `badge bg-warning`, "spnGenMsg");
         }
     }
     else {
         localStorage.setItem("TimerSwtS", "false");
         clearInterval(vTradeInst);
+        // clearInterval(vCurrRateInst);
 
         fnGenMessage("Auto Check for Current Price is Off!", `badge bg-danger`, "spnGenMsg");
     }
+}
+
+async function fnGetBackupCurrRate(){
+    let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
+    let objSid = document.getElementById("txtSid");
+    let objKotakSession = document.getElementById("txtKotakSession");
+    let objAccessToken = document.getElementById("txtAccessToken");
+
+    // console.log(objCurrPos.TradeData[0].ExchSeg);
+    // console.log(objCurrPos.TradeData[0].SymToken);
+    // console.log(objKotakSession.value);
+    try{
+        let objData = await fnExecBackupRate(objCurrPos.TradeData[0].ExchSeg, objCurrPos.TradeData[0].SymToken, objSid.value, objKotakSession.value, objAccessToken.value);
+
+        if(objData.status === "success"){
+
+            console.log("Test Data");
+            console.log(objData);
+            fnGenMessage(objTokenDtls.message, `badge bg-${objTokenDtls.status}`, "spnGenMsg");
+        }
+        else{
+            fnGenMessage(objTokenDtls.message, `badge bg-${objTokenDtls.status}`, "spnGenMsg");
+        }
+    }
+    catch(err){
+        fnGenMessage(err.message, `badge bg-${err.status}`, "spnGenMsg");
+    }
+}
+
+function fnExecBackupRate(pExchSeg, pSymbToken, pSid, pKotakSession, pAccessToken){
+    const objData = new Promise((resolve, reject) => {
+        let vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+
+        let objRequestOptions = {
+            method: 'POST',
+            headers: vHeaders,
+            body: JSON.stringify({ ExchSeg: pExchSeg, SymbToken: pSymbToken, Sid: pSid, KotakSession: pKotakSession, AccessToken: pAccessToken }),
+            redirect: 'follow'
+            };
+
+        fetch("/kotakNeo/getBackupRate", objRequestOptions)
+        .then(objResponse => objResponse.json())
+        .then(objResult => {
+            if(objResult.status === "success"){
+
+                resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+            else if(objResult.status === "danger"){
+                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+            else{
+                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+        })
+        .catch(error => {
+            console.log('error: ', error);
+            // fnGenMessage("Error in feaching Option Symbol.", `badge bg-danger`, "spnGenMsg");
+            reject({ "status": "danger", "message": "Error At Token Details", "data": "" });
+        });
+    });
+    return objData;
 }
 
 function fnUpdateOptSLTP(){
@@ -2504,7 +2589,8 @@ function fnInitClsOptPaperTrade(pQty){
 
         if(pQty === 0){
             clearInterval(vTradeInst);
-            // clearInterval(gStreamInst);
+            // clearInterval(vCurrRateInst);
+            clearInterval(gStreamInst);
             localStorage.removeItem("KotakCurrOptPosiS");
             fnResetOpenPositionDetails();
             resumeandpause('cp', '1');
@@ -2594,6 +2680,7 @@ function fnInitClsOptRealTrade(pQty){
     //         //         else if(objResult.data.data[i].ordSt === "complete"){
                         
     //         //             clearInterval(vTradeInst);
+    //         //             clearInterval(vCurrRateInst);
     //         //             localStorage.removeItem("KotakCurrPosiS");
     //         //             fnResetOpenPositionDetails();
     //         //             fnSetNextTradeSettings(objResult.data.data[i].avgPrc);
@@ -2647,7 +2734,8 @@ function fnInitClsOptRealTrade(pQty){
         localStorage.setItem("OptTradesListS", vAddNewItem);
     }
     clearInterval(vTradeInst);
-    // clearInterval(gStreamInst);
+    // clearInterval(vCurrRateInst);
+    clearInterval(gStreamInst);
 
     localStorage.removeItem("KotakCurrOptPosiS");
     fnSetNextOptTradeSettings(objLTP.value, pQty);
@@ -2801,11 +2889,13 @@ function fnDeleteThisTrade(pTradeId){
     }
 }
 
-// function fnRestartStreamOptPrc(){
-//     clearInterval(gStreamInst);
+function fnRestartStreamOptPrc(){
+    clearInterval(gStreamInst);
+    // clearInterval(vCurrRateInst);
 
-//     gStreamInst = setInterval(fnStartStreamOptPrc, 50000);
-// }
+    fnCloseWS();
+    gStreamInst = setInterval(fnStartStreamOptPrc, 50000);
+}
 
 const fnGetAccessToken = async (pConsumerKey, pConsumerSecret, pUserNameAPI, pPasswordAPI) => {
     const objAccessToken = new Promise((resolve, reject) => {

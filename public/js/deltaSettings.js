@@ -18,51 +18,6 @@ function fnShowTraderLoginMdl(objThis){
     }
 }
 
-function fnLoginDeltaExc(){
-    let vHeaders = new Headers();
-    vHeaders.append("Content-Type", "application/json");
-
-    let vAction = JSON.stringify({ });
-
-    let requestOptions = {
-        method: 'POST',
-        headers: vHeaders,
-        body: vAction,
-        redirect: 'follow'
-    };
-
-    fetch("/deltaExc/getLoginDetails", requestOptions)
-    .then(response => response.json())
-    .then(objResult => {
-        console.log(objResult);
-
-        if(objResult.status === "success"){
-            $('#mdlDeltaLogin').modal('hide');
-            console.log(objResult.data);
-
-            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-        }
-        // else if(objResult.status === "danger"){
-        //     // fnClearPrevLoginSession();
-        //     console.log(objResult.data)
-        //     fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-        // }
-        // else if(objResult.status === "warning"){
-        //     // fnClearPrevLoginSession();
-        //     fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-        // }
-        // else{
-        //     // fnClearPrevLoginSession();
-        //     fnGenMessage("Error in Login, Contact Admin.", `badge bg-danger`, "spnGenMsg");
-        // }
-    })
-    .catch(error => {
-        // fnClearPrevLoginSession();
-        console.log(error);
-        fnGenMessage("Error to Fetch with Login Details.", `badge bg-danger`, "spnGenMsg");
-    });
-}
-
 function fnToggleAutoTrader(){
     let bAppStatus = JSON.parse(localStorage.getItem("AppMsgStatusS"));
     let isLsAutoTrader = localStorage.getItem("isDelAutoTrader");

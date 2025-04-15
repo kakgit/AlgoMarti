@@ -795,6 +795,32 @@ exports.fnPlaceCloseOptTrade = async (req, res) => {
     }
 }
 
+exports.fnExecBackupRate = async (req, res) => {
+    let vExchSeg = req.body.ExchSeg;
+    let vSymbToken = req.body.SymbToken;
+    let vSid = req.body.Sid;
+    let vKotakSession = req.body.KotakSession;
+    let vAccessToken = req.body.AccessToken;
+  
+    try {
+        let objData = await fnGetBackupRate(vExchSeg, vSymbToken, vSid, vKotakSession, vAccessToken);
+
+        console.log(objData);
+        // if(objOrderDtls.data.stat === "Not_Ok"){
+        //     res.send({ "status": "warning", "message": "Tradebook Error: " + objOrderDtls.data.errMsg, "data": objOrderDtls.data });
+        // }
+        // else if(objOrderDtls.data.stat === "Ok"){
+            res.send({ "status": "success", "message": "Backup Rate Details Received!", "data": objData.data });
+        // }
+        // else{
+        //     res.send({ "status": "danger", "message": "Unknown Error at Tradebook", "data": objOrderDtls.data });
+        // }
+    }
+    catch (err) {
+      res.send({ "status": "danger", "message": err.message, "data": err.data });
+    }
+}
+
 const fnGetAccessToken = async (pConsumerKey, pConsumerSecret, pUserNameAPI, pPasswordAPI) => {
     const objAccessToken = new Promise((resolve, reject) => {
         const vConsumerStr = pConsumerKey + ":" + pConsumerSecret;
@@ -1592,4 +1618,32 @@ const fnGetTradeTokenData = async (pJsonFileName, pSearchSymbol, pOptionType, pE
     });
   
     return objData;
-}  
+}
+
+const fnGetBackupRate = async (pExchSeg, pScriptToken, pSid, pKotakSession, pAccessToken) => {
+    const objData = new Promise((resolve, reject) => {
+        var objConfig = {
+            method: 'get',
+            maxBodyLength: Infinity,
+            url: 'https://gw-napi.kotaksecurities.com/apim/quotes/1.0/quotes/neosymbol/' + pExchSeg + '|' + pScriptToken + '/all',
+            headers: {
+                'accept': 'application/json',
+                // 'Sid': pSid,
+                // 'Auth': pKotakSession,
+                // 'neo-fin-key': 'neotradeapi',
+                'Authorization': 'Bearer ' + pAccessToken
+            }
+        };
+
+        axios(objConfig)
+            .then(function (objResponse) {
+                //console.log(JSON.stringify(objResponse.data));
+                resolve({ "status": "success", "message": "Backup Current Rate Received!", "data": objResponse.data });
+            })
+            .catch(function (error) {
+                console.log(error);
+                reject({ "status": "danger", "message": "Current Rate Error: " + error.message, "data": error.message });
+            });
+    });
+    return objData;
+}
