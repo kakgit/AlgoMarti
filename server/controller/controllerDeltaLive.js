@@ -50,17 +50,6 @@ exports.fnGetUserWallet = async (req, res) => {
     });
 }
 
-// exports.fnExecTraderLogin = async (req, res) => {
-//     try {
-//         let vAccessToken = await fnGetAccessToken();
-
-//         res.send({ "status": "success", "message": "Success", "data": "" });
-//     }
-//     catch (error) {
-//         res.send({ "status": "danger", "message": error, "data": "" });
-//     }
-// }
-
 const fnGetAccessToken = async () => {
     const objAccessToken = new Promise((resolve, reject) => {
         // //Live Account

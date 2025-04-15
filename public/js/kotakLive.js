@@ -2007,6 +2007,7 @@ function fnSetInitOptTrdDtls(){
 }
 
 function fnStartStreamOptPrc(){
+    console.clear();
     let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
     let vStreamObj = objCurrPos.TradeData[0].ExchSeg + "|" + objCurrPos.TradeData[0].SymToken;
     let objLTP = document.getElementById("txtCurrentRate");
@@ -2893,8 +2894,8 @@ function fnRestartStreamOptPrc(){
     clearInterval(gStreamInst);
     // clearInterval(vCurrRateInst);
 
-    fnCloseWS();
-    gStreamInst = setInterval(fnStartStreamOptPrc, 50000);
+    // fnCloseWS();
+    gStreamInst = setInterval(fnStartStreamOptPrc, 30000);
 }
 
 const fnGetAccessToken = async (pConsumerKey, pConsumerSecret, pUserNameAPI, pPasswordAPI) => {

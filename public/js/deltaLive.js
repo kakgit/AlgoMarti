@@ -68,6 +68,10 @@ function fnGetUserWallet(){
     });
 }
 
+function fnGetProductLeverage(){
+
+}
+
 function fnStartWS(){
 	let objBestBid = document.getElementById("lblBuyPrice");
 	let objBestAsk = document.getElementById("lblSellPrice");
@@ -80,9 +84,7 @@ function fnStartWS(){
 
 		// userDeltaWS.send(JSON.stringify({"type": "enable_heartbeat"}));
 		userDeltaWS.send(JSON.stringify(vSendData));
-        vTradeInst = setInterval(function () { userDeltaWS.send(JSON.stringify({"type": "ping"})); }, 35000);
-
-		
+        //vTradeInst = setInterval(function () { userDeltaWS.send(JSON.stringify({"type": "ping"})); }, 35000);
 
 		console.log("Conn Stated");
 	}
@@ -98,8 +100,10 @@ function fnStartWS(){
 
 		switch (vTicData.type) {
 			case "v2/ticker":
-				objBestBid.innerText = (parseInt(vTicData.close)).toFixed(2);
-				objBestAsk.innerText = (parseInt(vTicData.spot_price)).toFixed(2);
+				// objBestBid.innerText = (parseInt(vTicData.close)).toFixed(2);
+				// objBestAsk.innerText = (parseInt(vTicData.spot_price)).toFixed(2);
+				objBestBid.innerText = (parseInt(vTicData.quotes.best_ask)).toFixed(2);
+				objBestAsk.innerText = (parseInt(vTicData.quotes.best_bid)).toFixed(2);
 				break;
 			case "heartbeat":
 				console.log("Heart Beats");
