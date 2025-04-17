@@ -69,7 +69,91 @@ function fnGetUserWallet(){
 }
 
 function fnGetProductLeverage(){
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
 
+    let vAction = JSON.stringify({ });
+
+    let requestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: vAction,
+        redirect: 'follow'
+    };
+
+    fetch("/deltaExc/getProductLeverage", requestOptions)
+    .then(response => response.json())
+    .then(objResult => {
+        // console.log(objResult);
+        if(objResult.status === "success"){
+            console.log(objResult);
+
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "danger"){
+            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+	            console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+	            fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+            else{
+	            fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+        }
+        else if(objResult.status === "warning"){
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else{
+            fnGenMessage("Error in getting Product Leverage Information, Contact Admin!", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        // console.log(error);
+        fnGenMessage("Error to Fetch Leverage Details!", `badge bg-danger`, "spnGenMsg");
+    });
+}
+
+function fnSetProductLeverage(){
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let vAction = JSON.stringify({ });
+
+    let requestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: vAction,
+        redirect: 'follow'
+    };
+
+    fetch("/deltaExc/setProductLeverage", requestOptions)
+    .then(response => response.json())
+    .then(objResult => {
+        // console.log(objResult);
+        if(objResult.status === "success"){
+            console.log(objResult);
+
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "danger"){
+            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+	            console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+	            fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+            else{
+	            fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+        }
+        else if(objResult.status === "warning"){
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else{
+            fnGenMessage("Error in Changing Product Leverage!, Contact Admin!", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        console.log(error);
+        fnGenMessage("Error in Changing Leverage!", `badge bg-danger`, "spnGenMsg");
+    });
 }
 
 function fnStartWS(){
@@ -126,4 +210,48 @@ function fnStartWS(){
 
 function fnCloseWS(){
 	userDeltaWS.close();
+}
+
+function fnGetTestWallet(){
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let vAction = JSON.stringify({ });
+
+    let requestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: vAction,
+        redirect: 'follow'
+    };
+
+    fetch("/deltaExc/getTestWallet", requestOptions)
+    .then(response => response.json())
+    .then(objResult => {
+        // console.log(objResult);
+        if(objResult.status === "success"){
+            console.log(objResult);
+
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "danger"){
+            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+	            console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+	            fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+            else{
+	            fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+        }
+        else if(objResult.status === "warning"){
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else{
+            fnGenMessage("Error in getting Wallet Information, Contact Admin!", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        // console.log(error);
+        fnGenMessage("Error to Fetch Wallet Details!", `badge bg-danger`, "spnGenMsg");
+    });
 }

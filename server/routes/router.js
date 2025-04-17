@@ -91,7 +91,10 @@ route.post("/kotakNeo/placeCloseOptTrade", kotakLiveController.fnPlaceCloseOptTr
 route.post("/kotakNeo/getBackupRate", kotakLiveController.fnExecBackupRate);
 
 //Delta Expchange Routes
+route.post("/deltaExc/getTestWallet", deltaLiveController.fnTestWallet)
 route.post("/deltaExc/getUserWallet", deltaLiveController.fnGetUserWallet)
+route.post("/deltaExc/getProductLeverage", deltaLiveController.fnGetLeverage)
+route.post("/deltaExc/setProductLeverage", deltaLiveController.fnSetLeverage)
 
 //Update JSON file Routes
 route.post("/json/uorcJSON", tvConfsController.fnUpdJsons);
