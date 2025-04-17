@@ -2583,7 +2583,8 @@ function fnInitClsOptPaperTrade(pQty){
             clearInterval(gStreamInst);
             localStorage.removeItem("KotakCurrOptPosiS");
             fnResetOpenPositionDetails();
-            resumeandpause('cp', '1');
+            userKotakWS.close();
+            // resumeandpause('cp', '1');
             fnGenMessage("No Open Position", `badge bg-success`, "btnPositionStatus");
         }
         else{
