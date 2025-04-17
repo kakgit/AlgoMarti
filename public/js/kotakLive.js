@@ -2,7 +2,6 @@
 let gIsTraderLogin = false;
 let userKotakWS = "";
 let vTradeInst = 0;
-// let vCurrRateInst = 0;
 let gStreamInst = 0;
 let gIndData = {};
 
@@ -1134,7 +1133,6 @@ function fnClearLocalStorageTemp(){
     // localStorage.setItem("TradeStep", 0);
     // localStorage.removeItem("ConfStepsS");
     clearInterval(vTradeInst);
-    // clearInterval(vCurrRateInst);
 
     console.log("Curr Posi: " + localStorage.getItem("KotakCurrPosiS"));
     fnSetTodayOptTradeDetails();
@@ -1226,7 +1224,6 @@ function fnCheckTradeTimer(){
 
         if (objCurrPosiLst !== null) {
             clearInterval(vTradeInst);
-            // clearInterval(vCurrRateInst);
 
             switch(gByorSl){
                 case "B":
@@ -1248,14 +1245,12 @@ function fnCheckTradeTimer(){
         else
         {
             clearInterval(vTradeInst);
-            // clearInterval(vCurrRateInst);
             fnGenMessage("No Open Trade, Will start when the trade is Open", `badge bg-warning`, "spnGenMsg");
         }
     }
     else {
         localStorage.setItem("TimerSwtS", "false");
         clearInterval(vTradeInst);
-        // clearInterval(vCurrRateInst);
 
         fnGenMessage("Auto Check for Current Price is Off!", `badge bg-danger`, "spnGenMsg");
     }
@@ -1666,7 +1661,6 @@ function fnInitiateCloseTrade(){
             //         else if(objResult.data.data[i].ordSt === "complete"){
                         
             //             clearInterval(vTradeInst);
-            //             clearInterval(vCurrRateInst);
             //             localStorage.removeItem("KotakCurrPosiS");
             //             fnResetOpenPositionDetails();
             //             fnSetNextTradeSettings(objResult.data.data[i].avgPrc);
@@ -1997,7 +1991,7 @@ function fnSetInitOptTrdDtls(){
         }
         objProfitLoss.innerText = ((parseFloat(gSellPrice) - parseFloat(gBuyPrice)) * parseInt(gLotSize) * parseInt(gQty)).toFixed(2);
 
-        fnRestartStreamOptPrc();
+        // fnRestartStreamOptPrc();
         fnStartStreamOptPrc();
         fnSet50PrctQty();
         fnLoadOptTimerSwitchSetting();
@@ -2007,7 +2001,6 @@ function fnSetInitOptTrdDtls(){
 }
 
 function fnStartStreamOptPrc(){
-    console.clear();
     let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
     let vStreamObj = objCurrPos.TradeData[0].ExchSeg + "|" + objCurrPos.TradeData[0].SymToken;
     let objLTP = document.getElementById("txtCurrentRate");
@@ -2022,6 +2015,7 @@ function fnStartStreamOptPrc(){
         //console.log(vChannelNo);
 
         userKotakWS.onopen = function () {
+            console.clear();
             fnGenMessage("Connection is Open!", `badge bg-success`, "spnGenMsg");
             //fnLogTA('[Socket]: Connected to "' + vUrl + '"\n');
             let jObj = {};
@@ -2100,11 +2094,9 @@ function fnCheckOptTradeTimer(){
 
         if (objCurrPosiLst !== null) {
             clearInterval(vTradeInst);
-            // clearInterval(vCurrRateInst);
 
             switch(gByorSl){
                 case "B":
-                    // vCurrRateInst = setInterval(fnGetBackupCurrRate, vTimer);
                     vTradeInst = setInterval(fnCheckOptBuyingPosition, vTimer);
                     break;
                 case "S":
@@ -2119,14 +2111,12 @@ function fnCheckOptTradeTimer(){
         else
         {
             clearInterval(vTradeInst);
-            // clearInterval(vCurrRateInst);
             fnGenMessage("No Open Trade, Will start when the trade is Open", `badge bg-warning`, "spnGenMsg");
         }
     }
     else {
         localStorage.setItem("TimerSwtS", "false");
         clearInterval(vTradeInst);
-        // clearInterval(vCurrRateInst);
 
         fnGenMessage("Auto Check for Current Price is Off!", `badge bg-danger`, "spnGenMsg");
     }
@@ -2590,7 +2580,6 @@ function fnInitClsOptPaperTrade(pQty){
 
         if(pQty === 0){
             clearInterval(vTradeInst);
-            // clearInterval(vCurrRateInst);
             clearInterval(gStreamInst);
             localStorage.removeItem("KotakCurrOptPosiS");
             fnResetOpenPositionDetails();
@@ -2681,7 +2670,6 @@ function fnInitClsOptRealTrade(pQty){
     //         //         else if(objResult.data.data[i].ordSt === "complete"){
                         
     //         //             clearInterval(vTradeInst);
-    //         //             clearInterval(vCurrRateInst);
     //         //             localStorage.removeItem("KotakCurrPosiS");
     //         //             fnResetOpenPositionDetails();
     //         //             fnSetNextTradeSettings(objResult.data.data[i].avgPrc);
@@ -2735,7 +2723,6 @@ function fnInitClsOptRealTrade(pQty){
         localStorage.setItem("OptTradesListS", vAddNewItem);
     }
     clearInterval(vTradeInst);
-    // clearInterval(vCurrRateInst);
     clearInterval(gStreamInst);
 
     localStorage.removeItem("KotakCurrOptPosiS");
@@ -2892,10 +2879,9 @@ function fnDeleteThisTrade(pTradeId){
 
 function fnRestartStreamOptPrc(){
     clearInterval(gStreamInst);
-    // clearInterval(vCurrRateInst);
 
-    // fnCloseWS();
-    gStreamInst = setInterval(fnStartStreamOptPrc, 30000);
+    fnCloseWS();
+    gStreamInst = setInterval(fnStartStreamOptPrc, 10000);
 }
 
 const fnGetAccessToken = async (pConsumerKey, pConsumerSecret, pUserNameAPI, pPasswordAPI) => {
