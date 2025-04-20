@@ -27,7 +27,7 @@ route.get("/aliceLive", aliceLiveServices.defaultRoute);
 route.get("/kotakLive", kotakLiveController.defaultRoute);
 
 //Delta Demo Route
-route.get("/deltaDemo", deltaLiveController.defaultRoute);
+route.get("/deltaLive", deltaLiveController.defaultRoute);
 
 //Samco Routes
 route.get("/samco", samcoServices.defaultRoute);
