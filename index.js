@@ -77,6 +77,19 @@ app.set('view engine', 'ejs');
 // app.use("/img", express.static(path.resolve(__dirname, "assets/img")));
 // app.use("/js", express.static(path.resolve(__dirname, "assets/js")));
 
+app.post("/tv-msg-delta-fut", (req, res) => {
+    const vSymbolName = req.body.symbolName;
+    const vStrategy = req.body.strategy;
+    const vDirection = req.body.direction;
+    const vIgnorePrevIndc = req.body.ignorePrevIndc
+
+    const objMsg = JSON.stringify({ symbolName: vSymbolName, strategy: vStrategy, direction: vDirection, ignorePrevIndc: vIgnorePrevIndc });
+
+    io.emit("DeltaEmit1", objMsg);
+
+    res.send("Success");
+});
+
 app.post("/tv-msg", (req, res) => {
     const vSymbolName = req.body.symbolName;
     const vIndType = req.body.indType;

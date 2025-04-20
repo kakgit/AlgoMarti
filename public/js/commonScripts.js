@@ -349,7 +349,7 @@ function fnClearPrevLoginSession(){
   localStorage.removeItem("AppCredS");
 
   localStorage.removeItem("isAutoTrader");
-  localStorage.removeItem("isDelAutoTrader");
+  localStorage.removeItem("isDeltaAutoTrader");
   localStorage.removeItem("KotakUserDetS");
   //objSession.value = "";
   //fnChangeBtnProps("btnTraderStatus", "badge bg-danger", "Trader - Disconnected");

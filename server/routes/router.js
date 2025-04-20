@@ -91,10 +91,18 @@ route.post("/kotakNeo/placeCloseOptTrade", kotakLiveController.fnPlaceCloseOptTr
 route.post("/kotakNeo/getBackupRate", kotakLiveController.fnExecBackupRate);
 
 //Delta Expchange Routes
-route.post("/deltaExc/getTestWallet", deltaLiveController.fnTestWallet)
-route.post("/deltaExc/getUserWallet", deltaLiveController.fnGetUserWallet)
-route.post("/deltaExc/getProductLeverage", deltaLiveController.fnGetLeverage)
-route.post("/deltaExc/setProductLeverage", deltaLiveController.fnSetLeverage)
+route.post("/deltaExc/validateLogin", deltaLiveController.fnValidateUserLogin);
+
+//Samples
+route.post("/deltaExc/getTestWalletAPI", deltaLiveController.fnTestWalletAPI);
+route.post("/deltaExc/getUserWalletSDK", deltaLiveController.fnGetUserWalletSDK);
+route.post("/deltaExc/getLeverageSDK", deltaLiveController.fnGetLeverageSDK);
+route.post("/deltaExc/setLeverageSDK", deltaLiveController.fnSetLeverageSDK);
+route.post("/deltaExc/placeLimitOrderSDK", deltaLiveController.fnPlaceLimitOrderSDK);
+route.post("/deltaExc/placeSLTPLimitOrderSDK", deltaLiveController.fnPlaceSLTPLimitOrderSDK);
+route.post("/deltaExc/cancelOrderSDK", deltaLiveController.fnCancelOrderSDK);
+route.post("/deltaExc/getTestGetAllOrderAPI", deltaLiveController.fnTestGetAllOrderAPI);
+route.post("/deltaExc/getCurrPriceByProd", deltaLiveController.fnGetCurrPriceByProd);
 
 //Update JSON file Routes
 route.post("/json/uorcJSON", tvConfsController.fnUpdJsons);

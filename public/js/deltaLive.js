@@ -6,25 +6,81 @@ window.addEventListener("DOMContentLoaded", function(){
 	let bAppStatus = JSON.parse(localStorage.getItem("AppMsgStatusS"));
 
 	if(bAppStatus){
-		fnLoadAutoTraderStatus();
+        fnGetSetTraderLoginStatus();
+		fnGetSetAutoTraderStatus();
+        fnGetSetRealTradeStatus();
 		fnSetDefaultTraderTab();
 	}
+
+    socket.on("DeltaEmit1", (pMsg) => {
+        let objMsg = JSON.parse(pMsg);
+        let objLiveMsgs = JSON.parse(localStorage.getItem("msgsDelExc"));
+        let vDate = new Date();
+        let vMonth = vDate.getMonth() + 1;
+        let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
+
+        if(objLiveMsgs === null || objLiveMsgs === ""){
+            objLiveMsgs = JSON.stringify({ TrdMsgs: [{ MsgId: vDate.valueOf(), MsgDT: vToday, SymbName: objMsg.symbolName, Strategy: objMsg.strategy, Direction: objMsg.direction, IngnorePrevInc: objMsg.ignorePrevIndc }]});
+            localStorage.setItem("msgsDelExc", objLiveMsgs);
+        }
+        else{
+            let vTempMsg = { MsgId: vDate.valueOf(), MsgDT: vToday, SymbName: objMsg.symbolName, Strategy: objMsg.strategy, Direction: objMsg.direction, IngnorePrevInc: objMsg.ignorePrevIndc };
+
+            objLiveMsgs.TrdMsgs.push(vTempMsg);
+            localStorage.setItem("msgsDelExc", JSON.stringify(objLiveMsgs));
+        }
+
+        fnInitFutAutoTrade(objMsg);
+    });
 });
 
-function fnLoadAutoTraderStatus(){
-    let isLsAutoTrader = localStorage.getItem("isDelAutoTrader");
-    let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
+function fnClearLocalStorageTemp(){
+    localStorage.removeItem("msgsDelExc");
+    localStorage.removeItem("DeltaCurrFutPosiS");
+    // localStorage.removeItem("KotakCurrOptPosiS");
+    // localStorage.removeItem("OptTradesListS");
+    // localStorage.removeItem("StartLotNoR");
+    // localStorage.removeItem("QtyMulR");
+    // localStorage.removeItem("TotLossAmtR");
+    // localStorage.removeItem("TraderTab");
+    // clearInterval(vTradeInst);
 
+    // fnSetTodayOptTradeDetails();
+    console.log("LocalStorage Cleared!")
+}
 
-    if(isLsAutoTrader === null || isLsAutoTrader === "false"){
-        fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
+async function fnInitFutAutoTrade(objMsg){
+    try{
+        let isLsAutoTrader = localStorage.getItem("isDeltaAutoTrader");
+
+        if(isLsAutoTrader === "false"){
+            fnGenMessage("Trade Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
+        }
+        else{
+            let objCurrPos = JSON.parse(localStorage.getItem("DeltaCurrFutPosiS"));
+            let vTradeSide = localStorage.getItem("DeltaFutTradeSideSwtS");
+
+            // To Place New Order first check for following points
+            // 1. objMsg.ignorePrevIndc = true, indicates ingore all above indicators and place order
+
+            if(objCurrPos === null || objCurrPos === ""){
+                //Place New Order Based on the ingnorePrevIndc = true or false
+
+            }
+            else{
+
+            }
+            console.log(objCurrPos);
+            fnGenMessage("Futures Order Placed!", "badge bg-success", "spnGenMsg");
+        }
+        // console.log(objMsg);
     }
-    else{
-        fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-success", "Auto Trader - ON");
+    catch(err){
+
     }
 }
 
-function fnGetUserWallet(){
+function fnGetUserWalletSDK(){
     let vHeaders = new Headers();
     vHeaders.append("Content-Type", "application/json");
 
@@ -37,7 +93,7 @@ function fnGetUserWallet(){
         redirect: 'follow'
     };
 
-    fetch("/deltaExc/getUserWallet", requestOptions)
+    fetch("/deltaExc/getUserWalletSDK", requestOptions)
     .then(response => response.json())
     .then(objResult => {
         // console.log(objResult);
@@ -68,7 +124,7 @@ function fnGetUserWallet(){
     });
 }
 
-function fnGetProductLeverage(){
+function fnGetLeverageSDK(){
     let vHeaders = new Headers();
     vHeaders.append("Content-Type", "application/json");
 
@@ -81,7 +137,7 @@ function fnGetProductLeverage(){
         redirect: 'follow'
     };
 
-    fetch("/deltaExc/getProductLeverage", requestOptions)
+    fetch("/deltaExc/getLeverageSDK", requestOptions)
     .then(response => response.json())
     .then(objResult => {
         // console.log(objResult);
@@ -112,7 +168,7 @@ function fnGetProductLeverage(){
     });
 }
 
-function fnSetProductLeverage(){
+function fnSetLeverageSDK(){
     let vHeaders = new Headers();
     vHeaders.append("Content-Type", "application/json");
 
@@ -125,7 +181,7 @@ function fnSetProductLeverage(){
         redirect: 'follow'
     };
 
-    fetch("/deltaExc/setProductLeverage", requestOptions)
+    fetch("/deltaExc/setLeverageSDK", requestOptions)
     .then(response => response.json())
     .then(objResult => {
         // console.log(objResult);
@@ -141,6 +197,138 @@ function fnSetProductLeverage(){
             }
             else{
 	            fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+        }
+        else if(objResult.status === "warning"){
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else{
+            fnGenMessage("Error in Changing Leverage!, Contact Admin!", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        console.log(error);
+        fnGenMessage("Error to Set Leverage!", `badge bg-danger`, "spnGenMsg");
+    });
+}
+
+function fnPlaceLimitOrderSDK(){
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let vAction = JSON.stringify({ });
+
+    let requestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: vAction,
+        redirect: 'follow'
+    };
+
+    fetch("/deltaExc/placeLimitOrderSDK", requestOptions)
+    .then(response => response.json())
+    .then(objResult => {
+        // console.log(objResult);
+        if(objResult.status === "success"){
+            console.log(objResult);
+
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "danger"){
+            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+                console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+                fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+            else{
+                fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+        }
+        else if(objResult.status === "warning"){
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else{
+            fnGenMessage("Error in Placing Order!, Contact Admin!", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        console.log(error);
+        fnGenMessage("Error in Placing Limit Order!", `badge bg-danger`, "spnGenMsg");
+    });
+}
+
+function fnPlaceSLTPLimitOrderSDK(){
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let vAction = JSON.stringify({ });
+
+    let requestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: vAction,
+        redirect: 'follow'
+    };
+
+    fetch("/deltaExc/placeSLTPLimitOrderSDK", requestOptions)
+    .then(response => response.json())
+    .then(objResult => {
+        // console.log(objResult);
+        if(objResult.status === "success"){
+            console.log(objResult);
+
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "danger"){
+            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+                console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+                fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+            else{
+                fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+        }
+        else if(objResult.status === "warning"){
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else{
+            fnGenMessage("Error in Placing SLTP Order!, Contact Admin!", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        console.log(error);
+        fnGenMessage("Error in Placing SLTP Limit Order!", `badge bg-danger`, "spnGenMsg");
+    });
+}
+
+function fnCancelOrderSDK(){
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let vAction = JSON.stringify({ });
+
+    let requestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: vAction,
+        redirect: 'follow'
+    };
+
+    fetch("/deltaExc/cancelOrderSDK", requestOptions)
+    .then(response => response.json())
+    .then(objResult => {
+        // console.log(objResult);
+        if(objResult.status === "success"){
+            console.log(objResult);
+
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "danger"){
+            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+                console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+                fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+            else{
+                fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
         }
         else if(objResult.status === "warning"){
@@ -212,7 +400,7 @@ function fnCloseWS(){
 	userDeltaWS.close();
 }
 
-function fnGetTestWallet(){
+function fnTestWalletAPI(){
     let vHeaders = new Headers();
     vHeaders.append("Content-Type", "application/json");
 
@@ -225,12 +413,12 @@ function fnGetTestWallet(){
         redirect: 'follow'
     };
 
-    fetch("/deltaExc/getTestWallet", requestOptions)
+    fetch("/deltaExc/getTestWalletAPI", requestOptions)
     .then(response => response.json())
     .then(objResult => {
         // console.log(objResult);
         if(objResult.status === "success"){
-            console.log(objResult);
+            console.log(JSON.parse(objResult.data));
 
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
@@ -247,11 +435,100 @@ function fnGetTestWallet(){
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
         else{
-            fnGenMessage("Error in getting Wallet Information, Contact Admin!", `badge bg-danger`, "spnGenMsg");
+            fnGenMessage("Error in Login, Contact Admin!", `badge bg-danger`, "spnGenMsg");
         }
     })
     .catch(error => {
         // console.log(error);
-        fnGenMessage("Error to Fetch Wallet Details!", `badge bg-danger`, "spnGenMsg");
+        fnGenMessage(error.message, `badge bg-danger`, "spnGenMsg");
+    });
+}
+
+function fnTestGetAllOrderAPI(){
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let vAction = JSON.stringify({ });
+
+    let requestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: vAction,
+        redirect: 'follow'
+    };
+
+    fetch("/deltaExc/getTestGetAllOrderAPI", requestOptions)
+    .then(response => response.json())
+    .then(objResult => {
+        // console.log(objResult);
+        if(objResult.status === "success"){
+            console.log(JSON.parse(objResult.data));
+
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "danger"){
+            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+                console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+                fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+            else{
+                fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+        }
+        else if(objResult.status === "warning"){
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else{
+            fnGenMessage("Error in Login, Contact Admin!", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        // console.log(error);
+        fnGenMessage(error.message, `badge bg-danger`, "spnGenMsg");
+    });
+}
+
+function fnGetCurrPriceByProd(){
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let vAction = JSON.stringify({ });
+
+    let requestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: vAction,
+        redirect: 'follow'
+    };
+
+    fetch("/deltaExc/getCurrPriceByProd", requestOptions)
+    .then(response => response.json())
+    .then(objResult => {
+        if(objResult.status === "success"){
+            console.log(objResult);
+            console.log("Best BP: " + objResult.data.result.quotes.best_ask);
+            console.log("Best SP: " + objResult.data.result.quotes.best_bid);
+
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "danger"){
+            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+                console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+                fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+            else{
+                fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+        }
+        else if(objResult.status === "warning"){
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else{
+            fnGenMessage("Error in Getting Current Price by Product!, Contact Admin!", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        console.log(error);
+        fnGenMessage("Error in Getting Price!", `badge bg-danger`, "spnGenMsg");
     });
 }
