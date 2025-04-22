@@ -70,7 +70,7 @@ exports.fnSetLeverageSDK = async (req, res) => {
         client.apis.Orders.changeOrderLeverage({
             product_id: 27,
             order_leverage: {
-              leverage: '100'
+              leverage: '50'
             }
           }).then(function (response) {
             let objResult = JSON.parse(response.data);
@@ -277,13 +277,34 @@ exports.fnTestGetAllOrderAPI = async (req, res) => {
 }
 
 exports.fnGetCurrPriceByProd = async (req, res) => {
-    const objDate = new Date();
-    let vSecDt = objDate.valueOf();
+    // const objDate = new Date();
+    // let vSecDt = objDate.valueOf();
 
     new DeltaRestClient(vApiKey, vApiSecret).then(client => {
         client.apis.Products.getTicker({
             symbol: "BTCUSD"
           }).then(function (response) {
+            let objResult = JSON.parse(response.data);
+
+            if(objResult.success){
+                res.send({ "status": "success", "message": "Ticker Data Received Successfully!", "data": objResult });
+            }
+            else{
+                res.send({ "status": "warning", "message": "Error: Contact Admin!", "data": objResult });
+            }
+        })
+        .catch(function(objError) {
+            console.log(objError);
+            res.send({ "status": "danger", "message": objError.response.text, "data": objError });
+        });
+    });
+}
+
+exports.fnGetProductsList = async (req, res) => {
+    new DeltaRestClient(vApiKey, vApiSecret).then(client => {
+        client.apis.Products.getProducts({
+            contract_types: "perpetual_futures"
+        }).then(function (response) {
             let objResult = JSON.parse(response.data);
 
             if(objResult.success){

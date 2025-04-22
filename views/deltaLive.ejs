@@ -83,6 +83,78 @@
                                             <div class="container-fluid">
                                                 <div class="row">
                                                     <div class="col-6 col-lg-3 col-md-6">
+                                                        Symbols List
+                                                    </div>
+                                                    <div class="col-6 col-lg-3 col-md-6">
+                                                        Quantity
+                                                    </div>
+                                                    <div class="col-6 col-lg-3 col-md-6">
+                                                        Leverage
+                                                    </div>
+                                                    <div class="col-6 col-lg-3 col-md-6">
+                                                        Current Rate
+                                                    </div>
+    
+                                                    <div class="col-6 col-lg-3 col-md-6">
+                                                        <select id="ddlFuturesSymbols" class="form-select" onchange="fnGetSelSymbolData(this.value);" placeholder="Select Symbol">
+                                                            <option value=''>Select Symbol</option>
+                                                            <option value='BTCUSD' selected>BTCUSD</option>
+                                                            <option value='ETHUSD'>ETHUSD</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-6 col-lg-3 col-md-6">
+                                                        <input type="number" min="1" class="form-control" placeholder="Quantity" id="txtFuturesQty" value="1" />
+                                                    </div>
+                                                    <div class="col-6 col-lg-3 col-md-6">
+                                                        <input type="number" min="1" class="form-control" placeholder="Leverage" id="txtLeverage" value="200" />
+                                                    </div>
+                                                    <div class="col-6 col-lg-3 col-md-6">
+                                                        <div class="input-group mb-3">
+                                                            <button class="btn btn-danger" type="button" id="btnGetSellRate" onclick="fnGetCurrRateSettings('sell');"><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
+                                                            <input id="txtCurrentRate" type="number" min="1" class="form-control" placeholder="Current Rate" />
+                                                            <button class="btn btn-success" type="button" id="btnGetBuyRate" onclick="fnGetCurrRateSettings('buy');"><i class="fa fa-chevron-up" aria-hidden="true"></i></button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-6 col-lg-3 col-md-6">
+                                                        <input type="text" value="0.001" id="hidContactValue" class="form-control" />
+                                                    </div>
+                                                    <div class="col-6 col-lg-3 col-md-6">
+                                                        <input type="text" value="" id="txtInvestment" class="form-control" />
+                                                    </div>
+                                                    <div class="col-6 col-lg-3 col-md-6">
+
+                                                    </div>
+                                                    <div class="col-6 col-lg-3 col-md-6">
+
+                                                    </div>
+                                                    <hr/>
+                                                    <div class="col-6 col-lg-3 col-md-6">
+                                                        <div class="d-grid gap-1">
+                                                            <button class="btn btn-outline-danger" onclick="fnEmitTradeForAll('sell');" style="display: block;"><b>SELL for ALL</b></button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6 col-lg-3 col-md-6">
+                                                        <div class="d-grid gap-1">
+                                                            <button class="btn btn-outline-success" onclick="fnEmitTradeForAll('buy');" style="display: block;"><b>Buy for ALL</b></button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6 col-lg-3 col-md-6">
+                                                        <div class="d-grid gap-1">
+                                                            <button class="btn btn-outline-danger" onclick="fnInitiateManualFutures('sell');"><b>SELL</b></button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6 col-lg-3 col-md-6">
+                                                        <div class="d-grid gap-1">
+                                                            <button class="btn btn-outline-success" onclick="fnInitiateManualFutures('buy');"><b>BUY</b></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="container-fluid">
+                                                <div class="row">
+                                                    <div class="col-6 col-lg-3 col-md-6">
                                                         <input type="button" value="Start WS" onclick="fnStartWS();" />
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
@@ -481,6 +553,7 @@
                                     <input type="button" value="Cancel Order SDK" onclick="fnCancelOrderSDK();" />
                                     <input type="button" value="Get All Order" onclick="fnTestGetAllOrderAPI();" />
                                     <input type="button" value="Get Curr Price" onclick="fnGetCurrPriceByProd();" />
+                                    <input type="button" value="Get Products List" onclick="fnGetProductsList();" />
                                     <input type="button" value="Clear Memory" onclick="fnClearLocalStorageTemp();" />
                                 </div>
                             </div>

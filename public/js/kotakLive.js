@@ -61,7 +61,6 @@ window.addEventListener("DOMContentLoaded", function(){
             objLiveMsgs.TrdMsgs.push(vTempMsg);
             localStorage.setItem("msgsCI", JSON.stringify(objLiveMsgs));
         }
-        console.log(objLiveMsgs);
 
         fnInnitiateAutoTrade(pMsg);
     });
@@ -910,7 +909,6 @@ function fnGetTokenDetails4Option(pFileName, pSearchSymbol, pOptionType, pExpiry
             }
         })
         .catch(error => {
-            console.log('error: ', error);
             // fnGenMessage("Error in feaching Option Symbol.", `badge bg-danger`, "spnGenMsg");
             reject({ "status": "danger", "message": "Error At Token Details", "data": "" });
         });
@@ -2583,8 +2581,8 @@ function fnInitClsOptPaperTrade(pQty){
             clearInterval(gStreamInst);
             localStorage.removeItem("KotakCurrOptPosiS");
             fnResetOpenPositionDetails();
-            userKotakWS.close();
-            // resumeandpause('cp', '1');
+            // userKotakWS.close();
+            resumeandpause('cp', '1');
             fnGenMessage("No Open Position", `badge bg-success`, "btnPositionStatus");
         }
         else{

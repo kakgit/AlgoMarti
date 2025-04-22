@@ -49,6 +49,12 @@ function fnClearLocalStorageTemp(){
     console.log("LocalStorage Cleared!")
 }
 
+function fnEmitTradeForAll(pBorS){
+let objInv = document.getElementById("txtInvestment");
+
+objInv.value = "10";
+}
+
 async function fnInitFutAutoTrade(objMsg){
     try{
         let isLsAutoTrader = localStorage.getItem("isDeltaAutoTrader");
@@ -60,23 +66,35 @@ async function fnInitFutAutoTrade(objMsg){
             let objCurrPos = JSON.parse(localStorage.getItem("DeltaCurrFutPosiS"));
             let vTradeSide = localStorage.getItem("DeltaFutTradeSideSwtS");
 
-            // To Place New Order first check for following points
-            // 1. objMsg.ignorePrevIndc = true, indicates ingore all above indicators and place order
-
             if(objCurrPos === null || objCurrPos === ""){
-                //Place New Order Based on the ingnorePrevIndc = true or false
-
+                console.log("New Order Placed");
             }
             else{
-
+                console.log("Position is already Open");
             }
-            console.log(objCurrPos);
+            // console.log(objCurrPos);
             fnGenMessage("Futures Order Placed!", "badge bg-success", "spnGenMsg");
         }
         // console.log(objMsg);
     }
     catch(err){
+            fnGenMessage("Error in Placing Futures Order!", "badge bg-danger", "spnGenMsg");
+    }
+}
 
+async function fnGetSelSymbolData(pThisVal){
+    try{
+        let objSymData = await fnExecSelSymbData(pThisVal);
+        if(objSymData.status === "success"){
+
+            fnGenMessage(objSymData.message, `badge bg-${objSymData.status}`, "spnGenMsg");   
+        }
+        else{
+            fnGenMessage(objSymData.message, `badge bg-${objSymData.status}`, "spnGenMsg");   
+        }
+    }
+    catch(err) {
+        fnGenMessage(err.message, `badge bg-${err.status}`, "spnGenMsg");
     }
 }
 
@@ -347,6 +365,11 @@ function fnCancelOrderSDK(){
 function fnStartWS(){
 	let objBestBid = document.getElementById("lblBuyPrice");
 	let objBestAsk = document.getElementById("lblSellPrice");
+    let objInv = document.getElementById("txtInvestment");
+    let objQty = document.getElementById("txtFuturesQty");
+    let objLeverage = document.getElementById("txtLeverage");
+    let objContractVal = document.getElementById("hidContactValue");
+
     let vUrl = "wss://socket.india.delta.exchange";
 
     userDeltaWS = new WebSocket(vUrl);
@@ -376,6 +399,8 @@ function fnStartWS(){
 				// objBestAsk.innerText = (parseInt(vTicData.spot_price)).toFixed(2);
 				objBestBid.innerText = (parseInt(vTicData.quotes.best_ask)).toFixed(2);
 				objBestAsk.innerText = (parseInt(vTicData.quotes.best_bid)).toFixed(2);
+
+                objInv.value = ((parseFloat(objBestBid.innerText) * parseFloat(objContractVal.value) * parseFloat(objQty.value)) / parseFloat(objLeverage.value)).toFixed(2);
 				break;
 			case "heartbeat":
 				console.log("Heart Beats");
@@ -508,6 +533,49 @@ function fnGetCurrPriceByProd(){
             console.log(objResult);
             console.log("Best BP: " + objResult.data.result.quotes.best_ask);
             console.log("Best SP: " + objResult.data.result.quotes.best_bid);
+
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "danger"){
+            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+                console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+                fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+            else{
+                fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+        }
+        else if(objResult.status === "warning"){
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else{
+            fnGenMessage("Error in Getting Current Price by Product!, Contact Admin!", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        console.log(error);
+        fnGenMessage("Error in Getting Price!", `badge bg-danger`, "spnGenMsg");
+    });
+}
+
+function fnGetProductsList(){
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let vAction = JSON.stringify({ });
+
+    let requestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: vAction,
+        redirect: 'follow'
+    };
+
+    fetch("/deltaExc/getProductsList", requestOptions)
+    .then(response => response.json())
+    .then(objResult => {
+        if(objResult.status === "success"){
+            console.log(objResult);
 
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }

@@ -103,6 +103,7 @@ route.post("/deltaExc/placeSLTPLimitOrderSDK", deltaLiveController.fnPlaceSLTPLi
 route.post("/deltaExc/cancelOrderSDK", deltaLiveController.fnCancelOrderSDK);
 route.post("/deltaExc/getTestGetAllOrderAPI", deltaLiveController.fnTestGetAllOrderAPI);
 route.post("/deltaExc/getCurrPriceByProd", deltaLiveController.fnGetCurrPriceByProd);
+route.post("/deltaExc/getProductsList", deltaLiveController.fnGetProductsList);
 
 //Update JSON file Routes
 route.post("/json/uorcJSON", tvConfsController.fnUpdJsons);

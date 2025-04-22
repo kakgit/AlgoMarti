@@ -1573,7 +1573,7 @@ const fnGetTradeDetails = async (pHsServerId, pSid, pKotakSession, pAccessToken)
 
 const fnGetTradeTokenData = async (pJsonFileName, pSearchSymbol, pOptionType, pExpiryEpoch, pStrikePrice) => {
     const objData = new Promise((resolve, reject) => {
-  
+
       const vLocalUrl = process.env.API_PATH + "json/" + pJsonFileName;
       let vToken = "";
       let vExchSeg = "";
@@ -1612,7 +1612,6 @@ const fnGetTradeTokenData = async (pJsonFileName, pSearchSymbol, pOptionType, pE
           }
         })
         .catch((error) => {
-          //console.log("Error: " + error);
           reject({ "status": "danger", "message": "File Not Found! " + error.message, "data": "" });
         });
     });
