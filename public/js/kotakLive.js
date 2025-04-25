@@ -370,7 +370,7 @@ function fnGetSymb4AutoTrade(pOptionType){
 
             userKotakWS.onclose = function () {
                 objDdlOptSym.value = 0;
-                fnGetSelSymbolData();
+                fnGetSelSymbolData(0);
                 //fnGenMessage("Connection is Closed!", `badge bg-warning`, "spnGenMsg");
                 //fnLogTA("[Socket]: Disconnected !\n");
             }
@@ -1595,7 +1595,7 @@ resumeandpause = function(typeRequest, channel_number){
     let jObj = {};
     jObj["type"] = typeRequest;
     jObj["channelnums"] = channel_number.split(',').map(function (val) { return parseInt(val, 10); })
-    if (userKotakWS != null) {
+    if(userKotakWS != null) {
         let req = JSON.stringify(jObj);
        userKotakWS.send(req);
     }
@@ -1858,7 +1858,7 @@ function fnGetCurrRateStream(pExchSeg, pToken, objRateTxt){
 
         userKotakWS.onclose = function () {
             // objDdlOptSym.value = 0;
-            // fnGetSelSymbolData();
+            // fnGetSelSymbolData(0);
             objRateTxt.value = "";
             //fnGenMessage("Connection is Closed!", `badge bg-warning`, "spnGenMsg");
             //fnLogTA("[Socket]: Disconnected !\n");
@@ -2027,7 +2027,9 @@ function fnStartStreamOptPrc(){
             //objLTP.value = "";
             userKotakWS = "";
             fnGenMessage("Connection is Closed!", `badge bg-warning`, "spnGenMsg");
+            // userKotakWS.open();
             //fnLogTA("[Socket]: Disconnected !\n");
+            // fnRestartStreamOptPrc();
         }
 
         userKotakWS.onerror = function () {
@@ -2880,7 +2882,7 @@ function fnRestartStreamOptPrc(){
     clearInterval(gStreamInst);
 
     fnCloseWS();
-    gStreamInst = setInterval(fnStartStreamOptPrc, 10000);
+    gStreamInst = setInterval(fnStartStreamOptPrc, 5000);
 }
 
 const fnGetAccessToken = async (pConsumerKey, pConsumerSecret, pUserNameAPI, pPasswordAPI) => {
@@ -2944,7 +2946,7 @@ function fnGet1TimeCurrOptRate(pExchSeg, pToken, objRateTxt){
 
             userKotakWS.onclose = function () {
                 // objDdlOptSym.value = 0;
-                // fnGetSelSymbolData();
+                // fnGetSelSymbolData(0);
                 objRateTxt.value = "";
                 //fnGenMessage("Connection is Closed!", `badge bg-warning`, "spnGenMsg");
                 reject({ "status": "warning", "message": "Connection is Closed!", "data": "" });
