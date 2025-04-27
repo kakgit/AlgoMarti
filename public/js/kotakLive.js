@@ -299,110 +299,6 @@ async function fnInnitiateAutoTrade(pMsg){
     }
 }
 
-function fnGetSymb4AutoTrade(pOptionType){
-    let objDdlOptSym = document.getElementById("ddlOptionsSymbols");
-    let objFileName = document.getElementById("hidJsonFileName");
-    let objSearchSymbol = document.getElementById("hidSearchSymbol");
-    let objSpot = document.getElementById("hidSpotPrice");
-    let objSegment = document.getElementById("hidSegment");
-    let objLotSize = document.getElementById("txtOptionLotSize");
-    // let objStopLoss = document.getElementById("txtOptionsSL1");
-    // let objTakeProfit = document.getElementById("txtOptionsTP1");
-    let objStrikeInterval = document.getElementById("hidOptStrikeInterval");
-    let objSpotOption = document.getElementById("hidSpotOption");
-    let objMaxQty = document.getElementById("hidMaxQty");
-    let objCurrentRate = document.getElementById("txtCurrentRate");
-    let vSymName = "";
-
-    for (let i = 0; i < gIndData.Symbol.length; i++) {
-        if(gIndData.Symbol[i].Token === parseInt(objDdlOptSym.value)){
-            objFileName.value = gIndData.Symbol[i].JsonFileName;
-            objSearchSymbol.value = gIndData.Symbol[i].SearchSymbol;
-            vSymName =  gIndData.Symbol[i].SymbolName;
-            objSegment.value = gIndData.Symbol[i].Segment;
-            objLotSize.value = gIndData.Symbol[i].LotSize;
-            // objStopLoss.value = gIndData.Symbol[i].StopLoss;
-            // objTakeProfit.value = gIndData.Symbol[i].TakeProfit;
-            objStrikeInterval.value = gIndData.Symbol[i].StrikeInterval;
-            objMaxQty.value = gIndData.Symbol[i].MaxLots;
-        }
-    }
-
-    fnFillIndexExpData();
-
-    if(parseInt(objDdlOptSym.value) === 0){
-        vSymName = "";
-        objFileName.value = ""
-        objSearchSymbol.value = "";
-        objSegment.value = "";
-        objLotSize.value = "";
-        // objStopLoss.value = "";
-        // objTakeProfit.value = "";
-        objSpot.value = "";
-        objStrikeInterval.value = "";
-        objSpotOption.value = "";
-        objMaxQty.value = "";
-        objCurrentRate.value = "";
-    }
-    else{
-        objSpot.value = "";
-        objCurrentRate.value = "";
-        let vStreamObj = objSegment.value + "|" + vSymName;
-
-        let objKotakSession = document.getElementById("txtKotakSession");
-        let objSid = document.getElementById("txtSid");
-        let vChannelNo = 1;
-
-        if(objKotakSession.value !== ""){
-            let vUrl = "wss://mlhsm.kotaksecurities.com"; <!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
-            userKotakWS = new HSWebSocket(vUrl);
-            //console.log(vChannelNo);
-
-            userKotakWS.onopen = function () {
-                //fnGenMessage("Connection is Open!", `badge bg-success`, "spnGenMsg");
-                //fnLogTA('[Socket]: Connected to "' + vUrl + '"\n');
-                let jObj = {};
-                jObj["Authorization"] = objKotakSession.value;
-                jObj["Sid"] = objSid.value; 
-                jObj["type"] = "cn";
-                userKotakWS.send(JSON.stringify(jObj));
-            }
-
-            userKotakWS.onclose = function () {
-                objDdlOptSym.value = 0;
-                fnGetSelSymbolData(0);
-                //fnGenMessage("Connection is Closed!", `badge bg-warning`, "spnGenMsg");
-                //fnLogTA("[Socket]: Disconnected !\n");
-            }
-
-            userKotakWS.onerror = function () {
-                objSpot.value = "";
-                objSegment.value = "";
-                fnGenMessage("Error in Socket Connection!", `badge bg-danger`, "spnGenMsg");
-                //fnLogTA("[Socket]: Error !\n");
-            }
-
-            userKotakWS.onmessage = function (msg) {
-                const result= JSON.parse(msg);
-                
-                // alert(result[0].name);
-                if((result[0].name === "if")){
-                    if(result[0].iv !== undefined){
-                        objSpot.value = result[0].iv;
-                        resumeandpause('cp', '1');
-                        fnGetSpotOption();
-                        fnInitiateManualOption("B", pOptionType);
-                    }
-                }
-
-                if(result[0].type === "cn"){
-                    fnSubscribeScript('ifs', vStreamObj, vChannelNo);
-                }
-            }
-        }
-    }
-}
-
 function fnClearTraderFields(){
     fnGetNseCashSettings();
     fnGetOptSettings();
@@ -532,7 +428,7 @@ function fnExecSelSymbData(pThisVal){
 
             let objKotakSession = document.getElementById("txtKotakSession");
             let objSid = document.getElementById("txtSid");
-            let vChannelNo = 1;
+            let vChannelNo = 20;
 
             if(objKotakSession.value !== ""){
                 let vUrl = "wss://mlhsm.kotaksecurities.com"; <!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
@@ -571,7 +467,7 @@ function fnExecSelSymbData(pThisVal){
                     if((result[0].name === "if")){
                         if(result[0].iv !== undefined){
                             objSpot.value = result[0].iv;
-                            resumeandpause('cp', '1');
+                            resumeandpause('cp', '20');
                             fnGetSpotOption();
                             resolve({ "status": "success", "message": "Selected Symbol Data Received!", "data": "" });
                         }
@@ -1553,7 +1449,7 @@ function fnStartStreamCP(){
 
         userKotakWS.onclose = function () {
             //objLTP.value = "";
-            fnGenMessage("Connection is Closed!", `badge bg-warning`, "spnGenMsg");
+            fnGenMessage("StreamCP Connection is Closed!", `badge bg-warning`, "spnGenMsg");
             //fnLogTA("[Socket]: Disconnected !\n");
         }
 
@@ -1839,7 +1735,7 @@ function fnGetCurrRateStream(pExchSeg, pToken, objRateTxt){
 
     let objKotakSession = document.getElementById("txtKotakSession");
     let objSid = document.getElementById("txtSid");
-    let vChannelNo = 1;
+    let vChannelNo = 10;
 
     if(objKotakSession.value !== ""){
         let vUrl = "wss://mlhsm.kotaksecurities.com"; <!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
@@ -2000,15 +1896,16 @@ function fnSetInitOptTrdDtls(){
 
 function fnStartStreamOptPrc(){
     let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
-    let vStreamObj = objCurrPos.TradeData[0].ExchSeg + "|" + objCurrPos.TradeData[0].SymToken;
+    let vStreamObj = "";
     let objLTP = document.getElementById("txtCurrentRate");
 
     let objKotakSession = document.getElementById("txtKotakSession");
     let objSid = document.getElementById("txtSid");
     let vChannelNo = 1;
 
-    if(objKotakSession.value !== ""){
-    let vUrl = "wss://mlhsm.kotaksecurities.com"; <!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
+    if((objKotakSession.value !== "") && (objCurrPos !== null)){
+        vStreamObj = objCurrPos.TradeData[0].ExchSeg + "|" + objCurrPos.TradeData[0].SymToken;
+        let vUrl = "wss://mlhsm.kotaksecurities.com"; <!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
         userKotakWS = new HSWebSocket(vUrl);
         //console.log(vChannelNo);
 
@@ -2025,11 +1922,13 @@ function fnStartStreamOptPrc(){
 
         userKotakWS.onclose = function () {
             //objLTP.value = "";
-            userKotakWS = "";
-            fnGenMessage("Connection is Closed!", `badge bg-warning`, "spnGenMsg");
+            // userKotakWS = "";
+            fnGenMessage("Option Streaming Connection is Closed!", `badge bg-warning`, "spnGenMsg");
             // userKotakWS.open();
             //fnLogTA("[Socket]: Disconnected !\n");
-            // fnRestartStreamOptPrc();
+            if (objCurrPos !== null){
+                fnStartStreamOptPrc();
+            }
         }
 
         userKotakWS.onerror = function () {
@@ -2927,7 +2826,7 @@ function fnGet1TimeCurrOptRate(pExchSeg, pToken, objRateTxt){
 
         let objKotakSession = document.getElementById("txtKotakSession");
         let objSid = document.getElementById("txtSid");
-        let vChannelNo = 1;
+        let vChannelNo = 20;
 
         if(objKotakSession.value !== ""){
             let vUrl = "wss://mlhsm.kotaksecurities.com"; <!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
@@ -2949,14 +2848,14 @@ function fnGet1TimeCurrOptRate(pExchSeg, pToken, objRateTxt){
                 // fnGetSelSymbolData(0);
                 objRateTxt.value = "";
                 //fnGenMessage("Connection is Closed!", `badge bg-warning`, "spnGenMsg");
-                reject({ "status": "warning", "message": "Connection is Closed!", "data": "" });
+                reject({ "status": "warning", "message": "1 Time Connection is Closed!", "data": "" });
                 //fnLogTA("[Socket]: Disconnected !\n");
             }
 
             userKotakWS.onerror = function () {
                 objRateTxt.value = "";
                 //fnGenMessage("Error in Socket Connection!", `badge bg-danger`, "spnGenMsg");
-                reject({ "status": "danger", "message": "Error in Socket Connection!", "data": "" });
+                reject({ "status": "danger", "message": "Error in 1 Time Socket Connection!", "data": "" });
                 //fnLogTA("[Socket]: Error !\n");
             }
 
@@ -2968,7 +2867,7 @@ function fnGet1TimeCurrOptRate(pExchSeg, pToken, objRateTxt){
                     if(result[0].ltp !== undefined){
                         objRateTxt.value = result[0].ltp;
                         //objRateTxt.value = result[0].iv;
-                        resumeandpause('cp', '1');
+                        resumeandpause('cp', '20');
 
                         resolve({ "status": "success", "message": "Rate Received Successfully!", "data": objRateTxt.value });
                     }
