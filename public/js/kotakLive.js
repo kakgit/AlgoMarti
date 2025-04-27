@@ -1868,7 +1868,7 @@ function fnSetInitOptTrdDtls(){
 
             gDiffSL = (gAmtSL - gBuyPrice).toFixed(2);
             gDiffTP = (gAmtTP - gBuyPrice).toFixed(2);
-            objCapital.innerText = parseInt(gLotSize) * parseInt(gQty) * parseFloat(gBuyPrice);
+            objCapital.innerText = (parseInt(gLotSize) * parseInt(gQty) * parseFloat(gBuyPrice)).toFixed(2);
         }
         else if(gByorSl === "S"){
             objLblBP.innerText = "CURR PRICE";
@@ -1878,7 +1878,7 @@ function fnSetInitOptTrdDtls(){
 
             gDiffSL = (gSellPrice - gAmtSL).toFixed(2);
             gDiffTP = (gSellPrice - gAmtTP).toFixed(2);
-            objCapital.innerText = parseInt(gLotSize) * parseInt(gQty) * parseFloat(gSellPrice);
+            objCapital.innerText = (parseInt(gLotSize) * parseInt(gQty) * parseFloat(gSellPrice)).toFixed(2);
         }
         else{
             objCapital.innerText = "";
@@ -2736,9 +2736,9 @@ function fnSetTodayOptTradeDetails(){
             vTempHtml += '<td style="text-wrap: nowrap;">' + vJsonData.TradeList[i].Expiry + '</td>';
             vTempHtml += '<td style="text-wrap: nowrap; font-weight:bold;">' + vJsonData.TradeList[i].Strike + vJsonData.TradeList[i].OptionType + '</td>';
             vTempHtml += '<td style="text-wrap: nowrap; text-align:right;">' + vJsonData.TradeList[i].Quantity + '</td>';
-            vTempHtml += '<td style="text-wrap: nowrap; color:green;text-align:right;">' + vJsonData.TradeList[i].BuyPrice + '</td>';
-            vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + vJsonData.TradeList[i].SellPrice + '</td>';
-            vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + vJsonData.TradeList[i].Charges + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap; color:green;text-align:right;">' + (parseFloat(vJsonData.TradeList[i].BuyPrice)).toFixed(2) + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (parseFloat(vJsonData.TradeList[i].SellPrice)).toFixed(2) + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (parseFloat(vJsonData.TradeList[i].Charges)).toFixed(2) + '</td>';
 
             let vCapital = vJsonData.TradeList[i].LotSize * vJsonData.TradeList[i].Quantity * vJsonData.TradeList[i].BuyPrice;
 
