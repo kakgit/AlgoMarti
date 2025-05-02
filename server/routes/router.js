@@ -95,6 +95,7 @@ route.post("/deltaExc/validateLogin", deltaLiveController.fnValidateUserLogin);
 
 //Samples
 route.post("/deltaExc/getTestWalletAPI", deltaLiveController.fnTestWalletAPI);
+route.post("/deltaExc/setLeverageAPI", deltaLiveController.fnSetLeverageAPI);
 route.post("/deltaExc/getUserWalletSDK", deltaLiveController.fnGetUserWalletSDK);
 route.post("/deltaExc/getLeverageSDK", deltaLiveController.fnGetLeverageSDK);
 route.post("/deltaExc/setLeverageSDK", deltaLiveController.fnSetLeverageSDK);
@@ -104,6 +105,7 @@ route.post("/deltaExc/cancelOrderSDK", deltaLiveController.fnCancelOrderSDK);
 route.post("/deltaExc/getTestGetAllOrderAPI", deltaLiveController.fnTestGetAllOrderAPI);
 route.post("/deltaExc/getCurrPriceByProd", deltaLiveController.fnGetCurrPriceByProd);
 route.post("/deltaExc/getProductsList", deltaLiveController.fnGetProductsList);
+route.post("/deltaExc/getOptionChainSDK", deltaLiveController.fnGetOptionChainSDK);
 
 //Update JSON file Routes
 route.post("/json/uorcJSON", tvConfsController.fnUpdJsons);

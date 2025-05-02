@@ -6,6 +6,7 @@ window.addEventListener("DOMContentLoaded", function(){
 	let bAppStatus = JSON.parse(localStorage.getItem("AppMsgStatusS"));
 
 	if(bAppStatus){
+        fnShowAdminAccessories();
         fnGetSetTraderLoginStatus();
 		fnGetSetAutoTraderStatus();
         fnGetSetRealTradeStatus();
@@ -32,10 +33,36 @@ window.addEventListener("DOMContentLoaded", function(){
 
         fnInitFutAutoTrade(objMsg);
     });
+
+    socket.on("DeltaEmitOpt", (pMsg) => {
+        let objAppCred = JSON.parse(localStorage.getItem("AppCredS"));
+
+        if((objAppCred !== null) && (objAppCred.IsAdmin)){
+            let objMsg = JSON.parse(pMsg);
+            let objLiveMsgs = JSON.parse(localStorage.getItem("msgsDelExcOpt"));
+            let vDate = new Date();
+            let vMonth = vDate.getMonth() + 1;
+            let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
+
+            if(objLiveMsgs === null || objLiveMsgs === ""){
+                objLiveMsgs = JSON.stringify({ TrdMsgs: [{ MsgId: vDate.valueOf(), MsgDT: vToday, SymbName: objMsg.symbolName, Strategy: objMsg.strategy, Direction: objMsg.direction, OptionType: objMsg.optionType, ClosePrice: objMsg.closePrice, IngnorePrevInc: objMsg.ignorePrevIndc }]});
+                localStorage.setItem("msgsDelExcOpt", objLiveMsgs);
+            }
+            else{
+                let vTempMsg = { MsgId: vDate.valueOf(), MsgDT: vToday, SymbName: objMsg.symbolName, Strategy: objMsg.strategy, Direction: objMsg.direction, OptionType: objMsg.optionType, ClosePrice: objMsg.closePrice, IngnorePrevInc: objMsg.ignorePrevIndc };
+
+                objLiveMsgs.TrdMsgs.push(vTempMsg);
+                localStorage.setItem("msgsDelExcOpt", JSON.stringify(objLiveMsgs));
+            }
+
+            fnInitOptAutoTrade(objMsg);
+        }
+    });
 });
 
 function fnClearLocalStorageTemp(){
     localStorage.removeItem("msgsDelExc");
+    localStorage.removeItem("msgsDelExcOpt");
     localStorage.removeItem("DeltaCurrFutPosiS");
     // localStorage.removeItem("KotakCurrOptPosiS");
     // localStorage.removeItem("OptTradesListS");
@@ -49,10 +76,118 @@ function fnClearLocalStorageTemp(){
     console.log("LocalStorage Cleared!")
 }
 
-function fnEmitTradeForAll(pBorS){
-let objInv = document.getElementById("txtInvestment");
+function fnManualEmitOptTrade(pBorS, pCorP){
+    let vSymbolName = "BTCUSD";
+    let vStrategy = "Strategy-1";
+    let objClosePrice = document.getElementById("txtOptionSpotPrice");
 
-objInv.value = "10";
+    if(objClosePrice.value === ""){
+        fnGenMessage("Please Input Spot Price!", `badge bg-warning`, "spnGenMsg");
+        objClosePrice.focus();
+    }
+    else{
+        let vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+
+        let vAction = JSON.stringify({ symbolName: vSymbolName, strategy: vStrategy, direction: pBorS, optionType: pCorP, closePrice: objClosePrice.value, ignorePrevIndc: true });
+
+        let requestOptions = {
+            method: 'POST',
+            headers: vHeaders,
+            body: vAction,
+            redirect: 'follow'
+        };
+
+        fetch("/tv-msg-delta-opt", requestOptions)
+        .then(response => response.json())
+        .then(objResult => {
+            // console.log(objResult);
+            if(objResult.status === "success"){
+                // console.log(objResult);
+
+                fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+            else if(objResult.status === "danger"){
+                fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+            else if(objResult.status === "warning"){
+                fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+            else{
+                fnGenMessage("Error to Emit Trade for All, Contact Admin!", `badge bg-danger`, "spnGenMsg");
+            }
+        })
+        .catch(error => {
+            fnGenMessage("Error in Executing Trade for All!", `badge bg-danger`, "spnGenMsg");
+        });
+    }
+}
+
+async function fnInitOptAutoTrade(objMsg){
+    try{
+        console.log(objMsg);
+
+        // let objOptionChain = await fnGetOptionChain();
+        // console.log(objOptionChain);
+
+        // if(objOptionChain.status === "success"){
+
+        //     fnGenMessage(objOptionChain.message, `badge bg-${objOptionChain.status}`, "spnGenMsg");
+        // }
+        // else{
+        //     fnGenMessage(objOptionChain.message, `badge bg-${objOptionChain.status}`, "spnGenMsg");
+        // }
+    }
+    catch(err){
+        fnGenMessage(err.message, `badge bg-${err.status}`, "spnGenMsg");
+    }
+}
+
+function fnGetOptionChain(){
+    const objPromise = new Promise((resolve, reject) => {
+
+        let vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+
+        let vAction = JSON.stringify({ });
+
+        let requestOptions = {
+            method: 'POST',
+            headers: vHeaders,
+            body: vAction,
+            redirect: 'follow'
+        };
+
+        fetch("/deltaExc/getOptionChainSDK", requestOptions)
+        .then(response => response.json())
+        .then(objResult => {
+            if(objResult.status === "success"){
+                // console.log(objResult);
+
+                resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+            else if(objResult.status === "danger"){
+                if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+                    console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+                    reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data.response.statusText });
+                }
+                else{
+                    reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data.response.statusText });
+                }
+            }
+            else if(objResult.status === "warning"){
+                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+            else{
+                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+        })
+        .catch(error => {
+            console.log(error);
+            reject({ "status": "danger", "message": "Error At Option Chain", "data": "" });
+        });
+    });
+    return objPromise;
 }
 
 async function fnInitFutAutoTrade(objMsg){
@@ -460,7 +595,51 @@ function fnTestWalletAPI(){
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
         else{
-            fnGenMessage("Error in Login, Contact Admin!", `badge bg-danger`, "spnGenMsg");
+            fnGenMessage("Error to Get Wallet Info, Contact Admin!", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        console.log(error);
+        fnGenMessage(error.message, `badge bg-danger`, "spnGenMsg");
+    });
+}
+
+function fnSetLeverageAPI(){
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let vAction = JSON.stringify({ });
+
+    let requestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: vAction,
+        redirect: 'follow'
+    };
+
+    fetch("/deltaExc/setLeverageAPI", requestOptions)
+    .then(response => response.json())
+    .then(objResult => {
+        // console.log(objResult);
+        if(objResult.status === "success"){
+            console.log(JSON.parse(objResult.data));
+
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "danger"){
+            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+                console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+                fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+            else{
+                fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+        }
+        else if(objResult.status === "warning"){
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else{
+            fnGenMessage("Error to Set Leverage JS, Contact Admin!", `badge bg-danger`, "spnGenMsg");
         }
     })
     .catch(error => {

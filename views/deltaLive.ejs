@@ -32,7 +32,7 @@
                 </div>
                 <div class="row">
                     <div class="col-12 col-lg-12">
-                        <div class="card">
+                        <div class="card" id="cardManualTrader" style="display: none;">
                             <div class="card-header">
                                 <div class="row">
                                     <div class="col-3">
@@ -173,51 +173,30 @@
                                             <div class="container-fluid">
                                                 <div class="row">
                                                     <div class="col-6 col-lg-3 col-md-6">
-                                                        To Trade Strike
-                                                    </div>
-                                                    <div class="col-6 col-lg-3 col-md-6">
                                                         Symbols List
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
                                                         Expiry
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
+                                                        Spot Price
+                                                    </div>
+                                                    <div class="col-6 col-lg-3 col-md-6">
                                                         Current Rate
                                                     </div>
     
                                                     <div class="col-6 col-lg-3 col-md-6">
-                                                        <select id="ddlOptionStrike" onchange="fnChangeOptionStrike(this);" class="form-select">
-                                                            <option value="-10">-10 ITM</option>
-                                                            <option value="-9">-9 ITM</option>
-                                                            <option value="-8">-8 ITM</option>
-                                                            <option value="-7">-7 ITM</option>
-                                                            <option value="-6">-6 ITM</option>
-                                                            <option value="-5">-5 ITM</option>
-                                                            <option value="-4">-4 ITM</option>
-                                                            <option value="-3">-3 ITM</option>
-                                                            <option value="-2">-2 ITM</option>
-                                                            <option value="-1">-1 ITM</option>
-                                                            <option value="0" selected="true">ATM</option>
-                                                            <option value="1">+1 OTM</option>
-                                                            <option value="2">+2 OTM</option>
-                                                            <option value="3">+3 OTM</option>
-                                                            <option value="4">+4 OTM</option>
-                                                            <option value="5">+5 OTM</option>
-                                                            <option value="6">+6 OTM</option>
-                                                            <option value="7">+7 OTM</option>
-                                                            <option value="8">+8 OTM</option>
-                                                            <option value="9">+9 OTM</option>
-                                                            <option value="10">+10 OTM</option>
-                                                        </select>                
-                                                    </div>
-                                                    <div class="col-6 col-lg-3 col-md-6">
-                                                        <select id="ddlOptionsSymbols" class="form-select" onchange="fnGetSelSymbolData(this.value);" placeholder="NSE Cash Symbols">
-                                                            <option value=''>Select Option Symbol</option>
+                                                        <select id="ddlOptionsSymbols" class="form-select" onchange="//fnGetSelOptSymbData(this.value);" placeholder="Select Symbol">
+                                                            <option value=''>Select Symbol</option>
+                                                            <option value='BTCUSD' selected>BTCUSD</option>
+                                                            <option value='ETHUSD'>ETHUSD</option>
                                                         </select>
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
-                                                        <select id="ddlOptionsExpiry" class="form-select" onchange="//fnGetExpValByChdAPT(this.value);">
-                                                        </select>
+                                                        <input type="text" class="form-control" placeholder="Expiry Date" id="txtOptionExpiry" value="02-05-2025" />
+                                                    </div>
+                                                    <div class="col-6 col-lg-3 col-md-6">
+                                                        <input type="text" class="form-control" placeholder="Spot Price" id="txtOptionSpotPrice" value="" />
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
                                                         <div class="input-group mb-3">
@@ -271,22 +250,22 @@
                                                     <hr/>
                                                     <div class="col-6 col-lg-3 col-md-6">
                                                         <div class="d-grid gap-1">
-                                                            <button class="btn btn-outline-danger" onclick="fnEmitTradeForAll('PE');" style="display: block;"><b>Buy PE for ALL</b></button>
+                                                            <button class="btn btn-outline-danger" onclick="fnManualEmitOptTrade('SELL', 'CE');" style="display: block;"><b>Sell CE for ALL</b></button>
                                                         </div>
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
                                                         <div class="d-grid gap-1">
-                                                            <button class="btn btn-outline-success" onclick="fnEmitTradeForAll('CE');" style="display: block;"><b>Buy CE for ALL</b></button>
+                                                            <button class="btn btn-outline-success" onclick="fnManualEmitOptTrade('SELL', 'PE');" style="display: block;"><b>Sell PE for ALL</b></button>
                                                         </div>
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
                                                         <div class="d-grid gap-1">
-                                                            <button class="btn btn-outline-danger" onclick="fnInitiateManualOption('B', 'PE');"><b>BUY PE</b></button>
+                                                            <button class="btn btn-outline-danger" onclick="fnManualEmitOptTrade('BUY', 'PE');"><b>BUY PE for ALL</b></button>
                                                         </div>
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
                                                         <div class="d-grid gap-1">
-                                                            <button class="btn btn-outline-success" onclick="fnInitiateManualOption('B', 'CE');"><b>BUY CE</b></button>
+                                                            <button class="btn btn-outline-success" onclick="fnManualEmitOptTrade('BUY', 'CE');"><b>BUY CE for All</b></button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -548,6 +527,7 @@
                                     <input type="button" value="Wallet Balance SDK" onclick="fnGetUserWalletSDK();" />
                                     <input type="button" value="Get Leverage SDK" onclick="fnGetLeverageSDK();" />
                                     <input type="button" value="Set Leverage SDK" onclick="fnSetLeverageSDK();" />
+                                    <input type="button" value="Set Leverage API" onclick="fnSetLeverageAPI();" />
                                     <input type="button" value="Place Limit Order SDK" onclick="fnPlaceLimitOrderSDK();" />
                                     <input type="button" value="Place SLTP Limit Order SDK" onclick="fnPlaceSLTPLimitOrderSDK();" />
                                     <input type="button" value="Cancel Order SDK" onclick="fnCancelOrderSDK();" />

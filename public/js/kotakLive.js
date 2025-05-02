@@ -212,7 +212,7 @@ async function fnInnitiateAutoTrade(pMsg){
                         // fnGenMessage("Success - "+ pMsg.OptionType +" Trade Executed!", "badge bg-success", "spnGenMsg");
                     }
                     else{
-                        fnGenMessage("Error At Auto Trade for - "+ pMsg.OptionType +" Trade!", "badge bg-warning", "spnGenMsg");
+                        fnGenMessage("Error At Auto Trade for - "+ pMsg.OptionType, "badge bg-warning", "spnGenMsg");
                     }
                 }
                 else{
@@ -222,7 +222,6 @@ async function fnInnitiateAutoTrade(pMsg){
             }
             else{
                 if(objCurrPos.TradeData[0].OptionType === pMsg.OptionType){
-                    //console.log(pMsg.OptionType + " Position is Already Running");
                     fnGenMessage(pMsg.OptionType +" Trade Message Received, But another "+ pMsg.OptionType +" Position is Already Open!", "badge bg-warning", "spnGenMsg");
                 }
                 else{

@@ -90,6 +90,22 @@ app.post("/tv-msg-delta-fut", (req, res) => {
     res.send("Success");
 });
 
+
+app.post("/tv-msg-delta-opt", (req, res) => {
+    const vSymbolName = req.body.symbolName;
+    const vStrategy = req.body.strategy;
+    const vDirection = req.body.direction;
+    const vOptionType = req.body.optionType;
+    const vClosePrice = req.body.closePrice;
+    const vIgnorePrevIndc = req.body.ignorePrevIndc
+
+    const objMsg = JSON.stringify({ symbolName: vSymbolName, strategy: vStrategy, direction: vDirection, optionType: vOptionType, closePrice: vClosePrice, ignorePrevIndc: vIgnorePrevIndc });
+
+    io.emit("DeltaEmitOpt", objMsg);
+
+    res.send({ status: "success", message: vSymbolName + " " + vDirection + " - " + vOptionType + " Trade Sent to Admin!", data: objMsg });
+});
+
 app.post("/tv-msg", (req, res) => {
     const vSymbolName = req.body.symbolName;
     const vIndType = req.body.indType;

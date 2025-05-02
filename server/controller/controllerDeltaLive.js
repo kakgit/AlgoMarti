@@ -52,7 +52,7 @@ exports.fnGetLeverageSDK = async (req, res) => {
             let objResult = JSON.parse(response.data.toString());
 
             if(objResult.success){
-                res.send({ "status": "success", "message": "Product Leverage Information Feched!", "data": objResult });
+                res.send({ "status": "success", "message": "Product Leverage Information Fetched!", "data": objResult });
             }
             else{
                 res.send({ "status": "warning", "message": "Error: Contact Admin!", "data": objResult });
@@ -67,12 +67,7 @@ exports.fnGetLeverageSDK = async (req, res) => {
 
 exports.fnSetLeverageSDK = async (req, res) => {
     new DeltaRestClient(vApiKey, vApiSecret).then(client => {
-        client.apis.Orders.changeOrderLeverage({
-            product_id: 27,
-            order_leverage: {
-              leverage: '50'
-            }
-          }).then(function (response) {
+        client.post(`/products/27/orders/leverage`, { leverage: '50' }).then(function (response) {
             let objResult = JSON.parse(response.data);
 
             if(objResult.success){
@@ -214,15 +209,17 @@ exports.fnGetUserWalletSDK = async (req, res) => {
 
 exports.fnTestWalletAPI = async (req, res) => {
     const vMethod = "GET";
-    const vPath = '/v2/wallet/balances' + "";
+    const vPath = '/v2/wallet/balances';
+    const vQueryStr = "";
     const vTimeStamp = Math.floor(new Date().getTime() / 1000);
     const vBody = "";
-    const vSignature = fnGetSignature(vMethod, vPath, vTimeStamp, vBody);
+    const vSignature = fnGetSignature(vMethod, vPath, vQueryStr, vTimeStamp, vBody);
     let config = {
         method: vMethod,
         maxBodyLength: Infinity,
-        url: vBaseUrl+ '/v2/wallet/balances',
+        url: vBaseUrl + vPath + vQueryStr,
         headers: {
+            'Content-Type': 'application/json',
             'Accept': 'application/json',
             'api-key': vApiKey,
             'signature': vSignature,
@@ -240,6 +237,39 @@ exports.fnTestWalletAPI = async (req, res) => {
       .catch((objError) => {
         console.log(objError);
         res.send({ "status": "danger", "message": "Error in Login. Contact Administrator!", "data": objError });
+    });      
+}
+
+exports.fnSetLeverageAPI = async (req, res) => {
+    const vMethod = "POST";
+    const vPath = '/v2/products/27/orders/leverage';
+    const vQueryStr = "";
+    const vTimeStamp = Math.floor(new Date().getTime() / 1000);
+    const vBody = { order_leverage: '50' };
+    const vSignature = fnGetSignature(vMethod, vPath, vQueryStr, vTimeStamp, vBody);
+    let config = {
+        method: vMethod,
+        maxBodyLength: Infinity,
+        url: vBaseUrl + vPath + vQueryStr,
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'api-key': vApiKey,
+            'signature': vSignature,
+            'timestamp': vTimeStamp
+            }
+        };
+      
+      axios.request(config)
+      .then((objResult) => {
+        let objRes = JSON.stringify(objResult.data);
+        console.log(objRes);
+
+        res.send({ "status": "success", "message": "Leverage Changed Successfully!", "data": objRes });
+    })
+      .catch((objError) => {
+        console.log(objError);
+        res.send({ "status": "danger", "message": "Error to Change Leverage. Contact Administrator!", "data": objError });
     });      
 }
 
@@ -317,6 +347,27 @@ exports.fnGetProductsList = async (req, res) => {
         .catch(function(objError) {
             console.log(objError);
             res.send({ "status": "danger", "message": objError.response.text, "data": objError });
+        });
+    });
+}
+
+exports.fnGetOptionChainSDK = async (req, res) => {
+    new DeltaRestClient(vApiKey, vApiSecret).then(client => {
+        client.apis.Products.getOptionChain({
+            contract_types: "call_options", underlying_asset_symbols: "BTC", expiry_date: "02-05-2025"
+          }).then(function (response) {
+            let objResult = JSON.parse(response.data);
+
+            if(objResult.success){
+                res.send({ "status": "success", "message": "Ticker Data Received Successfully!", "data": objResult });
+            }
+            else{
+                res.send({ "status": "warning", "message": "Error: Contact Admin!", "data": objResult });
+            }
+        })
+        .catch(function(objError) {
+            console.log(objError);
+            res.send({ "status": "danger", "message": "Error At fnGetOptionChainSDK Catch, Contact Admin!", "data": objError });
         });
     });
 }

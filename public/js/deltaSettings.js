@@ -1,4 +1,13 @@
 
+function fnShowAdminAccessories(){
+    let objAppCred = JSON.parse(localStorage.getItem("AppCredS"));
+
+
+    if((objAppCred !== null) && (objAppCred.IsAdmin)){
+        document.getElementById("cardManualTrader").style.display = "block";
+    }
+}
+
 function fnShowTraderLoginMdl(objThis){
     let bAppStatus = localStorage.getItem("AppMsgStatusS");
 
