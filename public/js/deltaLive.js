@@ -11,6 +11,9 @@ window.addEventListener("DOMContentLoaded", function(){
 		fnGetSetAutoTraderStatus();
         fnGetSetRealTradeStatus();
 		fnSetDefaultTraderTab();
+        fnSetDefaultQty();
+        fnLoadPrevQty();
+        fnShowCurrOpenPosList();
 	}
 
     socket.on("DeltaEmit1", (pMsg) => {
@@ -55,41 +58,77 @@ window.addEventListener("DOMContentLoaded", function(){
                 localStorage.setItem("msgsDelExcOpt", JSON.stringify(objLiveMsgs));
             }
 
+            // console.log(objLiveMsgs);
             fnInitOptAutoTrade(objMsg);
         }
     });
 });
 
+function fnSetDefaultQty(){
+    let lsStartQty = localStorage.getItem("StartQtyDelta");
+    let objTxtStartQty = document.getElementById("txtStartQty");
+
+    if(lsStartQty === null || lsStartQty === "" || lsStartQty === "0"){
+        localStorage.setItem("StartQtyDelta", 1);
+        objTxtStartQty.value = 1;
+    }
+    else{
+        objTxtStartQty.value = lsStartQty;
+    }
+}
+
+function fnLoadPrevQty(){
+    let lsQtyMul = JSON.parse(localStorage.getItem("QtyMulDelta"));
+    let lsStartQty = localStorage.getItem("StartQtyDelta");
+    let objQty = document.getElementById("txtOptionsQty");
+
+    if(lsQtyMul !== null){
+        if(parseInt(lsQtyMul) > parseInt(lsStartQty)){
+            objQty.value = lsQtyMul;
+        }
+        else{
+            objQty.value = lsStartQty;
+        }
+    }
+    else{
+        objQty.value = lsStartQty;
+        localStorage.setItem("QtyMulDelta", objQty.value);
+    }
+}
+
 function fnClearLocalStorageTemp(){
     localStorage.removeItem("msgsDelExc");
     localStorage.removeItem("msgsDelExcOpt");
     localStorage.removeItem("DeltaCurrFutPosiS");
-    // localStorage.removeItem("KotakCurrOptPosiS");
+    localStorage.removeItem("DeltaCurrPosiS")
+    localStorage.removeItem("StartQtyDelta");
+    localStorage.removeItem("QtyMulDelta");
     // localStorage.removeItem("OptTradesListS");
-    // localStorage.removeItem("StartLotNoR");
-    // localStorage.removeItem("QtyMulR");
     // localStorage.removeItem("TotLossAmtR");
     // localStorage.removeItem("TraderTab");
     // clearInterval(vTradeInst);
 
     // fnSetTodayOptTradeDetails();
+    window.location.reload();
     console.log("LocalStorage Cleared!")
 }
 
 function fnManualEmitOptTrade(pBorS, pCorP){
-    let vSymbolName = "BTCUSD";
+    let objSymbDDL = document.getElementById("ddlOptionsSymbols");
     let vStrategy = "Strategy-1";
     let objClosePrice = document.getElementById("txtOptionSpotPrice");
 
-    if(objClosePrice.value === ""){
-        fnGenMessage("Please Input Spot Price!", `badge bg-warning`, "spnGenMsg");
-        objClosePrice.focus();
+    objClosePrice.value = "";
+
+    if(objSymbDDL.value === ""){
+        fnGenMessage("Please Select Symbol to Execute Option Trade!", `badge bg-warning`, "spnGenMsg");
+        objSymbDDL.focus();
     }
     else{
         let vHeaders = new Headers();
         vHeaders.append("Content-Type", "application/json");
 
-        let vAction = JSON.stringify({ symbolName: vSymbolName, strategy: vStrategy, direction: pBorS, optionType: pCorP, closePrice: objClosePrice.value, ignorePrevIndc: true });
+        let vAction = JSON.stringify({ symbolName: objSymbDDL.value, strategy: vStrategy, direction: pBorS, optionType: pCorP, closePrice: objClosePrice.value, ignorePrevIndc: true });
 
         let requestOptions = {
             method: 'POST',
@@ -124,32 +163,294 @@ function fnManualEmitOptTrade(pBorS, pCorP){
 }
 
 async function fnInitOptAutoTrade(objMsg){
+    let objApiKey = document.getElementById("txtUserAPIKey");
+    let objApiSecret = document.getElementById("txtAPISecret");
+    let objSymbDDL = document.getElementById("ddlOptionsSymbols");
+    let objSpotPrice = document.getElementById("txtOptionSpotPrice");
+    let objExpiryDate = document.getElementById("txtOptionExpiry");
+
     try{
-        console.log(objMsg);
+        objSymbDDL.value = objMsg.symbolName;
+        objSpotPrice.value = objMsg.closePrice;
 
-        // let objOptionChain = await fnGetOptionChain();
-        // console.log(objOptionChain);
+        if(objSpotPrice.value === ""){
+            let objSpotPriceByProd = await fnGetSpotPriceByProd(objApiKey.value, objApiSecret.value, objSymbDDL.value);
 
-        // if(objOptionChain.status === "success"){
+            if(objSpotPriceByProd.status === "success"){
 
-        //     fnGenMessage(objOptionChain.message, `badge bg-${objOptionChain.status}`, "spnGenMsg");
-        // }
-        // else{
-        //     fnGenMessage(objOptionChain.message, `badge bg-${objOptionChain.status}`, "spnGenMsg");
-        // }
+                objSpotPrice.value = (parseFloat(objSpotPriceByProd.data.result.spot_price)).toFixed(2);
+
+                let objOptionChain = await fnGetOptionChain(objApiKey.value, objApiSecret.value, objSpotPriceByProd.data.result.underlying_asset_symbol, objExpiryDate.value, objMsg.optionType);
+
+                // console.log(objSpotPriceByProd);
+                if(objOptionChain.status === "success"){
+                    let objCurrPos = null;
+                    // console.log(objOptionChain);
+                    if(objMsg.optionType === "PE"){
+                        for(let i=0; i< objOptionChain.data.result.length; i++){
+                            if((parseInt(objOptionChain.data.result[i].strike_price) < parseInt(objSpotPrice.value)) && (parseInt(objOptionChain.data.result[i].strike_price) > (parseInt(objSpotPrice.value) - 500)) && (parseInt(objOptionChain.data.result[i].quotes.best_bid) > 1000)){
+                                // console.log("Length: " + objOptionChain.data.result.length);
+                                objCurrPos = objOptionChain.data.result[i];
+                                // console.log(objOptionChain.data.result[i]);
+                            }
+                        }
+                    }
+                    else{
+                        for(let i=0; i< objOptionChain.data.result.length; i++){
+                            if((parseInt(objOptionChain.data.result[i].strike_price) > parseInt(objSpotPrice.value)) && (parseInt(objOptionChain.data.result[i].strike_price) < (parseInt(objSpotPrice.value) + 500)) && (parseInt(objOptionChain.data.result[i].quotes.best_bid) > 1000)){
+                                objCurrPos = objOptionChain.data.result[i];
+                                // console.log(objOptionChain.data.result[i]);
+                            }
+                        }
+                    }
+                    fnAddNewPosition(objCurrPos, objMsg.optionType, objMsg.direction);
+                    console.log(objCurrPos);
+                    fnGenMessage(objOptionChain.message, `badge bg-${objOptionChain.status}`, "spnGenMsg");
+                }
+                else{
+                    fnGenMessage(objOptionChain.message, `badge bg-${objOptionChain.status}`, "spnGenMsg");
+                }
+            }
+            else{
+                fnGenMessage(objSpotPriceByProd.message, `badge bg-${objSpotPriceByProd.status}`, "spnGenMsg");
+            }
+        }
     }
     catch(err){
         fnGenMessage(err.message, `badge bg-${err.status}`, "spnGenMsg");
     }
 }
 
-function fnGetOptionChain(){
+function fnAddNewPosition(objNewPos, pCorP, pBorS){
+    let objCurrPositions = JSON.parse(localStorage.getItem("DeltaCurrPosiS"));
+    let objLotSize = document.getElementById("txtOptionLotSize");
+    let objQty = document.getElementById("txtOptionsQty");
+    let vDate = new Date();
+    let vMonth = vDate.getMonth() + 1;
+    let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
+
+
+    if(objCurrPositions === null){
+        objCurrPositions = JSON.stringify({ OpenPos: [{ TradeID: vDate.valueOf(), DT: vToday, CorP: pCorP, BorS: pBorS, ContractType: objNewPos.contract_type, ProductID: objNewPos.product_id, BuyPrice: objNewPos.quotes.best_ask, SellPrice: objNewPos.quotes.best_bid, StrikePrice: objNewPos.strike_price, Symbol: objNewPos.symbol, UndAstSymbol: objNewPos.underlying_asset_symbol, LotSize: parseFloat(objLotSize.value), Quantity: parseInt(objQty.value) }]});
+        localStorage.setItem("DeltaCurrPosiS", objCurrPositions);
+    }
+    else{
+        let vTempData = { TradeID: vDate.valueOf(), DT: vToday, CorP: pCorP, BorS: pBorS, ContractType: objNewPos.contract_type, ProductID: objNewPos.product_id, BuyPrice: objNewPos.quotes.best_ask, SellPrice: objNewPos.quotes.best_bid, StrikePrice: objNewPos.strike_price, Symbol: objNewPos.symbol, UndAstSymbol: objNewPos.underlying_asset_symbol, LotSize: parseFloat(objLotSize.value), Quantity: parseInt(objQty.value) };        
+        objCurrPositions.OpenPos.push(vTempData);
+        localStorage.setItem("DeltaCurrPosiS", JSON.stringify(objCurrPositions));
+    }
+
+    console.log(JSON.parse(localStorage.getItem("DeltaCurrPosiS")));
+
+    //Temporary for checking, change later
+    objQty.value = parseInt(objQty.value) * 2;
+    localStorage.setItem("QtyMulDelta", objQty.value);
+
+    fnShowCurrOpenPosList();
+}
+
+function fnShowCurrOpenPosList(){
+    let objOpenTrades = JSON.parse(localStorage.getItem("DeltaCurrPosiS"));
+    let objCurrTradeBody = document.getElementById("tBodyCurrOpenTrades");
+    let objSymbList = [];
+
+    if (objOpenTrades === null) {
+        objCurrTradeBody.innerHTML = '<span style="border:0px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 40px;">No Open Positions</span>';
+    }
+    else{
+        let vTempHtml = "";
+        let vNetProfit = 0;
+        let vNoOfTrades = 0;
+        let vPrevCapital = 0;
+        let vCharges = 0;
+        let vTotalCharges = 0;
+
+        for (let i = 0; i < objOpenTrades.OpenPos.length; i++){
+            let vBuyPrice = parseFloat(objOpenTrades.OpenPos[i].BuyPrice);
+            let vSellPrice = parseFloat(objOpenTrades.OpenPos[i].SellPrice);
+            let vLotSize = objOpenTrades.OpenPos[i].LotSize;
+            let vQty = objOpenTrades.OpenPos[i].Quantity;
+            let vSymbolName = objOpenTrades.OpenPos[i].Symbol;
+            let vCapital = 0;
+
+            vTempHtml += '<tr>';
+
+            vTempHtml += '<td style="text-wrap: nowrap;" onclick=\'fnDeleteThisTrade(' + objOpenTrades.OpenPos[i].TradeID + ');\'>' + objOpenTrades.OpenPos[i].DT + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap; font-weight:bold;">' + objOpenTrades.OpenPos[i].Symbol + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap;">' + objOpenTrades.OpenPos[i].StrikePrice + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap; text-align:right;">' + vQty + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap; color:green;text-align:right;">' + (vBuyPrice).toFixed(2) + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (vSellPrice).toFixed(2) + '</td>';
+
+            if(objOpenTrades.OpenPos[i].BorS === "SELL"){
+                vCapital = (vLotSize * vQty * vSellPrice) * 0.75;
+            }
+            else{
+                vCapital = vLotSize * vQty * vBuyPrice;
+            }
+
+            if(vCapital > vPrevCapital){
+                vPrevCapital = vCapital;
+            }
+
+            let vBuyBrok = ((vLotSize * vQty * vBuyPrice) * 1)/100;
+            let vSellBrok = ((vLotSize * vQty * vSellPrice) * 1)/100;
+            let vCharges = (vBuyBrok + vSellBrok) * 1.18;
+            let vTradePL = ((vSellPrice - vBuyPrice) * vLotSize * vQty) - vCharges;
+
+            vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (vCharges).toFixed(2) + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (vCapital).toFixed(2) + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap; font-weight:bold;text-align:right;">' + (vTradePL).toFixed(2) + '</td>';
+
+            vNoOfTrades += 1;
+            vTotalCharges += vCharges;
+            vNetProfit += vTradePL;
+
+            vTempHtml += '</tr>';
+
+            objSymbList.push(vSymbolName);
+        }
+        vTempHtml += '<tr><td>Total Trades</td><td>'+ vNoOfTrades +'</td><td colspan="4"></td><td Style="text-align:right;font-weight:bold;color:red;">'+ (vTotalCharges).toFixed(2) +'</td><td Style="text-align:right;font-weight:bold;color:orange;">'+ (vPrevCapital).toFixed(2) +'</td><td style="font-weight:bold;text-align:right;color:orange;">' + (vNetProfit).toFixed(2) + '</td></tr>';
+
+        objCurrTradeBody.innerHTML = vTempHtml;
+    }
+    localStorage.setItem("DeltaSymbolsList", JSON.stringify(objSymbList));
+}
+
+function fnStartStreaming(){
+    let objSymbList = JSON.parse(localStorage.getItem("DeltaSymbolsList"));
+    // console.log(objSymbList);
+
+    let vUrl = "wss://socket.india.delta.exchange";
+    userDeltaWS = new WebSocket(vUrl);
+
+    userDeltaWS.onopen = function (){
+        let vSendData = { "type": "subscribe", "payload": { "channels": [{ "name": "v2/ticker", "symbols": objSymbList }]}};
+
+        userDeltaWS.send(JSON.stringify(vSendData));
+        console.log("Conn Stated");
+    }
+    userDeltaWS.onclose = function (){
+        console.log("Conn Ended");
+    }
+    userDeltaWS.onerror = function (){
+        console.log("Conn Error");
+    }
+    userDeltaWS.onmessage = function (pMsg){
+        let vTicData = JSON.parse(pMsg.data);
+
+        switch (vTicData.type) {
+            case "v2/ticker":
+                fnUpdCurrPosLocStrge(vTicData);
+                break;
+            case "heartbeat":
+                console.log("Heart Beats");
+                break;
+            case "pong":
+                console.log("Heart Pings");
+                break;
+        }
+    }
+}
+
+function fnUpdCurrPosLocStrge(pTicData){
+    let objOpenTrades = JSON.parse(localStorage.getItem("DeltaCurrPosiS"));
+
+    console.log(pTicData);
+
+    for (let i = 0; i < objOpenTrades.OpenPos.length; i++){
+        if(pTicData.product_id === objOpenTrades.OpenPos[i].ProductID){
+            objOpenTrades.OpenPos[i].BuyPrice = pTicData.quotes.best_bid;
+        }
+    }
+    localStorage.setItem("DeltaCurrPosiS", JSON.stringify(objOpenTrades));
+    fnShowCurrOpenPosList();
+}
+
+function fnChangeStartQty(pThisVal){
+
+    let objOptQty = document.getElementById("txtOptionsQty");
+
+    if(pThisVal.value === "" || pThisVal.value === "0"){
+        fnGenMessage("Not a Valid Lot No to Start with, Please Check", `badge bg-danger`, "spnGenMsg");
+        pThisVal.value = 1;
+        localStorage.setItem("StartQtyDelta", 1);
+    }
+    else if(isNaN(parseInt(pThisVal.value))){
+        fnGenMessage("Not a Valid Lot No to Start with, Please Check", `badge bg-danger`, "spnGenMsg");
+        pThisVal.value = 1;
+        localStorage.setItem("StartQtyDelta", 1);
+    }
+    else{
+        fnGenMessage("No of Lots to Start With is Changed!", `badge bg-success`, "spnGenMsg");
+        localStorage.setItem("StartQtyDelta", pThisVal.value);
+
+        if(confirm("Are You Sure You want to change the Quantity?")){
+            objOptQty.value = pThisVal.value;
+            localStorage.setItem("QtyMulDelta", pThisVal.value);
+        }
+    }
+}
+
+function fnGetSpotPriceByProd(pApiKey, pApiSecret, pSelSymbol){
+    const objPromise = new Promise((resolve, reject) => {
+        let vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+
+        let vAction = JSON.stringify({
+            "ApiKey" : pApiKey,
+            "ApiSecret" : pApiSecret,
+            "Symbol" : pSelSymbol
+        });
+
+        let requestOptions = {
+            method: 'POST',
+            headers: vHeaders,
+            body: vAction,
+            redirect: 'follow'
+        };
+        fetch("/deltaExc/getSpotPriceByProd", requestOptions)
+        .then(response => response.json())
+        .then(objResult => {
+            if(objResult.status === "success"){
+                resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+            else if(objResult.status === "danger"){
+                if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+                    reject({ "status": objResult.status, "message": objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, "data": objResult.data });
+                }
+                else{
+                    reject({ "status": objResult.status, "message": objResult.data.response.body.error.code + " Contact Admin!", "data": objResult.data });
+                }
+            }
+            else if(objResult.status === "warning"){
+                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+            else{
+                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+        })
+        .catch(error => {
+            reject({ "status": "danger", "message": "Error At Spot Price. Catch!", "data": "" });
+        });
+    });
+
+    return objPromise;
+}
+
+function fnGetOptionChain(pApiKey, pApiSecret, pUndAssetSymb, pOtionExpiry, pOptionType){
     const objPromise = new Promise((resolve, reject) => {
 
         let vHeaders = new Headers();
         vHeaders.append("Content-Type", "application/json");
 
-        let vAction = JSON.stringify({ });
+        let vAction = JSON.stringify({
+            "ApiKey" : pApiKey,
+            "ApiSecret" : pApiSecret,
+            "UndAssetSymbol" : pUndAssetSymb,
+            "OptionExpiry" : pOtionExpiry,
+            "OptionType" : pOptionType
+        });
 
         let requestOptions = {
             method: 'POST',
@@ -168,11 +469,10 @@ function fnGetOptionChain(){
             }
             else if(objResult.status === "danger"){
                 if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-                    console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
-                    reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data.response.statusText });
+                    reject({ "status": objResult.status, "message": objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, "data": objResult.data });
                 }
                 else{
-                    reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data.response.statusText });
+                    reject({ "status": objResult.status, "message": objResult.data.response.body.error.code + " Contact Admin!", "data": objResult.data });
                 }
             }
             else if(objResult.status === "warning"){
@@ -183,8 +483,7 @@ function fnGetOptionChain(){
             }
         })
         .catch(error => {
-            console.log(error);
-            reject({ "status": "danger", "message": "Error At Option Chain", "data": "" });
+            reject({ "status": "danger", "message": "Error At Option Chain. Catch!", "data": "" });
         });
     });
     return objPromise;
@@ -510,7 +809,7 @@ function fnStartWS(){
     userDeltaWS = new WebSocket(vUrl);
 
 	userDeltaWS.onopen = function (){
-		let vSendData = { "type": "subscribe", "payload": { "channels": [{ "name": "v2/ticker", "symbols": ["BTCUSD"] }]}};
+		let vSendData = { "type": "subscribe", "payload": { "channels": [{ "name": "v2/ticker", "symbols": ["C-BTC-96500-090525", "P-BTC-96500-090525"] }]}};
 
 		// userDeltaWS.send(JSON.stringify({"type": "enable_heartbeat"}));
 		userDeltaWS.send(JSON.stringify(vSendData));
@@ -519,7 +818,7 @@ function fnStartWS(){
 		console.log("Conn Stated");
 	}
 	userDeltaWS.onclose = function (){
-        clearInterval(vTradeInst);
+        //clearInterval(vTradeInst);
 		console.log("Conn Ended");
 	}
 	userDeltaWS.onerror = function (){
@@ -532,10 +831,10 @@ function fnStartWS(){
 			case "v2/ticker":
 				// objBestBid.innerText = (parseInt(vTicData.close)).toFixed(2);
 				// objBestAsk.innerText = (parseInt(vTicData.spot_price)).toFixed(2);
-				objBestBid.innerText = (parseInt(vTicData.quotes.best_ask)).toFixed(2);
-				objBestAsk.innerText = (parseInt(vTicData.quotes.best_bid)).toFixed(2);
+				// objBestBid.innerText = (parseInt(vTicData.quotes.best_ask)).toFixed(2);
+				// objBestAsk.innerText = (parseInt(vTicData.quotes.best_bid)).toFixed(2);
 
-                objInv.value = ((parseFloat(objBestBid.innerText) * parseFloat(objContractVal.value) * parseFloat(objQty.value)) / parseFloat(objLeverage.value)).toFixed(2);
+                // objInv.value = ((parseFloat(objBestBid.innerText) * parseFloat(objContractVal.value) * parseFloat(objQty.value)) / parseFloat(objLeverage.value)).toFixed(2);
 				break;
 			case "heartbeat":
 				console.log("Heart Beats");
@@ -544,15 +843,7 @@ function fnStartWS(){
 				console.log("Heart Pings");
 				break;
 		}
-
-
-		// if(vTicData.type === "v2/ticker"){
-		// 	objBestBid.innerText = (parseInt(vTicData.close)).toFixed(2);
-		// 	objBestAsk.innerText = (parseInt(vTicData.spot_price)).toFixed(2);
-		// }
-
 		console.log(vTicData);
-		// console.log(vTicData.quotes.best_bid);
 	}
 }
 
@@ -710,8 +1001,9 @@ function fnGetCurrPriceByProd(){
     .then(objResult => {
         if(objResult.status === "success"){
             console.log(objResult);
-            console.log("Best BP: " + objResult.data.result.quotes.best_ask);
-            console.log("Best SP: " + objResult.data.result.quotes.best_bid);
+            // console.log("Spot Price: " + objResult.data.result.spot_price);
+            // console.log("Best BP: " + objResult.data.result.quotes.best_ask);
+            // console.log("Best SP: " + objResult.data.result.quotes.best_bid);
 
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }

@@ -59,7 +59,7 @@
                                         </form>
                                     </div>
                                     <div class="col-2" style="text-align: right;">Start With </div>
-                                    <div class="col-1"><input type="text" class="form-control" min="1" value="1" maxlength="3" id="txtStartLotNos" onchange="fnChangeStartLotNos(this);" /></div>
+                                    <div class="col-1"><input type="text" class="form-control" min="1" value="1" maxlength="3" id="txtStartQty" onchange="fnChangeStartQty(this);" /></div>
                                     <div class="col-1"> Qty</div>
                                     <div class="col-1" style="text-align: right;">
                                         <a data-bs-toggle="collapse" href="#divTraderClps" role="button" aria-expanded="true" aria-controls="divTraderClps">
@@ -120,7 +120,7 @@
                                                         <input type="text" value="0.001" id="hidContactValue" class="form-control" />
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
-                                                        <input type="text" value="" id="txtInvestment" class="form-control" />
+                                                        <input type="text" value="" id="txtInvestment" class="form-control" placeholder="Investment" />
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
 
@@ -193,7 +193,7 @@
                                                         </select>
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
-                                                        <input type="text" class="form-control" placeholder="Expiry Date" id="txtOptionExpiry" value="02-05-2025" />
+                                                        <input type="text" class="form-control" placeholder="Expiry Date" id="txtOptionExpiry" value="09-05-2025" />
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
                                                         <input type="text" class="form-control" placeholder="Spot Price" id="txtOptionSpotPrice" value="" />
@@ -220,11 +220,10 @@
                                                     </div>
     
                                                     <div class="col-6 col-lg-3 col-md-6">
-                                                        <input type="number" min="1" class="form-control" placeholder="Lot Size" id="txtOptionLotSize" value="1" />
+                                                        <input type="number" class="form-control" placeholder="Lot Size" id="txtOptionLotSize" value="0.001" />
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
                                                         <input type="number" min="1" class="form-control" placeholder="Quantity" id="txtOptionsQty" value="1" />
-                                                        
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
                                                         <input type="text" class="form-control" id="txtOptionsSL1" name="txtOptionsSL1" value="" placeholder="Stop Loss" />
@@ -233,19 +232,16 @@
                                                         <input type="text" class="form-control" id="txtOptionsTP1" name="txtOptionsTP1" value="" placeholder="Take Profit" />
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
-                                                        <input type="hidden" id="hidJsonFileName" class="form-control" value="" placeholder="File Name" />
-                                                        <input type="hidden" id="hidSpotPrice" class="form-control" value="" placeholder="Spot Price" />
+                                                        <input type="text" id="hidSpotPrice" class="form-control" value="" placeholder="Spot Price" />
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
-                                                        <input type="hidden" id="hidSearchSymbol" class="form-control" value="" placeholder="Search Symbol" />
-                                                        <input type="hidden" id="hidSpotOption" class="form-control" placeholder="Spot Option" value="" />
+                                                        <input type="text" id="hidSearchSymbol" class="form-control" value="" placeholder="Search Symbol" />
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
-                                                        <input type="hidden" id="hidSegment" class="form-control" value="" placeholder="Segment" />
-                                                        <input type="hidden" id="hidMaxQty" class="form-control" placeholder="Max Quantity" value="" />
+                                                        <input type="text" id="hidSpotOption" class="form-control" placeholder="Spot Option" value="" />
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
-                                                        <input type="hidden" id="hidOptStrikeInterval" class="form-control" value="" placeholder="Strike Interval" />
+                                                        <input type="text" id="hidOptStrikeInterval" class="form-control" value="" placeholder="Strike Interval" />
                                                     </div>
                                                     <hr/>
                                                     <div class="col-6 col-lg-3 col-md-6">
@@ -301,8 +297,11 @@
                                     <div class="col-6">
                                         <h4>Open Position(s)</h4>
                                     </div>
-                                    <div class="col-5">
+                                    <div class="col-4">
 
+                                    </div>
+                                    <div class="col-1">
+                                        <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnStartStreaming();"></i>
                                     </div>
                                     <div class="col-1" style="text-align: right;">
                                         <a data-bs-toggle="collapse" href="#divOpenPosClps" role="button" aria-expanded="true" aria-controls="divOpenPosClps">
@@ -313,105 +312,26 @@
                             </div>
                             <div class="card-body">
                                 <div class="collapse show" id="divOpenPosClps">
-                                    <div class="row">
-                                        <div class="col-6 col-lg-6">
-                                            <div class="row">
-                                                <div class="col-6" style="font-size:14px; color:cornflowerblue">Entry Date Time</div>
-                                                <div class="col-6" style="text-align:right; font-size:14px; white-space:nowrap; color:cornflowerblue" id="lblEntryDate">00-00-0000 00:00:00</div>
-                                                <div class="col-4" style="font-weight:bold; white-space:nowrap; font-size:14px;" id="lblSymbol">SYMBOL NAME</div>
-                                                <div class="col-2" style="font-weight:bold; white-space:nowrap; font-size:14px;" id="lblStrike">000000</div>
-                                                <div class="col-1" style="font-weight:bold; white-space:nowrap; font-size:14px;" id="lblOptionType">OT</div>
-                                                <div class="col-5" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align:right;" id="lblExpiry">YYYY-MM-DD</div>
-                                                <div class="col-12">&nbsp;</div>
-                
-                                                <div class="col-2" style="color:white; white-space:nowrap; font-size:14px; text-align: center;">LotSz</div>
-                                                <div class="col-2" style="color:white; white-space:nowrap; font-size:14px; text-align: center;">QTY</div>
-                                                <div class="col-3" style="color:green; white-space:nowrap; font-size:14px; text-align: center;" id="lblBuyPriceInd">BUY PRICE</div>
-                                                <div class="col-3" style="color:red; white-space:nowrap; font-size:14px; text-align: center;" id="lblSellPriceInd">SELL PRICE</div>
-                                                <div class="col-2" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">P & L</div>
-                
-                                                <div class="col-2" style="color:white; white-space:nowrap; font-size:14px; text-align: center;" id="lblLotSize">0</div>
-                                                <div class="col-2" style="color:white; white-space:nowrap; font-size:14px; text-align: center;" id="lblQty">0</div>
-                                                <div class="col-3" style="color:green; white-space:nowrap; font-size:14px; text-align: center;" id="lblBuyPrice">0.00</div>
-                                                <div class="col-3" style="color:red; white-space:nowrap; font-size:14px; text-align: center;" id="lblSellPrice">0.00</div>
-                                                <div class="col-2" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;" id="lblProfitLoss">0.00</div>
-
-                                                <div class="col-12">&nbsp;</div>
-
-                                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">T-SL</div>
-                                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">On SL</div>
-                                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">On TP</div>
-                                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">Capital:</div>
-                
-                                                <div class="col-3" style="text-align:center; color:orange; white-space:nowrap; text-align: center;" id="lblTrailSL">0.00</div>
-                                                <div class="col-3" style="text-align:center; color:red; white-space:nowrap; text-align: center;" id="lblLossOnSL">0.00</div>
-                                                <div class="col-3" style="text-align:center; color:green; white-space:nowrap; text-align: center;" id="lblProfitOnTP">0.00</div>
-                                                <div class="col-3" id="lblCapital" style="font-weight:bold; white-space:nowrap; text-align: center;">0.00</div>
-
-                                                <div class="col-12">&nbsp;</div>
-
-                                                <div class="col-6">
-                                                    <div class="d-grid gap-1">
-                                                        <button id="btn50PerClose" class="btn btn-outline-primary" onclick="fnClose50PrctOptTrade();" disabled><b>Exit 50% QTY</b></button>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="d-grid gap-1">
-                                                        <button class="btn btn-outline-danger" id="btnClosePosition" onclick="fnCloseOptTrade();"><b>CLOSE POSITION</b></button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-6 col-lg-6">
-                                            <div class="row">
-                                                <div class="col-4">
-                                                    <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                                        <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtAutoChkPosition" name="swtAutoChkPosition" onchange="fnExecTradeTimer();" />
-                                                        <label for="swtAutoChkPosition" style="cursor:pointer;">Auto Check Every</label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <input type="number" class="form-control" placeholder="Timer" id="txtTimeMS" value="5" maxlength="3" />
-                                                </div>
-                                                <div class="col-5">
-                                                    
-                                                </div>
-
-                                                <div class="col-12">&nbsp;</div>
-
-                                                <div class="col-12">
-                                                    <select id="ddlTrailSLTP" class="form-select" onchange="fnSetDDLTrailSLTP(this);">
-                                                        <option value=0 selected="true">NO SL or TP</option>
-                                                        <option value=1>Strict SL or TP</option>
-                                                        <option value=2>Trail By SL</option>
-                                                        <option value=3>Trail SL After TP</option>
-                                                        <option value=4>Exit 50% Qty on Profit</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-12">
-                                                    &nbsp;
-                                                </div>
-                                                <div class="col-4">
-                                                    <input type="text" class="form-control" placeholder="SL" id="txtUpdStopLoss" />
-                                                </div>
-                                                <div class="col-4">
-                                                    <input type="text" class="form-control" placeholder="TP" id="txtUpdTakeProfit" />
-                                                </div>
-                                                <div class="col-4">
-                                                    <button class="btn btn-outline-info btn-block" id="btnUpdateSLTP" onclick="fnUpdateOptSLTP();"><b>UPDATE</b></button>
-                                                </div>
-                                                <div class="col-2">
-                                                    
-                                                </div>
-                                                <div class="col-4">
-                                                    <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="resumeandpause('cp', '1');">Pause LTP</button>
-                                                </div>
-                                                <div class="col-4">
-                                                    <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="resumeandpause('cr', '1');">Resume LTP</button>
-                                                </div>
-                                                <div class="col-2">
-                                                </div>
-                                            </div>
+                                    <div class="container-fluid">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr style="text-align:center;">
+                                                      <th scope="col" style="text-wrap: nowrap;">Open Date Time</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">Symbol</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">Strike</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">Qty</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">Charges</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">Capital</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
+                                                    </tr>
+                                                  </thead>
+                                                  <tbody id="tBodyCurrOpenTrades">
+    
+                                                  </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 </div>

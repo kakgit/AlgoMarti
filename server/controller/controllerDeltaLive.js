@@ -41,7 +41,32 @@ exports.fnValidateUserLogin = async (req, res) => {
         })
         .catch(function(objError) {
             console.log("Error At Catch");
-            res.send({ "status": "danger", "message": "Error At Catch.", "data": objError });
+            res.send({ "status": "danger", "message": "Error At User Login! Catch.", "data": objError });
+        });
+    });
+}
+
+exports.fnGetSpotPriceByProd = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+    let vSymbol = req.body.Symbol;
+
+    new DeltaRestClient(vApiKey, vApiSecret).then(client => {
+        client.apis.Products.getTicker({
+            symbol: vSymbol
+          }).then(function (response) {
+            let objResult = JSON.parse(response.data.toString());
+
+            if(objResult.success){
+                res.send({ "status": "success", "message": "Spot Received Successfully!", "data": objResult });
+            }
+            else{
+                res.send({ "status": "warning", "message": "Error: Contact Admin!", "data": objResult });
+            }
+        })
+        .catch(function(objError) {
+            console.log("Error At Catch");
+            res.send({ "status": "danger", "message": "Error At Spot Rate.", "data": objError });
         });
     });
 }
@@ -307,12 +332,12 @@ exports.fnTestGetAllOrderAPI = async (req, res) => {
 }
 
 exports.fnGetCurrPriceByProd = async (req, res) => {
-    // const objDate = new Date();
-    // let vSecDt = objDate.valueOf();
+    // let vApiKey = req.body.ApiKey;
+    // let vApiSecret = req.body.ApiSecret;
 
     new DeltaRestClient(vApiKey, vApiSecret).then(client => {
         client.apis.Products.getTicker({
-            symbol: "BTCUSD"
+            symbol: "ETHUSD"
           }).then(function (response) {
             let objResult = JSON.parse(response.data);
 
@@ -352,21 +377,33 @@ exports.fnGetProductsList = async (req, res) => {
 }
 
 exports.fnGetOptionChainSDK = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+    let vUAssetSymbol = req.body.UndAssetSymbol;
+    let vOptionType = req.body.OptionType;
+    let vExpiryDate = req.body.OptionExpiry;
+    let vContractType = "call_options";
+
+    if(vOptionType === "PE"){
+        vContractType = "put_options";
+    }
+    else{
+        vContractType = "call_options";
+    }
     new DeltaRestClient(vApiKey, vApiSecret).then(client => {
         client.apis.Products.getOptionChain({
-            contract_types: "call_options", underlying_asset_symbols: "BTC", expiry_date: "02-05-2025"
+            contract_types: vContractType, underlying_asset_symbols: vUAssetSymbol, expiry_date: vExpiryDate
           }).then(function (response) {
             let objResult = JSON.parse(response.data);
 
             if(objResult.success){
-                res.send({ "status": "success", "message": "Ticker Data Received Successfully!", "data": objResult });
+                res.send({ "status": "success", "message": "Option Chain Data Received Successfully!", "data": objResult });
             }
             else{
-                res.send({ "status": "warning", "message": "Error: Contact Admin!", "data": objResult });
+                res.send({ "status": "warning", "message": "Error at Option Chain, Contact Admin!", "data": objResult });
             }
         })
         .catch(function(objError) {
-            console.log(objError);
             res.send({ "status": "danger", "message": "Error At fnGetOptionChainSDK Catch, Contact Admin!", "data": objError });
         });
     });

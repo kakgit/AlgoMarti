@@ -102,10 +102,14 @@ function fnValidateDeltaLogin(){
 }
 
 function fnGetSetTraderLoginStatus(){
+
     let vTraderStatus = localStorage.getItem("lsDeltaLoginValid");
     let objTraderStatus = document.getElementById("btnTraderStatus");
+    let lsPrevSessionDate = localStorage.getItem("lsLoginDate");
+    const vDate = new Date();
+    let vToday = vDate.getDate();
 
-    if(vTraderStatus === "true"){
+    if((vTraderStatus === "true") && (parseInt(vToday) === parseInt(lsPrevSessionDate))){
         fnChangeBtnProps(objTraderStatus.id, "badge bg-success", "Trader - Valid");
     }
     else{

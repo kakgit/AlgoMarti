@@ -637,7 +637,7 @@ exports.fnGetTokenforOptionRate = async (req, res) => {
     try{
         let objTokenData = await fnGetTradeTokenData(vJsonFileName, vSearchSymbol, vOptionType, vExpiryEpoch, vStrikePrice);
 
-        //console.log(objTokenData);
+        // console.log(objTokenData);
         res.send({ status: objTokenData.status, message: objTokenData.message, data: objTokenData.data });
     }
     catch (err) {
@@ -1024,7 +1024,8 @@ const fnExecOptNrmlOrder = async (pHsServerId, pSid, pKotakSession, pAccessToken
                 resolve({ "status": "success", "message": "Success - Order Placed", "data": objResponse.data });
             })
             .catch((error) => {
-                reject({ "status": "danger", "message": "Error in Placing the Order. " + error.message, "data": error.message });
+                reject({ "status": "danger", "message": "Errrrrrr... " + error.message, "data": error.message });
+                console.log("Errrrrrrrr--------");
                 console.log(error);
             });
     });
