@@ -40,7 +40,6 @@ window.addEventListener("DOMContentLoaded", function(){
     socket.on("DeltaEmitOpt", (pMsg) => {
         let objAppCred = JSON.parse(localStorage.getItem("AppCredS"));
 
-        console.log(objAppCred);
         if((objAppCred !== null) && (objAppCred.IsAdmin)){
             let objMsg = JSON.parse(pMsg);
             let objLiveMsgs = JSON.parse(localStorage.getItem("msgsDelExcOpt"));
@@ -173,47 +172,45 @@ async function fnInitOptAutoTrade(objMsg){
         objSymbDDL.value = objMsg.symbolName;
         objSpotPrice.value = objMsg.closePrice;
 
-        if(objSpotPrice.value === ""){
-            let objSpotPriceByProd = await fnGetSpotPriceByProd(objApiKey.value, objApiSecret.value, objSymbDDL.value);
+        let objSpotPriceByProd = await fnGetSpotPriceByProd(objApiKey.value, objApiSecret.value, objSymbDDL.value);
 
-            if(objSpotPriceByProd.status === "success"){
+        if(objSpotPriceByProd.status === "success"){
 
-                objSpotPrice.value = (parseFloat(objSpotPriceByProd.data.result.spot_price)).toFixed(2);
+            objSpotPrice.value = (parseFloat(objSpotPriceByProd.data.result.spot_price)).toFixed(2);
 
-                let objOptionChain = await fnGetOptionChain(objApiKey.value, objApiSecret.value, objSpotPriceByProd.data.result.underlying_asset_symbol, objExpiryDate.value, objMsg.optionType);
+            let objOptionChain = await fnGetOptionChain(objApiKey.value, objApiSecret.value, objSpotPriceByProd.data.result.underlying_asset_symbol, objExpiryDate.value, objMsg.optionType);
 
-                // console.log(objSpotPriceByProd);
-                if(objOptionChain.status === "success"){
-                    let objCurrPos = null;
-                    // console.log(objOptionChain);
-                    if(objMsg.optionType === "PE"){
-                        for(let i=0; i< objOptionChain.data.result.length; i++){
-                            if((parseInt(objOptionChain.data.result[i].strike_price) < parseInt(objSpotPrice.value)) && (parseInt(objOptionChain.data.result[i].strike_price) > (parseInt(objSpotPrice.value) - 500)) && (parseInt(objOptionChain.data.result[i].quotes.best_bid) > 1000)){
-                                // console.log("Length: " + objOptionChain.data.result.length);
-                                objCurrPos = objOptionChain.data.result[i];
-                                // console.log(objOptionChain.data.result[i]);
-                            }
+            // console.log(objSpotPriceByProd);
+            if(objOptionChain.status === "success"){
+                let objCurrPos = null;
+                // console.log(objOptionChain);
+                if(objMsg.optionType === "PE"){
+                    for(let i=0; i< objOptionChain.data.result.length; i++){
+                        if((parseInt(objOptionChain.data.result[i].strike_price) < parseInt(objSpotPrice.value)) && (parseInt(objOptionChain.data.result[i].strike_price) > (parseInt(objSpotPrice.value) - 500)) && (parseInt(objOptionChain.data.result[i].quotes.best_bid) > 1000)){
+                            // console.log("Length: " + objOptionChain.data.result.length);
+                            objCurrPos = objOptionChain.data.result[i];
+                            // console.log(objOptionChain.data.result[i]);
                         }
                     }
-                    else{
-                        for(let i=0; i< objOptionChain.data.result.length; i++){
-                            if((parseInt(objOptionChain.data.result[i].strike_price) > parseInt(objSpotPrice.value)) && (parseInt(objOptionChain.data.result[i].strike_price) < (parseInt(objSpotPrice.value) + 500)) && (parseInt(objOptionChain.data.result[i].quotes.best_bid) > 1000)){
-                                objCurrPos = objOptionChain.data.result[i];
-                                // console.log(objOptionChain.data.result[i]);
-                            }
-                        }
-                    }
-                    fnAddNewPosition(objCurrPos, objMsg.optionType, objMsg.direction);
-                    console.log(objCurrPos);
-                    fnGenMessage(objOptionChain.message, `badge bg-${objOptionChain.status}`, "spnGenMsg");
                 }
                 else{
-                    fnGenMessage(objOptionChain.message, `badge bg-${objOptionChain.status}`, "spnGenMsg");
+                    for(let i=0; i< objOptionChain.data.result.length; i++){
+                        if((parseInt(objOptionChain.data.result[i].strike_price) > parseInt(objSpotPrice.value)) && (parseInt(objOptionChain.data.result[i].strike_price) < (parseInt(objSpotPrice.value) + 500)) && (parseInt(objOptionChain.data.result[i].quotes.best_bid) > 1000)){
+                            objCurrPos = objOptionChain.data.result[i];
+                            // console.log(objOptionChain.data.result[i]);
+                        }
+                    }
                 }
+                fnAddNewPosition(objCurrPos, objMsg.optionType, objMsg.direction);
+                console.log(objCurrPos);
+                fnGenMessage(objOptionChain.message, `badge bg-${objOptionChain.status}`, "spnGenMsg");
             }
             else{
-                fnGenMessage(objSpotPriceByProd.message, `badge bg-${objSpotPriceByProd.status}`, "spnGenMsg");
+                fnGenMessage(objOptionChain.message, `badge bg-${objOptionChain.status}`, "spnGenMsg");
             }
+        }
+        else{
+            fnGenMessage(objSpotPriceByProd.message, `badge bg-${objSpotPriceByProd.status}`, "spnGenMsg");
         }
     }
     catch(err){
