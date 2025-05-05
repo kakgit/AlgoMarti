@@ -40,6 +40,7 @@ window.addEventListener("DOMContentLoaded", function(){
     socket.on("DeltaEmitOpt", (pMsg) => {
         let objAppCred = JSON.parse(localStorage.getItem("AppCredS"));
 
+        console.log(objAppCred);
         if((objAppCred !== null) && (objAppCred.IsAdmin)){
             let objMsg = JSON.parse(pMsg);
             let objLiveMsgs = JSON.parse(localStorage.getItem("msgsDelExcOpt"));
@@ -58,7 +59,6 @@ window.addEventListener("DOMContentLoaded", function(){
                 localStorage.setItem("msgsDelExcOpt", JSON.stringify(objLiveMsgs));
             }
 
-            // console.log(objLiveMsgs);
             fnInitOptAutoTrade(objMsg);
         }
     });
