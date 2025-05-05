@@ -258,7 +258,7 @@ function fnShowCurrOpenPosList(){
         let vTempHtml = "";
         let vNetProfit = 0;
         let vNoOfTrades = 0;
-        let vPrevCapital = 0;
+        let vInvestment = 0;
         let vCharges = 0;
         let vTotalCharges = 0;
 
@@ -286,9 +286,9 @@ function fnShowCurrOpenPosList(){
                 vCapital = vLotSize * vQty * vBuyPrice;
             }
 
-            if(vCapital > vPrevCapital){
-                vPrevCapital = vCapital;
-            }
+            // if(vCapital > vInvestment){
+            //     vInvestment = vCapital;
+            // }
 
             let vBuyBrok = ((vLotSize * vQty * vBuyPrice) * 1)/100;
             let vSellBrok = ((vLotSize * vQty * vSellPrice) * 1)/100;
@@ -302,12 +302,13 @@ function fnShowCurrOpenPosList(){
             vNoOfTrades += 1;
             vTotalCharges += vCharges;
             vNetProfit += vTradePL;
+            vInvestment += vCapital;
 
             vTempHtml += '</tr>';
 
             objSymbList.push(vSymbolName);
         }
-        vTempHtml += '<tr><td>Total Trades</td><td>'+ vNoOfTrades +'</td><td colspan="4"></td><td Style="text-align:right;font-weight:bold;color:red;">'+ (vTotalCharges).toFixed(2) +'</td><td Style="text-align:right;font-weight:bold;color:orange;">'+ (vPrevCapital).toFixed(2) +'</td><td style="font-weight:bold;text-align:right;color:orange;">' + (vNetProfit).toFixed(2) + '</td></tr>';
+        vTempHtml += '<tr><td>Total Trades</td><td>'+ vNoOfTrades +'</td><td colspan="4"></td><td Style="text-align:right;font-weight:bold;color:red;">'+ (vTotalCharges).toFixed(2) +'</td><td Style="text-align:right;font-weight:bold;color:orange;">'+ (vInvestment).toFixed(2) +'</td><td style="font-weight:bold;text-align:right;color:orange;">' + (vNetProfit).toFixed(2) + '</td></tr>';
 
         objCurrTradeBody.innerHTML = vTempHtml;
     }
