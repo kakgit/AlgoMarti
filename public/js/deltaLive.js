@@ -1,6 +1,6 @@
 
-let userDeltaWS = "";
-let vTradeInst = 0;
+let userDeltaWS="";
+let pTradeInst = 0;
 
 window.addEventListener("DOMContentLoaded", function(){
 	let bAppStatus = JSON.parse(localStorage.getItem("AppMsgStatusS"));
@@ -10,6 +10,7 @@ window.addEventListener("DOMContentLoaded", function(){
         fnGetSetTraderLoginStatus();
 		fnGetSetAutoTraderStatus();
         fnGetSetRealTradeStatus();
+        fnGetSetDefaultStreaming();
 		fnSetDefaultTraderTab();
         fnSetDefaultQty();
         fnLoadPrevQty();
@@ -61,6 +62,18 @@ window.addEventListener("DOMContentLoaded", function(){
             fnInitOptAutoTrade(objMsg);
         }
     });
+
+    socket.on("DeltaMsgRec1", (pMsg) => {
+        let isLsAutoTrader = localStorage.getItem("isDeltaAutoTrader");
+
+        if(isLsAutoTrader === "true"){
+            // console.log(pMsg);
+            fnAddNewPosition(pMsg.CurrPos, pMsg.OptionType, pMsg.Direction);
+        }
+        else{
+            fnGenMessage("Trade Message Received but Auto Trade is Off!", `badge bg-warning`, "spnGenMsg");
+        }
+    });
 });
 
 function fnSetDefaultQty(){
@@ -95,6 +108,19 @@ function fnLoadPrevQty(){
     }
 }
 
+function fnGetSetDefaultStreaming(){
+    let lsStreaming = localStorage.getItem("IsDeltaOptStreamS");
+    let objStreamingCheck = document.getElementById("swtStreaming");
+
+    if(lsStreaming === null || lsStreaming === "" || lsStreaming === "false"){
+        objStreamingCheck.checked = false;
+    }
+    else{
+        objStreamingCheck.checked = true;
+    }
+    //fnChangeStreamingType();
+}
+
 function fnClearLocalStorageTemp(){
     localStorage.removeItem("msgsDelExc");
     localStorage.removeItem("msgsDelExcOpt");
@@ -110,6 +136,10 @@ function fnClearLocalStorageTemp(){
     // fnSetTodayOptTradeDetails();
     window.location.reload();
     console.log("LocalStorage Cleared!")
+}
+
+function fnGetAvailableMargin(){
+    alert("Implementation is still pending!");
 }
 
 function fnManualEmitOptTrade(pBorS, pCorP){
@@ -201,8 +231,8 @@ async function fnInitOptAutoTrade(objMsg){
                         }
                     }
                 }
-                fnAddNewPosition(objCurrPos, objMsg.optionType, objMsg.direction);
-                console.log(objCurrPos);
+                fnEmitTrade4All(objCurrPos, objMsg.optionType, objMsg.direction);
+                // console.log(objCurrPos);
                 fnGenMessage(objOptionChain.message, `badge bg-${objOptionChain.status}`, "spnGenMsg");
             }
             else{
@@ -215,6 +245,31 @@ async function fnInitOptAutoTrade(objMsg){
     }
     catch(err){
         fnGenMessage(err.message, `badge bg-${err.status}`, "spnGenMsg");
+    }
+}
+
+function fnEmitTrade4All(objCurrPos, pOptionType, pDirection){
+    socket.emit("DeltaMsgAll1", { CurrPos: objCurrPos, OptionType: pOptionType, Direction: pDirection });
+}
+
+function fnChangeStreamingType(){
+    let objStreamingCheck = document.getElementById("swtStreaming");
+    let objCurrPositions = JSON.parse(localStorage.getItem("DeltaCurrPosiS"));
+
+    if(objStreamingCheck.checked){
+        clearInterval(pTradeInst);
+        console.clear();
+        localStorage.setItem("IsDeltaOptStreamS", "true");
+        fnStartStreaming();
+    }
+    else{
+        localStorage.setItem("IsDeltaOptStreamS", "false");
+        if(objCurrPositions !== null){
+            pTradeInst = setInterval(fnCheckOpenPosStatus, 5000);
+        }
+        if(userDeltaWS !== ""){
+            fnCloseWS();
+        }
     }
 }
 
@@ -244,6 +299,7 @@ function fnAddNewPosition(objNewPos, pCorP, pBorS){
     localStorage.setItem("QtyMulDelta", objQty.value);
 
     fnShowCurrOpenPosList();
+    // fnChangeStreamingType();
 }
 
 function fnShowCurrOpenPosList(){
@@ -275,6 +331,7 @@ function fnShowCurrOpenPosList(){
             vTempHtml += '<td style="text-wrap: nowrap;" onclick=\'fnDeleteThisTrade(' + objOpenTrades.OpenPos[i].TradeID + ');\'>' + objOpenTrades.OpenPos[i].DT + '</td>';
             vTempHtml += '<td style="text-wrap: nowrap; font-weight:bold;">' + objOpenTrades.OpenPos[i].Symbol + '</td>';
             vTempHtml += '<td style="text-wrap: nowrap;">' + objOpenTrades.OpenPos[i].StrikePrice + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap;">' + objOpenTrades.OpenPos[i].BorS + '</td>';
             vTempHtml += '<td style="text-wrap: nowrap; text-align:right;">' + vQty + '</td>';
             vTempHtml += '<td style="text-wrap: nowrap; color:green;text-align:right;">' + (vBuyPrice).toFixed(2) + '</td>';
             vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (vSellPrice).toFixed(2) + '</td>';
@@ -290,9 +347,9 @@ function fnShowCurrOpenPosList(){
             //     vInvestment = vCapital;
             // }
 
-            let vBuyBrok = ((vLotSize * vQty * vBuyPrice) * 1)/100;
-            let vSellBrok = ((vLotSize * vQty * vSellPrice) * 1)/100;
-            let vCharges = (vBuyBrok + vSellBrok) * 1.18;
+            let vBuyBrok = fnReturnBrokerage(vQty, vLotSize, objOpenTrades.OpenPos[i].StrikePrice, vBuyPrice); //((vLotSize * vQty * vBuyPrice) * 1)/100;
+            let vSellBrok = fnReturnBrokerage(vQty, vLotSize, objOpenTrades.OpenPos[i].StrikePrice, vSellPrice); //((vLotSize * vQty * vSellPrice) * 1)/100;
+            let vCharges = (vBuyBrok + vSellBrok);
             let vTradePL = ((vSellPrice - vBuyPrice) * vLotSize * vQty) - vCharges;
 
             vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (vCharges).toFixed(2) + '</td>';
@@ -308,14 +365,41 @@ function fnShowCurrOpenPosList(){
 
             objSymbList.push(vSymbolName);
         }
-        vTempHtml += '<tr><td>Total Trades</td><td>'+ vNoOfTrades +'</td><td colspan="4"></td><td Style="text-align:right;font-weight:bold;color:red;">'+ (vTotalCharges).toFixed(2) +'</td><td Style="text-align:right;font-weight:bold;color:orange;">'+ (vInvestment).toFixed(2) +'</td><td style="font-weight:bold;text-align:right;color:orange;">' + (vNetProfit).toFixed(2) + '</td></tr>';
+        vTempHtml += '<tr><td>Total Trades</td><td>'+ vNoOfTrades +'</td><td colspan="5"></td><td Style="text-align:right;font-weight:bold;color:red;">'+ (vTotalCharges).toFixed(2) +'</td><td Style="text-align:right;font-weight:bold;color:orange;">'+ (vInvestment).toFixed(2) +'</td><td style="font-weight:bold;text-align:right;color:orange;">' + (vNetProfit).toFixed(2) + '</td></tr>';
 
         objCurrTradeBody.innerHTML = vTempHtml;
     }
     localStorage.setItem("DeltaSymbolsList", JSON.stringify(objSymbList));
 }
 
+function fnReturnBrokerage(pQty, pLotSize, pStrikePrice, pBuyPrice){
+    let vNotionalVal = ((parseInt(pQty) * parseFloat(pLotSize) * parseFloat(pStrikePrice)) * 0.03)/100;
+    let vPremiumCap = ((parseInt(pQty) * parseFloat(pLotSize) * parseFloat(pBuyPrice)) * 10)/100;
+    let vEffectiveFee = 0;
+
+     if(vNotionalVal < vPremiumCap){
+        vEffectiveFee = vNotionalVal;
+     }
+     else{
+        vEffectiveFee = vPremiumCap;
+     }
+
+    return parseFloat(vEffectiveFee) * 1.18;
+}
+
+function fnCheckOpenPosStatus(){
+    let objSymbList = JSON.parse(localStorage.getItem("DeltaSymbolsList"));
+    console.log(objSymbList.length);
+
+    //Display Open Positions at the end of the loop
+    fnShowCurrOpenPosList();
+}
+
 function fnStartStreaming(){
+    if(userDeltaWS !== ""){
+        fnCloseWS();
+    }
+    console.clear();
     let objSymbList = JSON.parse(localStorage.getItem("DeltaSymbolsList"));
     // console.log(objSymbList);
 
@@ -354,11 +438,18 @@ function fnStartStreaming(){
 function fnUpdCurrPosLocStrge(pTicData){
     let objOpenTrades = JSON.parse(localStorage.getItem("DeltaCurrPosiS"));
 
-    console.log(pTicData);
+    console.log("At Upd Curr Pos: ");
+    // console.log(pTicData);
+    // console.log(objOpenTrades);
 
     for (let i = 0; i < objOpenTrades.OpenPos.length; i++){
         if(pTicData.product_id === objOpenTrades.OpenPos[i].ProductID){
-            objOpenTrades.OpenPos[i].BuyPrice = pTicData.quotes.best_bid;
+            if(objOpenTrades.OpenPos[i].BorS === "SELL"){
+                objOpenTrades.OpenPos[i].BuyPrice = pTicData.quotes.best_bid;
+            }
+            else{
+                objOpenTrades.OpenPos[i].SellPrice = pTicData.quotes.best_ask;
+            }
         }
     }
     localStorage.setItem("DeltaCurrPosiS", JSON.stringify(objOpenTrades));
@@ -380,7 +471,7 @@ function fnChangeStartQty(pThisVal){
         localStorage.setItem("StartQtyDelta", 1);
     }
     else{
-        fnGenMessage("No of Lots to Start With is Changed!", `badge bg-success`, "spnGenMsg");
+        fnGenMessage("Start With Quantity is Changed!", `badge bg-success`, "spnGenMsg");
         localStorage.setItem("StartQtyDelta", pThisVal.value);
 
         if(confirm("Are You Sure You want to change the Quantity?")){

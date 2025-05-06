@@ -40,8 +40,8 @@
                                     </div>
                                     <div class="col-2">
                                         <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                            <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtMartingale" name="swtMartingale" onchange="fnChangeMarti();" />
-                                            <label for="swtMartingale" style="cursor:pointer;">Martingale</label>
+                                            <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtStreaming" name="swtStreaming" onchange="fnChangeStreamingType();" />
+                                            <label for="swtStreaming" style="cursor:pointer;">Streaming</label>
                                         </div>
                                     </div>
                                     <div class="col-2">
@@ -59,7 +59,7 @@
                                         </form>
                                     </div>
                                     <div class="col-2" style="text-align: right;">Start With </div>
-                                    <div class="col-1"><input type="text" class="form-control" min="1" value="1" maxlength="3" id="txtStartQty" onchange="fnChangeStartQty(this);" /></div>
+                                    <div class="col-1"><input type="text" class="form-control" min="1" value="1" id="txtStartQty" onchange="fnChangeStartQty(this);" /></div>
                                     <div class="col-1"> Qty</div>
                                     <div class="col-1" style="text-align: right;">
                                         <a data-bs-toggle="collapse" href="#divTraderClps" role="button" aria-expanded="true" aria-controls="divTraderClps">
@@ -92,7 +92,7 @@
                                                         Leverage
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
-                                                        Current Rate
+                                                        Available Margin
                                                     </div>
     
                                                     <div class="col-6 col-lg-3 col-md-6">
@@ -110,9 +110,8 @@
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
                                                         <div class="input-group mb-3">
-                                                            <button class="btn btn-danger" type="button" id="btnGetSellRate" onclick="fnGetCurrRateSettings('sell');"><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
-                                                            <input id="txtCurrentRate" type="number" min="1" class="form-control" placeholder="Current Rate" />
-                                                            <button class="btn btn-success" type="button" id="btnGetBuyRate" onclick="fnGetCurrRateSettings('buy');"><i class="fa fa-chevron-up" aria-hidden="true"></i></button>
+                                                            <input id="txtMarginFut" type="number" min="100" class="form-control" placeholder="Available Margin" value="1000" />
+                                                            <button class="btn btn-success" type="button" id="btnGetMarginFut" onclick="fnGetAvailableMargin();"><i class="fa fa-chevron-up" aria-hidden="true"></i></button>
                                                         </div>
                                                     </div>
 
@@ -182,7 +181,7 @@
                                                         Spot Price
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
-                                                        Current Rate
+                                                        Available Margin
                                                     </div>
     
                                                     <div class="col-6 col-lg-3 col-md-6">
@@ -200,9 +199,8 @@
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
                                                         <div class="input-group mb-3">
-                                                            <button class="btn btn-danger" type="button" id="btnGetRatePE" onclick="fnGetCurrRateSettings('PE');"><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
-                                                            <input id="txtCurrentRate" type="number" min="1" class="form-control" placeholder="Current Rate" />
-                                                            <button class="btn btn-success" type="button" id="btnGetRateCE" onclick="fnGetCurrRateSettings('CE');"><i class="fa fa-chevron-up" aria-hidden="true"></i></button>
+                                                            <input id="txtMarginOpt" type="number" min="100" class="form-control" placeholder="Available Margin" value="1000" />
+                                                            <button class="btn btn-success" type="button" id="btnGetMarginOpt" onclick="fnGetAvailableMargin();"><i class="fa fa-chevron-up" aria-hidden="true"></i></button>
                                                         </div>
                                                     </div>
     
@@ -323,6 +321,7 @@
                                                       <th scope="col" style="text-wrap: nowrap;">Open Date Time</th>
                                                       <th scope="col" style="text-wrap: nowrap;">Symbol</th>
                                                       <th scope="col" style="text-wrap: nowrap;">Strike</th>
+                                                      <th scope="col" style="text-wrap: nowrap;">BorS</th>
                                                       <th scope="col" style="text-wrap: nowrap;">Qty</th>
                                                       <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
                                                       <th scope="col" style="text-wrap: nowrap;">Sell Price</th>

@@ -51,6 +51,10 @@ io.on("connection", (cSocket) => {
     cSocket.on("SendTrdToAll", (pObjMsg) => {
         io.emit("ServerEmit", pObjMsg);
     });
+
+    cSocket.on("DeltaMsgAll1", (pObjMsg) => {
+        io.emit("DeltaMsgRec1", pObjMsg);
+    });
 });
 
 //log requests

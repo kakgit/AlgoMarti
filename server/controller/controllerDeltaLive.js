@@ -40,7 +40,7 @@ exports.fnValidateUserLogin = async (req, res) => {
             }
         })
         .catch(function(objError) {
-            console.log("Error At Catch");
+            console.log("Error At User Login Catch");
             res.send({ "status": "danger", "message": "Error At User Login! Catch.", "data": objError });
         });
     });
