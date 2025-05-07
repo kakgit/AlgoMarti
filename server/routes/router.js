@@ -93,6 +93,7 @@ route.post("/kotakNeo/getBackupRate", kotakLiveController.fnExecBackupRate);
 //Delta Expchange Routes
 route.post("/deltaExc/validateLogin", deltaLiveController.fnValidateUserLogin);
 route.post("/deltaExc/getSpotPriceByProd", deltaLiveController.fnGetSpotPriceByProd);
+route.post("/deltaExc/getProdBySymbol", deltaLiveController.fnGetProdBySymbol);
 
 //Samples
 route.post("/deltaExc/getTestWalletAPI", deltaLiveController.fnTestWalletAPI);

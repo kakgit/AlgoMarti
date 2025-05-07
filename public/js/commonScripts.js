@@ -192,7 +192,7 @@ function fnCheckEmailSendPwd(pEmailId, pRandPwd){
                 resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });            
             })
             .catch(error => {
-                console.log('error: ', error);
+                // console.log('error: ', error);
                 fnGenMessage("Error in E-Mail ID, Please Check!.", `badge bg-danger`, "spnAppLogin");
                 reject({ "status": "danger", "message": "Error in Sending E-Mail, Contact Admin!", "data": "" });
             });
@@ -218,7 +218,7 @@ function fnSendEmail(pEmailId, pRandPwd){
             fnGenMessage(objResult.message, `badge bg-success`, "spnAppLogin");
         })
         .catch(error => {
-            console.log('error: ', error);
+            // console.log('error: ', error);
             fnGenMessage("Error in E-Mail ID!.", `badge bg-danger`, "spnAppLogin");
         });
 }
@@ -274,7 +274,7 @@ function fnGetChangePwdStatus(pCurrPwd, pNewPwd, pUserId, pEncPwd){
             resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });            
         })
         .catch(error => {
-            console.log('error: ', error);
+            // console.log('error: ', error);
             fnGenMessage("Error in Updating Password! " + error, `badge bg-danger`, "spnGenMsg");
             reject({ "status": "danger", "message": "Error in Updating Password!", "data": "" });
         });
@@ -301,7 +301,7 @@ function fnGetUserDetByEmailPass(pEmailId, pPassword){
             resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });            
         })
         .catch(error => {
-            console.log('error: ', error);
+            // console.log('error: ', error);
             fnGenMessage("Error in Getting Login Details! " + error, `badge bg-danger`, "spnGenMsg");
             reject({ "status": "danger", "message": "Error in Getting Login Details!", "data": "" });
         });
@@ -498,16 +498,16 @@ function fnGetCurrDate(){
 function fnSetCurrDate(pDate){
   let dtNow = new Date(pDate);
   
-  console.log("Parameter: " + pDate);
-  console.log("Converted to Date: " + dtNow);
-  console.log("Converted to Local Str: " + dtNow.toDateString());
-  console.log("Converted to GMT Str: " + dtNow.toGMTString());
-  console.log("Converted to UTC Str: " + dtNow.toUTCString());
-  console.log("Converted to ISO Str: " + dtNow.toISOString());
-  console.log("Converted to JSON Str: " + dtNow.toJSON());
-  console.log("Converted to to Local Dt Str: " + dtNow.toLocaleDateString());
-  console.log("Converted to to Local Tm Str: " + dtNow.toLocaleTimeString());
-  console.log("Converted to to Local DT en-US: " + dtNow.toLocaleString("en-IN"));
+  // console.log("Parameter: " + pDate);
+  // console.log("Converted to Date: " + dtNow);
+  // console.log("Converted to Local Str: " + dtNow.toDateString());
+  // console.log("Converted to GMT Str: " + dtNow.toGMTString());
+  // console.log("Converted to UTC Str: " + dtNow.toUTCString());
+  // console.log("Converted to ISO Str: " + dtNow.toISOString());
+  // console.log("Converted to JSON Str: " + dtNow.toJSON());
+  // console.log("Converted to to Local Dt Str: " + dtNow.toLocaleDateString());
+  // console.log("Converted to to Local Tm Str: " + dtNow.toLocaleTimeString());
+  // console.log("Converted to to Local DT en-US: " + dtNow.toLocaleString("en-IN"));
 }
 
 function fnShowHideMarginData(){

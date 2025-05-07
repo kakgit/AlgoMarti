@@ -40,7 +40,7 @@
                                     </div>
                                     <div class="col-2">
                                         <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                            <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtStreaming" name="swtStreaming" onchange="fnChangeStreamingType();" />
+                                            <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtStreaming" name="swtStreaming" onchange="fnChkStreamOpt();" />
                                             <label for="swtStreaming" style="cursor:pointer;">Streaming</label>
                                         </div>
                                     </div>
@@ -299,7 +299,7 @@
 
                                     </div>
                                     <div class="col-1">
-                                        <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnStartStreaming();"></i>
+                                        <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnGetTimerBasedRates();//fnStartStreaming();"></i>
                                     </div>
                                     <div class="col-1">
                                         <i class="fa fa-times-circle" aria-hidden="true" style="color: red; cursor: pointer;" onclick="fnCloseWS();"></i>

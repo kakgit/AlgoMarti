@@ -14,7 +14,6 @@ window.addEventListener("DOMContentLoaded", function(){
 		fnSetDefaultTraderTab();
         fnSetDefaultQty();
         fnLoadPrevQty();
-        fnShowCurrOpenPosList();
 	}
 
     socket.on("DeltaEmit1", (pMsg) => {
@@ -38,6 +37,7 @@ window.addEventListener("DOMContentLoaded", function(){
         fnInitFutAutoTrade(objMsg);
     });
 
+// 2222222222 - Auto Emit Trade
     socket.on("DeltaEmitOpt", (pMsg) => {
         let objAppCred = JSON.parse(localStorage.getItem("AppCredS"));
 
@@ -63,6 +63,7 @@ window.addEventListener("DOMContentLoaded", function(){
         }
     });
 
+// 44444444 - Send Trade to All
     socket.on("DeltaMsgRec1", (pMsg) => {
         let isLsAutoTrader = localStorage.getItem("isDeltaAutoTrader");
 
@@ -118,7 +119,7 @@ function fnGetSetDefaultStreaming(){
     else{
         objStreamingCheck.checked = true;
     }
-    //fnChangeStreamingType();
+    fnChkStreamOpt();
 }
 
 function fnClearLocalStorageTemp(){
@@ -142,6 +143,7 @@ function fnGetAvailableMargin(){
     alert("Implementation is still pending!");
 }
 
+// 1111111111 - Manual Emit Trade
 function fnManualEmitOptTrade(pBorS, pCorP){
     let objSymbDDL = document.getElementById("ddlOptionsSymbols");
     let vStrategy = "Strategy-1";
@@ -191,6 +193,7 @@ function fnManualEmitOptTrade(pBorS, pCorP){
     }
 }
 
+// 3333333333 - Manual Emit Trade
 async function fnInitOptAutoTrade(objMsg){
     let objApiKey = document.getElementById("txtUserAPIKey");
     let objApiSecret = document.getElementById("txtAPISecret");
@@ -248,11 +251,13 @@ async function fnInitOptAutoTrade(objMsg){
     }
 }
 
+// 44444444 - Send Trade to All
 function fnEmitTrade4All(objCurrPos, pOptionType, pDirection){
     socket.emit("DeltaMsgAll1", { CurrPos: objCurrPos, OptionType: pOptionType, Direction: pDirection });
 }
 
-function fnChangeStreamingType(){
+// 66666666 - Check if stream is ON
+function fnChkStreamOpt(){
     let objStreamingCheck = document.getElementById("swtStreaming");
     let objCurrPositions = JSON.parse(localStorage.getItem("DeltaCurrPosiS"));
 
@@ -260,20 +265,23 @@ function fnChangeStreamingType(){
         clearInterval(pTradeInst);
         console.clear();
         localStorage.setItem("IsDeltaOptStreamS", "true");
-        fnStartStreaming();
+        if(objCurrPositions !== null){
+            pTradeInst = setInterval(fnGetTimerBasedRates, 5000);
+        }
     }
     else{
         localStorage.setItem("IsDeltaOptStreamS", "false");
-        if(objCurrPositions !== null){
-            pTradeInst = setInterval(fnCheckOpenPosStatus, 5000);
-        }
-        if(userDeltaWS !== ""){
-            fnCloseWS();
-        }
+        // if(userDeltaWS !== ""){
+        //     fnCloseWS();
+        // }
     }
+    fnShowCurrOpenPosList();
 }
 
+// 5555555 - Add new Position to Curr Live Positions
 function fnAddNewPosition(objNewPos, pCorP, pBorS){
+    console.log("No Rec");
+    // console.log(objNewPos);
     let objCurrPositions = JSON.parse(localStorage.getItem("DeltaCurrPosiS"));
     let objLotSize = document.getElementById("txtOptionLotSize");
     let objQty = document.getElementById("txtOptionsQty");
@@ -292,16 +300,16 @@ function fnAddNewPosition(objNewPos, pCorP, pBorS){
         localStorage.setItem("DeltaCurrPosiS", JSON.stringify(objCurrPositions));
     }
 
-    console.log(JSON.parse(localStorage.getItem("DeltaCurrPosiS")));
+    // console.log(JSON.parse(localStorage.getItem("DeltaCurrPosiS")));
 
     //Temporary for checking, change later
     objQty.value = parseInt(objQty.value) * 2;
     localStorage.setItem("QtyMulDelta", objQty.value);
 
-    fnShowCurrOpenPosList();
-    // fnChangeStreamingType();
+    fnChkStreamOpt();
 }
 
+// 77777777 - Show Current Open Positions List
 function fnShowCurrOpenPosList(){
     let objOpenTrades = JSON.parse(localStorage.getItem("DeltaCurrPosiS"));
     let objCurrTradeBody = document.getElementById("tBodyCurrOpenTrades");
@@ -387,12 +395,79 @@ function fnReturnBrokerage(pQty, pLotSize, pStrikePrice, pBuyPrice){
     return parseFloat(vEffectiveFee) * 1.18;
 }
 
-function fnCheckOpenPosStatus(){
+async function fnGetTimerBasedRates(){
+    let objApiKey = document.getElementById("txtUserAPIKey");
+    let objApiSecret = document.getElementById("txtAPISecret");
     let objSymbList = JSON.parse(localStorage.getItem("DeltaSymbolsList"));
-    console.log(objSymbList.length);
 
-    //Display Open Positions at the end of the loop
-    fnShowCurrOpenPosList();
+    // if(userDeltaWS !== ""){
+    //     fnCloseWS();
+    // }
+    console.clear();
+
+    try{
+        for(let i=0; i<objSymbList.length; i++){
+            let objProdDetsBySym = await fnGetProdBySymbol(objApiKey.value, objApiSecret.value, objSymbList[i]);
+
+            if(objProdDetsBySym.status === "success"){
+
+                // console.log(objProdDetsBySym);
+                fnUpdCurrPosLocStrge(objProdDetsBySym.data.result);
+            }
+            else{
+                fnGenMessage(objSpotPriceByProd.message, `badge bg-${objSpotPriceByProd.status}`, "spnGenMsg");
+            }
+        }
+    }
+    catch(err){
+        fnGenMessage(err.message, `badge bg-${err.status}`, "spnGenMsg");
+    }
+}
+
+function fnGetProdBySymbol(pApiKey, pApiSecret, pSymbol){
+    const objPromise = new Promise((resolve, reject) => {
+        let vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+
+        let vAction = JSON.stringify({
+            "ApiKey" : pApiKey,
+            "ApiSecret" : pApiSecret,
+            "Symbol" : pSymbol
+        });
+
+        let requestOptions = {
+            method: 'POST',
+            headers: vHeaders,
+            body: vAction,
+            redirect: 'follow'
+        };
+        fetch("/deltaExc/getProdBySymbol", requestOptions)
+        .then(response => response.json())
+        .then(objResult => {
+            if(objResult.status === "success"){
+                resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+            else if(objResult.status === "danger"){
+                if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+                    reject({ "status": objResult.status, "message": objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, "data": objResult.data });
+                }
+                else{
+                    reject({ "status": objResult.status, "message": objResult.data.response.body.error.code + " Contact Admin!", "data": objResult.data });
+                }
+            }
+            else if(objResult.status === "warning"){
+                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+            else{
+                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+        })
+        .catch(error => {
+            reject({ "status": "danger", "message": "Error At getProdBySymbol. JS Catch!", "data": "" });
+        });
+    });
+
+    return objPromise;
 }
 
 function fnStartStreaming(){
@@ -438,7 +513,7 @@ function fnStartStreaming(){
 function fnUpdCurrPosLocStrge(pTicData){
     let objOpenTrades = JSON.parse(localStorage.getItem("DeltaCurrPosiS"));
 
-    console.log("At Upd Curr Pos: ");
+    // console.log("At Upd Curr Pos: ");
     // console.log(pTicData);
     // console.log(objOpenTrades);
 
@@ -639,13 +714,13 @@ function fnGetUserWalletSDK(){
     .then(objResult => {
         // console.log(objResult);
         if(objResult.status === "success"){
-            console.log(objResult);
+            // console.log(objResult);
 
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
         else if(objResult.status === "danger"){
             if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-	            console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+	            // console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
 	            fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
             else{
@@ -683,13 +758,13 @@ function fnGetLeverageSDK(){
     .then(objResult => {
         // console.log(objResult);
         if(objResult.status === "success"){
-            console.log(objResult);
+            // console.log(objResult);
 
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
         else if(objResult.status === "danger"){
             if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-	            console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+	            // console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
 	            fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
             else{
@@ -727,13 +802,13 @@ function fnSetLeverageSDK(){
     .then(objResult => {
         // console.log(objResult);
         if(objResult.status === "success"){
-            console.log(objResult);
+            // console.log(objResult);
 
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
         else if(objResult.status === "danger"){
             if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-	            console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+	            // console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
 	            fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
             else{
@@ -748,7 +823,7 @@ function fnSetLeverageSDK(){
         }
     })
     .catch(error => {
-        console.log(error);
+        // console.log(error);
         fnGenMessage("Error to Set Leverage!", `badge bg-danger`, "spnGenMsg");
     });
 }
@@ -771,13 +846,13 @@ function fnPlaceLimitOrderSDK(){
     .then(objResult => {
         // console.log(objResult);
         if(objResult.status === "success"){
-            console.log(objResult);
+            // console.log(objResult);
 
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
         else if(objResult.status === "danger"){
             if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-                console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+                // console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
                 fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
             else{
@@ -792,7 +867,7 @@ function fnPlaceLimitOrderSDK(){
         }
     })
     .catch(error => {
-        console.log(error);
+        // console.log(error);
         fnGenMessage("Error in Placing Limit Order!", `badge bg-danger`, "spnGenMsg");
     });
 }
@@ -815,13 +890,13 @@ function fnPlaceSLTPLimitOrderSDK(){
     .then(objResult => {
         // console.log(objResult);
         if(objResult.status === "success"){
-            console.log(objResult);
+            // console.log(objResult);
 
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
         else if(objResult.status === "danger"){
             if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-                console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+                // console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
                 fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
             else{
@@ -836,7 +911,7 @@ function fnPlaceSLTPLimitOrderSDK(){
         }
     })
     .catch(error => {
-        console.log(error);
+        // console.log(error);
         fnGenMessage("Error in Placing SLTP Limit Order!", `badge bg-danger`, "spnGenMsg");
     });
 }
@@ -859,13 +934,13 @@ function fnCancelOrderSDK(){
     .then(objResult => {
         // console.log(objResult);
         if(objResult.status === "success"){
-            console.log(objResult);
+            // console.log(objResult);
 
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
         else if(objResult.status === "danger"){
             if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-                console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+                // console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
                 fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
             else{
@@ -880,7 +955,7 @@ function fnCancelOrderSDK(){
         }
     })
     .catch(error => {
-        console.log(error);
+        // console.log(error);
         fnGenMessage("Error in Changing Leverage!", `badge bg-danger`, "spnGenMsg");
     });
 }
@@ -958,13 +1033,13 @@ function fnTestWalletAPI(){
     .then(objResult => {
         // console.log(objResult);
         if(objResult.status === "success"){
-            console.log(JSON.parse(objResult.data));
+            // console.log(JSON.parse(objResult.data));
 
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
         else if(objResult.status === "danger"){
             if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-	            console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+	            // console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
 	            fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
             else{
@@ -979,7 +1054,7 @@ function fnTestWalletAPI(){
         }
     })
     .catch(error => {
-        console.log(error);
+        // console.log(error);
         fnGenMessage(error.message, `badge bg-danger`, "spnGenMsg");
     });
 }
@@ -1002,13 +1077,13 @@ function fnSetLeverageAPI(){
     .then(objResult => {
         // console.log(objResult);
         if(objResult.status === "success"){
-            console.log(JSON.parse(objResult.data));
+            // console.log(JSON.parse(objResult.data));
 
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
         else if(objResult.status === "danger"){
             if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-                console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+                // console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
                 fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
             else{
@@ -1046,13 +1121,13 @@ function fnTestGetAllOrderAPI(){
     .then(objResult => {
         // console.log(objResult);
         if(objResult.status === "success"){
-            console.log(JSON.parse(objResult.data));
+            // console.log(JSON.parse(objResult.data));
 
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
         else if(objResult.status === "danger"){
             if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-                console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+                // console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
                 fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
             else{
@@ -1089,7 +1164,7 @@ function fnGetCurrPriceByProd(){
     .then(response => response.json())
     .then(objResult => {
         if(objResult.status === "success"){
-            console.log(objResult);
+            // console.log(objResult);
             // console.log("Spot Price: " + objResult.data.result.spot_price);
             // console.log("Best BP: " + objResult.data.result.quotes.best_ask);
             // console.log("Best SP: " + objResult.data.result.quotes.best_bid);
@@ -1098,7 +1173,7 @@ function fnGetCurrPriceByProd(){
         }
         else if(objResult.status === "danger"){
             if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-                console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+                // console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
                 fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
             else{
@@ -1113,7 +1188,7 @@ function fnGetCurrPriceByProd(){
         }
     })
     .catch(error => {
-        console.log(error);
+        // console.log(error);
         fnGenMessage("Error in Getting Price!", `badge bg-danger`, "spnGenMsg");
     });
 }
@@ -1135,13 +1210,13 @@ function fnGetProductsList(){
     .then(response => response.json())
     .then(objResult => {
         if(objResult.status === "success"){
-            console.log(objResult);
+            // console.log(objResult);
 
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
         else if(objResult.status === "danger"){
             if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-                console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+                // console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
                 fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
             else{
@@ -1156,7 +1231,7 @@ function fnGetProductsList(){
         }
     })
     .catch(error => {
-        console.log(error);
+        // console.log(error);
         fnGenMessage("Error in Getting Price!", `badge bg-danger`, "spnGenMsg");
     });
 }

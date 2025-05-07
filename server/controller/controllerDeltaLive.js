@@ -46,6 +46,31 @@ exports.fnValidateUserLogin = async (req, res) => {
     });
 }
 
+exports.fnGetProdBySymbol = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+    let vSymbol = req.body.Symbol;
+
+    new DeltaRestClient(vApiKey, vApiSecret).then(client => {
+        client.apis.Products.getTicker({
+            symbol: vSymbol
+          }).then(function (response) {
+            let objResult = JSON.parse(response.data.toString());
+
+            if(objResult.success){
+                res.send({ "status": "success", "message": "Product Details Received Successfully!", "data": objResult });
+            }
+            else{
+                res.send({ "status": "warning", "message": "Error to Fetch Product Details: Contact Admin!", "data": objResult });
+            }
+        })
+        .catch(function(objError) {
+            console.log("Error At fnGetProdBySymbol");
+            res.send({ "status": "danger", "message": "Error At fnGetProdBySymbol.", "data": objError });
+        });
+    });
+}
+
 exports.fnGetSpotPriceByProd = async (req, res) => {
     let vApiKey = req.body.ApiKey;
     let vApiSecret = req.body.ApiSecret;

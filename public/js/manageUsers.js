@@ -50,7 +50,7 @@ function fnGetUserData(){
         })
         .catch(error => {
             fnGenMessage("Error: Unable to Load User Data, check URL", `badge bg-danger`, "spnGenMessage");
-            console.log('error: ', error);
+            // console.log('error: ', error);
         });
 }
 
@@ -81,7 +81,7 @@ async function fnGetUserDetailsById(pId){
         })
         .catch(error => {
             fnGenMessage("Error: Unable to Load User Data, check URL", `badge bg-danger`, "spnGenMessage");
-            console.log('error: ', error);
+            // console.log('error: ', error);
         });
     return vResult;
 }
@@ -245,7 +245,7 @@ function fnSaveUserDetails(pAorE){
                 $('#mdlUserFormAE').modal('hide');
             })
             .catch(error => {
-                console.log('error: ', error);
+                // console.log('error: ', error);
                 fnGenMessage("Error: Unable to Add User Details.", `badge bg-danger`, "spnUserMsgAE");
             });
         }
@@ -286,7 +286,7 @@ function fnSaveUserDetails(pAorE){
                 }
             })
             .catch(error => {
-                console.log('error: ', error);
+                // console.log('error: ', error);
                 fnGenMessage("ErrorC: Unable to Update User Details.", `badge bg-danger`, "spnUserMsgAE");
             });
         }
@@ -323,7 +323,7 @@ function fnDelUserDetails(pRecId){
                 fnGenMessage(result.message, `badge bg-${result.status}`, "spnGenMessage");
             })
             .catch(error => {
-                console.log('error: ', error);
+                // console.log('error: ', error);
                 fnGenMessage("Error: Unable to Delete User Details.", `badge bg-danger`, "spnGenMessage");
             });
     }
@@ -354,7 +354,7 @@ function fnToggleUserActive(pRecId, pActiveState){
         fnGenMessage(result.message, `badge bg-${result.status}`, "spnGenMessage");
     })
     .catch(error => {
-        console.log('error: ', error);
+        // console.log('error: ', error);
         fnGenMessage("Error: Unable to Update User Active State.", `badge bg-danger`, "spnGenMessage");
     });
 }
@@ -384,7 +384,7 @@ function fnToggleUserAdmin(pRecId, pAdminState){
         fnGenMessage(result.message, `badge bg-${result.status}`, "spnGenMessage");
     })
     .catch(error => {
-        console.log('error: ', error);
+        // console.log('error: ', error);
         fnGenMessage("Error: Unable to Update User State.", `badge bg-danger`, "spnGenMessage");
     });
 }
@@ -509,7 +509,7 @@ function fnSaveAdminUserDetails(pUserId, pFullName, pEMailId){
                 resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });            
             })
             .catch(error => {
-                console.log('error: ', error);
+                // console.log('error: ', error);
                 fnGenMessage("Error in Saving Admin Details.", `badge bg-danger`, "spnGenMsg");
                 reject({ "status": "danger", "message": "Error in Saving Admin Details!", "data": "" });
             });
@@ -537,7 +537,7 @@ function fnGetAddedUserDetailsJ(pUserId, pFullName, pEMailId, pPassword, pPhoneN
                 resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });            
             })
             .catch(error => {
-                console.log('error: ', error);
+                // console.log('error: ', error);
                 fnGenMessage("Error in Saving User Details.", `badge bg-danger`, "spnGenMsg");
                 reject({ "status": "danger", "message": "Error in Saving User Details!", "data": "" });
             });
@@ -595,7 +595,7 @@ function fnGetUserJsonData(){
             resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });            
         })
         .catch(error => {
-            console.log('error: ', error);
+            // console.log('error: ', error);
             fnGenMessage("Error in Getting User Details.", `badge bg-danger`, "spnGenMsg");
             reject({ "status": "danger", "message": "Error in Getting User Details!", "data": "" });
         });
@@ -703,7 +703,7 @@ function fnDeleteUserDetails(pUserId, pPassword){
                 resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });            
             })
             .catch(error => {
-                console.log('error: ', error);
+                // console.log('error: ', error);
                 fnGenMessage("Error in Deleting User Details.", `badge bg-danger`, "spnGenMsg");
                 reject({ "status": "danger", "message": "Error in Deleting User Details!", "data": "" });
             });
@@ -776,7 +776,7 @@ function fnAdmRightsUserDetails(pUserId, pIsAdmin, pPassword){
                 resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });            
             })
             .catch(error => {
-                console.log('error: ', error);
+                // console.log('error: ', error);
                 fnGenMessage("Error in Changing User Rights.", `badge bg-danger`, "spnGenMsg");
                 reject({ "status": "danger", "message": "Error in Changing User Rights!", "data": "" });
             });
@@ -849,7 +849,7 @@ function fnUserActiveState(pUserId, pIsActive, pPassword){
                 resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });            
             })
             .catch(error => {
-                console.log('error: ', error);
+                // console.log('error: ', error);
                 fnGenMessage("Error in Changing User Active State.", `badge bg-danger`, "spnGenMsg");
                 reject({ "status": "danger", "message": "Error in Changing User Active State!", "data": "" });
             });
@@ -907,7 +907,7 @@ function fnGetUserJsonDataById(pUserId){
             resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });            
         })
         .catch(error => {
-            console.log('error: ', error);
+            // console.log('error: ', error);
             fnGenMessage("Error in Getting User Details for Editing!", `badge bg-danger`, "spnGenMsg");
             reject({ "status": "danger", "message": "Error in Getting User Details for Editing!", "data": "" });
         });
@@ -983,7 +983,7 @@ function fnGetUpdatedUserDetailsJ(pUserId, pFullName, pEMailId, pPassword, pPhon
                 resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });            
             })
             .catch(error => {
-                console.log('error: ', error);
+                // console.log('error: ', error);
                 fnGenMessage("Error in Updating User Details.", `badge bg-danger`, "spnGenMsg");
                 reject({ "status": "danger", "message": "Error in Updating User Details!", "data": "" });
             });
