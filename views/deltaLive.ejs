@@ -295,14 +295,14 @@
                                     <div class="col-6">
                                         <h4>Open Position(s)</h4>
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col-1">
 
                                     </div>
                                     <div class="col-1">
                                         <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnGetTimerBasedRates();//fnStartStreaming();"></i>
                                     </div>
-                                    <div class="col-1">
-                                        <i class="fa fa-times-circle" aria-hidden="true" style="color: red; cursor: pointer;" onclick="fnCloseWS();"></i>
+                                    <div class="col-3" style="text-align: right; font-size:20px; cursor: pointer;" onclick="fnInitCloseAllPositions();">
+                                        <i class="fa fa-times-circle-o" aria-hidden="true" style="color: red;"></i> Close All Positions
                                     </div>
                                     <div class="col-1" style="text-align: right;">
                                         <a data-bs-toggle="collapse" href="#divOpenPosClps" role="button" aria-expanded="true" aria-controls="divOpenPosClps">
@@ -403,8 +403,8 @@
                                                               <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
                                                               <th scope="col" style="text-wrap: nowrap;">End Date Time</th>
                                                               <th scope="col" style="text-wrap: nowrap;">Symbol</th>
-                                                              <th scope="col" style="text-wrap: nowrap;">Expiry</th>
                                                               <th scope="col" style="text-wrap: nowrap;">Strike</th>
+                                                              <th scope="col" style="text-wrap: nowrap;">BorS</th>
                                                               <th scope="col" style="text-wrap: nowrap;">Qty</th>
                                                               <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
                                                               <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
@@ -413,7 +413,7 @@
                                                               <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
                                                             </tr>
                                                           </thead>
-                                                          <tbody id="tBodyTodayPaperTrades">
+                                                          <tbody id="tBodyClsdOptPaperTrades">
             
                                                           </tbody>
                                                     </table>
