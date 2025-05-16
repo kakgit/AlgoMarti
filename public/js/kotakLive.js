@@ -742,7 +742,7 @@ async function fnExecOptionTrade(pBuySel, pOptionType){
                         let vExcTradeDtls = { TradeData: [objNrmlOrdr.data] };
 
                         let objExcTradeDtls = JSON.stringify(vExcTradeDtls);
-                        // console.log(objExcTradeDtls);
+                        console.log(objExcTradeDtls);
                         localStorage.setItem("KotakCurrOptPosiS", objExcTradeDtls);
                         localStorage.setItem("QtyMulR", objNrmlOrdr.data.Quantity);
                         objLossBadge.style.visibility = "hidden";
