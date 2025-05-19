@@ -2545,58 +2545,58 @@ function fnInitClsOptRealTrade(pQty){
     }
 
     //***** Uncomment for Real Trade and check code later ******//
-    // let vHeaders = new Headers();
-    // vHeaders.append("Content-Type", "application/json");
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
 
-    // let objRequestOptions = {
-    //     method: 'POST',
-    //     headers: vHeaders,
-    //     body: JSON.stringify({ HsServerId: objHsServerId.value, Sid: objSid.value, AccessToken: objAccessToken.value, KotakSession: objKotakSession.value, SymToken: objCurrPos.TradeData[0].SymToken, TrdSymbol: objCurrPos.TradeData[0].TrdSymbol, BorS: vBuySell, LotSize: objCurrPos.TradeData[0].LotSize, OptQty: objCurrPos.TradeData[0].Quantity, ExchSeg: objCurrPos.TradeData[0].ExchSeg, MaxOptQty: objCurrPos.TradeData[0].MaxOrderQty }),
-    //     redirect: 'follow'
-    // };
+    let objRequestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: JSON.stringify({ HsServerId: objHsServerId.value, Sid: objSid.value, AccessToken: objAccessToken.value, KotakSession: objKotakSession.value, SymToken: objCurrPos.TradeData[0].SymToken, TrdSymbol: objCurrPos.TradeData[0].TrdSymbol, BorS: vBuySell, LotSize: objCurrPos.TradeData[0].LotSize, OptQty: objCurrPos.TradeData[0].Quantity, ExchSeg: objCurrPos.TradeData[0].ExchSeg, MaxOptQty: objCurrPos.TradeData[0].MaxOrderQty }),
+        redirect: 'follow'
+    };
 
-    // fetch("/kotakNeo/placeCloseOptTrade", objRequestOptions)
-    // .then(objResponse => objResponse.json())
-    // .then(objResult => {
-    //     if(objResult.status === "success"){
-    //         console.log(objResult.data);
+    fetch("/kotakNeo/placeCloseOptTrade", objRequestOptions)
+    .then(objResponse => objResponse.json())
+    .then(objResult => {
+        if(objResult.status === "success"){
+            console.log(objResult.data);
 
-    //         // for (let i = 0; i < objResult.data.data.length; i++){
-    //         //     if(objResult.data.data[i].nOrdNo === objResult.nOrdNo){
-    //         //         if(objResult.data.data[i].ordSt === "rejected"){
-    //         //             fnGenMessage("Close Order Rejected: " + objResult.data.data[i].rejRsn, `badge bg-danger`, "spnGenMsg");
-    //         //         }
-    //         //         else if(objResult.data.data[i].ordSt === "complete"){
+            // for (let i = 0; i < objResult.data.data.length; i++){
+            //     if(objResult.data.data[i].nOrdNo === objResult.nOrdNo){
+            //         if(objResult.data.data[i].ordSt === "rejected"){
+            //             fnGenMessage("Close Order Rejected: " + objResult.data.data[i].rejRsn, `badge bg-danger`, "spnGenMsg");
+            //         }
+            //         else if(objResult.data.data[i].ordSt === "complete"){
                         
-    //         //             clearInterval(vTradeInst);
-    //         //             localStorage.removeItem("KotakCurrPosiS");
-    //         //             fnResetOpenPositionDetails();
-    //         //             fnSetNextTradeSettings(objResult.data.data[i].avgPrc);
-    //         //             resumeandpause('cp', '1');
-    //         //             fnGenMessage("Success: Position Closed.", `badge bg-success`, "spnGenMsg");
-    //         //         }
-    //         //         else{
-    //         //             fnGenMessage("Order Not Found: " + objResult.data.data[i].rejRsn, `badge bg-danger`, "spnGenMsg");
-    //         //         }
-    //         //     }
-    //         // }
+            //             clearInterval(vTradeInst);
+            //             localStorage.removeItem("KotakCurrPosiS");
+            //             fnResetOpenPositionDetails();
+            //             fnSetNextTradeSettings(objResult.data.data[i].avgPrc);
+            //             resumeandpause('cp', '1');
+            //             fnGenMessage("Success: Position Closed.", `badge bg-success`, "spnGenMsg");
+            //         }
+            //         else{
+            //             fnGenMessage("Order Not Found: " + objResult.data.data[i].rejRsn, `badge bg-danger`, "spnGenMsg");
+            //         }
+            //     }
+            // }
 
-    //         fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");            
-    //     }
-    //     else if(objResult.status === "danger"){
-    //         fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-    //     }
-    //     else if(objResult.status === "warning"){
-    //         fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-    //     }
-    //     else{
-    //         fnGenMessage("Error to Fetch Option Details.", `badge bg-danger`, "spnGenMsg");
-    //     }
-    // })
-    // .catch(error => {
-    //     console.log('error: ', error);
-    //     fnGenMessage("Error to Fetch with Option Details.", `badge bg-danger`, "spnGenMsg");
-    // });
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");            
+        }
+        else if(objResult.status === "danger"){
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "warning"){
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else{
+            fnGenMessage("Error to Fetch Option Details.", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        console.log('error: ', error);
+        fnGenMessage("Error to Fetch with Option Details.", `badge bg-danger`, "spnGenMsg");
+    });
     //***** Uncomment for Real Trade and check code later ******//
 
     //******* Comment for Real Trade. Below is for only Paper Trade *****//
@@ -2714,6 +2714,7 @@ function fnSetNextOptTradeSettings(pAvgPrice, pQty, pCharges){
 function fnSetTodayOptTradeDetails(){
     let objTodayTrades = localStorage.getItem("OptTradesListS");
     let objTodayTradeList = document.getElementById("tBodyTodayPaperTrades");
+    let vNetProfit = 0;
 
     if (objTodayTrades == null || objTodayTrades == "") {
         objTodayTradeList.innerHTML = '<div class="col-sm-12" style="border:0px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 40px;">No Trades Yet</div>';
@@ -2721,7 +2722,6 @@ function fnSetTodayOptTradeDetails(){
     else {
         let vTempHtml = "";
         let vJsonData = JSON.parse(objTodayTrades);
-        let vNetProfit = 0;
         let vNoOfTrades = 0;
         let vPrevCapital = 0;
         let vCharges = 0;
@@ -2757,6 +2757,11 @@ function fnSetTodayOptTradeDetails(){
         vTempHtml += '<tr><td>Total Trades</td><td>'+ vNoOfTrades +'</td><td colspan="6"></td><td Style="text-align:right;font-weight:bold;color:red;">'+ (vCharges).toFixed(2) +'</td><td Style="text-align:right;font-weight:bold;color:orange;">'+ (vPrevCapital).toFixed(2) +'</td><td style="font-weight:bold;text-align:right;color:orange;">' + (vNetProfit).toFixed(2) + '</td></tr>';
 
         objTodayTradeList.innerHTML = vTempHtml;
+    }
+
+    if(vNetProfit >= 15000){
+        localStorage.setItem("isAutoTrader", "true");
+        $('#btnAutoTraderStatus').trigger('click');
     }
 }
 
