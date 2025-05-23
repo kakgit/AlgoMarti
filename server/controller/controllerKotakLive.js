@@ -806,6 +806,7 @@ exports.fnPlaceCloseOptTrade = async (req, res) => {
         }
     }
     catch (err) {
+        console.log("Test");
         res.send({ status: "danger", message: "Option Order - " + err.message, data: err.data });
     }
 }
