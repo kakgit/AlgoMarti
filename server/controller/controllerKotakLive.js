@@ -478,9 +478,9 @@ exports.fnGetTradeBook = async (req, res) => {
         let objOrderDtls = await fnGetTradeDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
 
         if(objOrderDtls.data.stat === "Not_Ok"){
-            res.send({ "status": "warning", "message": "Tradebook Error: " + objOrderDtls.data.errMsg, "data": objOrderDtls.data });
+            res.send({ "status": "warning", "message": "Tradebook: " + objOrderDtls.data.errMsg, "data": objOrderDtls.data });
         }
-        else if(objOrderDtls.data.stat === "Ok"){
+        else if(objOrderDtls.data.stat === "ok"){
             res.send({ "status": "success", "message": "Tradebook Details Received!", "data": objOrderDtls.data });
         }
         else{
@@ -690,10 +690,22 @@ exports.fnPlaceOptionNormalOrder = async (req, res) => {
         }
         else{
             //Single Order for Paper Trade. comment it if Real trade is on
+            // let vLoopNos = Math.ceil(parseInt(vOrderQty) / parseInt(vMaxOrderQty));
+
+            // for(let i=0; i<vLoopNos; i++){
+            //     const objDate = new Date();
+            //     let vSecDt = (objDate.valueOf()) + i;
+
+            //     let vTempData = await fnTempOrderBook(vSecDt, parseInt(vOrderQty), parseInt(vLotSize), vToken, vExchSeg, vBorS, vTrdSymbol, vOptionType, vSearchSymbol, vStrikePrice, vCurrRate);
+            //     objOrderData.OrderData.push(vTempData.data);
+            // }
+            // console.log(objOrderData.OrderData);
+
+            // objTempOrderBook = objOrderData.OrderData;
             objOrderData = { OrderData: [{ "stat": "Ok", "nOrdNo": "241216000405363", "tid": "server2_2451094", "stCode": 200 }] };
             
-            objTempOrderBook = await fnTempOrderBook(parseInt(vOrderQty), parseInt(vLotSize), vToken, vExchSeg, vBorS, vTrdSymbol, vOptionType, vSearchSymbol, vStrikePrice, vCurrRate);
-            //Single Order for Paper Trade
+            objTempOrderBook = await fnTempOrderBook("241216000405363", parseInt(vOrderQty), parseInt(vLotSize), vToken, vExchSeg, vBorS, vTrdSymbol, vOptionType, vSearchSymbol, vStrikePrice, vCurrRate);
+            // Single Order for Paper Trade
         }
 
         let vCumFilledQty = 0;
@@ -734,14 +746,15 @@ exports.fnPlaceCloseOptTrade = async (req, res) => {
     let vAccessToken = req.body.AccessToken;
     let vKotakSession = req.body.KotakSession;
 
-    let vExchSeg = req.body.ExchSeg;
-    let vToken = req.body.SymToken;
-    let vTrdSymbol = req.body.TrdSymbol;
-    let vBorS = req.body.BorS;
-    let vLotSize = req.body.LotSize;
-
     let vOrderQty = req.body.OptQty;
+    let vLotSize = req.body.LotSize;
+    let vToken = req.body.SymToken;
+    let vExchSeg = req.body.ExchSeg;
+    let vBorS = req.body.BorS;
+    let vTrdSymbol = req.body.TrdSymbol;
+
     let vMaxOrderQty = req.body.MaxOptQty;
+    let vIsRealTrade = req.body.IsRealTrade;
 
     try{
         let vLoopNos = Math.ceil(parseInt(vOrderQty) / parseInt(vMaxOrderQty));
@@ -780,15 +793,20 @@ exports.fnPlaceCloseOptTrade = async (req, res) => {
             }
         }
     
-        vCumFilledQty = vCumFilledQty/parseInt(objTokenData.data.LotSize);
+        vCumFilledQty = vCumFilledQty/parseInt(vLotSize);
         vCumPrice = vCumPrice/vRecCount;
     
-        let vOrdrCnfData = { TradeID:"", SymToken: objTokenData.data.Token, ClientID: "", TrdSymbol: objTokenData.data.TrdSymbol, Expiry: vExpiryDt, Strike: (parseInt(vStrikePrice)/100), ByorSl: vBorS, OptionType: vOptionType, LotSize: objTokenData.data.LotSize, Quantity: vCumFilledQty, BuyPrice: vCumPrice, SellPrice: vCumPrice, ProfitLoss: 0, StopLoss: 10, TakeProfit: 20, TrailSL: 0, EntryDT: "", ExitDT: "", ExchSeg: objTokenData.data.ExchSeg, MaxOrderQty: vMaxOrderQty };
-    
-        res.send({ status: "success", message: "Close Order Placed Successfully", data: vOrdrCnfData });    
+        if(vCumFilledQty > 0){
+            let vOrdrCnfData = { TradeID:"", SymToken: vToken, ClientID: "", SearchSymbol: vSearchSymbol, TrdSymbol: vTrdSymbol, Expiry: vExpiryDt, Strike: (parseInt(vStrikePrice)/100), ByorSl: vBorS, OptionType: vOptionType, LotSize: vLotSize, Quantity: vCumFilledQty, BuyPrice: vCumPrice, SellPrice: vCumPrice, ProfitLoss: 0, StopLoss: 10, TakeProfit: 20, TrailSL: 0, EntryDT: "", ExitDT: "", ExchSeg: vExchSeg, MaxOrderQty: vMaxOrderQty, IsRealTrade: vIsRealTrade };
+
+            res.send({ status: "success", message: "Order Placed Successfully", data: vOrdrCnfData });    
+        }
+        else{
+            res.send({ status: "danger", message: "Order Rejected, Please check Orderbook!", data: "" });    
+        }
     }
     catch (err) {
-        res.send({ status: err.status, message: "Option Order - " + err.message, data: err.data });
+        res.send({ status: "danger", message: "Option Order - " + err.message, data: err.data });
     }
 }
 
@@ -1060,7 +1078,7 @@ const fnGetOrderDetails = async (pHsServerId, pSid, pKotakSession, pAccessToken)
     return objData;
 }
 
-const fnTempOrderBook = async (pOrderQty, pLotSize, pToken, pExchSeg, pBorS, pTrdSymbol, pOptionType, pSearchSymbol, pStrikePrice, pCurrRate) => {
+const fnTempOrderBook = async (pOrderId, pOrderQty, pLotSize, pToken, pExchSeg, pBorS, pTrdSymbol, pOptionType, pSearchSymbol, pStrikePrice, pCurrRate) => {
     const objData = new Promise((resolve, reject) => {
         //Single Order for paper Trade
         const objTempOrdBook = {
@@ -1119,7 +1137,7 @@ const fnTempOrderBook = async (pOrderQty, pLotSize, pToken, pExchSeg, pBorS, pTr
                     "trnsTp": pBorS,
                     "refLmtPrc": 0,
                     "coPct": 0,
-                    "nOrdNo": "241216000405363",
+                    "nOrdNo": pOrderId,
                     "ordAutSt": "NA",
                     "strategyCode": "NA",
                     "rejRsn": "--",
