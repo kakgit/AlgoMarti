@@ -238,7 +238,6 @@ function fnGetSetTraderLoginStatus(){
         gIsTraderLogin = true;
     }
     fnGetSetAutoTraderStatus();
-    fnGetSetRealTradeStatus();
     fnGetSetAllStatus();
 }
 
@@ -254,23 +253,6 @@ function fnGetSetAutoTraderStatus(){
     {
         fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
         localStorage.setItem("isAutoTrader", false);
-    }
-}
-
-function fnGetSetRealTradeStatus(){
-    let isLsRealTrader = localStorage.getItem("isRealTrade");
-    let objRealTraderStatus = document.getElementById("btnRealTradeStatus");
-
-    if(isLsRealTrader === "true")
-    {
-        fnChangeBtnProps(objRealTraderStatus.id, "badge bg-success", "Real Trade - ON");
-        $('#btnTabClsdRealTrds').trigger('click');
-    }
-    else
-    {
-        fnChangeBtnProps(objRealTraderStatus.id, "badge bg-warning", "Paper Trade - ON");
-        localStorage.setItem("isRealTrade", false);
-        $('#btnTabClsdPaperTrds').trigger('click');
     }
 }
 
@@ -301,25 +283,25 @@ function fnToggleAutoTrader(){
     }
 }
 
-function fnToggleRealTrade(){
-    let isLsRealTrader = localStorage.getItem("isRealTrade");
+// function fnToggleRealTrade(){
+//     let isLsRealTrader = localStorage.getItem("isRealTrade");
 
-    let objRealTraderStatus = document.getElementById("btnRealTradeStatus");
+//     let objRealTraderStatus = document.getElementById("btnRealTradeStatus");
 
-    if(isLsRealTrader === null || isLsRealTrader === "true"){
-        fnChangeBtnProps(objRealTraderStatus.id, "badge bg-warning", "Paper Trade - ON");
-        fnGenMessage("Paper Trading Mode is ON!", `badge bg-success`, "spnGenMsg");
-        localStorage.setItem("isRealTrade", false);
-        $('#btnTabClsdPaperTrds').trigger('click');
+//     if(isLsRealTrader === null || isLsRealTrader === "true"){
+//         fnChangeBtnProps(objRealTraderStatus.id, "badge bg-warning", "Paper Trade - ON");
+//         fnGenMessage("Paper Trading Mode is ON!", `badge bg-success`, "spnGenMsg");
+//         localStorage.setItem("isRealTrade", false);
+//         $('#btnTabClsdPaperTrds').trigger('click');
 
-}
-    else{
-        fnChangeBtnProps(objRealTraderStatus.id, "badge bg-success", "Real Trade - ON");
-        fnGenMessage("Real Trading Mode is ON!", `badge bg-success`, "spnGenMsg");
-        localStorage.setItem("isRealTrade", true);
-        $('#btnTabClsdRealTrds').trigger('click');
-    }
-}
+// }
+//     else{
+//         fnChangeBtnProps(objRealTraderStatus.id, "badge bg-success", "Real Trade - ON");
+//         fnGenMessage("Real Trading Mode is ON!", `badge bg-success`, "spnGenMsg");
+//         localStorage.setItem("isRealTrade", true);
+//         $('#btnTabClsdRealTrds').trigger('click');
+//     }
+// }
 
 function fnShowSettingsMdl(){
     $('#mdlKotakSettings').modal('show');
@@ -602,7 +584,7 @@ function fnGetIndSymSettings(){
   
     gIndData = {
         UpdDt: vSecDt, Symbol: [
-            { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty 50', SearchSymbol: 'NIFTY', Token: 1, Segment: 'nse_cm', LotSize: 75, MaxLots: 6, StrikeInterval: 50, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-05-29', '2025-06-26', '2025-07-31'] },
+            { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty 50', SearchSymbol: 'NIFTY', Token: 1, Segment: 'nse_cm', LotSize: 75, MaxLots: 24, StrikeInterval: 50, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-05-29', '2025-06-26', '2025-07-31'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty Bank', SearchSymbol: 'BANKNIFTY', Token: 2, Segment: 'nse_cm', LotSize: 30, MaxLots: 30, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-05-29', '2025-06-26', '2025-07-31'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty Fin Service', SearchSymbol: 'FINNIFTY', Token: 3, Segment: 'nse_cm', LotSize: 65, MaxLots: 27, StrikeInterval: 50, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-05-29', '2025-06-26', '2025-07-31'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'NIFTY MID SELECT', SearchSymbol: 'MIDCPNIFTY', Token: 4, Segment: 'nse_cm', LotSize: 120, MaxLots: 23, StrikeInterval: 25, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-05-29', '2025-06-26', '2025-07-31'] },

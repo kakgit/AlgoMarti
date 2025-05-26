@@ -6,7 +6,7 @@ const csvToJson = require('convert-csv-to-json');
 
 exports.defaultRoute = (req, res) => {
     //res.send("Crud Application");
-    res.render("kotakLive.ejs");
+    res.render("kotakPaper.ejs");
 }
 
 exports.fnLoginKotakNeo = async (req, res) => {
@@ -666,24 +666,11 @@ exports.fnPlaceOptionNormalOrder = async (req, res) => {
     let objTempOrderBook = "";
 
     try{
-        //Single to Multiple Trade Orders for Real Trades. comment it if paper trade is on
-        let vLoopNos = Math.ceil(parseInt(vOrderQty) / parseInt(vMaxOrderQty));
-        let vExecTempQty = vOrderQty;
-
-        for(let i=0; i<vLoopNos; i++){
-            if(i === (vLoopNos - 1)){
-                let vTempData = await fnExecOptNrmlOrder(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vExecTempQty) * parseInt(vLotSize)), vLotSize);
-                objOrderData.OrderData.push(vTempData.data);
-            }
-            else{
-                let vTempData = await fnExecOptNrmlOrder(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vMaxOrderQty) * parseInt(vLotSize)), vLotSize);
-                objOrderData.OrderData.push(vTempData.data);
-            }
-            vExecTempQty = parseInt(vExecTempQty) - parseInt(vMaxOrderQty);
-        }
-        objTempOrderBook = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
-        objTempOrderBook = objTempOrderBook.data;
-        //Single to Multiple Trade Orders for Real Trades
+        // objTempOrderBook = objOrderData.OrderData;
+        objOrderData = { OrderData: [{ "stat": "Ok", "nOrdNo": "241216000405363", "tid": "server2_2451094", "stCode": 200 }] };
+        
+        objTempOrderBook = await fnTempOrderBook("241216000405363", parseInt(vOrderQty), parseInt(vLotSize), vToken, vExchSeg, vBorS, vTrdSymbol, vOptionType, vSearchSymbol, vStrikePrice, vCurrRate);
+        // Single Order for Paper Trade
 
         let vCumFilledQty = 0;
         let vCumPrice = 0;
@@ -713,8 +700,7 @@ exports.fnPlaceOptionNormalOrder = async (req, res) => {
         }
     }
     catch (err) {
-        console.log(err);
-        res.send({ status: "danger", message: "Option Order - " + err.message, data: err.data });
+        res.send({ status: err.status, message: "Option Order - " + err.message, data: err.data });
     }
 }
 

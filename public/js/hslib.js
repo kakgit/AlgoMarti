@@ -1238,7 +1238,7 @@ var IndexTopicData = (function() {
                     this.updatedFieldsArray[INDEX_INDEX.PERCHANGE] = true
                 }
             }
-            console.log("\nIndex::" + this.feedType + "|" + this.exchange + "|" + this.symbol);
+            // console.log("\nIndex::" + this.feedType + "|" + this.exchange + "|" + this.symbol);
             let jsonRes = {};
             for (let index = 0; index < INDEX_MAPPING.length; index++) {
                 let dataType = INDEX_MAPPING[index];
@@ -1251,7 +1251,7 @@ var IndexTopicData = (function() {
                             val = getFormatDate(val)
                         }
                     }
-                    console.log(index + ":" + dataType.name + ":" + val.toString());
+                    // console.log(index + ":" + dataType.name + ":" + val.toString());
                     jsonRes[dataType.name] = val.toString()
                 }
             }
