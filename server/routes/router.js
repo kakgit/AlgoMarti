@@ -108,6 +108,7 @@ route.post("/kotakReal/getToken4OptRate", kotakLiveController.fnGetTokenforOptio
 route.post("/kotakReal/placeOptNrmlOrder", kotakLiveController.fnPlaceOptionNormalOrder);
 route.post("/kotakReal/placeCloseOptTrade", kotakLiveController.fnPlaceCloseOptTrade);
 route.post("/kotakReal/getBackupRate", kotakLiveController.fnExecBackupRate);
+route.post("/kotakReal/placeOptNrmlOrder1", kotakLiveController.fnPlaceOptionNormalOrder1);
 
 //Delta Expchange Routes
 route.post("/deltaExc/validateLogin", deltaLiveController.fnValidateUserLogin);

@@ -984,7 +984,7 @@ const fnExecNormalOrder = async (pHsServerId, pSid, pKotakSession, pAccessToken,
 const fnExecOptNrmlOrder = async (pHsServerId, pSid, pKotakSession, pAccessToken, pExchSeg, pSymbToken, pTrdSymbol, pBorS, pOrderQty, pLotSize) => {
     const objData = new Promise((resolve, reject) => {
 
-        let data = qs.stringify({ 'jData': '{"am":"NO", "dq":"0","es":"' + pExchSeg + '", "mp":"0", "pc":"MIS", "pf":"N", "pr":"0", "pt":"MKT", "qt":"' + pOrderQty + '", "rt":"DAY", "tp":"0", "tk":"' + pSymbToken + '", "ts":"' + pTrdSymbol + '", "tt":"'+ pBorS + '", "ig":"TestGUID", "sc":"TestTag"}' });
+        let data = qs.stringify({ 'jData': '{"am":"NO", "cf":"", "dq":"0","es":"' + pExchSeg + '", "mp":"0", "pc":"MIS", "pf":"N", "pr":"0", "pt":"MKT", "qt":"' + pOrderQty + '", "rt":"DAY", "tp":"0", "ts":"' + pTrdSymbol + '", "tt":"'+ pBorS + '", "tk":"' + pSymbToken + '", "ig":"TestGUID", "sc":"TestTag"}' });
 
         let objConfig = {
             method: 'post',

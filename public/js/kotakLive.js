@@ -41,7 +41,7 @@ window.addEventListener("DOMContentLoaded", function(){
         }
         console.log(objLiveMsgs);
 
-        fnInnitiateAutoTrade(pMsg);
+        //fnInnitiateAutoTrade(pMsg);
     });
 
     socket.on("tv-exec", (pMsg) => {
@@ -62,7 +62,7 @@ window.addEventListener("DOMContentLoaded", function(){
             localStorage.setItem("msgsCI", JSON.stringify(objLiveMsgs));
         }
 
-        fnInnitiateAutoTrade(pMsg);
+        //fnInnitiateAutoTrade(pMsg);
     });
 
     socket.on("CdlTrend", (pMsg) => {
@@ -99,6 +99,103 @@ window.addEventListener("DOMContentLoaded", function(){
         fnTradeSide();
     });
 });
+
+async function fnExecPlaceOrderTest(pBuySel, pOptionType){
+    let objSpotOption = document.getElementById("hidSpotOption");
+    let objHsServerId = document.getElementById("txtHsServerId");
+    let objSid = document.getElementById("txtSid");
+    let objAccessToken = document.getElementById("txtAccessToken");
+    let objKotakSession = document.getElementById("txtKotakSession");
+    let objClientId = document.getElementById("txtMobileNo");
+    let objOptQty = document.getElementById("txtOptionsQty");
+    let objMaxQty = document.getElementById("hidMaxQty");
+    let objLossBadge = document.getElementById("spnLossTrd");
+
+    try{
+        if(gIsTraderLogin === false){
+            fnGenMessage("Please Login to Trader!", `badge bg-danger`, "spnGenMsg");
+        }
+        else if(objSpotOption.value === ""){
+            fnGetSelSymbolData(0);
+            fnGenMessage("Please Select the Symbol", `badge bg-warning`, "spnGenMsg");
+        }
+        else if(objOptQty.value === "" || objOptQty.value <= 0){
+            fnGenMessage("Please Input Valid Quantity!", `badge bg-danger`, "spnGenMsg");
+        }
+        else{
+            let objLotSize = document.getElementById("txtOptionLotSize");
+            let objJsonFileName = document.getElementById("hidJsonFileName");
+            let objSearchSymbol = document.getElementById("hidSearchSymbol");
+            let objDdlOptionStep = document.getElementById("ddlOptionStrike");
+            let objStrikeInterval = document.getElementById("hidOptStrikeInterval");
+            let objOptExpiry = document.getElementById("ddlOptionsExpiry");
+            let objSegment = document.getElementById("hidSegment");
+            let objStopLoss = document.getElementById("txtOptionsSL1");
+            let objTakeProfit = document.getElementById("txtOptionsTP1");
+            let objCurrRate = document.getElementById("txtCurrentRate");
+            let objMaxOrdQty = document.getElementById("hidMaxPerOrdQty");
+
+            let vRndStrkByOptStep = await fnGetRoundedStrikeByOptStep(pOptionType, objSpotOption.value, objDdlOptionStep.value, objStrikeInterval.value);
+
+            let vExpiry2Epoch = await fnGetEpochBySegmentSeldExpiry(objSegment.value, objOptExpiry.value);
+
+            let objTokenDtls = await fnGetTokenDetails4Option(objJsonFileName.value, objSearchSymbol.value, pOptionType, vExpiry2Epoch, vRndStrkByOptStep);
+
+            if(objTokenDtls.status === "success"){
+                objLotSize.value = objTokenDtls.data.LotSize;
+                objMaxOrdQty.value = objTokenDtls.data.MaxPerOrdQty;
+
+                let obj1TimeCurrRate = await fnGet1TimeCurrOptRate(objTokenDtls.data.ExchSeg, objTokenDtls.data.Token, objCurrRate);
+
+                if(obj1TimeCurrRate.status === "success"){
+                    let vDate = new Date();
+                    let vGuid = vDate.valueOf();
+
+                    let objNrmlOrdr = await fnPlaceOptNrmlOrdr1(objHsServerId.value, objSid.value, objAccessToken.value, objKotakSession.value, objOptQty.value, objTokenDtls.data.LotSize, objTokenDtls.data.Token, objTokenDtls.data.ExchSeg, pBuySel, objTokenDtls.data.TrdSymbol, pOptionType, objSearchSymbol.value, vRndStrkByOptStep, obj1TimeCurrRate.data, objMaxQty.value, vGuid);
+
+                    console.log(vRndStrkByOptStep);
+                    console.log(vExpiry2Epoch);
+                    console.log(objTokenDtls);
+                    console.log(obj1TimeCurrRate);
+                    console.log(objNrmlOrdr);
+                }
+            }
+        }
+        // let objMktStat = await fnGetMarketStatus();
+
+        // console.log(objMktStat);
+    }
+    catch(err){
+        fnGenMessage(err.message, `badge bg-${err.status}`, "spnGenMsg");
+    }
+}
+
+function fnPlaceOptNrmlOrdr1(pHsServerId, pSid, pAccessToken, pKotakSession, pOptionQty, pLotSize, pToken, pExchSeg, pBuySel, pTrdSymbol, pOptionType, pSearchSymbol, pStrikePrice, pCurrRate, pMaxQty, pGuid){
+    const objPromise = new Promise((resolve, reject) => {
+        let vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+
+        let objRequestOptions = {
+            method: 'POST',
+            headers: vHeaders,
+            body: JSON.stringify({ HsServerId: pHsServerId, Sid: pSid, AccessToken: pAccessToken, KotakSession: pKotakSession, OptQty: pOptionQty, LotSize: pLotSize, Token: pToken, ExchSeg: pExchSeg, BorS: pBuySel, TrdSymbol: pTrdSymbol, OptionType: pOptionType, SearchSymbol: pSearchSymbol, StrikePrice: pStrikePrice, CurrRate: pCurrRate, MaxOptQty: pMaxQty, Guid: pGuid }),
+            redirect: 'follow'
+        };
+
+        fetch("/kotakReal/placeOptNrmlOrder1", objRequestOptions)
+            .then(objResponse => objResponse.json())
+            .then(objResult => {
+
+                resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });            
+            })
+            .catch(error => {
+                console.log('error: ', error);
+                fnGenMessage("Error in Placing Option Order.", `badge bg-danger`, "spnGenMsg");
+                reject({ "status": "danger", "message": "Error in Placing Option Order!", "data": "" });
+            });
+    });
+    return objPromise;
+}
 
 function fnShowKotakTraderLoginMdl(objThis){
     let bAppStatus = localStorage.getItem("AppMsgStatusS");
@@ -423,7 +520,7 @@ function fnExecSelSymbData(pThisVal){
 
             let objKotakSession = document.getElementById("txtKotakSession");
             let objSid = document.getElementById("txtSid");
-            let vChannelNo = 20;
+            let vChannelNo = 2;
 
             if(objKotakSession.value !== ""){
                 let vUrl = "wss://mlhsm.kotaksecurities.com"; <!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
@@ -437,14 +534,14 @@ function fnExecSelSymbData(pThisVal){
                     jObj["Sid"] = objSid.value; 
                     jObj["type"] = "cn";
 
-                    console.log("Connection Opened!");
+                    console.log("Selected Symbol Connection Opened!");
                     userKotakWS.send(JSON.stringify(jObj));
                 }
 
                 userKotakWS.onclose = function () {
-                    fnGetSelSymbolData(0);
-                    console.log("Connection Closed!");
-                    //fnGenMessage("Connection is Closed!", `badge bg-warning`, "spnGenMsg");
+                    // fnGetSelSymbolData(0);
+                    console.log("Selected Symbol Connection Closed!");
+                    fnGenMessage("Selected Symbol Connection is Closed!", `badge bg-warning`, "spnGenMsg");
                     //fnLogTA("[Socket]: Disconnected !\n");
                 }
 
@@ -452,8 +549,8 @@ function fnExecSelSymbData(pThisVal){
                     objSpot.value = "";
                     objSegment.value = "";
                     //fnGenMessage("Error in Socket Connection!", `badge bg-danger`, "spnGenMsg");
-                    console.log("Error in Connection!");
-                    reject({ "status": "danger", "message": "Error in Socket Connection!", "data": "" });
+                    console.log("Error in Selected Symbol Connection!");
+                    reject({ "status": "danger", "message": "Error in Selected Symbol Socket Connection!", "data": "" });
 
                     //fnLogTA("[Socket]: Error !\n");
                 }
@@ -464,8 +561,9 @@ function fnExecSelSymbData(pThisVal){
                     if((result[0].name === "if")){
                         if(result[0].iv !== undefined){
                             objSpot.value = result[0].iv;
-                            resumeandpause('cp', '20');
+                            // resumeandpause('cp', '2');
                             fnGetSpotOption();
+                            userKotakWS.close();
                             resolve({ "status": "success", "message": "Selected Symbol Data Received!", "data": "" });
                         }
                     }
@@ -473,7 +571,7 @@ function fnExecSelSymbData(pThisVal){
                     if(result[0].type === "cn"){
                         fnSubscribeScript('ifs', vStreamObj, vChannelNo);
                     }
-                    console.log(result);
+                    // console.log(result);
                 }
             }
         }
@@ -834,7 +932,6 @@ function fnPlaceOptNrmlOrdr(pHsServerId, pSid, pAccessToken, pKotakSession, pOpt
                 fnGenMessage("Error in Placing Option Order.", `badge bg-danger`, "spnGenMsg");
                 reject({ "status": "danger", "message": "Error in Placing Option Order!", "data": "" });
             });
-
     });
     return objOptOrdr;
 }
@@ -908,7 +1005,7 @@ function fnGetTradeBook(){
     .then(objResult => {
         if(objResult.status === "success"){
             let objTodayTradeList = document.getElementById("divTodayTrades");
-            console.log(objResult.data.data);
+            console.log(objResult.data);
 
             if(objResult.data === null || objResult.data === ""){
 
@@ -1737,7 +1834,7 @@ function fnGetCurrRateStream(pExchSeg, pToken, objRateTxt){
 
     let objKotakSession = document.getElementById("txtKotakSession");
     let objSid = document.getElementById("txtSid");
-    let vChannelNo = 10;
+    let vChannelNo = 3;
 
     if(objKotakSession.value !== ""){
         let vUrl = "wss://mlhsm.kotaksecurities.com"; <!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
@@ -1764,19 +1861,18 @@ function fnGetCurrRateStream(pExchSeg, pToken, objRateTxt){
 
         userKotakWS.onerror = function () {
             objRateTxt.value = "";
-            fnGenMessage("Error in Socket Connection!", `badge bg-danger`, "spnGenMsg");
+            fnGenMessage("Error in Curr Rate Socket Connection!", `badge bg-danger`, "spnGenMsg");
             //fnLogTA("[Socket]: Error !\n");
         }
 
         userKotakWS.onmessage = function (msg) {
             const result= JSON.parse(msg);
             
-            // alert(result[0].name);
             if((result[0].name === "sf")){
                 if(result[0].ltp !== undefined){
                     objRateTxt.value = result[0].ltp;
                     //objSpot.value = result[0].iv;
-                    // resumeandpause('cp', '1');
+                    // resumeandpause('cp', '3');
                 }
             }
 
@@ -2803,7 +2899,7 @@ function fnGet1TimeCurrOptRate(pExchSeg, pToken, objRateTxt){
 
         let objKotakSession = document.getElementById("txtKotakSession");
         let objSid = document.getElementById("txtSid");
-        let vChannelNo = 20;
+        let vChannelNo = 2;
 
         if(objKotakSession.value !== ""){
             let vUrl = "wss://mlhsm.kotaksecurities.com"; <!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
@@ -2824,8 +2920,8 @@ function fnGet1TimeCurrOptRate(pExchSeg, pToken, objRateTxt){
                 // objDdlOptSym.value = 0;
                 // fnGetSelSymbolData(0);
                 objRateTxt.value = "";
-                //fnGenMessage("Connection is Closed!", `badge bg-warning`, "spnGenMsg");
-                reject({ "status": "warning", "message": "1 Time Connection is Closed!", "data": "" });
+                fnGenMessage("1 Time Connection is Closed!", `badge bg-warning`, "spnGenMsg");
+                // resolve({ "status": "success", "message": "1 Time Connection is Closed!", "data": "" });
                 //fnLogTA("[Socket]: Disconnected !\n");
             }
 
@@ -2844,8 +2940,9 @@ function fnGet1TimeCurrOptRate(pExchSeg, pToken, objRateTxt){
                     if(result[0].ltp !== undefined){
                         objRateTxt.value = result[0].ltp;
                         //objRateTxt.value = result[0].iv;
-                        resumeandpause('cp', '20');
-
+                        // resumeandpause('cp', '2');
+                        userKotakWS.close();
+                        fnGenMessage("1 Time Rate is Received!", `badge bg-success`, "spnGenMsg");
                         resolve({ "status": "success", "message": "Rate Received Successfully!", "data": objRateTxt.value });
                     }
                 }
@@ -2864,6 +2961,6 @@ function fnGet1TimeCurrOptRate(pExchSeg, pToken, objRateTxt){
 }
 
 function fnGetOrderTradeBook(){
-    //fnGetOrderBook();
-    fnGetTradeBook();
+    fnGetOrderBook();
+    // fnGetTradeBook();
 }

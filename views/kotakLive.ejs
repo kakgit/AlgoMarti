@@ -172,16 +172,17 @@
                                             </div>
                                             <div class="col-6 col-lg-3 col-md-6">
                                                 <input type="text" id="hidOptStrikeInterval" class="form-control" value="" placeholder="Strike Interval" />
+                                                <input type="text" id="hidMaxPerOrdQty" class="form-control" placeholder="Max Order Quantity" value="" />
                                             </div>
                                             <hr/>
                                             <div class="col-6 col-lg-3 col-md-6">
                                                 <div class="d-grid gap-1">
-                                                    <button class="btn btn-outline-danger" onclick="fnEmitTradeForAll('PE');" style="display: block;"><b>Buy PE for ALL</b></button>
+                                                    <button class="btn btn-outline-danger" onclick="fnExecPlaceOrderTest('B', 'PE');//fnEmitTradeForAll('PE');" style="display: block;"><b>Buy PE for ALL</b></button>
                                                 </div>
                                             </div>
                                             <div class="col-6 col-lg-3 col-md-6">
                                                 <div class="d-grid gap-1">
-                                                    <button class="btn btn-outline-success" onclick="fnEmitTradeForAll('CE');" style="display: block;"><b>Buy CE for ALL</b></button>
+                                                    <button class="btn btn-outline-success" onclick="fnExecPlaceOrderTest('B', 'CE');//fnEmitTradeForAll('CE');" style="display: block;"><b>Buy CE for ALL</b></button>
                                                 </div>
                                             </div>
                                             <div class="col-6 col-lg-3 col-md-6">
@@ -205,15 +206,6 @@
                                             <input type="text" id="txtSid" class="form-control" value="" placeholder="SID" />
                                             <input type="text" id="txtHsServerId" class="form-control" value="" placeholder="Hs Server ID" />
                                             <input type="text" id="hidLTP" class="form-control" value="" placeholder="LTP" />
-                                
-                                            <input type="text" id="hidStrikeInterval" placeholder="Strike Interval" />
-                                            <input type="text" id="hidToken" placeholder="Script Token" />
-                                            <input type="text" id="hidExchange" placeholder="Exchange" />
-                                            <input type="text" id="hidContract" placeholder="Contract" />
-                                            <input type="text" id="hidMaxLotsLimit" placeholder="Lots Limit" />
-                                            <input type="text" id="txtDateToTime" placeholder="DateToTime" />
-                                            <input type="text" id="txtActualStrike" placeholder="Actual Strike" />
-                                            <input type="text" id="hidTradeToken" placeholder="Option Token" />
                                         </div>
                                     </div>
                                 </div>
@@ -406,11 +398,14 @@
                                     <div class="col-6">
                                         <h4>Order / Trade Book</h4>
                                     </div>
-                                    <div class="col-4">
+                                    <div class="col-3">
 
                                     </div>
                                     <div class="col-1">
-                                        <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnGetOrderTradeBook();"></i>
+                                        <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnGetOrderBook();"></i>
+                                    </div>
+                                    <div class="col-1">
+                                        <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnGetTradeBook();"></i>
                                     </div>
                                     <div class="col-1" style="text-align: right;">
                                         <a data-bs-toggle="collapse" href="#divAlgoMsgsClps" role="button" aria-expanded="true" aria-controls="divAlgoMsgsClps">
