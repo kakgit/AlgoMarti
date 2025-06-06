@@ -347,7 +347,7 @@
                             <div class="card-header">
                                 <div class="row">
                                     <div class="col-6">
-                                        <h4>Closed Position(s)</h4>
+                                        <h4>Closed Position(s) / Orderbook</h4>
                                     </div>
                                     <div class="col-4">
                                     </div>
@@ -383,8 +383,8 @@
                                                         <!-- <th scope="col" style="text-wrap: nowrap;">P &amp; L</th> -->
                                                     </tr>
                                                     </thead>
-                                                    <tbody id="divTodayTrades">
-    
+                                                    <tbody id="divClsdOrderbook">
+
                                                     </tbody>
                                             </table>
                                         </div>
@@ -396,7 +396,7 @@
                             <div class="card-header">
                                 <div class="row">
                                     <div class="col-6">
-                                        <h4>Order / Trade Book</h4>
+                                        <h4>Trade Book</h4>
                                     </div>
                                     <div class="col-3">
 
@@ -408,14 +408,40 @@
                                         <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnGetTradeBook();"></i>
                                     </div>
                                     <div class="col-1" style="text-align: right;">
-                                        <a data-bs-toggle="collapse" href="#divAlgoMsgsClps" role="button" aria-expanded="true" aria-controls="divAlgoMsgsClps">
+                                        <a data-bs-toggle="collapse" href="#divTradeBook" role="button" aria-expanded="true" aria-controls="divTradeBook">
                                             <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
                                           </a>
                                     </div>                                    
                                 </div>
                             </div>
                             <div class="card-body">
-                                <div class="collapse show" id="divAlgoMsgsClps">
+                                <div class="collapse show" id="divTradeBook">
+                                    <div class="container-fluid">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr style="text-align:center;">
+                                                        <!-- <th scope="col">TradeID</th> -->
+                                                        <th scope="col" style="text-wrap: nowrap;">Date Time</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Symbol</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Expiry</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Strike</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Type</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">B or S</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Qty</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Charges</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Capital</th>
+                                                        <!-- <th scope="col" style="text-wrap: nowrap;">P &amp; L</th> -->
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody id="divTodayTrades">
+    
+                                                    </tbody>
+                                            </table>
+                                        </div>
+                                    </div>                    
                                 </div>
                             </div>
                         </div>

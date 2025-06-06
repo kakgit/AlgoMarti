@@ -29,10 +29,10 @@ exports.fnLoginKotakNeo = async (req, res) => {
         let bIsPwdExpired = objViewToken.data.data.isUserPwdExpired;
         let vSubUserId = "";
 
-        if(bIsPwdExpired === true){
+        if (bIsPwdExpired === true) {
             res.send({ "status": "danger", "message": "Password Expired, Please reset in the Trading APP.", "data": objViewToken.data.data });
         }
-        else{
+        else {
             let objJWT = await fnParseJwt(vViewToken);
             vSubUserId = objJWT.sub;
 
@@ -42,7 +42,7 @@ exports.fnLoginKotakNeo = async (req, res) => {
 
             //console.log(objLimits.data);
 
-            res.send({ "status": "success", "message": "Trader Login - Successful", "data": {Session : objSession.data.data.token, SubUserId : vSubUserId, Sid : objSession.data.data.sid, ViewToken : vViewToken, HsServerId : vHsServerId, AccessToken : vAccessToken.data, Limits : objLimits.data } });
+            res.send({ "status": "success", "message": "Trader Login - Successful", "data": { Session: objSession.data.data.token, SubUserId: vSubUserId, Sid: objSession.data.data.sid, ViewToken: vViewToken, HsServerId: vHsServerId, AccessToken: vAccessToken.data, Limits: objLimits.data } });
         }
     }
     catch (error) {
@@ -57,14 +57,14 @@ exports.fnNseCmCsv2NseCashJson = async (req, res) => {
         // let fileOutputName = path.join(__dirname, '../../public/json/nse_cm.json');
         const objDate = new Date();
         let vSecDt = objDate.valueOf();
-    
+
         let objJson = csvToJson.fieldDelimiter(',').getJsonFromCsv(fileInputName);
         let objResJson = { UpdDt: vSecDt, Symbol: [] };
         //csvToJson.fieldDelimiter(',').generateJsonFileFromCsv(fileInputName, fileOutputName);
 
-        for(let i=0; i<objJson.length;i++){
-            if(objJson[i].pGroup === "EQ"){
-                objResJson.Symbol.push({ pSymbol : objJson[i].pSymbol, pSymbolName : objJson[i].pSymbolName, pTrdSymbol : objJson[i].pTrdSymbol });
+        for (let i = 0; i < objJson.length; i++) {
+            if (objJson[i].pGroup === "EQ") {
+                objResJson.Symbol.push({ pSymbol: objJson[i].pSymbol, pSymbolName: objJson[i].pSymbolName, pTrdSymbol: objJson[i].pTrdSymbol });
             }
         }
         //console.log(objResJson);
@@ -84,20 +84,20 @@ exports.fnNseCmCsv2NseCashJson = async (req, res) => {
     }
 }
 
-exports.fnNseFoCsv2OptJson = async(req, res) => {
+exports.fnNseFoCsv2OptJson = async (req, res) => {
     try {
         let fileInputName = path.join(__dirname, '../../public/uploads/nse_fo.csv');
         // let fileOutputName = path.join(__dirname, '../../public/json/nse_cm.json');
         const objDate = new Date();
         let vSecDt = objDate.valueOf();
-    
+
         let objJson = csvToJson.fieldDelimiter(',').getJsonFromCsv(fileInputName);
         let objResJson = { UpdDt: vSecDt, Symbol: [] };
         //csvToJson.fieldDelimiter(',').generateJsonFileFromCsv(fileInputName, fileOutputName);
 
-        for(let i=0; i<objJson.length;i++){
-            if(objJson[i].pInstType === "OPTIDX"){
-                objResJson.Symbol.push({ pSymbol : objJson[i].pSymbol, pExchSeg : objJson[i].pExchSeg, pSymbolName : objJson[i].pSymbolName, pTrdSymbol : objJson[i].pTrdSymbol, pOptionType : objJson[i].pOptionType, pLotSize : parseInt(objJson[i].lLotSize), pExchange : objJson[i].pExchange, pExpiryDate : parseFloat(objJson[i].lExpiryDate), pStrikePrice : parseFloat(objJson[i]["dStrikePrice;"]), MaxPerOrdQty : (parseFloat(objJson[i].lFreezeQty) - 1) });
+        for (let i = 0; i < objJson.length; i++) {
+            if (objJson[i].pInstType === "OPTIDX") {
+                objResJson.Symbol.push({ pSymbol: objJson[i].pSymbol, pExchSeg: objJson[i].pExchSeg, pSymbolName: objJson[i].pSymbolName, pTrdSymbol: objJson[i].pTrdSymbol, pOptionType: objJson[i].pOptionType, pLotSize: parseInt(objJson[i].lLotSize), pExchange: objJson[i].pExchange, pExpiryDate: parseFloat(objJson[i].lExpiryDate), pStrikePrice: parseFloat(objJson[i]["dStrikePrice;"]), MaxPerOrdQty: (parseFloat(objJson[i].lFreezeQty) - 1) });
             }
         }
         //console.log(objResJson);
@@ -117,20 +117,20 @@ exports.fnNseFoCsv2OptJson = async(req, res) => {
     }
 }
 
-exports.fnBseFoCsv2OptJson = async(req, res) => {
+exports.fnBseFoCsv2OptJson = async (req, res) => {
     try {
         let fileInputName = path.join(__dirname, '../../public/uploads/bse_fo.csv');
         // let fileOutputName = path.join(__dirname, '../../public/json/nse_cm.json');
         const objDate = new Date();
         let vSecDt = objDate.valueOf();
-    
+
         let objJson = csvToJson.fieldDelimiter(',').getJsonFromCsv(fileInputName);
         let objResJson = { UpdDt: vSecDt, Symbol: [] };
         //csvToJson.fieldDelimiter(',').generateJsonFileFromCsv(fileInputName, fileOutputName);
 
-        for(let i=0; i<objJson.length;i++){
-            if(objJson[i].pInstType === "IO"){
-                objResJson.Symbol.push({ pSymbol : objJson[i].pSymbol, pExchSeg : objJson[i].pExchSeg, pSymbolName : objJson[i].pSymbolName, pTrdSymbol : objJson[i].pTrdSymbol, pOptionType : objJson[i].pOptionType, pLotSize : parseInt(objJson[i].lLotSize), pExchange : objJson[i].pExchange, pExpiryDate : parseFloat(objJson[i].lExpiryDate), pStrikePrice : parseFloat(objJson[i]["dStrikePrice;"]), MaxPerOrdQty : parseFloat(objJson[i].lFreezeQty) });
+        for (let i = 0; i < objJson.length; i++) {
+            if (objJson[i].pInstType === "IO") {
+                objResJson.Symbol.push({ pSymbol: objJson[i].pSymbol, pExchSeg: objJson[i].pExchSeg, pSymbolName: objJson[i].pSymbolName, pTrdSymbol: objJson[i].pTrdSymbol, pOptionType: objJson[i].pOptionType, pLotSize: parseInt(objJson[i].lLotSize), pExchange: objJson[i].pExchange, pExpiryDate: parseFloat(objJson[i].lExpiryDate), pStrikePrice: parseFloat(objJson[i]["dStrikePrice;"]), MaxPerOrdQty: parseFloat(objJson[i].lFreezeQty) });
             }
         }
         //console.log(objResJson);
@@ -178,7 +178,7 @@ exports.fnPlaceNormalOrder = async (req, res) => {
     let vBorS = req.body.BorS;
     let vOrderQty = req.body.OrderQty;
     let vRandId = req.body.RandId;
-  
+
     let objOrder, objOrderDtls = "";
     let bHasTrade = false;
     let vAvgPrice = 0;
@@ -421,12 +421,12 @@ exports.fnPlaceNormalOrder = async (req, res) => {
                 }
             ]
         }
-        res.send({ "status": "success", "message": "Order Details Received!", "data": objOrderDtls, "nOrdNo" : objOrder });
+        res.send({ "status": "success", "message": "Order Details Received!", "data": objOrderDtls, "nOrdNo": objOrder });
 
         ////Uncomment Later for Real Trade
 
         // objOrder = await fnExecNormalOrder(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vSymbToken, vTrdSymbol, vBorS, vOrderQty, vRandId);
-  
+
         // console.log(JSON.stringify(objOrder.data));
 
         // if(objOrder.data.stat === "Ok"){
@@ -439,38 +439,38 @@ exports.fnPlaceNormalOrder = async (req, res) => {
         // }
     }
     catch (err) {
-      //console.log("At fnGetRealClosedPosiDetails: " + err.data);
-      res.send({ "status": err.status, "message": err.message, "data": err.data });
+        //console.log("At fnGetRealClosedPosiDetails: " + err.data);
+        res.send({ "status": err.status, "message": err.message, "data": err.data });
     }
-}  
+}
 
 exports.fnGetOrderBook = async (req, res) => {
     let vHsServerId = req.body.HsServerId;
     let vSid = req.body.Sid;
     let vAccessToken = req.body.AccessToken;
     let vKotakSession = req.body.KotakSession;
-  
+
     try {
         // Real Orderbook, comment for Temp Orderbook
-        // let objOrderDtls = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
+        let objOrderDtls = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
         // Real Orderbook, comment for Temp Orderbook
 
-        // Temp Orderbook, comment for Real Orderbook
-        let objOrderDtls = await fnTempOrderbook();
-        // Temp Orderbook, comment for Real Orderbook
+        // // Temp Orderbook, comment for Real Orderbook
+        // let objOrderDtls = await fnTempOrderbook();
+        // // Temp Orderbook, comment for Real Orderbook
 
-        if(objOrderDtls.data.stat === "Not_Ok"){
+        if (objOrderDtls.data.stat === "Not_Ok") {
             res.send({ "status": "warning", "message": "Orderbook Error: " + objOrderDtls.data.errMsg, "data": objOrderDtls.data });
         }
-        else if(objOrderDtls.data.stat === "Ok"){
+        else if (objOrderDtls.data.stat === "Ok") {
             res.send({ "status": "success", "message": "Orderbook Details Received!", "data": objOrderDtls.data });
         }
-        else{
+        else {
             res.send({ "status": "danger", "message": "Unknown Error at Orderbook", "data": objOrderDtls.data });
         }
     }
     catch (err) {
-      res.send({ "status": "danger", "message": err.message, "data": err.data });
+        res.send({ "status": "danger", "message": err.message, "data": err.data });
     }
 }
 
@@ -491,59 +491,59 @@ exports.fnPlaceOptionNormalOrder1 = async (req, res) => {
     let vStrikePrice = req.body.StrikePrice;
     let vCurrRate = req.body.CurrRate;
     let vMaxOrderQty = req.body.MaxOptQty;
-    let vGuid = req.body.Guid;
-    let objOrderData = {OrderData: []};
+    let vMultOrdId = req.body.MultOrdId;
+    let objOrderData = { OrderData: [] };
     let objTempOrderBook = "";
 
     try {
         let vLoopNos = Math.ceil(parseInt(vOrderQty) / parseInt(vMaxOrderQty));
         let vExecTempQty = vOrderQty;
 
-        // // Uncomment for Real Trade
-        // for(let i=0; i<vLoopNos; i++){
-        //     if(i === (vLoopNos - 1)){
-        //         let vTempData = await fnExecOptNrmlOrder1(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vExecTempQty) * parseInt(vLotSize)), vLotSize, vGuid);
-        //         objOrderData.OrderData.push(vTempData.data);
-        //     }
-        //     else{
-        //         let vTempData = await fnExecOptNrmlOrder1(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vMaxOrderQty) * parseInt(vLotSize)), vLotSize, vGuid);
-        //         objOrderData.OrderData.push(vTempData.data);
-        //     }
-        //     vExecTempQty = parseInt(vExecTempQty) - parseInt(vMaxOrderQty);
-        // }
-        // objTempOrderBook = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
-        // objTempOrderBook = objTempOrderBook.data;
-        // // Uncomment for Real Trade
-
-        // Temp Orderbook, comment for Real Orderbook
-        vGuid = "1748491028677";
-        objTempOrderBook = await fnTempOrderbook();
+        // Uncomment for Real Trade
+        for(let i=0; i<vLoopNos; i++){
+            if(i === (vLoopNos - 1)){
+                let vTempData = await fnExecOptNrmlOrder1(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vExecTempQty) * parseInt(vLotSize)), vLotSize, vMultOrdId);
+                objOrderData.OrderData.push(vTempData.data);
+            }
+            else{
+                let vTempData = await fnExecOptNrmlOrder1(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vMaxOrderQty) * parseInt(vLotSize)), vLotSize, vMultOrdId);
+                objOrderData.OrderData.push(vTempData.data);
+            }
+            vExecTempQty = parseInt(vExecTempQty) - parseInt(vMaxOrderQty);
+        }
+        objTempOrderBook = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
         objTempOrderBook = objTempOrderBook.data;
-        // Temp Orderbook, comment for Real Orderbook
+        // Uncomment for Real Trade
+
+        // // Temp Orderbook, comment for Real Orderbook
+        // vMultOrdId = "1748491028677"; //"1748492054242";
+        // objTempOrderBook = await fnTempOrderbook();
+        // objTempOrderBook = objTempOrderBook.data;
+        // // Temp Orderbook, comment for Real Orderbook
 
         let vCumFilledQty = 0;
         let vCumPrice = 0;
         let vRecCount = 0;
         let vExpiryDt = "";
 
-        for(let j=0; j<objTempOrderBook.data.length; j++){
-            if((objTempOrderBook.data[j].algCat === vGuid) && (objTempOrderBook.data[j].trnsTp === "B") && (objTempOrderBook.data[j].ordSt === "complete")){
+        for (let j = 0; j < objTempOrderBook.data.length; j++) {
+            if ((objTempOrderBook.data[j].algCat === vMultOrdId) && (objTempOrderBook.data[j].trnsTp === "B") && (objTempOrderBook.data[j].ordSt === "complete")) {
                 vCumFilledQty += parseInt(objTempOrderBook.data[j].fldQty);
                 vCumPrice += parseFloat(objTempOrderBook.data[j].avgPrc);
                 vExpiryDt = objTempOrderBook.data[j].expDt;
                 vRecCount += 1;
             }
         }
-        vCumFilledQty = vCumFilledQty/parseInt(vLotSize);
-        vCumPrice = vCumPrice/vRecCount;
-        
-        if(vCumFilledQty > 0){
-            let vOrdrCnfData = { TradeID: vGuid, SymToken: vToken, ClientID: "", SearchSymbol: vSearchSymbol, TrdSymbol: vTrdSymbol, Expiry: vExpiryDt, Strike: (parseInt(vStrikePrice)/100), ByorSl: vBorS, OptionType: vOptionType, LotSize: vLotSize, Quantity: vCumFilledQty, BuyPrice: vCumPrice, SellPrice: vCumPrice, ProfitLoss: 0, StopLoss: 10, TakeProfit: 20, TrailSL: 0, EntryDT: "", ExitDT: "", ExchSeg: vExchSeg, MaxOrderQty: vMaxOrderQty };
+        vCumFilledQty = vCumFilledQty / parseInt(vLotSize);
+        vCumPrice = vCumPrice / vRecCount;
 
-            res.send({ status: "success", message: "Order Placed Successfully", data: vOrdrCnfData });    
+        if (vCumFilledQty > 0) {
+            let vOrdrCnfData = { TradeID: vMultOrdId, SymToken: vToken, ClientID: "", SearchSymbol: vSearchSymbol, TrdSymbol: vTrdSymbol, Expiry: vExpiryDt, Strike: (parseInt(vStrikePrice) / 100), ByorSl: vBorS, OptionType: vOptionType, LotSize: vLotSize, Quantity: vCumFilledQty, BuyPrice: vCumPrice, SellPrice: vCumPrice, ProfitLoss: 0, StopLoss: 10, TakeProfit: 20, TrailSL: 0, EntryDT: "", ExitDT: "", ExchSeg: vExchSeg, MaxOrderQty: vMaxOrderQty };
+
+            res.send({ status: "success", message: "Order Placed Successfully", data: vOrdrCnfData });
         }
-        else{
-            res.send({ status: "danger", message: "Order Rejected, Please check Orderbook!", data: "" });    
+        else {
+            res.send({ status: "danger", message: "Order Rejected, Please check Orderbook!", data: "" });
         }
     }
     catch (error) {
@@ -557,22 +557,28 @@ exports.fnGetTradeBook = async (req, res) => {
     let vSid = req.body.Sid;
     let vAccessToken = req.body.AccessToken;
     let vKotakSession = req.body.KotakSession;
-  
-    try {
-        let objOrderDtls = await fnGetTradeDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
 
-        if(objOrderDtls.data.stat === "Not_Ok"){
+    try {
+        // Real Orderbook, comment for Temp Orderbook
+        let objOrderDtls = await fnGetTradeDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
+        // Real Orderbook, comment for Temp Orderbook
+
+        // // Temp Orderbook, comment for Real Orderbook
+        // let objOrderDtls = await fnTempTradebook();
+        // // Temp Orderbook, comment for Real Orderbook
+
+        if (objOrderDtls.data.stat === "Not_Ok") {
             res.send({ "status": "warning", "message": "Tradebook: " + objOrderDtls.data.errMsg, "data": objOrderDtls.data });
         }
-        else if(objOrderDtls.data.stat === "ok"){
+        else if (objOrderDtls.data.stat === "ok") {
             res.send({ "status": "success", "message": "Tradebook Details Received!", "data": objOrderDtls.data });
         }
-        else{
+        else {
             res.send({ "status": "danger", "message": "Unknown Error at Tradebook", "data": objOrderDtls.data });
         }
     }
     catch (err) {
-      res.send({ "status": "danger", "message": err.message, "data": err.data });
+        res.send({ "status": "danger", "message": err.message, "data": err.data });
     }
 }
 
@@ -599,115 +605,115 @@ exports.fnPlaceCloseTrade = async (req, res) => {
     let vTempLTP = "";
     let objOrder, objOrderDtls = "";
 
-    if(vBorS = "S"){
+    if (vBorS = "S") {
         vTempLTP = vSellPrice;
     }
-    else{
+    else {
         vTempLTP = vBuyPrice;
     }
 
     try {
-        objOrder = vTradeID;
-        objOrderDtls = {
-            "tid": "server3_282711",
-            "stat": "Ok",
-            "stCode": 200,
-            "data": [
-                {
-                    "brkClnt": "08081",
-                    "ordValDt": "NA",
-                    "exUsrInfo": "NA",
-                    "mfdBy": "NA",
-                    "vendorCode": "",
-                    "rmk": "--",
-                    "odCrt": "NA",
-                    "ordSrc": "ADMINCPPAPI_TRADEAPI",
-                    "sipInd": "NA",
-                    "prc": "0.00",
-                    "prcTp": "MKT",
-                    "cnlQty": 0,
-                    "uSec": "799513",
-                    "classification": "0",
-                    "mktPro": "0.00",
-                    "ordEntTm": "05-Nov-2024 09:32:52",
-                    "reqId": "1",
-                    "algSeqNo": "NA",
-                    "qty": vOrderQty,
-                    "unFldSz": 0,
-                    "mktProPct": "--",
-                    "algCat": "NA",
-                    "exOrdId": "1300000006110360",
-                    "dscQty": 0,
-                    "actId": "XIAVR",
-                    "expDt": "NA",
-                    "trgPrc": "0.00",
-                    "tok": "3499",
-                    "symOrdId": "NA",
-                    "fldQty": 1,
-                    "ordDtTm": "05-Nov-2024 09:32:52",
-                    "avgPrc": vTempLTP,
-                    "locId": "111111111111100",
-                    "algId": "NA",
-                    "stat": "Ok",
-                    "prod": "MIS",
-                    "exSeg": "nse_cm",
-                    "GuiOrdId": "1730779372-793970-AOGPK8647F-ADMINAPI",
-                    "usrId": "AOGPK8647F",
-                    "rptTp": "NA",
-                    "exCfmTm": "05-Nov-2024 09:32:52",
-                    "hsUpTm": "2024/11/05 09:32:52",
-                    "updRecvTm": 1730779372800102400,
-                    "ordGenTp": "NA",
-                    "vldt": "DAY",
-                    "tckSz": "0.01",
-                    "ordSt": "complete",
-                    "trnsTp": vBorS,
-                    "refLmtPrc": 0,
-                    "coPct": 0,
-                    "nOrdNo": "241105000099999",
-                    "ordAutSt": "NA",
-                    "strategyCode": "NA",
-                    "rejRsn": "--",
-                    "boeSec": 1730779372,
-                    "expDtSsb": "--",
-                    "dscQtyPct": "0",
-                    "stkPrc": "0.00",
-                    "sym": "TATASTEEL",
-                    "trdSym": "TATASTEEL-EQ",
-                    "multiplier": "1",
-                    "precision": "2",
-                    "noMktProFlg": "0.00",
-                    "genNum": "1",
-                    "series": "EQ",
-                    "prcNum": "1",
-                    "genDen": "1",
-                    "brdLtQty": "1",
-                    "mktProFlg": "0.00",
-                    "defMktProV": "0.00",
-                    "lotSz": "2",
-                    "minQty": 0,
-                    "optTp": "XX",
-                    "prcDen": "1"
-                }
-            ]
+        // objOrder = vTradeID;
+        // objOrderDtls = {
+        //     "tid": "server3_282711",
+        //     "stat": "Ok",
+        //     "stCode": 200,
+        //     "data": [
+        //         {
+        //             "brkClnt": "08081",
+        //             "ordValDt": "NA",
+        //             "exUsrInfo": "NA",
+        //             "mfdBy": "NA",
+        //             "vendorCode": "",
+        //             "rmk": "--",
+        //             "odCrt": "NA",
+        //             "ordSrc": "ADMINCPPAPI_TRADEAPI",
+        //             "sipInd": "NA",
+        //             "prc": "0.00",
+        //             "prcTp": "MKT",
+        //             "cnlQty": 0,
+        //             "uSec": "799513",
+        //             "classification": "0",
+        //             "mktPro": "0.00",
+        //             "ordEntTm": "05-Nov-2024 09:32:52",
+        //             "reqId": "1",
+        //             "algSeqNo": "NA",
+        //             "qty": vOrderQty,
+        //             "unFldSz": 0,
+        //             "mktProPct": "--",
+        //             "algCat": "NA",
+        //             "exOrdId": "1300000006110360",
+        //             "dscQty": 0,
+        //             "actId": "XIAVR",
+        //             "expDt": "NA",
+        //             "trgPrc": "0.00",
+        //             "tok": "3499",
+        //             "symOrdId": "NA",
+        //             "fldQty": 1,
+        //             "ordDtTm": "05-Nov-2024 09:32:52",
+        //             "avgPrc": vTempLTP,
+        //             "locId": "111111111111100",
+        //             "algId": "NA",
+        //             "stat": "Ok",
+        //             "prod": "MIS",
+        //             "exSeg": "nse_cm",
+        //             "GuiOrdId": "1730779372-793970-AOGPK8647F-ADMINAPI",
+        //             "usrId": "AOGPK8647F",
+        //             "rptTp": "NA",
+        //             "exCfmTm": "05-Nov-2024 09:32:52",
+        //             "hsUpTm": "2024/11/05 09:32:52",
+        //             "updRecvTm": 1730779372800102400,
+        //             "ordGenTp": "NA",
+        //             "vldt": "DAY",
+        //             "tckSz": "0.01",
+        //             "ordSt": "complete",
+        //             "trnsTp": vBorS,
+        //             "refLmtPrc": 0,
+        //             "coPct": 0,
+        //             "nOrdNo": "241105000099999",
+        //             "ordAutSt": "NA",
+        //             "strategyCode": "NA",
+        //             "rejRsn": "--",
+        //             "boeSec": 1730779372,
+        //             "expDtSsb": "--",
+        //             "dscQtyPct": "0",
+        //             "stkPrc": "0.00",
+        //             "sym": "TATASTEEL",
+        //             "trdSym": "TATASTEEL-EQ",
+        //             "multiplier": "1",
+        //             "precision": "2",
+        //             "noMktProFlg": "0.00",
+        //             "genNum": "1",
+        //             "series": "EQ",
+        //             "prcNum": "1",
+        //             "genDen": "1",
+        //             "brdLtQty": "1",
+        //             "mktProFlg": "0.00",
+        //             "defMktProV": "0.00",
+        //             "lotSz": "2",
+        //             "minQty": 0,
+        //             "optTp": "XX",
+        //             "prcDen": "1"
+        //         }
+        //     ]
+        // }
+        // res.send({ "status": "success", "message": "Close Order Details Received!", "data": objOrderDtls, "nOrdNo": objOrder });
+
+        objOrder = await fnExecCloseOrder(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vSymbToken, vTrdSymbol, vBorS, vOrderQty, vOrderNo);
+        // console.log(JSON.stringify(objOrder.data));
+        if(objOrder.data.stat === "Ok"){
+
+            objOrderDtls = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
+
+            res.send({ "status": "success", "message": "Closed Order Details Received!", "data": objOrderDtls.data, "nOrdNo" : objOrder.data.nOrdNo });
         }
-        res.send({ "status": "success", "message": "Close Order Details Received!", "data": objOrderDtls, "nOrdNo" : objOrder });
-
-        // objOrder = await fnExecCloseOrder(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vSymbToken, vTrdSymbol, vBorS, vOrderQty, vOrderNo);
-        // // console.log(JSON.stringify(objOrder.data));
-        // if(objOrder.data.stat === "Ok"){
-
-        //     objOrderDtls = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
-
-        //     res.send({ "status": "success", "message": "Closed Order Details Received!", "data": objOrderDtls.data, "nOrdNo" : objOrder.data.nOrdNo });
-        // }
-        // else{
-        //     res.send({ "status": "danger", "message": "Placing Order Failed", "data": "" });
-        // }
+        else{
+            res.send({ "status": "danger", "message": "Placing Order Failed", "data": "" });
+        }
     }
     catch (err) {
-      //console.log("At fnGetRealClosedPosiDetails: " + err.data);
-      res.send({ "status": err.status, "message": err.message, "data": err.data });
+        //console.log("At fnGetRealClosedPosiDetails: " + err.data);
+        res.send({ "status": err.status, "message": err.message, "data": err.data });
     }
 }
 
@@ -718,7 +724,7 @@ exports.fnGetTokenforOptionRate = async (req, res) => {
     let vExpiryEpoch = req.body.ExpiryEpoch;
     let vStrikePrice = req.body.StrikePrice;
 
-    try{
+    try {
         let objTokenData = await fnGetTradeTokenData(vJsonFileName, vSearchSymbol, vOptionType, vExpiryEpoch, vStrikePrice);
 
         // console.log(objTokenData);
@@ -748,20 +754,20 @@ exports.fnPlaceOptionNormalOrder = async (req, res) => {
     let vMaxOrderQty = req.body.MaxOptQty;
     let vGuid = req.body.Guid;
 
-    let objOrderData = {OrderData: []};
+    let objOrderData = { OrderData: [] };
     let objTempOrderBook = "";
 
-    try{
+    try {
         //Single to Multiple Trade Orders for Real Trades. comment it if paper trade is on
         let vLoopNos = Math.ceil(parseInt(vOrderQty) / parseInt(vMaxOrderQty));
         let vExecTempQty = vOrderQty;
 
-        for(let i=0; i<vLoopNos; i++){
-            if(i === (vLoopNos - 1)){
+        for (let i = 0; i < vLoopNos; i++) {
+            if (i === (vLoopNos - 1)) {
                 let vTempData = await fnExecOptNrmlOrder(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vExecTempQty) * parseInt(vLotSize)), vLotSize);
                 objOrderData.OrderData.push(vTempData.data);
             }
-            else{
+            else {
                 let vTempData = await fnExecOptNrmlOrder(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vMaxOrderQty) * parseInt(vLotSize)), vLotSize);
                 objOrderData.OrderData.push(vTempData.data);
             }
@@ -776,9 +782,9 @@ exports.fnPlaceOptionNormalOrder = async (req, res) => {
         let vRecCount = 0;
         let vExpiryDt = "";
 
-        for(let i=0; i<objOrderData.OrderData.length; i++){
-            for(let j=0; j<objTempOrderBook.data.length; j++){
-                if((objOrderData.OrderData[i].nOrdNo === objTempOrderBook.data[j].nOrdNo) && (objTempOrderBook.data[j].ordSt === "complete")){
+        for (let i = 0; i < objOrderData.OrderData.length; i++) {
+            for (let j = 0; j < objTempOrderBook.data.length; j++) {
+                if ((objOrderData.OrderData[i].nOrdNo === objTempOrderBook.data[j].nOrdNo) && (objTempOrderBook.data[j].ordSt === "complete")) {
                     vCumFilledQty += parseInt(objTempOrderBook.data[j].fldQty);
                     vCumPrice += parseFloat(objTempOrderBook.data[j].avgPrc);
                     vExpiryDt = objTempOrderBook.data[j].expDt;
@@ -786,16 +792,16 @@ exports.fnPlaceOptionNormalOrder = async (req, res) => {
                 }
             }
         }
-        vCumFilledQty = vCumFilledQty/parseInt(vLotSize);
-        vCumPrice = vCumPrice/vRecCount;
-        
-        if(vCumFilledQty > 0){
-            let vOrdrCnfData = { TradeID:"", SymToken: vToken, ClientID: "", SearchSymbol: vSearchSymbol, TrdSymbol: vTrdSymbol, Expiry: vExpiryDt, Strike: (parseInt(vStrikePrice)/100), ByorSl: vBorS, OptionType: vOptionType, LotSize: vLotSize, Quantity: vCumFilledQty, BuyPrice: vCumPrice, SellPrice: vCumPrice, ProfitLoss: 0, StopLoss: 10, TakeProfit: 20, TrailSL: 0, EntryDT: "", ExitDT: "", ExchSeg: vExchSeg, MaxOrderQty: vMaxOrderQty };
+        vCumFilledQty = vCumFilledQty / parseInt(vLotSize);
+        vCumPrice = vCumPrice / vRecCount;
 
-            res.send({ status: "success", message: "Order Placed Successfully", data: vOrdrCnfData });    
+        if (vCumFilledQty > 0) {
+            let vOrdrCnfData = { TradeID: "", SymToken: vToken, ClientID: "", SearchSymbol: vSearchSymbol, TrdSymbol: vTrdSymbol, Expiry: vExpiryDt, Strike: (parseInt(vStrikePrice) / 100), ByorSl: vBorS, OptionType: vOptionType, LotSize: vLotSize, Quantity: vCumFilledQty, BuyPrice: vCumPrice, SellPrice: vCumPrice, ProfitLoss: 0, StopLoss: 10, TakeProfit: 20, TrailSL: 0, EntryDT: "", ExitDT: "", ExchSeg: vExchSeg, MaxOrderQty: vMaxOrderQty };
+
+            res.send({ status: "success", message: "Order Placed Successfully", data: vOrdrCnfData });
         }
-        else{
-            res.send({ status: "danger", message: "Order Rejected, Please check Orderbook!", data: "" });    
+        else {
+            res.send({ status: "danger", message: "Order Rejected, Please check Orderbook!", data: "" });
         }
     }
     catch (err) {
@@ -819,35 +825,35 @@ exports.fnPlaceCloseOptTrade = async (req, res) => {
 
     let vMaxOrderQty = req.body.MaxOptQty;
 
-    try{
+    try {
         let vLoopNos = Math.ceil(parseInt(vOrderQty) / parseInt(vMaxOrderQty));
         let vExecTempQty = vOrderQty;
-    
-        let objOrderData = {OrderData: []};
-    
-        for(let i=0; i<vLoopNos; i++){
-            if(i === (vLoopNos - 1)){
+
+        let objOrderData = { OrderData: [] };
+
+        for (let i = 0; i < vLoopNos; i++) {
+            if (i === (vLoopNos - 1)) {
                 let vTempData = await fnExecOptNrmlOrder(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vExecTempQty) * parseInt(vLotSize)), vLotSize);
                 objOrderData.OrderData.push(vTempData.data);
             }
-            else{
+            else {
                 let vTempData = await fnExecOptNrmlOrder(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vMaxOrderQty) * parseInt(vLotSize)), vLotSize);
                 objOrderData.OrderData.push(vTempData.data);
             }
             vExecTempQty = parseInt(vExecTempQty) - parseInt(vMaxOrderQty);
         }
-    
+
         let objTempOrderBook = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
         objTempOrderBook = objTempOrderBook.data;
-    
+
         let vCumFilledQty = 0;
         let vCumPrice = 0;
         let vRecCount = 0;
         let vExpiryDt = "";
-    
-        for(let i=0; i<objOrderData.OrderData.length; i++){
-            for(let j=0; j<objTempOrderBook.data.length; j++){
-                if((objOrderData.OrderData[i].nOrdNo === objTempOrderBook.data[j].nOrdNo) && (objTempOrderBook.data[j].ordSt === "complete")){
+
+        for (let i = 0; i < objOrderData.OrderData.length; i++) {
+            for (let j = 0; j < objTempOrderBook.data.length; j++) {
+                if ((objOrderData.OrderData[i].nOrdNo === objTempOrderBook.data[j].nOrdNo) && (objTempOrderBook.data[j].ordSt === "complete")) {
                     vCumFilledQty += parseInt(objTempOrderBook.data[j].fldQty);
                     vCumPrice += parseFloat(objTempOrderBook.data[j].avgPrc);
                     vExpiryDt = objTempOrderBook.data[j].expDt;
@@ -855,22 +861,107 @@ exports.fnPlaceCloseOptTrade = async (req, res) => {
                 }
             }
         }
-    
-        vCumFilledQty = vCumFilledQty/parseInt(vLotSize);
-        vCumPrice = vCumPrice/vRecCount;
-    
-        if(vCumFilledQty > 0){
-            let vOrdrCnfData = { TradeID:"", SymToken: vToken, ClientID: "", SearchSymbol: vSearchSymbol, TrdSymbol: vTrdSymbol, Expiry: vExpiryDt, Strike: (parseInt(vStrikePrice)/100), ByorSl: vBorS, OptionType: vOptionType, LotSize: vLotSize, Quantity: vCumFilledQty, BuyPrice: vCumPrice, SellPrice: vCumPrice, ProfitLoss: 0, StopLoss: 10, TakeProfit: 20, TrailSL: 0, EntryDT: "", ExitDT: "", ExchSeg: vExchSeg, MaxOrderQty: vMaxOrderQty };
 
-            res.send({ status: "success", message: "Order Placed Successfully", data: vOrdrCnfData });    
+        vCumFilledQty = vCumFilledQty / parseInt(vLotSize);
+        vCumPrice = vCumPrice / vRecCount;
+
+        if (vCumFilledQty > 0) {
+            let vOrdrCnfData = { TradeID: "", SymToken: vToken, ClientID: "", SearchSymbol: vSearchSymbol, TrdSymbol: vTrdSymbol, Expiry: vExpiryDt, Strike: (parseInt(vStrikePrice) / 100), ByorSl: vBorS, OptionType: vOptionType, LotSize: vLotSize, Quantity: vCumFilledQty, BuyPrice: vCumPrice, SellPrice: vCumPrice, ProfitLoss: 0, StopLoss: 10, TakeProfit: 20, TrailSL: 0, EntryDT: "", ExitDT: "", ExchSeg: vExchSeg, MaxOrderQty: vMaxOrderQty };
+
+            res.send({ status: "success", message: "Order Placed Successfully", data: vOrdrCnfData });
         }
-        else{
-            res.send({ status: "danger", message: "Order Rejected, Please check Orderbook!", data: "" });    
+        else {
+            res.send({ status: "danger", message: "Order Rejected, Please check Orderbook!", data: "" });
         }
     }
     catch (err) {
         console.log("Test");
         res.send({ status: "danger", message: "Option Order - " + err.message, data: err.data });
+    }
+}
+
+exports.fnPlaceCloseOptTrade1 = async (req, res) => {
+    let vHsServerId = req.body.HsServerId;
+    let vSid = req.body.Sid;
+    let vAccessToken = req.body.AccessToken;
+    let vKotakSession = req.body.KotakSession;
+
+    let vOrderQty = req.body.OptQty;
+    let vLotSize = req.body.LotSize;
+    let vToken = req.body.SymToken;
+    let vExchSeg = req.body.ExchSeg;
+    let vBorS = req.body.BorS;
+    let vTrdSymbol = req.body.TrdSymbol;
+    let vMaxOrderQty = req.body.MaxOptQty;
+    let vMultOrdId = req.body.MultOrdId;
+    let vAvgPrc = req.body.CurrPrice;
+    let objOrderData = { OrderData: [] };
+    let objTempOrderBook = "";
+
+    // // comment for Real trade
+    // vMultOrdId = "1748491028677"; //"1748492054242";
+    // // console.log(vMultOrdId);
+    // // comment for Real trade
+
+    try {
+        let vAvailableQty = 0;
+
+        // Uncomment for Real trade
+        objTempOrderBook = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
+        objTempOrderBook = objTempOrderBook.data;
+        // Uncomment for Real trade
+        // // comment for Real trade
+        // objTempOrderBook = await fnTempOrderbook();
+        // objTempOrderBook = objTempOrderBook.data;
+        // // comment for Real trade
+
+        for (let j = 0; j < objTempOrderBook.data.length; j++) {
+            if ((objTempOrderBook.data[j].algCat === vMultOrdId) && (objTempOrderBook.data[j].ordSt === "complete")) {
+                if (objTempOrderBook.data[j].trnsTp === "B") {
+                    vAvailableQty += parseInt(objTempOrderBook.data[j].fldQty)
+                }
+                else if (objTempOrderBook.data[j].trnsTp === "S") {
+                    vAvailableQty -= parseInt(objTempOrderBook.data[j].fldQty)
+                }
+            }
+        }
+        console.log(vAvailableQty);
+        let vToExecQty = parseInt(vAvailableQty);
+        let vBalQty = parseInt(vAvailableQty) - parseInt(vToExecQty);
+
+        if (vAvailableQty === 0) {
+            console.log("No Open Position Available");
+            res.send({ status: "warning", message: "No Open Position Available to Close!", data: "" });
+        }
+        else if (vAvailableQty < 0) {
+            console.log("Extra Lots Sold!");
+        }
+        else if (vAvailableQty <= vToExecQty) {
+            let vLoopNos = Math.ceil(parseInt(vAvailableQty) / parseInt(vMaxOrderQty));
+            let vExecTempQty = vAvailableQty;
+
+            // Uncomment for Real Trade
+            for(let i=0; i<vLoopNos; i++){
+                if(i === (vLoopNos - 1)){
+                    let vTempData = await fnExecOptNrmlOrder1(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vExecTempQty) * parseInt(vLotSize)), vLotSize, vMultOrdId);
+                    objOrderData.OrderData.push(vTempData.data);
+                }
+                else{
+                    let vTempData = await fnExecOptNrmlOrder1(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vMaxOrderQty) * parseInt(vLotSize)), vLotSize, vMultOrdId);
+                    objOrderData.OrderData.push(vTempData.data);
+                }
+                vExecTempQty = parseInt(vExecTempQty) - parseInt(vMaxOrderQty);
+            }
+            objTempOrderBook = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
+            objTempOrderBook = objTempOrderBook.data;
+            // Uncomment for Real Trade
+            console.log("Position/s Closed!");
+            res.send({ status: "success", message: "Option Order - Closed!", data: { BalQty: vBalQty, AvgPrc: vAvgPrc, ClsdQty: vAvailableQty } });
+        }
+    }
+    catch (error) {
+        console.log(error);
+        res.send({ status: "danger", message: "Option Order - " + error.message, data: error.data });
     }
 }
 
@@ -880,7 +971,7 @@ exports.fnExecBackupRate = async (req, res) => {
     let vSid = req.body.Sid;
     let vKotakSession = req.body.KotakSession;
     let vAccessToken = req.body.AccessToken;
-  
+
     try {
         let objData = await fnGetBackupRate(vExchSeg, vSymbToken, vSid, vKotakSession, vAccessToken);
 
@@ -889,14 +980,14 @@ exports.fnExecBackupRate = async (req, res) => {
         //     res.send({ "status": "warning", "message": "Tradebook Error: " + objOrderDtls.data.errMsg, "data": objOrderDtls.data });
         // }
         // else if(objOrderDtls.data.stat === "Ok"){
-            res.send({ "status": "success", "message": "Backup Rate Details Received!", "data": objData.data });
+        res.send({ "status": "success", "message": "Backup Rate Details Received!", "data": objData.data });
         // }
         // else{
         //     res.send({ "status": "danger", "message": "Unknown Error at Tradebook", "data": objOrderDtls.data });
         // }
     }
     catch (err) {
-      res.send({ "status": "danger", "message": err.message, "data": err.data });
+        res.send({ "status": "danger", "message": err.message, "data": err.data });
     }
 }
 
@@ -947,21 +1038,21 @@ const fnGetViewToken = async (pMobileNo, pPassword, pAccessToken) => {
             method: 'post',
             maxBodyLength: Infinity,
             url: 'https://gw-napi.kotaksecurities.com/login/1.0/login/v2/validate',
-            headers: { 
-              'Content-Type': 'application/json', 
-              'Authorization': 'Bearer ' + pAccessToken
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + pAccessToken
             },
-            data : data
+            data: data
         };
 
         axios
-        .request(config)
-        .then((objResponse) => {
-            resolve({ "status": "success", "message": "View Token Received!", "data": objResponse.data });
-        })
-        .catch((error) => {
-            reject({ "status": "danger", "message": "At Get View Token: " + error.message, "data": error });
-        })
+            .request(config)
+            .then((objResponse) => {
+                resolve({ "status": "success", "message": "View Token Received!", "data": objResponse.data });
+            })
+            .catch((error) => {
+                reject({ "status": "danger", "message": "At Get View Token: " + error.message, "data": error });
+            })
     });
 
     return objViewToken;
@@ -969,10 +1060,10 @@ const fnGetViewToken = async (pMobileNo, pPassword, pAccessToken) => {
 
 const fnParseJwt = (pToken) => {
     try {
-      return JSON.parse(atob(pToken.split('.')[1]));
+        return JSON.parse(atob(pToken.split('.')[1]));
     }
     catch (e) {
-      return null;
+        return null;
     }
 }
 
@@ -1013,22 +1104,22 @@ const fnGetKotakSession = async (pSubUserId, pMpin, pSid, pViewToken, pAccessTok
 const fnGetUserLimits = async (pHsServerId, pSid, pViewToken, pAccessToken) => {
     const objLimits = new Promise((resolve, reject) => {
         let data = qs.stringify({
-            'jData': '{"seg":"ALL","exch":"ALL","prod":"ALL"}' 
+            'jData': '{"seg":"ALL","exch":"ALL","prod":"ALL"}'
         });
 
         let config = {
             method: 'post',
-          maxBodyLength: Infinity,
+            maxBodyLength: Infinity,
             url: 'https://gw-napi.kotaksecurities.com/Orders/2.0/quick/user/limits?sId=' + pHsServerId,
-            headers: { 
-                'accept': 'application/json', 
-                'Sid': pSid, 
-                'Auth': pViewToken, 
-                'neo-fin-key': 'neotradeapi', 
-                'Content-Type': 'application/x-www-form-urlencoded', 
+            headers: {
+                'accept': 'application/json',
+                'Sid': pSid,
+                'Auth': pViewToken,
+                'neo-fin-key': 'neotradeapi',
+                'Content-Type': 'application/x-www-form-urlencoded',
                 'Authorization': 'Bearer ' + pAccessToken
-              },
-            data : data
+            },
+            data: data
         };
 
         axios.request(config)
@@ -1048,11 +1139,11 @@ const fnGetUserLimits = async (pHsServerId, pSid, pViewToken, pAccessToken) => {
 const fnExecNormalOrder = async (pHsServerId, pSid, pKotakSession, pAccessToken, pExchSeg, pSymbToken, pTrdSymbol, pBorS, pOrderQty, pRandId) => {
     const objData = new Promise((resolve, reject) => {
 
-        let data = qs.stringify({ 'jData': '{"am":"NO", "dq":"0","es":"' + pExchSeg + '", "mp":"0", "pc":"MIS", "pf":"N", "pr":"0", "pt":"MKT", "qt":"' + pOrderQty + '", "rt":"DAY", "tp":"0", "tk":"' + pSymbToken + '", "ts":"' + pTrdSymbol + '", "tt":"'+ pBorS + '", "algId":"'+ pRandId +'"}' });
+        let data = qs.stringify({ 'jData': '{"am":"NO", "dq":"0","es":"' + pExchSeg + '", "mp":"0", "pc":"MIS", "pf":"N", "pr":"0", "pt":"MKT", "qt":"' + pOrderQty + '", "rt":"DAY", "tp":"0", "tk":"' + pSymbToken + '", "ts":"' + pTrdSymbol + '", "tt":"' + pBorS + '", "algId":"' + pRandId + '"}' });
         // let data = qs.stringify({ 'jData': '{"am":"NO", "dq":"0","es":"' + pExchSeg + '", "mp":"0", "pc":"MIS", "pf":"N", "pr":"0", "pt":"MKT", "qt":"' + pOrderQty + '", "rt":"DAY", "tp":"0", "tk":"' + pSymbToken + '", "ts":"' + pTrdSymbol + '", "tt":"'+ pBorS + '"}' });
 
         //Session Token not ViewToken
-        
+
         let objConfig = {
             method: 'post',
             maxBodyLength: Infinity,
@@ -1067,7 +1158,7 @@ const fnExecNormalOrder = async (pHsServerId, pSid, pKotakSession, pAccessToken,
             },
             data: data
         };
-        
+
         axios.request(objConfig)
             .then((objResponse) => {
                 // console.log(JSON.stringify(objResponse.data));
@@ -1084,7 +1175,7 @@ const fnExecNormalOrder = async (pHsServerId, pSid, pKotakSession, pAccessToken,
 const fnExecOptNrmlOrder = async (pHsServerId, pSid, pKotakSession, pAccessToken, pExchSeg, pSymbToken, pTrdSymbol, pBorS, pOrderQty, pLotSize) => {
     const objData = new Promise((resolve, reject) => {
 
-        let data = qs.stringify({ 'jData': '{"am":"NO", "dq":"0","es":"' + pExchSeg + '", "mp":"0", "pc":"MIS", "pf":"N", "pr":"0", "pt":"MKT", "qt":"' + pOrderQty + '", "rt":"DAY", "tp":"0", "tk":"' + pSymbToken + '", "ts":"' + pTrdSymbol + '", "tt":"'+ pBorS + '", "ig":"TestGUID", "sc":"TestTag"}' });
+        let data = qs.stringify({ 'jData': '{"am":"NO", "dq":"0","es":"' + pExchSeg + '", "mp":"0", "pc":"MIS", "pf":"N", "pr":"0", "pt":"MKT", "qt":"' + pOrderQty + '", "rt":"DAY", "tp":"0", "tk":"' + pSymbToken + '", "ts":"' + pTrdSymbol + '", "tt":"' + pBorS + '", "ig":"TestGUID", "sc":"TestTag"}' });
 
         let objConfig = {
             method: 'post',
@@ -1788,6 +1879,412 @@ const fnTempOrderbook = async () => {
     return objPromise;
 }
 
+const fnTempTradebook = async () => {
+    const objPromise = new Promise((resolve, reject) => {
+
+        let objOrderbook = {
+            "stat": "ok",
+            "stCode": 200,
+            "data": [
+                {
+                    "actId": "XIAVR",
+                    "algCat": "NA",
+                    "algId": "NA",
+                    "avgPrc": "40.65",
+                    "boeSec": 1748492082,
+                    "brdLtQty": 75,
+                    "brkClnt": "NA",
+                    "cstFrm": "C",
+                    "exOrdId": "1600000028681360",
+                    "exp": "1748476800",
+                    "expDt": "29 May, 2025",
+                    "exSeg": "nse_fo",
+                    "exTm": "29-May-2025 09:44:42",
+                    "fldQty": 75,
+                    "flDt": "29-May-2025",
+                    "flId": "2379137",
+                    "flLeg": 1,
+                    "flTm": "09:44:42",
+                    "minQty": 0,
+                    "nOrdNo": "250529000173487",
+                    "nReqId": "1",
+                    "optTp": "PE",
+                    "ordDur": "NA",
+                    "ordGenTp": "--",
+                    "prcTp": "MKT",
+                    "prod": "MIS",
+                    "rmk": "--",
+                    "rptTp": "fill",
+                    "series": "XX",
+                    "stkPrc": "24800.00",
+                    "sym": "NIFTY",
+                    "trdSym": "NIFTY25MAY24800PE",
+                    "trnsTp": "S",
+                    "usrId": "AOGPK8647F",
+                    "genDen": "1",
+                    "genNum": "1",
+                    "hsUpTm": "2025/05/29 09:44:42",
+                    "GuiOrdId": "XIAVR-2fe2f918-57bb-4335-867e-a1fe3d308412",
+                    "locId": "111111111111100",
+                    "lotSz": "75",
+                    "multiplier": "1",
+                    "ordSrc": "NA",
+                    "prcNum": "1",
+                    "prcDen": "1",
+                    "strategyCode": "",
+                    "precision": "2",
+                    "tok": "",
+                    "updRecvTm": 1748492082052934700,
+                    "uSec": "1748492082",
+                    "posFlg": "",
+                    "prc": "",
+                    "qty": 0,
+                    "tm": "",
+                    "it": "OPTIDX"
+                },
+                {
+                    "actId": "XIAVR",
+                    "algCat": "1748491028677",
+                    "algId": "NA",
+                    "avgPrc": "37.65",
+                    "boeSec": 1748491027,
+                    "brdLtQty": 75,
+                    "brkClnt": "NA",
+                    "cstFrm": "C",
+                    "exOrdId": "1000000014624361",
+                    "exp": "1748476800",
+                    "expDt": "29 May, 2025",
+                    "exSeg": "nse_fo",
+                    "exTm": "29-May-2025 09:27:07",
+                    "fldQty": 225,
+                    "flDt": "29-May-2025",
+                    "flId": "1137207",
+                    "flLeg": 1,
+                    "flTm": "09:27:07",
+                    "minQty": 0,
+                    "nOrdNo": "250529000102866",
+                    "nReqId": "1",
+                    "optTp": "CE",
+                    "ordDur": "NA",
+                    "ordGenTp": "--",
+                    "prcTp": "MKT",
+                    "prod": "MIS",
+                    "rmk": "--",
+                    "rptTp": "fill",
+                    "series": "XX",
+                    "stkPrc": "24850.00",
+                    "sym": "NIFTY",
+                    "trdSym": "NIFTY25MAY24850CE",
+                    "trnsTp": "B",
+                    "usrId": "AOGPK8647F",
+                    "genDen": "1",
+                    "genNum": "1",
+                    "hsUpTm": "2025/05/29 09:27:07",
+                    "GuiOrdId": "XIAVR-4c5c07a8-e09d-48cf-92b1-2d26ebb5115b",
+                    "locId": "111111111111100",
+                    "lotSz": "75",
+                    "multiplier": "1",
+                    "ordSrc": "NA",
+                    "prcNum": "1",
+                    "prcDen": "1",
+                    "strategyCode": "1",
+                    "precision": "2",
+                    "tok": "",
+                    "updRecvTm": 1748491027785597400,
+                    "uSec": "1748491027",
+                    "posFlg": "",
+                    "prc": "",
+                    "qty": 0,
+                    "tm": "",
+                    "it": "OPTIDX"
+                },
+                {
+                    "actId": "XIAVR",
+                    "algCat": "1748491028677",
+                    "algId": "NA",
+                    "avgPrc": "37.35",
+                    "boeSec": 1748491027,
+                    "brdLtQty": 75,
+                    "brkClnt": "NA",
+                    "cstFrm": "C",
+                    "exOrdId": "1000000014626755",
+                    "exp": "1748476800",
+                    "expDt": "29 May, 2025",
+                    "exSeg": "nse_fo",
+                    "exTm": "29-May-2025 09:27:07",
+                    "fldQty": 75,
+                    "flDt": "29-May-2025",
+                    "flId": "1137311",
+                    "flLeg": 1,
+                    "flTm": "09:27:07",
+                    "minQty": 0,
+                    "nOrdNo": "250529000102878",
+                    "nReqId": "1",
+                    "optTp": "CE",
+                    "ordDur": "NA",
+                    "ordGenTp": "--",
+                    "prcTp": "MKT",
+                    "prod": "MIS",
+                    "rmk": "--",
+                    "rptTp": "fill",
+                    "series": "XX",
+                    "stkPrc": "24850.00",
+                    "sym": "NIFTY",
+                    "trdSym": "NIFTY25MAY24850CE",
+                    "trnsTp": "B",
+                    "usrId": "AOGPK8647F",
+                    "genDen": "1",
+                    "genNum": "1",
+                    "hsUpTm": "2025/05/29 09:27:07",
+                    "GuiOrdId": "XIAVR-98e58054-a768-473a-b07a-14fc689d1cdc",
+                    "locId": "111111111111100",
+                    "lotSz": "75",
+                    "multiplier": "1",
+                    "ordSrc": "NA",
+                    "prcNum": "1",
+                    "prcDen": "1",
+                    "strategyCode": "1",
+                    "precision": "2",
+                    "tok": "",
+                    "updRecvTm": 1748491027952047900,
+                    "uSec": "1748491027",
+                    "posFlg": "",
+                    "prc": "",
+                    "qty": 0,
+                    "tm": "",
+                    "it": "OPTIDX"
+                },
+                {
+                    "actId": "XIAVR",
+                    "algCat": "1748491028677",
+                    "algId": "NA",
+                    "avgPrc": "37.40",
+                    "boeSec": 1748491027,
+                    "brdLtQty": 75,
+                    "brkClnt": "NA",
+                    "cstFrm": "C",
+                    "exOrdId": "1000000014626755",
+                    "exp": "1748476800",
+                    "expDt": "29 May, 2025",
+                    "exSeg": "nse_fo",
+                    "exTm": "29-May-2025 09:27:07",
+                    "fldQty": 75,
+                    "flDt": "29-May-2025",
+                    "flId": "1137312",
+                    "flLeg": 1,
+                    "flTm": "09:27:07",
+                    "minQty": 0,
+                    "nOrdNo": "250529000102878",
+                    "nReqId": "1",
+                    "optTp": "CE",
+                    "ordDur": "NA",
+                    "ordGenTp": "--",
+                    "prcTp": "MKT",
+                    "prod": "MIS",
+                    "rmk": "--",
+                    "rptTp": "fill",
+                    "series": "XX",
+                    "stkPrc": "24850.00",
+                    "sym": "NIFTY",
+                    "trdSym": "NIFTY25MAY24850CE",
+                    "trnsTp": "B",
+                    "usrId": "AOGPK8647F",
+                    "genDen": "1",
+                    "genNum": "1",
+                    "hsUpTm": "2025/05/29 09:27:07",
+                    "GuiOrdId": "XIAVR-98e58054-a768-473a-b07a-14fc689d1cdc",
+                    "locId": "111111111111100",
+                    "lotSz": "75",
+                    "multiplier": "1",
+                    "ordSrc": "NA",
+                    "prcNum": "1",
+                    "prcDen": "1",
+                    "strategyCode": "1",
+                    "precision": "2",
+                    "tok": "",
+                    "updRecvTm": 1748491027954089200,
+                    "uSec": "1748491027",
+                    "posFlg": "",
+                    "prc": "",
+                    "qty": 0,
+                    "tm": "",
+                    "it": "OPTIDX"
+                },
+                {
+                    "actId": "XIAVR",
+                    "algCat": "NA",
+                    "algId": "NA",
+                    "avgPrc": "40.45",
+                    "boeSec": 1748491113,
+                    "brdLtQty": 75,
+                    "brkClnt": "NA",
+                    "cstFrm": "C",
+                    "exOrdId": "1000000016006364",
+                    "exp": "1748476800",
+                    "expDt": "29 May, 2025",
+                    "exSeg": "nse_fo",
+                    "exTm": "29-May-2025 09:28:33",
+                    "fldQty": 75,
+                    "flDt": "29-May-2025",
+                    "flId": "1205330",
+                    "flLeg": 1,
+                    "flTm": "09:28:33",
+                    "minQty": 0,
+                    "nOrdNo": "250529000109288",
+                    "nReqId": "1",
+                    "optTp": "CE",
+                    "ordDur": "NA",
+                    "ordGenTp": "--",
+                    "prcTp": "MKT",
+                    "prod": "MIS",
+                    "rmk": "--",
+                    "rptTp": "fill",
+                    "series": "XX",
+                    "stkPrc": "24850.00",
+                    "sym": "NIFTY",
+                    "trdSym": "NIFTY25MAY24850CE",
+                    "trnsTp": "S",
+                    "usrId": "AOGPK8647F",
+                    "genDen": "1",
+                    "genNum": "1",
+                    "hsUpTm": "2025/05/29 09:28:33",
+                    "GuiOrdId": "XIAVR-9915d0c8-0368-455d-a86b-a719f9495a1d",
+                    "locId": "111111111111100",
+                    "lotSz": "75",
+                    "multiplier": "1",
+                    "ordSrc": "NA",
+                    "prcNum": "1",
+                    "prcDen": "1",
+                    "strategyCode": "",
+                    "precision": "2",
+                    "tok": "",
+                    "updRecvTm": 1748491113501934000,
+                    "uSec": "1748491113",
+                    "posFlg": "",
+                    "prc": "",
+                    "qty": 0,
+                    "tm": "",
+                    "it": "OPTIDX"
+                },
+                {
+                    "actId": "XIAVR",
+                    "algCat": "NA",
+                    "algId": "NA",
+                    "avgPrc": "40.45",
+                    "boeSec": 1748491113,
+                    "brdLtQty": 75,
+                    "brkClnt": "NA",
+                    "cstFrm": "C",
+                    "exOrdId": "1000000016006364",
+                    "exp": "1748476800",
+                    "expDt": "29 May, 2025",
+                    "exSeg": "nse_fo",
+                    "exTm": "29-May-2025 09:28:33",
+                    "fldQty": 300,
+                    "flDt": "29-May-2025",
+                    "flId": "1205329",
+                    "flLeg": 1,
+                    "flTm": "09:28:33",
+                    "minQty": 0,
+                    "nOrdNo": "250529000109288",
+                    "nReqId": "1",
+                    "optTp": "CE",
+                    "ordDur": "NA",
+                    "ordGenTp": "--",
+                    "prcTp": "MKT",
+                    "prod": "MIS",
+                    "rmk": "--",
+                    "rptTp": "fill",
+                    "series": "XX",
+                    "stkPrc": "24850.00",
+                    "sym": "NIFTY",
+                    "trdSym": "NIFTY25MAY24850CE",
+                    "trnsTp": "S",
+                    "usrId": "AOGPK8647F",
+                    "genDen": "1",
+                    "genNum": "1",
+                    "hsUpTm": "2025/05/29 09:28:33",
+                    "GuiOrdId": "XIAVR-9915d0c8-0368-455d-a86b-a719f9495a1d",
+                    "locId": "111111111111100",
+                    "lotSz": "75",
+                    "multiplier": "1",
+                    "ordSrc": "NA",
+                    "prcNum": "1",
+                    "prcDen": "1",
+                    "strategyCode": "",
+                    "precision": "2",
+                    "tok": "",
+                    "updRecvTm": 1748491113497459500,
+                    "uSec": "1748491113",
+                    "posFlg": "",
+                    "prc": "",
+                    "qty": 0,
+                    "tm": "",
+                    "it": "OPTIDX"
+                },
+                {
+                    "actId": "XIAVR",
+                    "algCat": "1748492054242",
+                    "algId": "NA",
+                    "avgPrc": "39.20",
+                    "boeSec": 1748492053,
+                    "brdLtQty": 75,
+                    "brkClnt": "NA",
+                    "cstFrm": "C",
+                    "exOrdId": "1600000028313844",
+                    "exp": "1748476800",
+                    "expDt": "29 May, 2025",
+                    "exSeg": "nse_fo",
+                    "exTm": "29-May-2025 09:44:13",
+                    "fldQty": 75,
+                    "flDt": "29-May-2025",
+                    "flId": "2359417",
+                    "flLeg": 1,
+                    "flTm": "09:44:13",
+                    "minQty": 0,
+                    "nOrdNo": "250529000172018",
+                    "nReqId": "1",
+                    "optTp": "PE",
+                    "ordDur": "NA",
+                    "ordGenTp": "--",
+                    "prcTp": "MKT",
+                    "prod": "MIS",
+                    "rmk": "--",
+                    "rptTp": "fill",
+                    "series": "XX",
+                    "stkPrc": "24800.00",
+                    "sym": "NIFTY",
+                    "trdSym": "NIFTY25MAY24800PE",
+                    "trnsTp": "B",
+                    "usrId": "AOGPK8647F",
+                    "genDen": "1",
+                    "genNum": "1",
+                    "hsUpTm": "2025/05/29 09:44:13",
+                    "GuiOrdId": "XIAVR-8f5c205e-ff27-4ab7-8fc4-e9bd442a6649",
+                    "locId": "111111111111100",
+                    "lotSz": "75",
+                    "multiplier": "1",
+                    "ordSrc": "NA",
+                    "prcNum": "1",
+                    "prcDen": "1",
+                    "strategyCode": "1",
+                    "precision": "2",
+                    "tok": "",
+                    "updRecvTm": 1748492053343803400,
+                    "uSec": "1748492053",
+                    "posFlg": "",
+                    "prc": "",
+                    "qty": 0,
+                    "tm": "",
+                    "it": "OPTIDX"
+                }
+            ]
+        }
+        resolve({ "status": "success", "message": "Orderbook Details Received!", "data": objOrderbook });
+    });
+    return objPromise;
+}
+
 // const fnTempOrderBook = async (pOrderId, pOrderQty, pLotSize, pToken, pExchSeg, pBorS, pTrdSymbol, pOptionType, pSearchSymbol, pStrikePrice, pCurrRate) => {
 //     const objData = new Promise((resolve, reject) => {
 //         //Single Order for paper Trade
@@ -2300,48 +2797,48 @@ const fnGetTradeDetails = async (pHsServerId, pSid, pKotakSession, pAccessToken)
 const fnGetTradeTokenData = async (pJsonFileName, pSearchSymbol, pOptionType, pExpiryEpoch, pStrikePrice) => {
     const objData = new Promise((resolve, reject) => {
 
-      const vLocalUrl = process.env.API_PATH + "json/" + pJsonFileName;
-      let vToken = "";
-      let vExchSeg = "";
-      let vExchange = "";
-      let vTrdSymbol = "";
-      let vLotSize = "";
-      let vMaxPerOrdQty = "";
-    
-      axios.get(vLocalUrl)
-        .then((response) => {
-          let vData = response.data;
-  
-          if(vData["Symbol"]){
-            for (let i = 0; i < vData["Symbol"].length; i++){
-                if((vData["Symbol"][i].pSymbolName === pSearchSymbol) && (vData["Symbol"][i].pExpiryDate === pExpiryEpoch) && (vData["Symbol"][i].pStrikePrice === pStrikePrice) && (vData["Symbol"][i].pOptionType === pOptionType)){
-                    vToken = vData["Symbol"][i].pSymbol;
-                    vExchSeg = vData["Symbol"][i].pExchSeg;
-                    vExchange = vData["Symbol"][i].pExchange;
-                    vTrdSymbol = vData["Symbol"][i].pTrdSymbol;
-                    vLotSize = vData["Symbol"][i].pLotSize;
-                    vMaxPerOrdQty = vData["Symbol"][i].MaxPerOrdQty;
-                    
-                    // console.log(vData["Symbol"][i].pSymbol + " - " + vData["Symbol"][i].pTrdSymbol);
+        const vLocalUrl = process.env.API_PATH + "json/" + pJsonFileName;
+        let vToken = "";
+        let vExchSeg = "";
+        let vExchange = "";
+        let vTrdSymbol = "";
+        let vLotSize = "";
+        let vMaxPerOrdQty = "";
+
+        axios.get(vLocalUrl)
+            .then((response) => {
+                let vData = response.data;
+
+                if (vData["Symbol"]) {
+                    for (let i = 0; i < vData["Symbol"].length; i++) {
+                        if ((vData["Symbol"][i].pSymbolName === pSearchSymbol) && (vData["Symbol"][i].pExpiryDate === pExpiryEpoch) && (vData["Symbol"][i].pStrikePrice === pStrikePrice) && (vData["Symbol"][i].pOptionType === pOptionType)) {
+                            vToken = vData["Symbol"][i].pSymbol;
+                            vExchSeg = vData["Symbol"][i].pExchSeg;
+                            vExchange = vData["Symbol"][i].pExchange;
+                            vTrdSymbol = vData["Symbol"][i].pTrdSymbol;
+                            vLotSize = vData["Symbol"][i].pLotSize;
+                            vMaxPerOrdQty = vData["Symbol"][i].MaxPerOrdQty;
+
+                            // console.log(vData["Symbol"][i].pSymbol + " - " + vData["Symbol"][i].pTrdSymbol);
+                        }
+                    }
+                    if (vToken === "") {
+                        reject({ "status": "warning", "message": "Option Token Not Found, Check Expiry Date!", "data": "" });
+                    }
+                    else {
+                        resolve({ "status": "success", "message": "Success - Option Data Received!", "data": { Token: vToken, ExchSeg: vExchSeg, Exchange: vExchange, TrdSymbol: vTrdSymbol, LotSize: vLotSize, MaxPerOrdQty: vMaxPerOrdQty } });
+                    }
                 }
-            }
-            if (vToken === ""){
-                reject({ "status": "warning", "message": "Option Token Not Found, Check Expiry Date!", "data": "" });
-            }
-            else{
-                resolve({ "status": "success", "message": "Success - Option Data Received!", "data": { Token: vToken, ExchSeg: vExchSeg, Exchange: vExchange, TrdSymbol: vTrdSymbol, LotSize: vLotSize, MaxPerOrdQty: vMaxPerOrdQty } });
-            }
-          }
-          else {
-            // console.log("Failed");
-            reject({ "status": "warning", "message": "Invalid File Name. Please Check!", "data": "" });
-          }
-        })
-        .catch((error) => {
-          reject({ "status": "danger", "message": "File Not Found! " + error.message, "data": "" });
-        });
+                else {
+                    // console.log("Failed");
+                    reject({ "status": "warning", "message": "Invalid File Name. Please Check!", "data": "" });
+                }
+            })
+            .catch((error) => {
+                reject({ "status": "danger", "message": "File Not Found! " + error.message, "data": "" });
+            });
     });
-  
+
     return objData;
 }
 
@@ -2377,7 +2874,7 @@ const fnExecOptNrmlOrder1 = async (pHsServerId, pSid, pKotakSession, pAccessToke
     const objPromise = new Promise((resolve, reject) => {
 
         //let vData = qs.stringify({ 'jData': '{"am":"NO", "dq":"0","es":"' + pExchSeg + '", "mp":"0", "pc":"MIS", "pf":"N", "pr":"0", "pt":"MKT", "qt":"' + pOrderQty + '", "rt":"DAY", "tp":"0", "tk":"' + pSymbToken + '", "ts":"' + pTrdSymbol + '", "tt":"'+ pBorS + '", "ig":"TestGUID", "sc":"TestTag"}' });
-        let vData = qs.stringify({ 'jData': '{"am":"NO", "dq":"0","es":"' + pExchSeg + '", "mp":"0", "pc":"MIS", "pf":"N", "pr":"0", "pt":"MKT", "qt":"' + pOrderQty + '", "rt":"DAY", "tp":"0", "tk":"' + pSymbToken + '", "ts":"' + pTrdSymbol + '", "tt":"'+ pBorS + '", "sy":"'+ pGuid +'", "sn":"'+ pGuid +'", "sc":"1"}' });
+        let vData = qs.stringify({ 'jData': '{"am":"NO", "dq":"0","es":"' + pExchSeg + '", "mp":"0", "pc":"MIS", "pf":"N", "pr":"0", "pt":"MKT", "qt":"' + pOrderQty + '", "rt":"DAY", "tp":"0", "tk":"' + pSymbToken + '", "ts":"' + pTrdSymbol + '", "tt":"' + pBorS + '", "sy":"' + pGuid + '", "sn":"' + pGuid + '", "sc":"1"}' });
 
         let objConfig = {
             method: 'post',
