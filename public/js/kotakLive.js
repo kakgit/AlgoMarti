@@ -164,7 +164,6 @@ async function fnExecPlaceOrderTest(pBuySel, pOptionType){
                         gAmtSL = (vAvgPrice - vPerSL).toFixed(2);
                         gAmtTP = (vAvgPrice + vPerTP).toFixed(2);
 
-                        // objNrmlOrdr.data.TradeID = vDate.getTime();
                         objNrmlOrdr.data.ClientID = objClientId.value;                    
                         objNrmlOrdr.data.Expiry = objOptExpiry.value;
                         objNrmlOrdr.data.EntryDT = vToday;
@@ -179,7 +178,7 @@ async function fnExecPlaceOrderTest(pBuySel, pOptionType){
                         // alert(objExcTradeDtls);
                         localStorage.setItem("KotakCurrOptPosiS", objExcTradeDtls);
                         localStorage.setItem("QtyMulR", objNrmlOrdr.data.Quantity);
-                        localStorage.setItem("MultOrdId", vMultOrdId);
+                        localStorage.setItem("MultOrdId", objNrmlOrdr.data.TradeID);
                         objLossBadge.style.visibility = "hidden";
 
                         console.log(vRndStrkByOptStep);
@@ -385,7 +384,7 @@ async function fnInnitiateAutoTrade(pMsg){
                     let objSymbData = await fnExecSelSymbData(pMsg.Symbol);
 
                     if(objSymbData.status === "success"){
-                        fnExecOptionTrade("B", pMsg.OptionType);
+                        fnExecPlaceOrderTest("B", pMsg.OptionType);
                         // console.log(objSymbData);
                         // console.log("New Trade Executed");
                         // fnGenMessage("Success - "+ pMsg.OptionType +" Trade Executed!", "badge bg-success", "spnGenMsg");
@@ -412,7 +411,7 @@ async function fnInnitiateAutoTrade(pMsg){
                             let objSymbData = await fnExecSelSymbData(pMsg.Symbol);
 
                             if(objSymbData.status === "success"){
-                                fnExecOptionTrade("B", pMsg.OptionType);
+                                fnExecPlaceOrderTest("B", pMsg.OptionType);
                             }
                             else{
                                 fnGenMessage("Error At Auto Trade for - "+ pMsg.OptionType +" Trade!", "badge bg-warning", "spnGenMsg");
@@ -789,7 +788,8 @@ function fnInitiateManualOption(pBuySel, pOptionType){
 
     if (objCurrPosiLst === null)
     {
-        fnExecOptionTrade(pBuySel, pOptionType);
+        fnExecPlaceOrderTest(pBuySel, pOptionType);
+        // fnExecOptionTrade(pBuySel, pOptionType);
     }
     else
     {
@@ -2729,6 +2729,8 @@ function fnInitClsOptRealTrade1(pQty){
         let vToCntuQty = parseInt(objCurrPos.TradeData[0].Quantity) - parseInt(pQty);
         let vMultOrdId = localStorage.getItem("MultOrdId");
 
+        console.log(vMultOrdId);
+
         if(pQty === 0){
             vToClsQty = objCurrPos.TradeData[0].Quantity;
         }
@@ -2799,7 +2801,7 @@ function fnInitClsOptRealTrade1(pQty){
                 
             }
             else{
-                
+                reject({ "status": "danger", "message": objResult.message, "data": "" });
             }
         })
         .catch(error => {
