@@ -41,7 +41,7 @@ window.addEventListener("DOMContentLoaded", function(){
         }
         console.log(objLiveMsgs);
 
-        //fnInnitiateAutoTrade(pMsg);
+        fnInnitiateAutoTrade(pMsg);
     });
 
     socket.on("tv-exec", (pMsg) => {
@@ -62,7 +62,7 @@ window.addEventListener("DOMContentLoaded", function(){
             localStorage.setItem("msgsCI", JSON.stringify(objLiveMsgs));
         }
 
-        //fnInnitiateAutoTrade(pMsg);
+        fnInnitiateAutoTrade(pMsg);
     });
 
     socket.on("CdlTrend", (pMsg) => {
