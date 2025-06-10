@@ -989,6 +989,7 @@ function fnGetOrderBook(){
     let objSid = document.getElementById("txtSid");
     let objAccessToken = document.getElementById("txtAccessToken");
     let objKotakSession = document.getElementById("txtKotakSession");
+    let vNetProfit = 0;
 
     let vHeaders = new Headers();
     vHeaders.append("Content-Type", "application/json");
@@ -1014,7 +1015,6 @@ function fnGetOrderBook(){
             }
             else{
                 let vTempHtml = "";
-                let vNetProfit = 0;
                 let vBuyAmt = 0;
                 let vSellAmt = 0;
                 let vCharges = 0;
@@ -1076,10 +1076,15 @@ function fnGetOrderBook(){
                 });
 
                 vNetProfit = vSellAmt - vBuyAmt - vTotalCharges;
-                vTempHtml += '<tr><td>Total Trades </td><td>' + vTotalTrades + '</td><td colspan="3" style="text-align:right;font-weight:bold;color:orange;">Net PL</td><td colspan="3" style="text-align:left;font-weight:bold;color:orange;">' + vNetProfit.toFixed(2) + '</td><td></td><td style="font-weight:bold;text-align:right;color:red;">' + vTotalCharges + '</td><td style="font-weight:bold;text-align:right;color:red;">' + vHighCapital.toFixed(2) + '</td></tr>';
+                vTempHtml += '<tr><td>Total Trades </td><td>' + vTotalTrades + '</td><td colspan="3" style="text-align:right;font-weight:bold;color:orange;">Net PL</td><td colspan="3" style="text-align:left;font-weight:bold;color:orange;">' + vNetProfit.toFixed(2) + '</td><td></td><td style="font-weight:bold;text-align:right;color:red;">' + vTotalCharges.toFixed(2) + '</td><td style="font-weight:bold;text-align:right;color:red;">' + vHighCapital.toFixed(2) + '</td></tr>';
 
                 objClsdOrdbook.innerHTML = vTempHtml;
             }
+
+        if(vNetProfit >= 5000){
+            localStorage.setItem("isAutoTrader", "true");
+            $('#btnAutoTraderStatus').trigger('click');
+        }
 
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");            
         }
@@ -1090,12 +1095,12 @@ function fnGetOrderBook(){
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
         }
         else{
-            fnGenMessage("Error to Fetch Option Details.", `badge bg-danger`, "spnGenMsg");
+            fnGenMessage("Error to Fetch Order Details.", `badge bg-danger`, "spnGenMsg");
         }
     })
     .catch(error => {
         console.log('error: ', error);
-        fnGenMessage("Error to Fetch with Option Details.", `badge bg-danger`, "spnGenMsg");
+        fnGenMessage("Error at Order Book", `badge bg-danger`, "spnGenMsg");
     });
 }
 
@@ -2796,7 +2801,7 @@ function fnInitClsOptRealTrade1(pQty){
                 }
 
                 fnSetNextOptTradeSettings(vAvgPrc, vClsdQty, 0);
-                // fnSetTodayOptTradeDetails();
+                fnGetOrderBook();
 
                 resolve({ "status": "success", "message": "Option Paper Trade Closed Successfully!", "data": "" });
             }
