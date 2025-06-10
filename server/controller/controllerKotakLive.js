@@ -452,21 +452,26 @@ exports.fnGetOrderBook = async (req, res) => {
 
     try {
         // Real Orderbook, comment for Temp Orderbook
-        let objOrderDtls = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
+        let objTempOrderBook = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
         // Real Orderbook, comment for Temp Orderbook
 
+        // for (let j = 0; j < objTempOrderBook.data.data.length; j++){
+        //     if ((objTempOrderBook.data.data[j].algCat === "1749444235384") && (objTempOrderBook.data.data[j].trnsTp === "B") && (objTempOrderBook.data.data[j].ordSt === "complete")){
+        //         console.log(objTempOrderBook.data.data[j]);
+        //     }
+        // }
         // // Temp Orderbook, comment for Real Orderbook
         // let objOrderDtls = await fnTempOrderbook();
         // // Temp Orderbook, comment for Real Orderbook
 
-        if (objOrderDtls.data.stat === "Not_Ok") {
-            res.send({ "status": "warning", "message": "Orderbook Error: " + objOrderDtls.data.errMsg, "data": objOrderDtls.data });
+        if (objTempOrderBook.data.stat === "Not_Ok") {
+            res.send({ "status": "warning", "message": "Orderbook Error: No Data", "data": objTempOrderBook.data });
         }
-        else if (objOrderDtls.data.stat === "Ok") {
-            res.send({ "status": "success", "message": "Orderbook Details Received!", "data": objOrderDtls.data });
+        else if (objTempOrderBook.data.stat === "Ok") {
+            res.send({ "status": "success", "message": "Orderbook Details Received!", "data": objTempOrderBook.data });
         }
         else {
-            res.send({ "status": "danger", "message": "Unknown Error at Orderbook", "data": objOrderDtls.data });
+            res.send({ "status": "danger", "message": "Unknown Error at Orderbook", "data": objTempOrderBook.data });
         }
     }
     catch (err) {
@@ -492,7 +497,7 @@ exports.fnPlaceOptionNormalOrder1 = async (req, res) => {
     let vCurrRate = req.body.CurrRate;
     let vMaxOrderQty = req.body.MaxOptQty;
     let vMultOrdId = req.body.MultOrdId;
-    let objOrderData = { OrderData: [] };
+    // let objOrderData = { OrderData: [] };
     let objTempOrderBook = "";
 
     try {
@@ -503,16 +508,16 @@ exports.fnPlaceOptionNormalOrder1 = async (req, res) => {
         for(let i=0; i<vLoopNos; i++){
             if(i === (vLoopNos - 1)){
                 let vTempData = await fnExecOptNrmlOrder1(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vExecTempQty) * parseInt(vLotSize)), vLotSize, vMultOrdId);
-                objOrderData.OrderData.push(vTempData.data);
+                // objOrderData.OrderData.push(vTempData.data);
             }
             else{
                 let vTempData = await fnExecOptNrmlOrder1(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vMaxOrderQty) * parseInt(vLotSize)), vLotSize, vMultOrdId);
-                objOrderData.OrderData.push(vTempData.data);
+                // objOrderData.OrderData.push(vTempData.data);
             }
             vExecTempQty = parseInt(vExecTempQty) - parseInt(vMaxOrderQty);
         }
         objTempOrderBook = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
-        objTempOrderBook = objTempOrderBook.data;
+        // objTempOrderBook = objTempOrderBook.data;
         // Uncomment for Real Trade
 
         // // Temp Orderbook, comment for Real Orderbook
@@ -526,11 +531,16 @@ exports.fnPlaceOptionNormalOrder1 = async (req, res) => {
         let vRecCount = 0;
         let vExpiryDt = "";
 
-        for (let j = 0; j < objTempOrderBook.data.length; j++) {
-            if ((objTempOrderBook.data[j].algCat === vMultOrdId) && (objTempOrderBook.data[j].trnsTp === "B") && (objTempOrderBook.data[j].ordSt === "complete")) {
-                vCumFilledQty += parseInt(objTempOrderBook.data[j].fldQty);
-                vCumPrice += parseFloat(objTempOrderBook.data[j].avgPrc);
-                vExpiryDt = objTempOrderBook.data[j].expDt;
+        // console.log("MultiID: " + vMultOrdId);
+
+        for (let j = 0; j < objTempOrderBook.data.data.length; j++) {
+
+            if ((objTempOrderBook.data.data[j].algCat === (vMultOrdId).toString()) && (objTempOrderBook.data.data[j].trnsTp === "B") && (objTempOrderBook.data.data[j].ordSt === "complete")) {
+                // console.log(objTempOrderBook.data.data[j].trnsTp);
+
+                vCumFilledQty += parseInt(objTempOrderBook.data.data[j].fldQty);
+                vCumPrice += parseFloat(objTempOrderBook.data.data[j].avgPrc);
+                vExpiryDt = objTempOrderBook.data.data[j].expDt;
                 vRecCount += 1;
             }
         }
@@ -908,20 +918,20 @@ exports.fnPlaceCloseOptTrade1 = async (req, res) => {
 
         // Uncomment for Real trade
         objTempOrderBook = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
-        objTempOrderBook = objTempOrderBook.data;
+        // objTempOrderBook = objTempOrderBook.data;
         // Uncomment for Real trade
         // // comment for Real trade
         // objTempOrderBook = await fnTempOrderbook();
         // objTempOrderBook = objTempOrderBook.data;
         // // comment for Real trade
 
-        for (let j = 0; j < objTempOrderBook.data.length; j++) {
-            if ((objTempOrderBook.data[j].algCat === vMultOrdId) && (objTempOrderBook.data[j].ordSt === "complete")) {
-                if (objTempOrderBook.data[j].trnsTp === "B") {
-                    vAvailableQty += parseInt(objTempOrderBook.data[j].fldQty)
+        for (let j = 0; j < objTempOrderBook.data.data.length; j++) {
+            if ((objTempOrderBook.data.data[j].algCat === (vMultOrdId).toString()) && (objTempOrderBook.data.data[j].ordSt === "complete")) {
+                if (objTempOrderBook.data.data[j].trnsTp === "B") {
+                    vAvailableQty += parseInt(objTempOrderBook.data.data[j].fldQty)
                 }
-                else if (objTempOrderBook.data[j].trnsTp === "S") {
-                    vAvailableQty -= parseInt(objTempOrderBook.data[j].fldQty)
+                else if (objTempOrderBook.data.data[j].trnsTp === "S") {
+                    vAvailableQty -= parseInt(objTempOrderBook.data.data[j].fldQty)
                 }
             }
         }
@@ -964,17 +974,17 @@ exports.fnPlaceCloseOptTrade1 = async (req, res) => {
                 vExecTempQty = parseInt(vExecTempQty) - parseInt(vMaxOrderQty);
             }
             objTempOrderBook = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
-            objTempOrderBook = objTempOrderBook.data;
+            // objTempOrderBook = objTempOrderBook.data;
 
             let vCumFilledQty = 0;
             let vCumPrice = 0;
             let vRecCount = 0;
 
             for (let i = 0; i < objOrderData.OrderData.length; i++) {
-                for (let j = 0; j < objTempOrderBook.data.length; j++) {
-                    if ((objOrderData.OrderData[i].nOrdNo === objTempOrderBook.data[j].nOrdNo) && (objTempOrderBook.data[j].ordSt === "complete")) {
-                        vCumFilledQty += parseInt(objTempOrderBook.data[j].fldQty);
-                        vCumPrice += parseFloat(objTempOrderBook.data[j].avgPrc);
+                for (let j = 0; j < objTempOrderBook.data.data.length; j++) {
+                    if ((objOrderData.OrderData[i].nOrdNo === objTempOrderBook.data.data[j].nOrdNo) && (objTempOrderBook.data.data[j].ordSt === "complete")) {
+                        vCumFilledQty += parseInt(objTempOrderBook.data.data[j].fldQty);
+                        vCumPrice += parseFloat(objTempOrderBook.data.data[j].avgPrc);
                         vRecCount += 1;
                     }
                 }

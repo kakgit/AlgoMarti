@@ -303,6 +303,7 @@ function fnGetSetAllStatus(){
         //fnSetTodayOptTradeDetails();
         //fnGetTradeBook();
         fnGetOrderBook();
+        // fnSetPerDayTP();
     }
     else{
         fnClearTraderFields();
@@ -1002,9 +1003,11 @@ function fnGetOrderBook(){
     fetch("/kotakReal/getOrderBook", objRequestOptions)
     .then(objResponse => objResponse.json())
     .then(objResult => {
+
+        // console.log(objResult);
+    
         if(objResult.status === "success"){
             let objClsdOrdbook = document.getElementById("divClsdOrderbook");
-            // console.log(objResult.data);
 
             if(objResult.data === null || objResult.data === ""){
                 objClsdOrdbook.innerHTML = '<div class="col-sm-12" style="border:0px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 40px;">No Completed Orders Yet</div>';

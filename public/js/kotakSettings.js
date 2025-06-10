@@ -45,6 +45,8 @@ function fnLoginKotakNeo(){
     let objSid = document.getElementById("txtSid");
     let objHsServerId = document.getElementById("txtHsServerId");
 
+    let objCurrMargin = document.getElementById("txtCurrMargin");
+
     let vHeaders = new Headers();
     vHeaders.append("Content-Type", "application/json");
 
@@ -92,7 +94,8 @@ function fnLoginKotakNeo(){
                 objSubUserId.value = objResult.data.SubUserId;
                 objSid.value = objResult.data.Sid;
                 objHsServerId.value = objResult.data.HsServerId;
-                //console.log(objResult.data.Limits);
+
+                objCurrMargin.value = objResult.data.Limits.Net;
 
                 localStorage.setItem("lsKotakMobileNo", objMobileNo.value);
                 localStorage.setItem("lsKotakPassword", objPassword.value);
@@ -108,7 +111,7 @@ function fnLoginKotakNeo(){
                 localStorage.setItem("lsKotakSub", objSubUserId.value);
                 localStorage.setItem("lsKotakSid", objSid.value);
                 localStorage.setItem("lsKotakHsServerId", objHsServerId.value);
-                localStorage.setItem("lsNetLimit", objResult.data.Limits.Net);
+                localStorage.setItem("lsNetLimit", objCurrMargin.value);
 
                 const vDate = new Date();
                 let vToday = vDate.getDate();            
@@ -117,6 +120,7 @@ function fnLoginKotakNeo(){
                 $('#mdlKotakLogin').modal('hide');
                 //fnChangeBtnProps("btnTraderStatus", "badge bg-success", "TRADER - Connected");
                 fnGetSetTraderLoginStatus();
+                //fnSetPerDayTP();
                 fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
             }
             else if(objResult.status === "danger"){
@@ -139,6 +143,51 @@ function fnLoginKotakNeo(){
             fnGenMessage("Error to Fetch with Login Details.", `badge bg-danger`, "spnGenMsg");
         });
     }
+}
+
+function fnSetPerDayTP(){
+    let objCurrMargin = document.getElementById("txtCurrMargin");
+    let objPerDayTP = document.getElementById("txtPerDayTP");
+    let objPerDayProfit = document.getElementById("txtPerDayProfitAmt");
+
+    objCurrMargin.value = localStorage.getItem("lsNetLimit");
+
+    if((localStorage.getItem("lsPerDayTPPrct") === null) || (localStorage.getItem("lsPerDayTPPrct") === "") || (parseInt(localStorage.getItem("lsPerDayTPPrct")) < 1)){
+        objPerDayTP.value = 1;
+        localStorage.setItem("lsPerDayTPPrct", objPerDayTP.value);
+        objPerDayProfit.value = (parseInt(objCurrMargin.value) * parseInt(objPerDayTP.value)) / 100;
+    }
+    else{
+        objPerDayTP.value = localStorage.getItem("lsPerDayTPPrct");
+    }
+
+    if(objCurrMargin.value === ""){
+        if(localStorage.getItem("isAutoTrader") === "true"){
+            $('#btnAutoTraderStatus').trigger('click');
+        }
+        fnGenMessage("No Capital or Margin Available to Trade!", `badge bg-warning`, "spnGenMsg");
+    }
+    else if(parseInt(objCurrMargin.value) < 400000){
+        if(localStorage.getItem("isAutoTrader") === "true"){
+            $('#btnAutoTraderStatus').trigger('click');
+        }
+        fnGenMessage("Capital or Margin is LOW for Auto Trade!", `badge bg-warning`, "spnGenMsg");
+    }
+    else{
+        objPerDayProfit.value = ((parseInt(objCurrMargin.value) * parseInt(objPerDayTP.value)) / 100).toFixed(0);
+    }
+}
+
+function fnSetProfitPrct(objThis){
+    let objCurrMargin = document.getElementById("txtCurrMargin");
+    let objPerDayProfit = document.getElementById("txtPerDayProfitAmt");
+
+    if((objThis.value < 1) || (isNaN(objThis.value))){
+        objThis.value = 1;
+    }
+    localStorage.setItem("lsPerDayTPPrct", objThis.value);
+
+    objPerDayProfit.value = ((parseInt(objCurrMargin.value) * parseInt(objThis.value)) / 100).toFixed(0);
 }
 
 //To encode String to Base64
