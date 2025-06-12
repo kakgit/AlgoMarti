@@ -1081,7 +1081,7 @@ function fnGetOrderBook(){
                 objClsdOrdbook.innerHTML = vTempHtml;
             }
 
-        if(vNetProfit >= 5000){
+        if(vNetProfit >= 15000){
             localStorage.setItem("isAutoTrader", "true");
             $('#btnAutoTraderStatus').trigger('click');
         }
