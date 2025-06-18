@@ -20,7 +20,7 @@ let gCurrTSL = 0;
 let gTSLCrossed = false;
 
 window.addEventListener("DOMContentLoaded", function(){
-    fnGetSetTraderLoginStatus();
+    fnGetSetPaperTraderLoginStatus();
 
     socket.on("c3mh", (pMsg) => {
         let objLiveMsgs = JSON.parse(localStorage.getItem("msgsCI"));
@@ -131,6 +131,33 @@ function fnGetSetAllStatus(){
     }
 }
 
+function fnToggleAutoPaperTrader(){
+    let isLsAutoTrader = localStorage.getItem("isAutoPaperTrader");
+    
+    let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
+
+    if(isLsAutoTrader === null || isLsAutoTrader === "false")
+    {
+        if(gIsTraderLogin === true)
+        {
+            fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-success", "Auto Trader - ON");
+            fnGenMessage("Auto Trading Mode is ON!", `badge bg-success`, "spnGenMsg");
+            localStorage.setItem("isAutoPaperTrader", true);
+        }
+        else
+        {
+            fnGenMessage("Login to Trading Account to Activate Auto Trader", `badge bg-warning`, "spnGenMsg");
+            localStorage.setItem("isAutoPaperTrader", false);
+        }
+    }
+    else
+    {
+        fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
+        fnGenMessage("Auto Trading Mode is OFF!", `badge bg-danger`, "spnGenMsg");
+        localStorage.setItem("isAutoPaperTrader", false);
+    }
+}
+
 function fnSet50PrctQty(){
     let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
     let objBtn50Prct = document.getElementById("btn50PerClose");
@@ -192,7 +219,7 @@ function fnEmitTradeForAll(pOptionType){
 
 async function fnInnitiateAutoTrade(pMsg){
     try{
-        let isLsAutoTrader = localStorage.getItem("isAutoTrader");
+        let isLsAutoTrader = localStorage.getItem("isAutoPaperTrader");
 
         if(isLsAutoTrader === "false"){
             fnGenMessage("Trade Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
@@ -2722,7 +2749,7 @@ function fnSetTodayOptTradeDetails(){
     }
 
     if(vNetProfit >= 15000){
-        localStorage.setItem("isAutoTrader", "true");
+        localStorage.setItem("isAutoPaperTrader", "true");
         $('#btnAutoTraderStatus').trigger('click');
     }
 }
@@ -2856,3 +2883,87 @@ function fnGetOrderTradeBook(){
     //fnGetOrderBook();
     fnGetTradeBook();
 }
+
+
+function fnGetSetAutoPaperTraderStatus(){
+    let isLsAutoTrader = localStorage.getItem("isAutoPaperTrader");
+    let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
+
+    if(gIsTraderLogin === true && isLsAutoTrader === "true")
+    {
+        fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-success", "Auto Trader - ON");
+    }
+    else
+    {
+        fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
+        localStorage.setItem("isAutoPaperTrader", false);
+    }
+}
+
+function fnGetSetPaperTraderLoginStatus(){
+    let bAppStatus = localStorage.getItem("AppMsgStatusS");
+
+    let lsKotakConsumerKey = localStorage.getItem("lsKotakConsumerKey");
+    let lsKotakConsumerSecret = localStorage.getItem("lsKotakConsumerSecret");
+    let lsKotakUserNameAPI = localStorage.getItem("lsKotakUserNameAPI");
+    let lsKotakPasswordAPI = localStorage.getItem("lsKotakPasswordAPI");
+
+    let lsKotakLoginID = localStorage.getItem("lsKotakMobileNo");
+    let lsKotakPassword = localStorage.getItem("lsKotakPassword");
+    let lsKotakMpin = localStorage.getItem("lsKotakMpin");
+
+    let lsSessionID = localStorage.getItem("lsKotakNeoSession");
+    let lsViewToken = localStorage.getItem("lsKotakViewToken");
+    let lsAccessToken = localStorage.getItem("lsKotakAccessToken");
+    let lsSub = localStorage.getItem("lsKotakSub");
+    let lsSid = localStorage.getItem("lsKotakSid");
+    let lsHsServerID = localStorage.getItem("lsKotakHsServerId");
+
+    let objClientId = document.getElementById("txtMobileNo");
+    let objKotakPassword = document.getElementById("txtPassword");
+    let objKotakMpin = document.getElementById("txtMpin");
+
+    let objSession = document.getElementById("txtKotakSession");
+    let objViewToken = document.getElementById("txtViewToken");
+    let objAccessToken = document.getElementById("txtAccessToken");
+    let objSubUserId = document.getElementById("txtSubUserId");
+    let objSid = document.getElementById("txtSid");
+    let objHsServerId = document.getElementById("txtHsServerId");
+    
+    let objTraderStatus = document.getElementById("btnTraderStatus");
+
+    const vDate = new Date();
+    let vToday = vDate.getDate();
+
+    objClientId.value = lsKotakLoginID;
+
+    objSession.value = lsSessionID;
+    objViewToken.value = lsViewToken;
+    objAccessToken.value = lsAccessToken;
+    objSid.value = lsSid;
+    objSubUserId.value = lsSub;
+    objHsServerId.value = lsHsServerID;
+
+    if (bAppStatus === "false") {
+        localStorage.removeItem("lsKotakNeoSession");
+        localStorage.removeItem("lsKotakViewToken");
+        localStorage.removeItem("lsKotakAccessToken");
+        localStorage.removeItem("lsKotakSub");
+        localStorage.removeItem("lsKotakSid");
+        localStorage.removeItem("lsKotakHsServerId");
+        gIsTraderLogin = false;
+        objSession.value = "";
+    }
+
+    if (objSession.value == "") {
+        fnChangeBtnProps(objTraderStatus.id, "badge bg-danger", "TRADER - Disconnected");
+        gIsTraderLogin = false;
+    }
+    else {
+        fnChangeBtnProps(objTraderStatus.id, "badge bg-success", "TRADER - Connected");
+        gIsTraderLogin = true;
+    }
+    fnGetSetAutoPaperTraderStatus();
+    fnGetSetAllStatus();
+}
+
