@@ -425,20 +425,20 @@ async function fnInnitiateAutoTrade(pMsg){
                         console.log("Old Trade is Closed and New trade is Opened");
                         fnGenMessage("Old Trade is Closed and new "+ pMsg.OptionType +" Position is Opened!", "badge bg-success", "spnGenMsg");
                     }
-                    // else{
+                    else{
                         // let objClsTrd = await fnInitClsOptRealTrade(0);
-                        // let objClsTrd = await fnInitClsOptRealTrade1(0);
+                        let objClsTrd = await fnInitClsOptRealTrade1(0);
 
-                        // if(objClsTrd.status === "success"){
-                        //     fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
-                        // }
-                        // else{
-                        //     fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
-                        // }
+                        if(objClsTrd.status === "success"){
+                            fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                        }
+                        else{
+                            fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                        }
 
-                    //     //console.log("Old Trade is Closed and waiting for New Trade");
-                    //     fnGenMessage(pMsg.OptionType + " Trade Message Received, Old Trade is Closed and waiting for New Trade!", "badge bg-warning", "spnGenMsg");
-                    // }
+                        //console.log("Old Trade is Closed and waiting for New Trade");
+                        fnGenMessage(pMsg.OptionType + " Trade Message Received, Old Trade is Closed and waiting for New Trade!", "badge bg-warning", "spnGenMsg");
+                    }
                 }
             }
         }
