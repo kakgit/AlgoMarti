@@ -1144,7 +1144,7 @@ function fnGetTradeBook(){
                 let vTotalCharges = 0;
                 let vTotalTrades = 0;
                 let vHighCapital = 0;
-                let objUnclosedAlgoIds = [];
+                let objUnclosedTradeCat = [];
 
                 // const objRev = Object.keys(objResult.data.data).reverse();
                 // const objRev = Object.keys(objResult.data.data);
@@ -1156,11 +1156,10 @@ function fnGetTradeBook(){
 
                 console.log(objLookup);
                 for(let i=0; i<objLookup.length; i++){
-
                     let vOpenTradeQty = 0;
 
                     for(let j=0; j<objArray.length; j++){
-                        if(objArray[j].algCat === objLookup[i]){
+                        if((objArray[j].algCat === objLookup[i]) && (objArray[j].strategyCode === "1")){
 
                             if(objArray[j].trnsTp === "B"){
                                 vOpenTradeQty += parseInt(objArray[j].fldQty);
@@ -1168,23 +1167,69 @@ function fnGetTradeBook(){
                             else if(objArray[j].trnsTp === "S"){
                                 vOpenTradeQty -= parseInt(objArray[j].fldQty);
                             }
-                            // console.log(objArray[j].algCat + " - " + objArray[j].trnsTp);
+                            // console.log(objArray[j].trdSym + " - " + objArray[j].trnsTp);
                         }
                     }
                     if(vOpenTradeQty !== 0){
-                        objUnclosedAlgoIds.push(objLookup[i])
+                        objUnclosedTradeCat.push(objLookup[i])
                     }
                 }
 
-                console.log(objUnclosedAlgoIds.length);
+                console.log(objUnclosedTradeCat);
 
-                if(objUnclosedAlgoIds.length !== 0){
-                    for(let i=0; i<objUnclosedAlgoIds.length; i++){
+                if(objUnclosedTradeCat.length !== 0){
+                    let vBuyAvgPrc = 0;
+                    let vSellAvgPrc = 0;
+                    let vTotalBuyQty = 0;
+                    let vTotalSellQty = 0;
+
+                    for(let i=0; i<objUnclosedTradeCat.length; i++){
+                        let vTrdSym, vSymbol, vExpiry, vStrike, vType, vNewTransType = "";
+                        let vNewQty = 0;
+                        vBuyAvgPrc = 0;
+                        vSellAvgPrc = 0;
+                        vTotalBuyQty = 0;
+                        vTotalSellQty = 0;
+
                         for(let j=0; j<objArray.length; j++){
-                            if(objArray[j].algCat === objUnclosedAlgoIds[i]){
-                                console.log(objArray[j]);
+                            if(objArray[j].algCat === objUnclosedTradeCat[i]){
+                                vTrdSym = objArray[j].trdSym;
+                                vSymbol = objArray[j].sym;
+                                vExpiry = objArray[j].expDt;
+                                vStrike = objArray[j].stkPrc;
+                                vType = objArray[j].optTp;
+
+                                if(objArray[j].trnsTp === "B"){
+                                    vTotalBuyQty += objArray[j].fldQty;
+                                    vBuyAvgPrc += parseFloat(objArray[j].avgPrc) * objArray[j].fldQty;
+                                    console.log(objArray[j]);
+                                }
+                                else if(objArray[j].trnsTp === "S"){
+                                    vTotalSellQty += objArray[j].fldQty;
+                                    vSellAvgPrc += parseFloat(objArray[j].avgPrc) * objArray[j].fldQty;
+                                    console.log(objArray[j]);
+                                }
                             }
-                        }                        
+                        }
+                        if(vTotalBuyQty < vTotalSellQty){
+                            vNewTransType = "B";
+                            vNewQty = vTotalSellQty - vTotalBuyQty;
+                        }
+                        else{
+                            vNewTransType = "S";
+                            vNewQty = vTotalBuyQty - vTotalSellQty;
+                        }
+                        console.log("trdSym: " + vTrdSym);
+                        console.log("sym: " + vSymbol);
+                        console.log("expDt: " + vExpiry);
+                        console.log("stkPrc: " + vStrike);
+                        console.log("optTp: " + vType);
+                        console.log("B or S: " + vNewTransType);
+                        console.log("Qty: " + vNewQty);
+                        console.log("ABP: " + vBuyAvgPrc / vTotalBuyQty);
+                        console.log("ASP: " + vSellAvgPrc / vTotalSellQty);
+                        console.log("TBQ: " + vTotalBuyQty);
+                        console.log("TSQ: " + vTotalSellQty);
                     }
                 }
                 else{
