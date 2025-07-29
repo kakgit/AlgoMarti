@@ -2748,10 +2748,10 @@ function fnSetTodayOptTradeDetails(){
         objTodayTradeList.innerHTML = vTempHtml;
     }
 
-    if(vNetProfit >= 15000){
-        localStorage.setItem("isAutoPaperTrader", "true");
-        $('#btnAutoTraderStatus').trigger('click');
-    }
+    // if(vNetProfit >= 15000){
+    //     localStorage.setItem("isAutoPaperTrader", "true");
+    //     $('#btnAutoTraderStatus').trigger('click');
+    // }
 }
 
 function fnDeleteThisTrade(pTradeId){

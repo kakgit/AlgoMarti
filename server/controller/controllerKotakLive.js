@@ -479,6 +479,77 @@ exports.fnGetOrderBook = async (req, res) => {
     }
 }
 
+exports.fnPlaceOptionBracketOrder = async (req, res) => {
+    let vHsServerId = req.body.HsServerId;
+    let vSid = req.body.Sid;
+    let vAccessToken = req.body.AccessToken;
+    let vKotakSession = req.body.KotakSession;
+
+    let vOrderQty = req.body.OptQty;
+    let vLotSize = req.body.LotSize;
+    let vToken = req.body.Token;
+    let vExchSeg = req.body.ExchSeg;
+    let vBorS = req.body.BorS;
+    let vTrdSymbol = req.body.TrdSymbol;
+    let vOptionType = req.body.OptionType;
+    let vSearchSymbol = req.body.SearchSymbol;
+    let vStrikePrice = req.body.StrikePrice;
+    let vCurrRate = req.body.CurrRate;
+    let vMaxOrderQty = req.body.MaxOptQty;
+    let vMultOrdId = req.body.MultOrdId;
+    let vPointsSL = req.body.PointsSL;
+    let vPointsTP = req.body.PointsTP;
+    let objTempOrderBook = "";
+
+    try {
+        let vLoopNos = Math.ceil(parseInt(vOrderQty) / parseInt(vMaxOrderQty));
+        let vExecTempQty = vOrderQty;
+
+        // Uncomment for Real Trade
+        for(let i=0; i<vLoopNos; i++){
+            if(i === (vLoopNos - 1)){
+                let vTempData = await fnExecOptBracketOrder(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vExecTempQty) * parseInt(vLotSize)), vLotSize, vMultOrdId, vCurrRate, vPointsSL, vPointsTP);
+            }
+            else{
+                let vTempData = await fnExecOptBracketOrder(vHsServerId, vSid, vKotakSession, vAccessToken, vExchSeg, vToken, vTrdSymbol, vBorS, (parseInt(vMaxOrderQty) * parseInt(vLotSize)), vLotSize, vMultOrdId, vCurrRate, vPointsSL, vPointsTP);
+            }
+            vExecTempQty = parseInt(vExecTempQty) - parseInt(vMaxOrderQty);
+        }
+        objTempOrderBook = await fnGetOrderDetails(vHsServerId, vSid, vKotakSession, vAccessToken);
+
+        let vCumFilledQty = 0;
+        let vCumPrice = 0;
+        let vRecCount = 0;
+        let vExpiryDt = "";
+
+        for (let j = 0; j < objTempOrderBook.data.data.length; j++) {
+
+            if ((objTempOrderBook.data.data[j].algCat === (vMultOrdId).toString()) && (objTempOrderBook.data.data[j].trnsTp === "B") && (objTempOrderBook.data.data[j].ordSt === "complete")) {
+
+                vCumFilledQty += parseInt(objTempOrderBook.data.data[j].fldQty);
+                vCumPrice += parseFloat(objTempOrderBook.data.data[j].avgPrc);
+                vExpiryDt = objTempOrderBook.data.data[j].expDt;
+                vRecCount += 1;
+            }
+        }
+        vCumFilledQty = vCumFilledQty / parseInt(vLotSize);
+        vCumPrice = vCumPrice / vRecCount;
+
+        if (vCumFilledQty > 0) {
+            let vOrdrCnfData = { TradeID: vMultOrdId, SymToken: vToken, ClientID: "", SearchSymbol: vSearchSymbol, TrdSymbol: vTrdSymbol, Expiry: vExpiryDt, Strike: (parseInt(vStrikePrice) / 100), ByorSl: vBorS, OptionType: vOptionType, LotSize: vLotSize, Quantity: vCumFilledQty, BuyPrice: vCumPrice, SellPrice: vCumPrice, ProfitLoss: 0, StopLoss: 10, TakeProfit: 20, TrailSL: 0, EntryDT: "", ExitDT: "", ExchSeg: vExchSeg, MaxOrderQty: vMaxOrderQty };
+
+            res.send({ status: "success", message: "BO Placed Successfully", data: vOrdrCnfData });
+        }
+        else {
+            res.send({ status: "danger", message: "BO Rejected, Please check Orderbook!", data: "" });
+        }
+    }
+    catch (error) {
+        console.log(error);
+        res.send({ status: "danger", message: "Option Order - " + error.message, data: error.data });
+    }    
+}
+
 exports.fnPlaceOptionNormalOrder1 = async (req, res) => {
     let vHsServerId = req.body.HsServerId;
     let vSid = req.body.Sid;
@@ -5946,6 +6017,44 @@ const fnGetBackupRate = async (pExchSeg, pScriptToken, pSid, pKotakSession, pAcc
             });
     });
     return objData;
+}
+
+const fnExecOptBracketOrder = async(pHsServerId, pSid, pKotakSession, pAccessToken, pExchSeg, pSymbToken, pTrdSymbol, pBorS, pOrderQty, pLotSize, pGuid, pCurrRate, pPointsSL, pPointsTP) => {
+    const objPromise = new Promise((resolve, reject) => {
+
+        let vPointsSL = parseInt(pPointsSL) - (parseInt(pPointsSL) * 0.5);
+        //let vData = qs.stringify({ 'jData': '{"am":"NO", "dq":"0","es":"' + pExchSeg + '", "mp":"0", "pc":"MIS", "pf":"N", "pr":"0", "pt":"MKT", "qt":"' + pOrderQty + '", "rt":"DAY", "tp":"0", "tk":"' + pSymbToken + '", "ts":"' + pTrdSymbol + '", "tt":"'+ pBorS + '", "ig":"TestGUID", "sc":"TestTag"}' });
+        // let vData = qs.stringify({ 'jData': '{"am":"NO", "dq":"0","es":"' + pExchSeg + '", "mp":"0", "pc":"BO", "pf":"N", "pr":"10", "pt":"SL", "qt":"' + pOrderQty + '", "rt":"DAY", "tp":"0", "tk":"' + pSymbToken + '", "ts":"' + pTrdSymbol + '", "tt":"' + pBorS + '", "sot":"Ticks", "slt":"Ticks", "slv":"7", "sov":"7", "lat":"LTP", "tlt":"Y", "tsv":"5", "sy":"' + pGuid + '", "sn":"' + pGuid + '", "sc":"1"}' });
+
+        // let vData = qs.stringify({ 'jData': '{"am":"NO", "dq":"0","es":"' + pExchSeg + '", "mp":"0", "pc":"BO", "pf":"N", "pr":"'+ pCurrRate +'", "pt":"L", "qt":"' + pOrderQty + '", "rt":"DAY", "tp":"0", "tk":"' + pSymbToken + '", "ts":"' + pTrdSymbol + '", "tt":"' + pBorS + '", "sot":"Ticks", "slt":"Ticks", "slv":"7", "sov":"7", "lat":"LTP", "tlt":"Y", "tsv":"5", "sy":"' + pGuid + '", "sn":"' + pGuid + '", "sc":"1"}' });
+        let vData = qs.stringify({ 'jData': '{"am":"NO", "dq":"0","es":"' + pExchSeg + '", "mp":"0", "pc":"BO", "pf":"N", "pr":"10", "pt":"L", "qt":"' + pOrderQty + '", "rt":"DAY", "tp":"0", "tk":"' + pSymbToken + '", "ts":"' + pTrdSymbol + '", "tt":"' + pBorS + '", "sot":"Ticks", "slt":"Ticks", "slv":"'+ pPointsSL +'", "sov":"'+ pPointsTP +'", "lat":"LTP", "tlt":"Y", "tsv":"'+ vPointsSL +'", "sy":"' + pGuid + '", "sn":"' + pGuid + '", "sc":"1"}' });
+
+        let objConfig = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: 'https://gw-napi.kotaksecurities.com/Orders/2.0/quick/order/rule/ms/place?sId=' + pHsServerId,
+            headers: {
+                'accept': 'application/json',
+                'Sid': pSid,
+                'Auth': pKotakSession,
+                'neo-fin-key': 'neotradeapi',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Bearer ' + pAccessToken
+            },
+            data: vData
+        };
+
+        axios.request(objConfig)
+            .then((objResponse) => {
+                resolve({ "status": "success", "message": "Success - Order Placed", "data": objResponse.data });
+            })
+            .catch((error) => {
+                reject({ "status": "danger", "message": "Errrrrrr... " + error.message, "data": error.message });
+                console.log("Errrrrrrrr--------");
+                console.log(error);
+            });
+    });
+    return objPromise;
 }
 
 const fnExecOptNrmlOrder1 = async (pHsServerId, pSid, pKotakSession, pAccessToken, pExchSeg, pSymbToken, pTrdSymbol, pBorS, pOrderQty, pLotSize, pGuid) => {

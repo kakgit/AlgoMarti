@@ -100,6 +100,119 @@ window.addEventListener("DOMContentLoaded", function(){
     });
 });
 
+async function fnExecPlaceBOTest(pBuySel, pOptionType){
+    let objSpotOption = document.getElementById("hidSpotOption");
+    let objHsServerId = document.getElementById("txtHsServerId");
+    let objSid = document.getElementById("txtSid");
+    let objAccessToken = document.getElementById("txtAccessToken");
+    let objKotakSession = document.getElementById("txtKotakSession");
+    let objClientId = document.getElementById("txtMobileNo");
+    let objOptQty = document.getElementById("txtOptionsQty");
+    let objMaxQty = document.getElementById("hidMaxQty");
+    let objLossBadge = document.getElementById("spnLossTrd");
+
+    try{
+        if(gIsTraderLogin === false){
+            fnGenMessage("Please Login to Trader!", `badge bg-danger`, "spnGenMsg");
+        }
+        else if(objSpotOption.value === ""){
+            fnGetSelSymbolData(0);
+            fnGenMessage("Please Select the Symbol", `badge bg-warning`, "spnGenMsg");
+        }
+        else if(objOptQty.value === "" || objOptQty.value <= 0){
+            fnGenMessage("Please Input Valid Quantity!", `badge bg-danger`, "spnGenMsg");
+        }
+        else{
+            let objLotSize = document.getElementById("txtOptionLotSize");
+            let objJsonFileName = document.getElementById("hidJsonFileName");
+            let objSearchSymbol = document.getElementById("hidSearchSymbol");
+            let objDdlOptionStep = document.getElementById("ddlOptionStrike");
+            let objStrikeInterval = document.getElementById("hidOptStrikeInterval");
+            let objOptExpiry = document.getElementById("ddlOptionsExpiry");
+            let objSegment = document.getElementById("hidSegment");
+            let objStopLoss = document.getElementById("txtOptionsSL1");
+            let objTakeProfit = document.getElementById("txtOptionsTP1");
+            let objCurrRate = document.getElementById("txtCurrentRate");
+            let objMaxOrdQty = document.getElementById("hidMaxPerOrdQty");
+
+            let vRndStrkByOptStep = await fnGetRoundedStrikeByOptStep(pOptionType, objSpotOption.value, objDdlOptionStep.value, objStrikeInterval.value);
+
+            let vExpiry2Epoch = await fnGetEpochBySegmentSeldExpiry(objSegment.value, objOptExpiry.value);
+
+            let objTokenDtls = await fnGetTokenDetails4Option(objJsonFileName.value, objSearchSymbol.value, pOptionType, vExpiry2Epoch, vRndStrkByOptStep);
+
+            if(objTokenDtls.status === "success"){
+                objLotSize.value = objTokenDtls.data.LotSize;
+                objMaxOrdQty.value = objTokenDtls.data.MaxPerOrdQty;
+
+                let obj1TimeCurrRate = await fnGet1TimeCurrOptRate(objTokenDtls.data.ExchSeg, objTokenDtls.data.Token, objCurrRate);
+
+                if(obj1TimeCurrRate.status === "success"){
+                    let vDate = new Date();
+                    let vMultOrdId = vDate.valueOf();
+
+                    let objNrmlOrdr = await fnPlaceOptBO(objHsServerId.value, objSid.value, objAccessToken.value, objKotakSession.value, objOptQty.value, objTokenDtls.data.LotSize, objTokenDtls.data.Token, objTokenDtls.data.ExchSeg, pBuySel, objTokenDtls.data.TrdSymbol, pOptionType, objSearchSymbol.value, vRndStrkByOptStep, obj1TimeCurrRate.data, objMaxQty.value, vMultOrdId, objStopLoss.value, objTakeProfit.value);
+                    if(objNrmlOrdr.status === "success"){
+                        // let vDate = new Date();
+                        // let vMonth = vDate.getMonth() + 1;
+                        // let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
+
+                        // let vAvgPrice = parseFloat(objNrmlOrdr.data.BuyPrice);
+                        // let vPerSL = parseFloat(objStopLoss.value);
+                        // let vPerTP = parseFloat(objTakeProfit.value);
+
+                        // gAmtSL = (vAvgPrice - vPerSL).toFixed(2);
+                        // gAmtTP = (vAvgPrice + vPerTP).toFixed(2);
+
+                        // objNrmlOrdr.data.ClientID = objClientId.value;                    
+                        // objNrmlOrdr.data.Expiry = objOptExpiry.value;
+                        // objNrmlOrdr.data.EntryDT = vToday;
+                        // objNrmlOrdr.data.StopLoss = gAmtSL;
+                        // objNrmlOrdr.data.TakeProfit = gAmtTP;
+                        // objNrmlOrdr.data.PointSL = vPerSL;
+                        // objNrmlOrdr.data.PointTP = vPerTP;
+
+                        // let vExcTradeDtls = { TradeData: [objNrmlOrdr.data] };
+
+                        // let objExcTradeDtls = JSON.stringify(vExcTradeDtls);
+                        // // alert(objExcTradeDtls);
+                        // localStorage.setItem("KotakCurrOptPosiS", objExcTradeDtls);
+                        // localStorage.setItem("QtyMulR", objNrmlOrdr.data.Quantity);
+                        // localStorage.setItem("MultOrdId", objNrmlOrdr.data.TradeID);
+                        // objLossBadge.style.visibility = "hidden";
+
+                        // console.log(vRndStrkByOptStep);
+                        // console.log(vExpiry2Epoch);
+                        // console.log(objTokenDtls);
+                        // console.log(obj1TimeCurrRate);
+                        // console.log(objNrmlOrdr);
+                        // // console.log(vExcTradeDtls);
+
+                        fnGenMessage(objNrmlOrdr.message, `badge bg-${objNrmlOrdr.status}`, "spnGenMsg");
+                        // fnSetInitOptTrdDtls();
+                        // fnGetSelSymbolData(0);
+                    }
+                    else{
+                        fnGenMessage(objNrmlOrdr.message, `badge bg-${objNrmlOrdr.status}`, "spnGenMsg");
+                    }
+                }
+                else{
+                    fnGenMessage(obj1TimeCurrRate.message, `badge bg-${obj1TimeCurrRate.status}`, "spnGenMsg");
+                }
+            }
+            else{
+                fnGenMessage(objTokenDtls.message, `badge bg-${objTokenDtls.status}`, "spnGenMsg");
+            }
+        }
+        // let objMktStat = await fnGetMarketStatus();
+
+        // console.log(objMktStat);
+    }
+    catch(err){
+        fnGenMessage(err.message, `badge bg-${err.status}`, "spnGenMsg");
+    }
+}
+
 async function fnExecPlaceOrderTest(pBuySel, pOptionType){
     let objSpotOption = document.getElementById("hidSpotOption");
     let objHsServerId = document.getElementById("txtHsServerId");
@@ -211,6 +324,33 @@ async function fnExecPlaceOrderTest(pBuySel, pOptionType){
     catch(err){
         fnGenMessage(err.message, `badge bg-${err.status}`, "spnGenMsg");
     }
+}
+
+function fnPlaceOptBO(pHsServerId, pSid, pAccessToken, pKotakSession, pOptionQty, pLotSize, pToken, pExchSeg, pBuySel, pTrdSymbol, pOptionType, pSearchSymbol, pStrikePrice, pCurrRate, pMaxQty, pMultOrdId, pPointsSL, pPointsTP){
+    const objPromise = new Promise((resolve, reject) => {
+        let vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+
+        let objRequestOptions = {
+            method: 'POST',
+            headers: vHeaders,
+            body: JSON.stringify({ HsServerId: pHsServerId, Sid: pSid, AccessToken: pAccessToken, KotakSession: pKotakSession, OptQty: pOptionQty, LotSize: pLotSize, Token: pToken, ExchSeg: pExchSeg, BorS: pBuySel, TrdSymbol: pTrdSymbol, OptionType: pOptionType, SearchSymbol: pSearchSymbol, StrikePrice: pStrikePrice, CurrRate: pCurrRate, MaxOptQty: pMaxQty, MultOrdId: pMultOrdId, PointsSL: pPointsSL, PointsTP: pPointsTP }),
+            redirect: 'follow'
+        };
+
+        fetch("/kotakReal/placeOptBracketOrder", objRequestOptions)
+            .then(objResponse => objResponse.json())
+            .then(objResult => {
+
+                resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });            
+            })
+            .catch(error => {
+                console.log('error: ', error);
+                fnGenMessage("Error in Placing Option Order.", `badge bg-danger`, "spnGenMsg");
+                reject({ "status": "danger", "message": "Error in Placing Option Order!", "data": "" });
+            });
+    });
+    return objPromise;
 }
 
 function fnPlaceOptNrmlOrdr1(pHsServerId, pSid, pAccessToken, pKotakSession, pOptionQty, pLotSize, pToken, pExchSeg, pBuySel, pTrdSymbol, pOptionType, pSearchSymbol, pStrikePrice, pCurrRate, pMaxQty, pMultOrdId){
@@ -781,6 +921,20 @@ function fnExecuteTrade(pExchSeg, pBuySel){
             console.log('error: ', error);
             fnGenMessage("Error to Fetch with Option Details.", `badge bg-danger`, "spnGenMsg");
         });
+    }
+}
+
+function fnInitiateManualOptionBO(pBuySel, pOptionType){
+    let objCurrPosiLst = localStorage.getItem("KotakCurrOptPosiS");
+
+    if (objCurrPosiLst === null)
+    {
+        fnExecPlaceBOTest(pBuySel, pOptionType);
+        // fnExecOptionTrade(pBuySel, pOptionType);
+    }
+    else
+    {
+        fnGenMessage("Close the Open Position to Execute New Trade!", `badge bg-warning`, "spnGenMsg");
     }
 }
 

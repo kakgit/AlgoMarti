@@ -159,20 +159,20 @@
                                                 <input type="text" class="form-control" id="txtOptionsTP1" name="txtOptionsTP1" value="" placeholder="Take Profit" />
                                             </div>
                                             <div class="col-6 col-lg-3 col-md-6">
-                                                <input type="text" id="hidJsonFileName" class="form-control" value="" placeholder="File Name" />
-                                                <input type="text" id="hidSpotPrice" class="form-control" value="" placeholder="Spot Price" />
+                                                <input type="hidden" id="hidJsonFileName" class="form-control" value="" placeholder="File Name" />
+                                                <input type="hidden" id="hidSpotPrice" class="form-control" value="" placeholder="Spot Price" />
                                             </div>
                                             <div class="col-6 col-lg-3 col-md-6">
-                                                <input type="text" id="hidSearchSymbol" class="form-control" value="" placeholder="Search Symbol" />
-                                                <input type="text" id="hidSpotOption" class="form-control" placeholder="Spot Option" value="" />
+                                                <input type="hidden" id="hidSearchSymbol" class="form-control" value="" placeholder="Search Symbol" />
+                                                <input type="hidden" id="hidSpotOption" class="form-control" placeholder="Spot Option" value="" />
                                             </div>
                                             <div class="col-6 col-lg-3 col-md-6">
-                                                <input type="text" id="hidSegment" class="form-control" value="" placeholder="Segment" />
-                                                <input type="text" id="hidMaxQty" class="form-control" placeholder="Max Quantity" value="" />
+                                                <input type="hidden" id="hidSegment" class="form-control" value="" placeholder="Segment" />
+                                                <input type="hidden" id="hidMaxQty" class="form-control" placeholder="Max Quantity" value="" />
                                             </div>
                                             <div class="col-6 col-lg-3 col-md-6">
-                                                <input type="text" id="hidOptStrikeInterval" class="form-control" value="" placeholder="Strike Interval" />
-                                                <input type="text" id="hidMaxPerOrdQty" class="form-control" placeholder="Max Order Quantity" value="" />
+                                                <input type="hidden" id="hidOptStrikeInterval" class="form-control" value="" placeholder="Strike Interval" />
+                                                <input type="hidden" id="hidMaxPerOrdQty" class="form-control" placeholder="Max Order Quantity" value="" />
                                             </div>
                                             <hr/>
                                             <div class="col-6 col-lg-3 col-md-6">
@@ -195,6 +195,17 @@
                                                     <button class="btn btn-outline-success" onclick="fnInitiateManualOption('B', 'CE');"><b>BUY CE</b></button>
                                                 </div>
                                             </div>
+                                            <hr/>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <div class="d-grid gap-1">
+                                                    <button class="btn btn-outline-danger" onclick="fnInitiateManualOptionBO('B', 'PE');"><b>BUY BO PE</b></button>
+                                                </div>
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <div class="d-grid gap-1">
+                                                    <button class="btn btn-outline-success" onclick="fnInitiateManualOptionBO('B', 'CE');"><b>BUY BO CE</b></button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="row" style="display:block;">
@@ -205,7 +216,7 @@
                                             <input type="hidden" id="txtSubUserId" class="form-control" value="" placeholder="Sub / UserID" />
                                             <input type="hidden" id="txtSid" class="form-control" value="" placeholder="SID" />
                                             <input type="hidden" id="txtHsServerId" class="form-control" value="" placeholder="Hs Server ID" />
-                                            <input type="text" id="hidLTP" class="form-control" value="" placeholder="LTP" />
+                                            <input type="hidden" id="hidLTP" class="form-control" value="" placeholder="LTP" />
                                         </div>
                                     </div>
                                 </div>
