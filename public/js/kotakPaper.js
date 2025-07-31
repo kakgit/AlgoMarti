@@ -2828,6 +2828,8 @@ function fnSetTodayOptTradeDetails(){
             vTempHtml += '</tr>';
         }
         vTempHtml += '<tr><td>Total Trades</td><td>'+ vNoOfTrades +'</td><td colspan="6"></td><td Style="text-align:right;font-weight:bold;color:red;">'+ (vCharges).toFixed(2) +'</td><td Style="text-align:right;font-weight:bold;color:orange;">'+ (vPrevCapital).toFixed(2) +'</td><td style="font-weight:bold;text-align:right;color:orange;">' + (vNetProfit).toFixed(2) + '</td></tr>';
+                
+        vTempHtml += '<tr><td colspan="9"></td><td>Yet to Recover: </td><td Style="text-align:right;font-weight:bold;">' + parseFloat(localStorage.getItem("TotLossAmtR")).toFixed(2) + '</td></tr>'
 
         objTodayTradeList.innerHTML = vTempHtml;
     }
