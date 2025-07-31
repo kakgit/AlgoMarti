@@ -426,10 +426,23 @@
                         <div class="card">
                             <div class="card-header">
                                 <div class="row">
-                                    <div class="col-6">
+                                    <div class="col-3">
                                         <h4>Closed Position(s)</h4>
                                     </div>
-                                    <div class="col-4">
+                                    <div class="col-1" style="font-weight: bold;">
+                                        P&L: 
+                                    </div>
+                                    <div class="col-1" id="tdHeadPL">
+                                        0.00
+                                    </div>
+                                    <div class="col-1">
+                                        
+                                    </div>
+                                    <div class="col-2" style="font-weight: bold;">
+                                        Yet to Recover:
+                                    </div>
+                                    <div class="col-2">
+                                        <span id="spnYtRL" style="text-align:left;font-weight:bold;color:red;">0.00</span>
                                     </div>
                                     <div class="col-1">
                                         <button class='nav-link' onclick="fnClearLocalStorageTemp();" role="tab" type="button">Clear All</button>
