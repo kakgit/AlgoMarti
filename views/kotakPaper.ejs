@@ -230,7 +230,6 @@
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
                                                         <input type="hidden" id="hidJsonFileName" class="form-control" value="" placeholder="File Name" />
-                                                        <input type="hidden" id="hidSpotPrice" class="form-control" value="" placeholder="Spot Price" />
                                                     </div>
                                                     <div class="col-6 col-lg-3 col-md-6">
                                                         <input type="hidden" id="hidSearchSymbol" class="form-control" value="" placeholder="Search Symbol" />
@@ -400,7 +399,24 @@
                                                 <div class="col-4">
                                                     <button class="btn btn-outline-info btn-block" id="btnUpdateSLTP" onclick="fnUpdateOptSLTP();"><b>UPDATE</b></button>
                                                 </div>
+
+                                                <div class="col-12">
+                                                    &nbsp;
+                                                </div>                                                
+                                                <div class="col-4">
+                                                    <input type="text" id="hidSpotPrice" class="form-control" value="" placeholder="Spot Price" />
+                                                </div>
+                                                <div class="col-4">
+                                                    <input type="text" id="txtReversalSL" class="form-control" value="20" placeholder="Reversal SL" />
+                                                </div>
                                                 <div class="col-2">
+                                                    <button class="btn btn-outline-info btn-block" id="btnUpdateRevSL" onclick="fnUpdateRevSL();"><b>UPDATE</b></button>
+                                                </div>
+                                                <div class="col-2">
+                                                    <input type="text" id="txtRevClosePrice" class="form-control" value="" placeholder="" />
+                                                </div>
+
+                                                <!-- <div class="col-2">
                                                     
                                                 </div>
                                                 <div class="col-2">
@@ -416,7 +432,7 @@
                                                     <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="resumeandpause('cr', '1');">Resume</button>
                                                 </div>
                                                 <div class="col-2">
-                                                </div>
+                                                </div> -->
                                             </div>
                                         </div>
                                     </div>

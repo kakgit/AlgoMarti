@@ -47,6 +47,7 @@ window.addEventListener("DOMContentLoaded", function(){
     });
 
     socket.on("tv-exec", (pMsg) => {
+        let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
         let objLiveMsgs = JSON.parse(localStorage.getItem("msgsCI"));
         let vDate = new Date();
         let vMonth = vDate.getMonth() + 1;
@@ -63,6 +64,11 @@ window.addEventListener("DOMContentLoaded", function(){
             objLiveMsgs.TrdMsgs.push(vTempMsg);
             localStorage.setItem("msgsCI", JSON.stringify(objLiveMsgs));
         }
+        if(objCurrPos === null || objCurrPos === ""){
+            localStorage.setItem("OHLC", JSON.stringify({OptType: pMsg.OptionType, Open: pMsg.Open, High: pMsg.High, Low: pMsg.Low, Close: pMsg.Close }));
+        }
+
+        console.log("OHLC: " + localStorage.getItem("OHLC"));
 
         fnInnitiateAutoTrade(pMsg);
     });
@@ -435,6 +441,7 @@ function fnExecSelSymbData(pThisVal){
                 let vUrl = "wss://mlhsm.kotaksecurities.com"; <!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
                 wssSelSymbolChg = new HSWebSocket(vUrl);
                 //console.log(vChannelNo);
+                console.log(wssSelSymbolChg);
 
                 wssSelSymbolChg.onopen = function () {
                     //fnGenMessage("Connection is Open!", `badge bg-success`, "spnGenMsg");
@@ -471,7 +478,7 @@ function fnExecSelSymbData(pThisVal){
                     if((result[0].name === "if")){
                         if(result[0].iv !== undefined){
                             objSpot.value = result[0].iv;
-                            fnIndexStreamResumePause('cp', '20');
+                            // fnIndexStreamResumePause('cp', '20');
                             fnGetSpotOption();
                             resolve({ "status": "success", "message": "Selected Symbol Data Received!", "data": "" });
                         }
@@ -480,7 +487,7 @@ function fnExecSelSymbData(pThisVal){
                     if(result[0].type === "cn"){
                         fnSubscribeIndexSym('ifs', vStreamObj, vChannelNo);
                     }
-                console.log("Streaming Msg is sent and Paused for Selected Script!");
+                console.log("Streaming....");
                 }
             }
         }
@@ -2000,12 +2007,12 @@ function fnStartStreamOptPrc(){
 
     if((objKotakSession.value !== "") && (objCurrPos !== null)){
         vStreamObj = objCurrPos.TradeData[0].ExchSeg + "|" + objCurrPos.TradeData[0].SymToken;
+
         let vUrl = "wss://mlhsm.kotaksecurities.com"; <!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
         userKotakWS = new HSWebSocket(vUrl);
         //console.log(vChannelNo);
 
         userKotakWS.onopen = function () {
-            //console.clear();
             // fnGenMessage("Connection is Open!", `badge bg-success`, "spnGenMsg");
             console.log("Streaming Connection is Open!");
             //fnLogTA('[Socket]: Connected to "' + vUrl + '"\n');
@@ -2050,6 +2057,10 @@ function fnStartStreamOptPrc(){
             console.log("Streaming Msg Sent!");
         }
     }
+}
+
+function fnStartStreamIdxPrc(){
+    fnGetSelSymbolData(1);
 }
 
 function fnCloseWS(){

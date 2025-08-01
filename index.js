@@ -138,8 +138,12 @@ app.post("/c3mh/:symb/:optTyp", (req, res) => {
 app.post("/tv-exec-msg", (req, res) => {
     const vSymbolName = req.body.symbol;
     const vDirection = req.body.direc;
+    const vOpen = req.body.open;
+    const vHigh = req.body.high;
+    const vLow = req.body.low;
+    const vClose = req.body.close;
 
-    let objMsg = {Symbol: vSymbolName, OptionType: vDirection};
+    let objMsg = {Symbol: vSymbolName, OptionType: vDirection, Open: vOpen, High: vHigh, Low: vLow, Close: vClose};
 
     io.emit("tv-exec", objMsg);
     res.send({ status: "success", message: objMsg.OptionType + " Trade Received!", data: objMsg });
