@@ -64,15 +64,28 @@ window.addEventListener("DOMContentLoaded", function(){
             objLiveMsgs.TrdMsgs.push(vTempMsg);
             localStorage.setItem("msgsCI", JSON.stringify(objLiveMsgs));
         }
-        if(objCurrPos === null || objCurrPos === ""){
-            localStorage.setItem("OHLC", JSON.stringify({SymbolNo: pMsg.Symbol, OptType: pMsg.OptionType, Open: pMsg.Open, High: pMsg.High, Low: pMsg.Low, Close: pMsg.Close }));
-        }
+        // //***** Check code later *****
+        // if(objCurrPos === null || objCurrPos === ""){
+        //     localStorage.setItem("OHLC", JSON.stringify({SymbolNo: pMsg.Symbol, OptType: pMsg.OptionType, Open: pMsg.Open, High: pMsg.High, Low: pMsg.Low, Close: pMsg.Close }));
+        // }
 
         fnInnitiateAutoTrade(pMsg);
     });
 
     socket.on("tv-exec-close", (pMsg) => {
-        fnCloseOptTrade();
+        let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
+
+        // console.log(objCurrPos.TradeData[0].OptionType);
+
+        if(objCurrPos === null || objCurrPos === ""){
+            fnGenMessage("No Open Positions to Close!", `badge bg-warning`, "spnGenMsg");
+        }
+        else if(objCurrPos.TradeData[0].OptionType === pMsg.OptionType){
+            fnCloseOptTrade();
+        }
+        else{
+            fnGenMessage(pMsg.OptionType + " is not Open to Close!", `badge bg-warning`, "spnGenMsg");
+        }
     });
 
     socket.on("CdlTrend", (pMsg) => {

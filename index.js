@@ -150,9 +150,12 @@ app.post("/tv-exec-msg", (req, res) => {
 });
 
 app.post("/tv-exec-close", (req, res) => {
+    const vDirection = req.body.direc;
 
-    io.emit("tv-exec-close");
-    res.send({ status: "success", message: "", data: "" });
+    let objMsg = {OptionType: vDirection};
+
+    io.emit("tv-exec-close", objMsg);
+    res.send({ status: "success", message: objMsg.OptionType + " Trade to Close Received!", data: objMsg });
 });
 
 app.post("/tv-msg-mahesh", (req, res) => {
