@@ -127,7 +127,7 @@
                                             <div class="col-6 col-lg-3 col-md-6">
                                                 <div class="input-group mb-3">
                                                     <button class="btn btn-danger" type="button" id="btnGetRatePE" onclick="fnGetCurrRateSettings('PE');"><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
-                                                    <input id="txtCurrentRate" type="number" min="1" class="form-control" placeholder="Current Rate" />
+                                                    <input id="txtCurrentRateView" type="number" min="1" class="form-control" placeholder="Current Rate" />
                                                     <button class="btn btn-success" type="button" id="btnGetRateCE" onclick="fnGetCurrRateSettings('CE');"><i class="fa fa-chevron-up" aria-hidden="true"></i></button>
                                                 </div>
                                             </div>
@@ -160,7 +160,6 @@
                                             </div>
                                             <div class="col-6 col-lg-3 col-md-6">
                                                 <input type="hidden" id="hidJsonFileName" class="form-control" value="" placeholder="File Name" />
-                                                <input type="hidden" id="hidSpotPrice" class="form-control" value="" placeholder="Spot Price" />
                                             </div>
                                             <div class="col-6 col-lg-3 col-md-6">
                                                 <input type="hidden" id="hidSearchSymbol" class="form-control" value="" placeholder="Search Symbol" />
@@ -305,7 +304,7 @@
                                                     <input type="number" class="form-control" placeholder="Timer" id="txtTimeMS" value="5" maxlength="3" />
                                                 </div>
                                                 <div class="col-5">
-                                                    
+                                                    <input type="text" id="txtCurrentRate" min="1" class="form-control" placeholder="Option Ticker" />
                                                 </div>
 
                                                 <div class="col-12">&nbsp;</div>
@@ -331,7 +330,24 @@
                                                 <div class="col-4">
                                                     <button class="btn btn-outline-info btn-block" id="btnUpdateSLTP" onclick="fnUpdateOptSLTP();"><b>UPDATE</b></button>
                                                 </div>
+
+                                                <div class="col-12">
+                                                    &nbsp;
+                                                </div>                                                
+                                                <div class="col-4">
+                                                    <input type="text" id="hidSpotPrice" class="form-control" value="" placeholder="Spot Price" />
+                                                </div>
+                                                <div class="col-4">
+
+                                                </div>
                                                 <div class="col-2">
+
+                                                </div>
+                                                <div class="col-2">
+                                                    
+                                                </div>
+
+                                                <!-- <div class="col-2">
                                                     
                                                 </div>
                                                 <div class="col-2">
@@ -347,7 +363,7 @@
                                                     <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="resumeandpause('cr', '1');">Resume</button>
                                                 </div>
                                                 <div class="col-2">
-                                                </div>
+                                                </div> -->
                                             </div>
                                         </div>
                                     </div>
@@ -357,10 +373,20 @@
                         <div class="card">
                             <div class="card-header">
                                 <div class="row">
-                                    <div class="col-6">
+                                    <div class="col-3">
                                         <h4>Orderbook</h4>
                                     </div>
-                                    <div class="col-4">
+                                    <div class="col-1" style="font-weight: bold;">
+                                        P&L: 
+                                    </div>
+                                    <div class="col-2" id="tdHeadPL">
+                                        0.00
+                                    </div>
+                                    <div class="col-2" style="font-weight: bold;">
+                                        Yet to Recover:
+                                    </div>
+                                    <div class="col-2">
+                                        <span id="spnYtRL" style="text-align:left;font-weight:bold;color:red;">0.00</span>
                                     </div>
                                     <div class="col-1">
                                         <button class='nav-link' onclick="fnClearLocalStorageTemp();" role="tab" type="button">Clear All</button>
