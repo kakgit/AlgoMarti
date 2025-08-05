@@ -1,5 +1,6 @@
     
 let gIsTraderLogin = false;
+let userWS = null;
 let userKotakWS = "";
 let wssViewRate = "";
 let wssSelSymbolChg = "";
@@ -449,13 +450,12 @@ function fnExecSelSymbData(pThisVal){
 
             let objKotakSession = document.getElementById("txtKotakSession");
             let objSid = document.getElementById("txtSid");
-            let vChannelNo = 20;
+            let vChannelNo = 2;
 
             if(objKotakSession.value !== ""){
                 let vUrl = "wss://mlhsm.kotaksecurities.com"; //<!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
                 wssSelSymbolChg = new HSWebSocket(vUrl);
                 //console.log(vChannelNo);
-                console.log(wssSelSymbolChg);
 
                 wssSelSymbolChg.onopen = function () {
                     //fnGenMessage("Connection is Open!", `badge bg-success`, "spnGenMsg");
@@ -469,9 +469,7 @@ function fnExecSelSymbData(pThisVal){
                 }
 
                 wssSelSymbolChg.onclose = function () {
-                    // objDdlOptSym.value = 0;
                     fnGetSelSymbolData(0);
-                    alert();
                     //fnGenMessage("Connection is Closed!", `badge bg-warning`, "spnGenMsg");
                     //fnLogTA("[Socket]: Disconnected !\n");
                     console.log("Streaming Connection is Closed for Selected Script!");
@@ -493,7 +491,7 @@ function fnExecSelSymbData(pThisVal){
                     if((result[0].name === "if")){
                         if(result[0].iv !== undefined){
                             objSpot.value = result[0].iv;
-                            // fnIndexStreamResumePause('cp', '20');
+                            // fnIndexStreamResumePause('cp', '1');
                             fnGetSpotOption();
                             resolve({ "status": "success", "message": "Selected Symbol Data Received!", "data": "" });
                         }
@@ -787,8 +785,13 @@ async function fnExecOptionTrade(pBuySel, pOptionType){
                         objLossBadge.style.visibility = "hidden";
 
                         fnGenMessage(objNrmlOrdr.message, `badge bg-${objNrmlOrdr.status}`, "spnGenMsg");
+
+                        fnIndexStreamResumePause('cp', '1');
+
+                        // fnCloseWS(wssSelSymbolChg);
+
                         fnSetInitOptTrdDtls();
-                        fnGetSelSymbolData(0);
+                        // fnGetSelSymbolData(0);
                     }
                     else{
                         fnGenMessage(objNrmlOrdr.message, `badge bg-${objNrmlOrdr.status}`, "spnGenMsg");
@@ -1559,6 +1562,17 @@ fnIndexStreamResumePause = function(typeRequest, channel_number){
     }
 }
 
+function fnCloseWS(objSocket){
+    // console.log("Sess: " + userKotakWS)
+    if(objSocket === ""){
+        console.log("No Connection is Open!");
+    }
+    else{
+        objSocket.close();
+        console.log("Connection is Closed!");
+    }
+}
+
 function fnCloseTrade(){
     let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrPosiS"));
 
@@ -2076,17 +2090,6 @@ function fnStartStreamOptPrc(){
 
 function fnStartStreamIdxPrc(){
     fnGetSelSymbolData(1);
-}
-
-function fnCloseWS(){
-    // console.log("Sess: " + userKotakWS)
-    if(userKotakWS === ""){
-        console.log("No Connection is Open!");
-    }
-    else{
-        userKotakWS.close();
-        console.log("Connection is Closed!");
-    }
 }
 
 function fnLoadOptTimerSwitchSetting(){
@@ -3005,7 +3008,6 @@ function fnGetOrderTradeBook(){
     fnGetTradeBook();
 }
 
-
 function fnGetSetAutoPaperTraderStatus(){
     let isLsAutoTrader = localStorage.getItem("isAutoPaperTrader");
     let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
@@ -3088,3 +3090,113 @@ function fnGetSetPaperTraderLoginStatus(){
     fnGetSetAllStatus();
 }
 
+
+
+// ***** SAMPLE Stream for Testing ******//
+
+function wconnect(typeFunction){
+    var token = document.getElementById("txtAccessToken").value;
+    var sid = document.getElementById("txtSid").value;
+    var handshakeServerId = document.getElementById("txtHsServerId").value;
+    
+    if(typeFunction=='Hsi'){
+        connectHsi(token, sid, handshakeServerId);    
+        
+    }
+    else if(typeFunction=='Hsm'){
+        connectHsm(token, sid);  
+    }
+        
+    return;
+}
+
+function connectHsm(token, sid)
+{
+    let objIndexTick = document.getElementById("txtIndex");
+    let objScriptTick = document.getElementById("txtScript");
+
+    let url = "wss://mlhsm.kotaksecurities.com"; <!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
+    userWS = new HSWebSocket(url);
+    console.log(document.getElementById('channel_number').value)
+
+
+    userWS.onopen = function () {
+        consoleLog('[Socket]: Connected to "' + url + '"\n');
+        let jObj = {};
+        jObj["Authorization"] = token;
+        jObj["Sid"] = sid; 
+        jObj["type"] = "cn";
+        userWS.send(JSON.stringify(jObj));
+    }
+
+    userWS.onclose = function () {
+        consoleLog("[Socket]: Disconnected !\n");
+        wconnect("Hsm");
+    }
+
+    userWS.onerror = function () {
+        consoleLog("[Socket]: Error !\n");
+    }
+
+    userWS.onmessage = function (msg) {
+        const result= JSON.parse(msg);
+        // console.log(result);
+        consoleLog('[Res]: ' + msg + "\n");
+
+        if((result[0].name === "if")){
+            if(result[0].iv !== undefined){
+                objIndexTick.value = result[0].iv;
+            }
+        }
+        if((result[0].name === "sf")){
+            if(result[0].ltp !== undefined){
+                objScriptTick.value = result[0].ltp;
+            }
+        }
+
+        if(result[0].type === "cn"){
+            wsub('ifs', 'sub_indices', '5');
+            setTimeout(wsub, 1000, 'mws', 'sub_scrips', '6');
+            // wsub('mws', 'sub_scrips', '2');
+        }
+    }
+}
+
+function consoleLog(printLogs){
+    const d = new Date();
+    $('#stream_scrips').append(d + "\n");
+    $('#stream_scrips').append(printLogs);
+    $('#stream_scrips').append("\n" +"\n"); 
+    var psconsole = $('#stream_scrips');
+
+    if(psconsole.length)
+       psconsole.scrollTop(psconsole[0].scrollHeight - psconsole.height());
+}
+
+resumeandpause11 = function(typeRequest, channel_number) {
+    let jObj = {};
+    jObj["type"] = typeRequest;
+    jObj["channelnums"] = channel_number.split(',').map(function (val) { return parseInt(val, 10); })
+    if (userWS != null) {
+        let req = JSON.stringify(jObj);
+        userWS.send(req);
+    }
+}
+
+function wsub(typeRequest, scrips, pChannelNo){
+    channel_number = pChannelNo; //$('#channel_number').val();
+    scrips = $('#'+scrips).val();
+    subscribe_scrip(typeRequest, scrips, channel_number); 
+}
+
+function subscribe_scrip(typeRequest, scrips, channel_number)
+{
+    //  mws ifs dps 
+    let jObj = {"type":typeRequest, "scrips":scrips, "channelnum":channel_number};
+    if (userWS != null) {
+        userWS.send(JSON.stringify(jObj));
+    }
+    else{
+        console.log("Please Connect to Websocket.......")
+    }
+}

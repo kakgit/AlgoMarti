@@ -267,7 +267,7 @@
                                             </div>
                                         </div>
                                     </div>                        
-                                    <div class="row" style="display:none;">
+                                    <div class="row" style="display:block;">
                                         <div class="col-12 col-lg-12 col-md-12">
                                             <input type="text" id="txtKotakSession" class="form-control" value="" placeholder="Kotak Session" />
                                             <input type="text" id="txtViewToken" class="form-control" value="" placeholder="View Token" />
@@ -275,6 +275,7 @@
                                             <input type="text" id="txtSubUserId" class="form-control" value="" placeholder="Sub / UserID" />
                                             <input type="text" id="txtSid" class="form-control" value="" placeholder="SID" />
                                             <input type="text" id="txtHsServerId" class="form-control" value="" placeholder="Hs Server ID" />
+                                            <input type="text" id="channel_number" class="form-control" value="1" placeholder="Channel Number" />
                                             <input type="text" id="hidLTP" class="form-control" value="" placeholder="LTP" />
                                 
                                             <input type="hidden" id="hidStrikeInterval" placeholder="Strike Interval" />
@@ -518,6 +519,49 @@
                                 <div class="collapse show" id="divAlgoMsgsClps">
                                 </div>
                             </div>
+                        </div>
+                        <div>
+                            <br />		
+                            <input type="button" id="connect_hsm" class="bg-info" value="Connect HSM" onclick="wconnect('Hsm')" /> 
+                            <br />		
+
+                            Channels <br />
+                            <input type="button" id="pause_channel" class="bg-danger" value="Pause " onclick="resumeandpause11('cp',document.getElementById('channel_number').value)" />
+                            
+                            <input type="button" id="resume_channel" class="bg-success" value="Resume" onclick="resumeandpause11('cr',document.getElementById('channel_number').value)" /> <br />	   
+                            <br/>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    Stream for Scrips(input=exchange_identifier)  <br /> 
+                                    <textarea id="sub_scrips" value="">nse_cm|11536</textarea> <br />
+                                        
+                                    <input type="button" value="Subscribe Scrip" rows="5" cols="100" onclick="wsub('mws', 'sub_scrips', '6');" /><input id="txtScript" type="text" /><br />
+                                </div>
+                                <div class="col-sm-4">
+                                    Stream Indices <br /> 
+                                    <textarea id="sub_indices">nse_cm|Nifty 50</textarea><br />
+                                    <input type="button" value="Subscribe Index" rows="5" cols="100" onclick="wsub('ifs', 'sub_indices', '5');" /><input id="txtIndex" type="text" /><br />
+                                </div>
+                                <div class="col-sm-4">
+                                    Stream MD  <br /> 
+                                    <textarea id="sub_depth">nse_cm|11536&nse_cm|11000&nse_cm|11001</textarea><br />
+                                    <input type="button" value="Subscribe Depth" rows="5" cols="100" onclick="wsub('dps', 'sub_depth', '3');" /><br />
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-3">			   
+                                </div>
+                                <div class="col-sm-9">
+                                    Streaming ... Scrips nse_cm|1594 nse_cm|3456 nse_cm|11536<br />
+                                    <textarea id="stream_scrips" rows="10" cols="100"></textarea>
+                                    <br />
+                                    Streaming ... Orders <br />
+                                    <textarea id="stream_scrips1" rows="10" cols="100"></textarea>
+                                    <br />
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
