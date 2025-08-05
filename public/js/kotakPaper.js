@@ -64,14 +64,20 @@ window.addEventListener("DOMContentLoaded", function(){
             objLiveMsgs.TrdMsgs.push(vTempMsg);
             localStorage.setItem("msgsCI", JSON.stringify(objLiveMsgs));
         }
+<<<<<<< HEAD
         // //***** Check code later *****
         // if(objCurrPos === null || objCurrPos === ""){
         //     localStorage.setItem("OHLC", JSON.stringify({SymbolNo: pMsg.Symbol, OptType: pMsg.OptionType, Open: pMsg.Open, High: pMsg.High, Low: pMsg.Low, Close: pMsg.Close }));
         // }
+=======
+        if(objCurrPos === null || objCurrPos === ""){
+            localStorage.setItem("OHLC", JSON.stringify({OptType: pMsg.OptionType, Open: pMsg.Open, High: pMsg.High, Low: pMsg.Low, Close: pMsg.Close }));
+        }
+>>>>>>> parent of b44515e (Updated TV Close Option)
 
-        fnInnitiateAutoTrade(pMsg);
-    });
+        console.log("OHLC: " + localStorage.getItem("OHLC"));
 
+<<<<<<< HEAD
     socket.on("tv-exec-close", (pMsg) => {
         let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
 
@@ -86,6 +92,9 @@ window.addEventListener("DOMContentLoaded", function(){
         else{
             fnGenMessage(pMsg.OptionType + " is not Open to Close!", `badge bg-warning`, "spnGenMsg");
         }
+=======
+        fnInnitiateAutoTrade(pMsg);
+>>>>>>> parent of b44515e (Updated TV Close Option)
     });
 
     socket.on("CdlTrend", (pMsg) => {
@@ -404,6 +413,7 @@ function fnExecSelSymbData(pThisVal){
 
         let objFileName = document.getElementById("hidJsonFileName");
         let objSearchSymbol = document.getElementById("hidSearchSymbol");
+        let objSpot = document.getElementById("hidSpotPrice");
         let objSegment = document.getElementById("hidSegment");
         let objLotSize = document.getElementById("txtOptionLotSize");
         // let objStopLoss = document.getElementById("txtOptionsSL1");
@@ -412,7 +422,6 @@ function fnExecSelSymbData(pThisVal){
         let objSpotOption = document.getElementById("hidSpotOption");
         let objMaxQty = document.getElementById("hidMaxQty");
         let objCurrentRate = document.getElementById("txtCurrentRate");
-        let objSpotPrice = document.getElementById("hidSpotPrice");
         let vSymName = "";
 
         for (let i = 0; i < gIndData.Symbol.length; i++) {
@@ -437,25 +446,25 @@ function fnExecSelSymbData(pThisVal){
             objLotSize.value = "";
             // objStopLoss.value = "";
             // objTakeProfit.value = "";
+            objSpot.value = "";
             objStrikeInterval.value = "";
             objSpotOption.value = "";
             objMaxQty.value = "";
+<<<<<<< HEAD
             objSpotPrice.value = "";
             wssSelSymbolChg.close();
         }
         else{
             objSpotPrice.value = "";
 
+=======
+            // objCurrentRate.value = "";
+        }
+        else{
+            objSpot.value = "";
+            // objCurrentRate.value = "";
+>>>>>>> parent of b44515e (Updated TV Close Option)
             let vStreamObj = objSegment.value + "|" + vSymName;
-            let objOHLC = JSON.parse(localStorage.getItem("OHLC"));
-
-            if(objOHLC === null || objOHLC === ""){
-                localStorage.setItem("OHLC", JSON.stringify({ StreamObj : vStreamObj }));
-            }
-            else{
-                objOHLC.StreamObj = vStreamObj;
-                localStorage.setItem("OHLC", JSON.stringify(objOHLC));
-            }
 
             let objKotakSession = document.getElementById("txtKotakSession");
             let objSid = document.getElementById("txtSid");
@@ -465,6 +474,7 @@ function fnExecSelSymbData(pThisVal){
                 let vUrl = "wss://mlhsm.kotaksecurities.com"; <!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
                 wssSelSymbolChg = new HSWebSocket(vUrl);
                 //console.log(vChannelNo);
+                console.log(wssSelSymbolChg);
 
                 wssSelSymbolChg.onopen = function () {
                     //fnGenMessage("Connection is Open!", `badge bg-success`, "spnGenMsg");
@@ -485,7 +495,7 @@ function fnExecSelSymbData(pThisVal){
                 }
 
                 wssSelSymbolChg.onerror = function () {
-                    objSpotPrice.value = "";
+                    objSpot.value = "";
                     objSegment.value = "";
                     // fnGenMessage("Error in Socket Connection!", `badge bg-danger`, "spnGenMsg");
                     console.log("Error in Streaming for Selected Script!");
@@ -499,8 +509,8 @@ function fnExecSelSymbData(pThisVal){
                     
                     if((result[0].name === "if")){
                         if(result[0].iv !== undefined){
-                            objSpotPrice.value = result[0].iv;
-                            fnIndexStreamResumePause('cp', '20');
+                            objSpot.value = result[0].iv;
+                            // fnIndexStreamResumePause('cp', '20');
                             fnGetSpotOption();
                             resolve({ "status": "success", "message": "Selected Symbol Data Received!", "data": "" });
                         }
@@ -1551,7 +1561,7 @@ resumeandpause = function(typeRequest, channel_number){
     jObj["channelnums"] = channel_number.split(',').map(function (val) { return parseInt(val, 10); })
     if(userKotakWS != null) {
         let req = JSON.stringify(jObj);
-        userKotakWS.send(req);
+       userKotakWS.send(req);
     }
 }
 
@@ -1560,6 +1570,7 @@ fnIndexStreamResumePause = function(typeRequest, channel_number){
     jObj["type"] = typeRequest;
     jObj["channelnums"] = channel_number.split(',').map(function (val) { return parseInt(val, 10); })
     if(wssSelSymbolChg != null) {
+
         let req = JSON.stringify(jObj);
         wssSelSymbolChg.send(req);
     }
@@ -2092,20 +2103,6 @@ function fnCloseWS(){
         userKotakWS.close();
         console.log("Connection is Closed!");
     }
-}
-
-function fnUpdateRevSL(){
-    if(wssSelSymbolChg === ""){
-        console.log("No Connection is Open!");
-    }
-    else{
-        wssSelSymbolChg.close();
-        console.log("Connection is Closed!");
-    }
-
-    console.log(localStorage.getItem("OHLC"));
-
-    // fnGetSelSymbolData(1);
 }
 
 function fnLoadOptTimerSwitchSetting(){
