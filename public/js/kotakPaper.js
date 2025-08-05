@@ -450,21 +450,22 @@ function fnExecSelSymbData(pThisVal){
             objStrikeInterval.value = "";
             objSpotOption.value = "";
             objMaxQty.value = "";
-<<<<<<< HEAD
             objSpotPrice.value = "";
             wssSelSymbolChg.close();
         }
         else{
             objSpotPrice.value = "";
 
-=======
-            // objCurrentRate.value = "";
-        }
-        else{
-            objSpot.value = "";
-            // objCurrentRate.value = "";
->>>>>>> parent of b44515e (Updated TV Close Option)
             let vStreamObj = objSegment.value + "|" + vSymName;
+            let objOHLC = JSON.parse(localStorage.getItem("OHLC"));
+
+            if(objOHLC === null || objOHLC === ""){
+                localStorage.setItem("OHLC", JSON.stringify({ StreamObj : vStreamObj }));
+            }
+            else{
+                objOHLC.StreamObj = vStreamObj;
+                localStorage.setItem("OHLC", JSON.stringify(objOHLC));
+            }
 
             let objKotakSession = document.getElementById("txtKotakSession");
             let objSid = document.getElementById("txtSid");
@@ -488,7 +489,9 @@ function fnExecSelSymbData(pThisVal){
                 }
 
                 wssSelSymbolChg.onclose = function () {
+                    // objDdlOptSym.value = 0;
                     fnGetSelSymbolData(0);
+                    alert();
                     //fnGenMessage("Connection is Closed!", `badge bg-warning`, "spnGenMsg");
                     //fnLogTA("[Socket]: Disconnected !\n");
                     console.log("Streaming Connection is Closed for Selected Script!");
@@ -519,7 +522,7 @@ function fnExecSelSymbData(pThisVal){
                     if(result[0].type === "cn"){
                         fnSubscribeIndexSym('ifs', vStreamObj, vChannelNo);
                     }
-                // console.log("Streaming....");
+                console.log("Streaming....");
                 }
             }
         }
@@ -1841,13 +1844,14 @@ function fnGetCurrRateStream(pExchSeg, pToken, objRateTxt){
 
         userKotakWS.onerror = function () {
             objRateTxt.value = "";
-            fnGenMessage("Error in Curr Rate Socket Connection!", `badge bg-danger`, "spnGenMsg");
+            fnGenMessage("Error in Socket Connection!", `badge bg-danger`, "spnGenMsg");
             //fnLogTA("[Socket]: Error !\n");
         }
 
         userKotakWS.onmessage = function (msg) {
             const result= JSON.parse(msg);
             
+            // alert(result[0].name);
             if((result[0].name === "sf")){
                 if(result[0].ltp !== undefined){
                     objRateTxt.value = result[0].ltp;
@@ -2044,7 +2048,7 @@ function fnStartStreamOptPrc(){
         //console.log(vChannelNo);
 
         userKotakWS.onopen = function () {
-            // fnGenMessage("Option Streaming Connection is Open!", `badge bg-success`, "spnGenMsg");
+            // fnGenMessage("Connection is Open!", `badge bg-success`, "spnGenMsg");
             console.log("Streaming Connection is Open!");
             //fnLogTA('[Socket]: Connected to "' + vUrl + '"\n');
             let jObj = {};
@@ -2061,15 +2065,15 @@ function fnStartStreamOptPrc(){
             console.log("Streaming Connection is Closed!");
             // userKotakWS.open();
             //fnLogTA("[Socket]: Disconnected !\n");
-            // if (objCurrPos !== null){
-            //     fnStartStreamOptPrc();
-            // }
+            if (objCurrPos !== null){
+                fnStartStreamOptPrc();
+            }
         }
 
         userKotakWS.onerror = function () {
             objLTP.value = "";
-            fnGenMessage("Error in Option Streaming Socket Connection!", `badge bg-danger`, "spnGenMsg");
-            console.log("Streaming Connection Error!");
+            // fnGenMessage("Error in Socket Connection!", `badge bg-danger`, "spnGenMsg");
+            console.log("Error in Streaming!");
             //fnLogTA("[Socket]: Error !\n");
         }
 
@@ -2085,7 +2089,7 @@ function fnStartStreamOptPrc(){
             if(result[0].type === "cn"){
                 fnSubscribeScript('mws', vStreamObj, vChannelNo);
             }
-            console.log("Streaming Connection Msg Sent!");
+            console.log("Streaming Msg Sent!");
         }
     }
 }
@@ -2977,7 +2981,7 @@ function fnGet1TimeCurrOptRate(pExchSeg, pToken, objRateTxt){
                 // objDdlOptSym.value = 0;
                 // fnGetSelSymbolData(0);
                 objRateTxt.value = "";
-                fnGenMessage("1 Time Connection is Closed!", `badge bg-warning`, "spnGenMsg");
+                //fnGenMessage("Connection is Closed!", `badge bg-warning`, "spnGenMsg");
                 reject({ "status": "warning", "message": "1 Time Connection is Closed!", "data": "" });
                 //fnLogTA("[Socket]: Disconnected !\n");
             }
