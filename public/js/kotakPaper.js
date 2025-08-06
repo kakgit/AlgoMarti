@@ -1,6 +1,5 @@
     
 let gIsTraderLogin = false;
-let userWS = null;
 let userKotakWS = "";
 let wssViewRate = "";
 let wssSelSymbolChg = "";
@@ -126,7 +125,7 @@ window.addEventListener("DOMContentLoaded", function(){
 function fnGetSetAllStatus(){
     if(gIsTraderLogin){
         let vTraderTab = localStorage.getItem("TraderTab");
-
+        //fnConnectionWS();
         fnSetDefaultTraderTab();
         fnSetRecentDates();
         fnGetSetUserProfileData();
@@ -491,7 +490,8 @@ function fnExecSelSymbData(pThisVal){
                     if((result[0].name === "if")){
                         if(result[0].iv !== undefined){
                             objSpot.value = result[0].iv;
-                            // fnIndexStreamResumePause('cp', '1');
+                            unSubSelSymb('ifu', vStreamObj, vChannelNo);
+
                             fnGetSpotOption();
                             resolve({ "status": "success", "message": "Selected Symbol Data Received!", "data": "" });
                         }
@@ -500,7 +500,6 @@ function fnExecSelSymbData(pThisVal){
                     if(result[0].type === "cn"){
                         fnSubscribeIndexSym('ifs', vStreamObj, vChannelNo);
                     }
-                console.log("Streaming....");
                 }
             }
         }
@@ -540,6 +539,28 @@ function fnSubscribeRateView(pReqType, pSymbolData, pChannelNo){
     //  mws ifs dps 
     let jObj = {"type":pReqType, "scrips":pSymbolData, "channelnum":pChannelNo};
     wssViewRate.send(JSON.stringify(jObj));
+}
+
+function unSubSelSymb(typeRequest, scrips, channel_number){
+    let jObj = {"type":typeRequest, "scrips":scrips, "channelnum":channel_number};
+    if (wssSelSymbolChg != null) {
+        wssSelSymbolChg.send(JSON.stringify(jObj));
+        console.log("Streaming Closed **********************")
+    }
+    else{
+        console.log("Please Connect to Websocket.......")
+    }    
+}
+
+function unSub1TimeOptRate(typeRequest, scrips, channel_number){
+    let jObj = {"type":typeRequest, "scrips":scrips, "channelnum":channel_number};
+    if (userKotakWS != null) {
+        userKotakWS.send(JSON.stringify(jObj));
+        console.log("1Time Opt Streaming Closed **********************")
+    }
+    else{
+        console.log("Please Connect to Websocket.......")
+    }    
 }
 
 function fnGetSetUserProfileData(){
@@ -779,19 +800,15 @@ async function fnExecOptionTrade(pBuySel, pOptionType){
                         let vExcTradeDtls = { TradeData: [objNrmlOrdr.data] };
 
                         let objExcTradeDtls = JSON.stringify(vExcTradeDtls);
-                        // alert(objExcTradeDtls);
+
                         localStorage.setItem("KotakCurrOptPosiS", objExcTradeDtls);
                         localStorage.setItem("QtyMulR", objNrmlOrdr.data.Quantity);
                         objLossBadge.style.visibility = "hidden";
 
                         fnGenMessage(objNrmlOrdr.message, `badge bg-${objNrmlOrdr.status}`, "spnGenMsg");
 
-                        fnIndexStreamResumePause('cp', '1');
-
-                        // fnCloseWS(wssSelSymbolChg);
-
                         fnSetInitOptTrdDtls();
-                        // fnGetSelSymbolData(0);
+                        fnGetSelSymbolData(0);
                     }
                     else{
                         fnGenMessage(objNrmlOrdr.message, `badge bg-${objNrmlOrdr.status}`, "spnGenMsg");
@@ -1548,17 +1565,6 @@ resumeandpause = function(typeRequest, channel_number){
     if(userKotakWS != null) {
         let req = JSON.stringify(jObj);
        userKotakWS.send(req);
-    }
-}
-
-fnIndexStreamResumePause = function(typeRequest, channel_number){
-    let jObj = {};
-    jObj["type"] = typeRequest;
-    jObj["channelnums"] = channel_number.split(',').map(function (val) { return parseInt(val, 10); })
-    if(wssSelSymbolChg != null) {
-
-        let req = JSON.stringify(jObj);
-        wssSelSymbolChg.send(req);
     }
 }
 
@@ -2589,8 +2595,8 @@ function fnInitClsOptPaperTrade(pQty){
             clearInterval(gStreamInst);
             localStorage.removeItem("KotakCurrOptPosiS");
             fnResetOpenPositionDetails();
-            // userKotakWS.close();
-            resumeandpause('cp', '1');
+            userKotakWS.close();
+            // resumeandpause('cp', '1');
             fnGenMessage("No Open Position", `badge bg-success`, "btnPositionStatus");
         }
         else{
@@ -2965,7 +2971,7 @@ function fnGet1TimeCurrOptRate(pExchSeg, pToken, objRateTxt){
                 // fnGetSelSymbolData(0);
                 objRateTxt.value = "";
                 //fnGenMessage("Connection is Closed!", `badge bg-warning`, "spnGenMsg");
-                reject({ "status": "warning", "message": "1 Time Connection is Closed!", "data": "" });
+                //reject({ "status": "warning", "message": "1 Time Connection is Closed!", "data": "" });
                 //fnLogTA("[Socket]: Disconnected !\n");
             }
 
@@ -2984,7 +2990,9 @@ function fnGet1TimeCurrOptRate(pExchSeg, pToken, objRateTxt){
                     if(result[0].ltp !== undefined){
                         objRateTxt.value = result[0].ltp;
                         //objRateTxt.value = result[0].iv;
-                        resumeandpause('cp', '20');
+                        unSub1TimeOptRate('mwu', vStreamObj, vChannelNo);
+
+                        // resumeandpause('cp', '20');
 
                         resolve({ "status": "success", "message": "Rate Received Successfully!", "data": objRateTxt.value });
                     }
@@ -3115,7 +3123,7 @@ function connectHsm(token, sid)
     let objIndexTick = document.getElementById("txtIndex");
     let objScriptTick = document.getElementById("txtScript");
 
-    let url = "wss://mlhsm.kotaksecurities.com"; <!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
+    let url = "wss://mlhsm.kotaksecurities.com"; //<!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
     userWS = new HSWebSocket(url);
     console.log(document.getElementById('channel_number').value)
 
@@ -3155,8 +3163,8 @@ function connectHsm(token, sid)
         }
 
         if(result[0].type === "cn"){
-            wsub('ifs', 'sub_indices', '5');
-            setTimeout(wsub, 1000, 'mws', 'sub_scrips', '6');
+            // wsub('ifs', 'sub_indices', '5');
+            // setTimeout(wsub, 1000, 'mws', 'sub_scrips', '6');
             // wsub('mws', 'sub_scrips', '2');
         }
     }
@@ -3189,8 +3197,13 @@ function wsub(typeRequest, scrips, pChannelNo){
     subscribe_scrip(typeRequest, scrips, channel_number); 
 }
 
-function subscribe_scrip(typeRequest, scrips, channel_number)
-{
+function wunsub(typeRequest, scrips, pChannelNo){
+    channel_number = pChannelNo; //$('#channel_number').val();
+    scrips = $('#'+scrips).val();
+    unSubTicker(typeRequest, scrips, channel_number); 
+}
+
+function subscribe_scrip(typeRequest, scrips, channel_number){
     //  mws ifs dps 
     let jObj = {"type":typeRequest, "scrips":scrips, "channelnum":channel_number};
     if (userWS != null) {
@@ -3199,4 +3212,15 @@ function subscribe_scrip(typeRequest, scrips, channel_number)
     else{
         console.log("Please Connect to Websocket.......")
     }
+}
+
+function unSubTicker(typeRequest, scrips, channel_number){
+//mwu
+    let jObj = {"type":typeRequest, "scrips":scrips, "channelnum":channel_number};
+    if (userWS != null) {
+        userWS.send(JSON.stringify(jObj));
+    }
+    else{
+        console.log("Please Connect to Websocket.......")
+    }    
 }

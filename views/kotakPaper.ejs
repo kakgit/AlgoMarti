@@ -267,7 +267,7 @@
                                             </div>
                                         </div>
                                     </div>                        
-                                    <div class="row" style="display:block;">
+                                    <div class="row" style="display:none;">
                                         <div class="col-12 col-lg-12 col-md-12">
                                             <input type="text" id="txtKotakSession" class="form-control" value="" placeholder="Kotak Session" />
                                             <input type="text" id="txtViewToken" class="form-control" value="" placeholder="View Token" />
@@ -275,17 +275,17 @@
                                             <input type="text" id="txtSubUserId" class="form-control" value="" placeholder="Sub / UserID" />
                                             <input type="text" id="txtSid" class="form-control" value="" placeholder="SID" />
                                             <input type="text" id="txtHsServerId" class="form-control" value="" placeholder="Hs Server ID" />
-                                            <input type="text" id="channel_number" class="form-control" value="1" placeholder="Channel Number" />
+                                            <input type="text" id="channel_number" class="form-control" value="5,6" placeholder="Channel Number" />
                                             <input type="text" id="hidLTP" class="form-control" value="" placeholder="LTP" />
                                 
-                                            <input type="hidden" id="hidStrikeInterval" placeholder="Strike Interval" />
-                                            <input type="hidden" id="hidToken" placeholder="Script Token" />
-                                            <input type="hidden" id="hidExchange" placeholder="Exchange" />
-                                            <input type="hidden" id="hidContract" placeholder="Contract" />
-                                            <input type="hidden" id="hidMaxLotsLimit" placeholder="Lots Limit" />
-                                            <input type="hidden" id="txtDateToTime" placeholder="DateToTime" />
-                                            <input type="hidden" id="txtActualStrike" placeholder="Actual Strike" />
-                                            <input type="hidden" id="hidTradeToken" placeholder="Option Token" />
+                                            <input type="text" id="hidStrikeInterval" placeholder="Strike Interval" />
+                                            <input type="text" id="hidToken" placeholder="Script Token" />
+                                            <input type="text" id="hidExchange" placeholder="Exchange" />
+                                            <input type="text" id="hidContract" placeholder="Contract" />
+                                            <input type="text" id="hidMaxLotsLimit" placeholder="Lots Limit" />
+                                            <input type="text" id="txtDateToTime" placeholder="DateToTime" />
+                                            <input type="text" id="txtActualStrike" placeholder="Actual Strike" />
+                                            <input type="text" id="hidTradeToken" placeholder="Option Token" />
                                         </div>
                                     </div>
                                 </div>
@@ -520,7 +520,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div>
+                        <div style="display: none;">
                             <br />		
                             <input type="button" id="connect_hsm" class="bg-info" value="Connect HSM" onclick="wconnect('Hsm')" /> 
                             <br />		
@@ -530,6 +530,8 @@
                             
                             <input type="button" id="resume_channel" class="bg-success" value="Resume" onclick="resumeandpause11('cr',document.getElementById('channel_number').value)" /> <br />	   
                             <br/>
+                            <input type="button" id="btnUnSubScript" value="Stop Script" onclick="wunsub('mwu', 'sub_scrips', '6');" />
+                            <input type="button" id="btnUnSubIndex" value="Stop Index" onclick="wunsub('ifu', 'sub_indices', '5');" />
                             <div class="row">
                                 <div class="col-sm-4">
                                     Stream for Scrips(input=exchange_identifier)  <br /> 
@@ -574,3 +576,4 @@
 
 <script src="/js/kotakPaper.js"></script>
 <script src="/js/kotakSettings.js"></script>
+<script src="/js/kotakWebSocket.js"></script>

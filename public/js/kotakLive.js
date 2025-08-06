@@ -65,6 +65,21 @@ window.addEventListener("DOMContentLoaded", function(){
         fnInnitiateAutoTrade(pMsg);
     });
 
+    socket.on("tv-exec-close", (pMsg) => {
+        let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
+
+        if(objCurrPos === null || objCurrPos === ""){
+            fnGenMessage("No Open Positions to Close!", `badge bg-warning`, "spnGenMsg");
+        }
+        else if(objCurrPos.TradeData[0].OptionType === pMsg.OptionType){
+            fnCloseOptTrade();
+            fnGenMessage("Position is Close!", `badge bg-success`, "spnGenMsg");
+        }
+        else{
+            fnGenMessage("No "+ pMsg.OptionType +" Position to Close!", `badge bg-warning`, "spnGenMsg");
+        }
+    });
+
     socket.on("CdlTrend", (pMsg) => {
         let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
         let objJson = JSON.parse(pMsg);
@@ -540,46 +555,50 @@ async function fnInnitiateAutoTrade(pMsg){
                 }
             }
             else{
-                if(objCurrPos.TradeData[0].OptionType === pMsg.OptionType){
-                    fnGenMessage(pMsg.OptionType +" Trade Message Received, But another "+ pMsg.OptionType +" Position is Already Open!", "badge bg-warning", "spnGenMsg");
-                }
-                else{
-                    if(((vTradeSide === "true") && (pMsg.OptionType === "CE")) || ((vTradeSide === "false") && (pMsg.OptionType === "PE")) || (vTradeSide === "-1")){
-                        // let objClsTrd = await fnInitClsOptRealTrade(0);
-                        let objClsTrd = await fnInitClsOptRealTrade1(0);
+                //****** Already trade is open, so no trade. comment below code if opposite trade needs to be executed.. ********//
+                fnGenMessage(pMsg.OptionType +" Trade Message Received, But another Position is Already Open!", "badge bg-warning", "spnGenMsg");
 
-                        if(objClsTrd.status === "success"){
-                            let objSymbData = await fnExecSelSymbData(pMsg.Symbol);
+                // //****** Uncomment below and comment above code to excute opposite trades
+                // if(objCurrPos.TradeData[0].OptionType === pMsg.OptionType){
+                //     fnGenMessage(pMsg.OptionType +" Trade Message Received, But another "+ pMsg.OptionType +" Position is Already Open!", "badge bg-warning", "spnGenMsg");
+                // }
+                // else{
+                //     if(((vTradeSide === "true") && (pMsg.OptionType === "CE")) || ((vTradeSide === "false") && (pMsg.OptionType === "PE")) || (vTradeSide === "-1")){
+                //         // let objClsTrd = await fnInitClsOptRealTrade(0);
+                //         let objClsTrd = await fnInitClsOptRealTrade1(0);
 
-                            if(objSymbData.status === "success"){
-                                fnExecPlaceOrderTest("B", pMsg.OptionType);
-                            }
-                            else{
-                                fnGenMessage("Error At Auto Trade for - "+ pMsg.OptionType +" Trade!", "badge bg-warning", "spnGenMsg");
-                            }
-                        }
-                        else{
-                            fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
-                        }
+                //         if(objClsTrd.status === "success"){
+                //             let objSymbData = await fnExecSelSymbData(pMsg.Symbol);
 
-                        console.log("Old Trade is Closed and New trade is Opened");
-                        fnGenMessage("Old Trade is Closed and new "+ pMsg.OptionType +" Position is Opened!", "badge bg-success", "spnGenMsg");
-                    }
-                    else{
-                        // let objClsTrd = await fnInitClsOptRealTrade(0);
-                        let objClsTrd = await fnInitClsOptRealTrade1(0);
+                //             if(objSymbData.status === "success"){
+                //                 fnExecPlaceOrderTest("B", pMsg.OptionType);
+                //             }
+                //             else{
+                //                 fnGenMessage("Error At Auto Trade for - "+ pMsg.OptionType +" Trade!", "badge bg-warning", "spnGenMsg");
+                //             }
+                //         }
+                //         else{
+                //             fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                //         }
 
-                        if(objClsTrd.status === "success"){
-                            fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
-                        }
-                        else{
-                            fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
-                        }
+                //         console.log("Old Trade is Closed and New trade is Opened");
+                //         fnGenMessage("Old Trade is Closed and new "+ pMsg.OptionType +" Position is Opened!", "badge bg-success", "spnGenMsg");
+                //     }
+                //     else{
+                //         // let objClsTrd = await fnInitClsOptRealTrade(0);
+                //         let objClsTrd = await fnInitClsOptRealTrade1(0);
 
-                        //console.log("Old Trade is Closed and waiting for New Trade");
-                        fnGenMessage(pMsg.OptionType + " Trade Message Received, Old Trade is Closed and waiting for New Trade!", "badge bg-warning", "spnGenMsg");
-                    }
-                }
+                //         if(objClsTrd.status === "success"){
+                //             fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                //         }
+                //         else{
+                //             fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                //         }
+
+                //         //console.log("Old Trade is Closed and waiting for New Trade");
+                //         fnGenMessage(pMsg.OptionType + " Trade Message Received, Old Trade is Closed and waiting for New Trade!", "badge bg-warning", "spnGenMsg");
+                //     }
+                // }
             }
         }
     }
@@ -726,7 +745,7 @@ function fnExecSelSymbData(pThisVal){
                 }
 
                 userKotakWS.onclose = function () {
-                    // fnGetSelSymbolData(0);
+                    fnGetSelSymbolData(0);
                     console.log("Selected Symbol Connection Closed!");
                     fnGenMessage("Selected Symbol Connection is Closed!", `badge bg-warning`, "spnGenMsg");
                     //fnLogTA("[Socket]: Disconnected !\n");
@@ -748,9 +767,8 @@ function fnExecSelSymbData(pThisVal){
                     if((result[0].name === "if")){
                         if(result[0].iv !== undefined){
                             objSpot.value = result[0].iv;
-                            // resumeandpause('cp', '2');
                             fnGetSpotOption();
-                            userKotakWS.close();
+                            unSubSelSymb('ifu', vStreamObj, vChannelNo);
                             resolve({ "status": "success", "message": "Selected Symbol Data Received!", "data": "" });
                         }
                     }
@@ -786,6 +804,17 @@ function fnSubscribeScript(pReqType, pSymbolData, pChannelNo){
     //  mws ifs dps 
     let jObj = {"type":pReqType, "scrips":pSymbolData, "channelnum":pChannelNo};
     userKotakWS.send(JSON.stringify(jObj));
+}
+
+function unSubSelSymb(typeRequest, scrips, channel_number){
+    let jObj = {"type":typeRequest, "scrips":scrips, "channelnum":channel_number};
+    if (userKotakWS != null) {
+        userKotakWS.send(JSON.stringify(jObj));
+        console.log("Streaming Closed **********************")
+    }
+    else{
+        console.log("Please Connect to Websocket.......")
+    }    
 }
 
 function fnGetSetUserProfileData(){
@@ -3414,8 +3443,8 @@ function fnGet1TimeCurrOptRate(pExchSeg, pToken, objRateTxt){
                     if(result[0].ltp !== undefined){
                         objRateTxt.value = result[0].ltp;
                         //objRateTxt.value = result[0].iv;
-                        // resumeandpause('cp', '2');
-                        userKotakWS.close();
+                        unSubSelSymb('mwu', vStreamObj, vChannelNo);
+                        // userKotakWS.close();
                         fnGenMessage("1 Time Rate is Received!", `badge bg-success`, "spnGenMsg");
                         resolve({ "status": "success", "message": "Rate Received Successfully!", "data": objRateTxt.value });
                     }
