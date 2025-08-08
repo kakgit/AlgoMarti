@@ -1,6 +1,5 @@
 let objKNeoWS = null;
 
-
 function fnConnectionWS(vConnectionType){
     var vToken = document.getElementById("txtAccessToken").value;
     var vSid = document.getElementById("txtSid").value;
@@ -75,6 +74,7 @@ function fnSubFeeds(typeRequest, scrips, channel_number){
     else{
         console.log("Please Connect to Websocket.......")
     }
+    return true;
 }
 
 function fnUnSubTickerData(typeRequest, scrips, channel_number){

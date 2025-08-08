@@ -1,0 +1,508 @@
+	
+<script src="/js/hslib.js" type="text/javascript"></script>
+<!-- <script src="/js/demo.js" type="text/javascript"></script>
+<script src="/js/neo.js" type="text/javascript"></script> -->
+
+<div id="main" class="container-xxl">
+    <div class="page-heading">
+        <div class="row">
+            <div class="col-4">
+                <h3>Kotak - Nifty D Trader</h3>
+            </div>
+            <div class="col-4 text-center">
+                <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
+            </div>
+            <div class="col-4" style="text-align: right;">
+                <a href="javascript: void(null);" class="btn btn-outline-primary" onclick="fnShowSettingsMdl();"><i class="fa fa-cogs" aria-hidden="true" style="color: orangered;"></i> Kotak Settings</a>
+            </div>
+        </div>
+    </div>
+    <div class="page-content">
+        <section class="row">
+            <div class="col-12 col-lg-12">
+                <div class="row" style="text-align: center;">
+                    <div class="col-6 col-lg-3 col-md-6">
+                        <button class="badge bg-danger" onclick="fnShowTraderLoginMdl(this);" id="btnTraderStatus">TRADER - Disconnected</button>
+                    </div>
+                    <div class="col-6 col-lg-3 col-md-6">
+                        <button class="badge bg-danger" onclick="fnToggleAutoPaperTrader();" id="btnAutoTraderStatus">Auto Trader - OFF</button>
+                    </div>
+                    <div class="col-6 col-lg-3 col-md-6">
+                        <button class="badge bg-warning" onclick="//fnToggleRealTrade();" id="btnRealTradeStatus">Paper Trade - ON</button>
+                    </div>
+                    <div class="col-6 col-lg-3 col-md-6">
+                        <button class="badge bg-success" onclick="fnPositionStatus()" id="btnPositionStatus">No Open Position</button>
+                    </div>
+                    <div class="col-12">&nbsp;</div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-lg-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="row">
+                                    <div class="col-3">
+                                        <h4>Manual Trader</h4>
+                                    </div>
+                                    <div class="col-2">
+                                        <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                                            <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtMartingale" name="swtMartingale" onchange="fnChangeMarti();" />
+                                            <label for="swtMartingale" style="cursor:pointer;">Martingale</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <form name="frmSide">
+                                            <div class="tw-toggle" style="white-space: nowrap;">
+                                                <input id="txtBN1" type="radio" name="rdoTradeSide" value="false" onclick="fnTradeSide();" />
+                                                <label class="toggle toggle-yes" for="txtBN1"><i class="fa fa-arrow-down"></i></label>
+                                                <input id="txtBN2" checked type="radio" name="rdoTradeSide" value="-1" onclick="fnTradeSide();" />
+                                                <label class="toggle toggle-yes" for="txtBN2"><i class="fa fa-minus"></i></label>
+                                                <input id="txtBN3" type="radio" name="rdoTradeSide" value="true" onclick="fnTradeSide();" />
+                                                <label class="toggle toggle-yes" for="txtBN3"><i class="fa fa-arrow-up"></i></label>
+                                                <span></span>
+                                                <label for="TradeSide">Side</label>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="col-2" style="text-align: right;">Start With </div>
+                                    <div class="col-1"><input type="text" class="form-control" min="1" value="1" maxlength="3" id="txtStartLotNos" onchange="fnChangeStartLotNos(this);" /></div>
+                                    <div class="col-1"> Qty</div>
+                                    <div class="col-1" style="text-align: right;">
+                                        <a data-bs-toggle="collapse" href="#divTraderClps" role="button" aria-expanded="true" aria-controls="divTraderClps">
+                                            <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                                        </a>
+                                    </div>                                    
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="collapse show" id="divTraderClps">
+                                    <div class="tab-content" id="TabMTContent">
+                                        <div class="container-fluid">
+                                            <div class="row">
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    To Trade Strike
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    Symbols List
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    Expiry
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    Current Rate
+                                                </div>
+
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <select id="ddlOptionStrike" onchange="fnChangeOptionStrike(this);" class="form-select">
+                                                        <option value="-10">-10 ITM</option>
+                                                        <option value="-9">-9 ITM</option>
+                                                        <option value="-8">-8 ITM</option>
+                                                        <option value="-7">-7 ITM</option>
+                                                        <option value="-6">-6 ITM</option>
+                                                        <option value="-5">-5 ITM</option>
+                                                        <option value="-4">-4 ITM</option>
+                                                        <option value="-3">-3 ITM</option>
+                                                        <option value="-2">-2 ITM</option>
+                                                        <option value="-1">-1 ITM</option>
+                                                        <option value="0" selected="true">ATM</option>
+                                                        <option value="1">+1 OTM</option>
+                                                        <option value="2">+2 OTM</option>
+                                                        <option value="3">+3 OTM</option>
+                                                        <option value="4">+4 OTM</option>
+                                                        <option value="5">+5 OTM</option>
+                                                        <option value="6">+6 OTM</option>
+                                                        <option value="7">+7 OTM</option>
+                                                        <option value="8">+8 OTM</option>
+                                                        <option value="9">+9 OTM</option>
+                                                        <option value="10">+10 OTM</option>
+                                                    </select>                
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <select id="ddlOptionsSymbols" class="form-select" onchange="fnGetSelSymbolData(this.value);" placeholder="Symbols">
+                                                    </select>
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <select id="ddlOptionsExpiry" class="form-select" onchange="//fnGetExpValByChdAPT(this.value);">
+                                                    </select>
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <div class="input-group mb-3">
+                                                        <button class="btn btn-danger" type="button" id="btnGetRatePE" onclick="fnGetCurrRateSettings('PE');"><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
+                                                        <input id="txtCurrentRateView" type="number" min="1" class="form-control" placeholder="Current Rate" />
+                                                        <button class="btn btn-success" type="button" id="btnGetRateCE" onclick="fnGetCurrRateSettings('CE');"><i class="fa fa-chevron-up" aria-hidden="true"></i></button>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    Lot Size
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    Quantity
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    Stop Loss Points
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    Take Profit Points
+                                                </div>
+
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <input type="number" min="1" class="form-control" placeholder="Lot Size" id="txtOptionLotSize" value="1" />
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <input type="number" min="1" class="form-control" placeholder="Quantity" id="txtOptionsQty" value="1" />
+                                                    
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <input type="text" class="form-control" id="txtOptionsSL1" name="txtOptionsSL1" value="" placeholder="Stop Loss" />
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <input type="text" class="form-control" id="txtOptionsTP1" name="txtOptionsTP1" value="" placeholder="Take Profit" />
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <input type="text" id="hidJsonFileName" class="form-control" value="" placeholder="File Name" />
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <input type="text" id="hidSearchSymbol" class="form-control" value="" placeholder="Search Symbol" />
+                                                    <input type="text" id="hidSpotOption" class="form-control" placeholder="Spot Option" value="" />
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <input type="text" id="hidSegment" class="form-control" value="" placeholder="Segment" />
+                                                    <input type="text" id="hidMaxQty" class="form-control" placeholder="Max Quantity" value="" />
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <input type="text" id="hidOptStrikeInterval" class="form-control" value="" placeholder="Strike Interval" />
+                                                </div>
+                                                <hr/>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <div class="d-grid gap-1">
+                                                        <button class="btn btn-outline-danger" onclick="fnEmitTradeForAll('PE');" style="display: block;"><b>Buy PE for ALL</b></button>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <div class="d-grid gap-1">
+                                                        <button class="btn btn-outline-success" onclick="fnEmitTradeForAll('CE');" style="display: block;"><b>Buy CE for ALL</b></button>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <div class="d-grid gap-1">
+                                                        <button class="btn btn-outline-danger" onclick="fnInitiateManualOption('B', 'PE');"><b>BUY PE</b></button>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 col-lg-3 col-md-6">
+                                                    <div class="d-grid gap-1">
+                                                        <button class="btn btn-outline-success" onclick="fnInitiateManualOption('B', 'CE');"><b>BUY CE</b></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>                        
+                                    <div class="row" style="display:block;">
+                                        <div class="col-12 col-lg-12 col-md-12">
+                                            <input type="text" id="txtKotakSession" class="form-control" value="" placeholder="Kotak Session" />
+                                            <input type="text" id="txtViewToken" class="form-control" value="" placeholder="View Token" />
+                                            <input type="text" id="txtAccessToken" class="form-control" value="" placeholder="Access Token" />
+                                            <input type="text" id="txtSubUserId" class="form-control" value="" placeholder="Sub / UserID" />
+                                            <input type="text" id="txtSid" class="form-control" value="" placeholder="SID" />
+                                            <input type="text" id="txtHsServerId" class="form-control" value="" placeholder="Hs Server ID" />
+                                            <input type="text" id="channel_number" class="form-control" value="5,6" placeholder="Channel Number" />
+                                            <input type="text" id="hidLTP" class="form-control" value="" placeholder="LTP" />
+                                
+                                            <input type="text" id="hidStrikeInterval" placeholder="Strike Interval" />
+                                            <input type="text" id="hidToken" placeholder="Script Token" />
+                                            <input type="text" id="hidExchange" placeholder="Exchange" />
+                                            <input type="text" id="hidContract" placeholder="Contract" />
+                                            <input type="text" id="hidMaxLotsLimit" placeholder="Lots Limit" />
+                                            <input type="text" id="txtDateToTime" placeholder="DateToTime" />
+                                            <input type="text" id="txtActualStrike" placeholder="Actual Strike" />
+                                            <input type="text" id="hidTradeToken" placeholder="Option Token" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <h4>Open Position(s)</h4>
+                                    </div>
+                                    <div class="col-4">
+
+                                    </div>
+                                    <div class="col-1">
+                                        <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="visibility: hidden;height: 30px; width: 30px;">&nbsp;
+                                        </span>
+                                    </div>
+                                    <div class="col-1" style="text-align: right;">
+                                        <a data-bs-toggle="collapse" href="#divOpenPosClps" role="button" aria-expanded="true" aria-controls="divOpenPosClps">
+                                            <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                                        </a>
+                                    </div>                                    
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="collapse show" id="divOpenPosClps">
+                                    <div class="row">
+                                        <div class="col-6 col-lg-6">
+                                            <div class="row">
+                                                <div class="col-6" style="font-size:14px; color:cornflowerblue">Entry Date Time</div>
+                                                <div class="col-6" style="text-align:right; font-size:14px; white-space:nowrap; color:cornflowerblue" id="lblEntryDate">00-00-0000 00:00:00</div>
+                                                <div class="col-4" style="font-weight:bold; white-space:nowrap; font-size:14px;" id="lblSymbol">SYMBOL NAME</div>
+                                                <div class="col-2" style="font-weight:bold; white-space:nowrap; font-size:14px;" id="lblStrike">000000</div>
+                                                <div class="col-1" style="font-weight:bold; white-space:nowrap; font-size:14px;" id="lblOptionType">OT</div>
+                                                <div class="col-5" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align:right;" id="lblExpiry">YYYY-MM-DD</div>
+                                                <div class="col-12">&nbsp;</div>
+                
+                                                <div class="col-2" style="color:white; white-space:nowrap; font-size:14px; text-align: center;">LotSz</div>
+                                                <div class="col-2" style="color:white; white-space:nowrap; font-size:14px; text-align: center;">QTY</div>
+                                                <div class="col-3" style="color:green; white-space:nowrap; font-size:14px; text-align: center;" id="lblBuyPriceInd">BUY PRICE</div>
+                                                <div class="col-3" style="color:red; white-space:nowrap; font-size:14px; text-align: center;" id="lblSellPriceInd">SELL PRICE</div>
+                                                <div class="col-2" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">P & L</div>
+                
+                                                <div class="col-2" style="color:white; white-space:nowrap; font-size:14px; text-align: center;" id="lblLotSize">0</div>
+                                                <div class="col-2" style="color:white; white-space:nowrap; font-size:14px; text-align: center;" id="lblQty">0</div>
+                                                <div class="col-3" style="color:green; white-space:nowrap; font-size:14px; text-align: center;" id="lblBuyPrice">0.00</div>
+                                                <div class="col-3" style="color:red; white-space:nowrap; font-size:14px; text-align: center;" id="lblSellPrice">0.00</div>
+                                                <div class="col-2" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;" id="lblProfitLoss">0.00</div>
+
+                                                <div class="col-12">&nbsp;</div>
+
+                                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">T-SL</div>
+                                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">On SL</div>
+                                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">On TP</div>
+                                                <div class="col-3" style="font-weight:bold; white-space:nowrap; font-size:14px; text-align: center;">Capital:</div>
+                
+                                                <div class="col-3" style="text-align:center; color:orange; white-space:nowrap; text-align: center;" id="lblTrailSL">0.00</div>
+                                                <div class="col-3" style="text-align:center; color:red; white-space:nowrap; text-align: center;" id="lblLossOnSL">0.00</div>
+                                                <div class="col-3" style="text-align:center; color:green; white-space:nowrap; text-align: center;" id="lblProfitOnTP">0.00</div>
+                                                <div class="col-3" id="lblCapital" style="font-weight:bold; white-space:nowrap; text-align: center;">0.00</div>
+
+                                                <div class="col-12">&nbsp;</div>
+
+                                                <div class="col-6">
+                                                    <div class="d-grid gap-1">
+                                                        <button id="btn50PerClose" class="btn btn-outline-primary" onclick="fnClose50PrctOptTrade();" disabled><b>Exit 50% QTY</b></button>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="d-grid gap-1">
+                                                        <button class="btn btn-outline-danger" id="btnClosePosition" onclick="fnCloseOptTrade();"><b>CLOSE POSITION</b></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 col-lg-6">
+                                            <div class="row">
+                                                <div class="col-4">
+                                                    <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                                                        <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtAutoChkPosition" name="swtAutoChkPosition" onchange="fnExecTradeTimer();" />
+                                                        <label for="swtAutoChkPosition" style="cursor:pointer;">Auto Check Every</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <input type="number" class="form-control" placeholder="Timer" id="txtTimeMS" value="5" maxlength="3" />
+                                                </div>
+                                                <div class="col-5">
+                                                    <input type="text" id="txtCurrentRate" min="1" class="form-control" placeholder="Option Ticker" />
+                                                </div>
+
+                                                <div class="col-12">&nbsp;</div>
+
+                                                <div class="col-12">
+                                                    <select id="ddlTrailSLTP" class="form-select" onchange="fnSetDDLTrailSLTP(this);">
+                                                        <option value=0 selected="true">NO SL or TP</option>
+                                                        <option value=1>Strict SL or TP</option>
+                                                        <option value=2>Trail By SL</option>
+                                                        <option value=3>Trail SL After TP</option>
+                                                        <option value=4>Exit 50% Qty on Profit</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-12">
+                                                    &nbsp;
+                                                </div>
+                                                <div class="col-4">
+                                                    <input type="text" class="form-control" placeholder="SL" id="txtUpdStopLoss" />
+                                                </div>
+                                                <div class="col-4">
+                                                    <input type="text" class="form-control" placeholder="TP" id="txtUpdTakeProfit" />
+                                                </div>
+                                                <div class="col-4">
+                                                    <button class="btn btn-outline-info btn-block" id="btnUpdateSLTP" onclick="fnUpdateOptSLTP();"><b>UPDATE</b></button>
+                                                </div>
+
+                                                <div class="col-12">
+                                                    &nbsp;
+                                                </div>                                                
+                                                <div class="col-4">
+                                                    <input type="text" id="hidSpotPrice" class="form-control" value="" placeholder="Spot Price" />
+                                                </div>
+                                                <div class="col-4">
+                                                    <input type="text" id="txtReversalSL" class="form-control" value="20" placeholder="Reversal SL" />
+                                                </div>
+                                                <div class="col-2">
+                                                    <button class="btn btn-outline-info btn-block" id="btnUpdateRevSL" onclick="fnUpdateIndexTicker();"><b>UPDATE</b></button>
+                                                </div>
+                                                <div class="col-2">
+                                                    <input type="text" id="txtRevClosePrice" class="form-control" value="" placeholder="" />
+                                                </div>
+
+                                                <!-- <div class="col-2">
+                                                    
+                                                </div>
+                                                <div class="col-2">
+                                                    <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="fnStartWS();">START</button>
+                                                </div>
+                                                <div class="col-2">
+                                                    <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="fnRestartStreamOptPrc();//fnStopWS();">STOP</button>
+                                                </div>
+                                                <div class="col-2">
+                                                    <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="resumeandpause('cp', '1');">Pause</button>
+                                                </div>
+                                                <div class="col-2">
+                                                    <button class='btn btn-block btn-xl btn-outline-info font-bold mt-3' onclick="resumeandpause('cr', '1');">Resume</button>
+                                                </div>
+                                                <div class="col-2">
+                                                </div> -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="row">
+                                    <div class="col-3">
+                                        <h4>Closed Position(s)</h4>
+                                    </div>
+                                    <div class="col-1" style="font-weight: bold;">
+                                        P&L: 
+                                    </div>
+                                    <div class="col-2" id="tdHeadPL">
+                                        0.00
+                                    </div>
+                                    <div class="col-2" style="font-weight: bold;">
+                                        Yet to Recover:
+                                    </div>
+                                    <div class="col-2">
+                                        <span id="spnYtRL" style="text-align:left;font-weight:bold;color:red;">0.00</span>
+                                    </div>
+                                    <div class="col-1">
+                                        <button class='nav-link' onclick="fnClearLocalStorageTemp();" role="tab" type="button">Clear All</button>
+                                    </div>
+                                    <div class="col-1" style="text-align: right;">
+                                        <a data-bs-toggle="collapse" href="#divClosedPosClps" role="button" aria-expanded="false" aria-controls="divClosedPosClps">
+                                            <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                                          </a>
+                                    </div>                                    
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="container-fluid">
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead>
+                                                <tr style="text-align:center;">
+                                                    <!-- <th scope="col">TradeID</th> -->
+                                                    <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">End Date Time</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Symbol</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Expiry</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Strike</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Qty</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Charges</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Capital</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody id="tBodyTodayPaperTrades">
+
+                                                </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <h4>Order / Trade Book</h4>
+                                    </div>
+                                    <div class="col-4">
+
+                                    </div>
+                                    <div class="col-1">
+                                        <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnGetOrderTradeBook();"></i>
+                                    </div>
+                                    <div class="col-1" style="text-align: right;">
+                                        <a data-bs-toggle="collapse" href="#divAlgoMsgsClps" role="button" aria-expanded="true" aria-controls="divAlgoMsgsClps">
+                                            <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                                          </a>
+                                    </div>                                    
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="collapse show" id="divAlgoMsgsClps">
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: block;">
+                            <br />		
+                            <input type="button" id="connect_hsm" class="bg-info" value="Connect HSM" onclick="wconnect('Hsm')" /> 
+                            <br />		
+
+                            Channels <br />
+                            <input type="button" id="pause_channel" class="bg-danger" value="Pause " onclick="resumeandpause11('cp',document.getElementById('channel_number').value)" />
+                            
+                            <input type="button" id="resume_channel" class="bg-success" value="Resume" onclick="resumeandpause11('cr',document.getElementById('channel_number').value)" /> <br />	   
+                            <br/>
+                            <input type="button" id="btnUnSubScript" value="Stop Script" onclick="wunsub('mwu', 'sub_scrips', '6');" />
+                            <input type="button" id="btnUnSubIndex" value="Stop Index" onclick="wunsub('ifu', 'sub_indices', '5');" />
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    Stream for Scrips(input=exchange_identifier)  <br /> 
+                                    <textarea id="sub_scrips" value="">nse_cm|11536</textarea> <br />
+                                        
+                                    <input type="button" value="Subscribe Scrip" rows="5" cols="100" onclick="wsub('mws', 'sub_scrips', '6');" /><input id="txtScript" type="text" /><br />
+                                </div>
+                                <div class="col-sm-4">
+                                    Stream Indices <br /> 
+                                    <textarea id="sub_indices">nse_cm|Nifty 50</textarea><br />
+                                    <input type="button" value="Subscribe Index" rows="5" cols="100" onclick="wsub('ifs', 'sub_indices', '5');" /><input id="txtIndex" type="text" /><br />
+                                </div>
+                                <div class="col-sm-4">
+                                    Stream MD  <br /> 
+                                    <textarea id="sub_depth">nse_cm|11536&nse_cm|11000&nse_cm|11001</textarea><br />
+                                    <input type="button" value="Subscribe Depth" rows="5" cols="100" onclick="wsub('dps', 'sub_depth', '3');" /><br />
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-3">			   
+                                </div>
+                                <div class="col-sm-9">
+                                    Streaming ... Scrips nse_cm|1594 nse_cm|3456 nse_cm|11536<br />
+                                    <textarea id="stream_scrips" rows="10" cols="100"></textarea>
+                                    <br />
+                                    Streaming ... Orders <br />
+                                    <textarea id="stream_scrips1" rows="10" cols="100"></textarea>
+                                    <br />
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<%- include('partials/kotakSettings.ejs') %>
+
+<script src="/js/kotakPaperNS.js"></script>
+<script src="/js/kotakSettingsNS.js"></script>
+<script src="/js/kotakWebSocketNS.js"></script>

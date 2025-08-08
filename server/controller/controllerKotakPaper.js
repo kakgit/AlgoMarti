@@ -9,6 +9,11 @@ exports.defaultRoute = (req, res) => {
     res.render("kotakPaper.ejs");
 }
 
+exports.fnSpeedNifty = (req, res) => {
+    //res.send("Crud Application");
+    res.render("kotakPaperNS.ejs");
+}
+
 exports.fnLoginKotakNeo = async (req, res) => {
     let vConsumerKey = req.body.ConsumerKey; //"NHbQHP1M5Z6djc1KG3yXjR0RXDga";
     let vConsumerSecret = req.body.ConsumerSecret; //"9DzmzfGKdeq2yFOS5BrbNfjwAooa";

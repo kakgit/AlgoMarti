@@ -2992,8 +2992,6 @@ function fnGet1TimeCurrOptRate(pExchSeg, pToken, objRateTxt){
                         //objRateTxt.value = result[0].iv;
                         unSub1TimeOptRate('mwu', vStreamObj, vChannelNo);
 
-                        // resumeandpause('cp', '20');
-
                         resolve({ "status": "success", "message": "Rate Received Successfully!", "data": objRateTxt.value });
                     }
                 }
@@ -3118,8 +3116,7 @@ function wconnect(typeFunction){
     return;
 }
 
-function connectHsm(token, sid)
-{
+function connectHsm(token, sid){
     let objIndexTick = document.getElementById("txtIndex");
     let objScriptTick = document.getElementById("txtScript");
 

@@ -24,10 +24,13 @@ route.get("/mahesh", homeServices.signalsTV);
 //Alice Live Route
 route.get("/aliceLive", aliceLiveServices.defaultRoute);
 
-//Alice Live Route
+//Kotak Paper Route
 route.get("/kotakPaper", kotakPaperController.defaultRoute);
 
-//Alice Live Route
+//Kotak Paper Speed Nifty Route
+route.get("/kotakSpeedNiftyPaper", kotakPaperController.fnSpeedNifty);
+
+//Kotak Live Route
 route.get("/kotakLive", kotakLiveController.defaultRoute);
 
 //Delta Demo Route
