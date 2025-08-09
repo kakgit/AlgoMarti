@@ -127,7 +127,6 @@ window.addEventListener("DOMContentLoaded", function(){
 function fnGetSetAllStatus(){
     if(gIsTraderLogin){
         fnConnectionWS();
-        fnSetDefaultTraderTab();
         fnSetRecentDates();
         fnGetSetUserProfileData();
         fnGetOptSettings();
@@ -322,11 +321,11 @@ function fnClearTraderFields(){
 }
 
 function fnSetDefaultLotNos(){
-    let vStartLots = localStorage.getItem("StartLotNoR");
+    let vStartLots = JSON.parse(localStorage.getItem("StartLotNoR"));
     let objTxtLots = document.getElementById("txtStartLotNos");
     // let objOptQty = document.getElementById("txtOptionsQty");
 
-    if(vStartLots === null || vStartLots === "" || vStartLots === "0"){
+    if(vStartLots === null){
         localStorage.setItem("StartLotNoR", 1);
         objTxtLots.value = 1;
     }
@@ -2863,6 +2862,7 @@ function fnSetNextOptTradeSettings(pAvgPrice, pQty, pCharges){
     let vOldQtyMul = localStorage.getItem("QtyMulR");
     let objMartiSwitch = document.getElementById("swtMartingale");
     let objLossBadge = document.getElementById("spnLossTrd");
+    let vStartLots = localStorage.getItem("StartLotNoR");
 
     if(vOldLossAmt === null)
         vOldLossAmt = 0;
@@ -2909,11 +2909,18 @@ function fnSetNextOptTradeSettings(pAvgPrice, pQty, pCharges){
         localStorage.setItem("TotLossAmtR", vNewLossAmt);
 
         if(objMartiSwitch.checked){
-            let vDivAmt = parseFloat(vNewLossAmt) / parseFloat(vOldLossAmt);
-            let vNextQty = Math.round(vDivAmt * parseInt(vOldQtyMul));
-            
-            if(vNextQty < 1)
-                vNextQty = 1;
+            let vDivAmt, vNextQty = 0;
+            if(parseFloat(vOldLossAmt) !== 0){
+                vDivAmt = parseFloat(vNewLossAmt) / parseFloat(vOldLossAmt);
+                vNextQty = Math.round(vDivAmt * parseInt(vOldQtyMul));
+            }
+            else{
+                vNextQty = vStartLots;
+            }
+            console.log("vDivAmt: " + vDivAmt);
+            console.log("vNextQty: " + vNextQty);
+            if(vNextQty <= 1)
+                vNextQty = vStartLots;
 
             localStorage.setItem("QtyMulR", vNextQty);
             objQty.value = vNextQty;

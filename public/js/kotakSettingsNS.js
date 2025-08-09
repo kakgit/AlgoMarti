@@ -593,7 +593,6 @@ function fnFillIndexExpData(){
 
 function fnChangeStartLotNos(pThisVal){
 
-    let objQty = document.getElementById("txtManualQty");
     let objOptQty = document.getElementById("txtOptionsQty");
 
     if(pThisVal.value === "" || pThisVal.value === "0"){
@@ -611,7 +610,6 @@ function fnChangeStartLotNos(pThisVal){
         localStorage.setItem("StartLotNoR", pThisVal.value);
 
         if(confirm("Are You Sure You want to change the Quantity?")){
-            objQty.value = pThisVal.value;
             objOptQty.value = pThisVal.value;
             localStorage.setItem("QtyMulR", pThisVal.value);
         }
@@ -633,35 +631,5 @@ function fnLoadDefaultSLTP(){
     else
     {
         objDefSLTP.value = localStorage.getItem("DDLDefSLTP");
-    }
-}
-
-function fnSetCurrTraderTab(pTabType){
-    //let vTraderTab = localStorage.getItem("TraderTab");
-
-    if(pTabType === "cash"){
-        localStorage.setItem("TraderTab", "cash");
-    }
-    else if(pTabType === "futures"){
-        localStorage.setItem("TraderTab", "futures");
-    }
-    else{
-        localStorage.setItem("TraderTab", "options");        
-    }
-
-    //alert(localStorage.getItem("TraderTab"));
-}
-
-function fnSetDefaultTraderTab(){
-    let vTraderTab = localStorage.getItem("TraderTab");
-
-    if(vTraderTab === "futures"){
-        $('#btnTabFutures').trigger('click');
-    }
-    else if(vTraderTab === "cash"){
-        $('#btnTabCash').trigger('click');
-    }
-    else{
-        $('#btnTabOptions').trigger('click');
     }
 }
