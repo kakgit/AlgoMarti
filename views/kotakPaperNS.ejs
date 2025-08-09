@@ -7,7 +7,7 @@
     <div class="page-heading">
         <div class="row">
             <div class="col-4">
-                <h3>Kotak - Nifty D Trader</h3>
+                <h3>Kotak - Nifty Speed D Trader</h3>
             </div>
             <div class="col-4 text-center">
                 <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
@@ -159,18 +159,25 @@
                                                     <input type="text" class="form-control" id="txtOptionsTP1" name="txtOptionsTP1" value="" placeholder="Take Profit" />
                                                 </div>
                                                 <div class="col-6 col-lg-3 col-md-6">
-                                                    <input type="text" id="hidJsonFileName" class="form-control" value="" placeholder="File Name" />
+                                                    <input type="hidden" id="hidJsonFileName" class="form-control" value="" placeholder="File Name" />
+                                                    <input type="hidden" id="hidSpotOptionCE" class="form-control" placeholder="Spot Option CE" value="" />
+                                                    <input type="hidden" id="hidTokenCE" class="form-control" placeholder="Token CE" value="" />
+                                                    <input type="hidden" id="hidTrdSymbolCE" class="form-control" placeholder="Trd Symbol CE" value="" />
                                                 </div>
                                                 <div class="col-6 col-lg-3 col-md-6">
-                                                    <input type="text" id="hidSearchSymbol" class="form-control" value="" placeholder="Search Symbol" />
-                                                    <input type="text" id="hidSpotOption" class="form-control" placeholder="Spot Option" value="" />
+                                                    <input type="hidden" id="hidSearchSymbol" class="form-control" value="" placeholder="Search Symbol" />
+                                                    <input type="hidden" id="hidSpotOptionPE" class="form-control" placeholder="Spot Option PE" value="" />
+                                                    <input type="hidden" id="hidTokenPE" class="form-control" placeholder="Token PE" value="" />
+                                                    <input type="hidden" id="hidTrdSymbolPE" class="form-control" placeholder="Trd Symbol PE" value="" />
                                                 </div>
                                                 <div class="col-6 col-lg-3 col-md-6">
-                                                    <input type="text" id="hidSegment" class="form-control" value="" placeholder="Segment" />
-                                                    <input type="text" id="hidMaxQty" class="form-control" placeholder="Max Quantity" value="" />
+                                                    <input type="hidden" id="hidSegment" class="form-control" value="" placeholder="Segment" />
+                                                    <input type="hidden" id="hidMaxQty" class="form-control" placeholder="Max Quantity" value="" />
+                                                    <input type="hidden" id="hidExSeg" class="form-control" placeholder="Exchange Segment" value="" />
                                                 </div>
                                                 <div class="col-6 col-lg-3 col-md-6">
-                                                    <input type="text" id="hidOptStrikeInterval" class="form-control" value="" placeholder="Strike Interval" />
+                                                    <input type="hidden" id="hidOptStrikeInterval" class="form-control" value="" placeholder="Strike Interval" />
+                                                    <input type="hidden" id="hidExpiryEPoch" class="form-control" value="" placeholder="Expiry E-Poch" />
                                                 </div>
                                                 <hr/>
                                                 <div class="col-6 col-lg-3 col-md-6">
@@ -196,7 +203,7 @@
                                             </div>
                                         </div>
                                     </div>                        
-                                    <div class="row" style="display:block;">
+                                    <div class="row" style="display:none;">
                                         <div class="col-12 col-lg-12 col-md-12">
                                             <input type="text" id="txtKotakSession" class="form-control" value="" placeholder="Kotak Session" />
                                             <input type="text" id="txtViewToken" class="form-control" value="" placeholder="View Token" />
@@ -300,10 +307,13 @@
                                                     </div>
                                                 </div>
                                                 <div class="col-3">
-                                                    <input type="number" class="form-control" placeholder="Timer" id="txtTimeMS" value="5" maxlength="3" />
+                                                    <input type="number" class="form-control" placeholder="Timer" id="txtTimeMS" value="3" maxlength="3" />
                                                 </div>
-                                                <div class="col-5">
+                                                <div class="col-4">
                                                     <input type="text" id="txtCurrentRate" min="1" class="form-control" placeholder="Option Ticker" />
+                                                </div>
+                                                <div class="col-1">
+                                                    <i class="fa fa-refresh" aria-hidden="true" style="color: orange; cursor: pointer; font-size: 25px;" onclick="fnRestartOptionStream();"></i>
                                                 </div>
 
                                                 <div class="col-12">&nbsp;</div>
@@ -336,14 +346,14 @@
                                                 <div class="col-4">
                                                     <input type="text" id="hidSpotPrice" class="form-control" value="" placeholder="Spot Price" />
                                                 </div>
-                                                <div class="col-4">
-                                                    <input type="text" id="txtReversalSL" class="form-control" value="20" placeholder="Reversal SL" />
+                                                <div class="col-3">
+                                                    <input type="text" id="txtCurrRateCE" class="form-control" value="" placeholder="Curr Rate CE" />
+                                                </div>
+                                                <div class="col-3">
+                                                    <input type="text" id="txtCurrRatePE" class="form-control" value="" placeholder="Curr Rate PE" />
                                                 </div>
                                                 <div class="col-2">
-                                                    <button class="btn btn-outline-info btn-block" id="btnUpdateRevSL" onclick="fnUpdateIndexTicker();"><b>UPDATE</b></button>
-                                                </div>
-                                                <div class="col-2">
-                                                    <input type="text" id="txtRevClosePrice" class="form-control" value="" placeholder="" />
+                                                    <button class="btn btn-outline-info btn-block" id="btnUpdateRevSL" onclick="fnDisconnectWS();"><b>UPDATE</b></button>
                                                 </div>
 
                                                 <!-- <div class="col-2">
@@ -449,7 +459,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div style="display: block;">
+                        <div style="display: none;">
                             <br />		
                             <input type="button" id="connect_hsm" class="bg-info" value="Connect HSM" onclick="wconnect('Hsm')" /> 
                             <br />		

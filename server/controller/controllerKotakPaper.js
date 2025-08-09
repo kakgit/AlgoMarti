@@ -639,6 +639,7 @@ exports.fnGetTokenforOptionRate = async (req, res) => {
     let vExpiryEpoch = req.body.ExpiryEpoch;
     let vStrikePrice = req.body.StrikePrice;
 
+    console.log(vStrikePrice);
     try{
         let objTokenData = await fnGetTradeTokenData(vJsonFileName, vSearchSymbol, vOptionType, vExpiryEpoch, vStrikePrice);
 
@@ -648,6 +649,32 @@ exports.fnGetTokenforOptionRate = async (req, res) => {
     catch (err) {
         res.send({ status: err.status, message: err.message, data: err.data });
     }
+}
+
+exports.fnGetOptTokenforCurrStrike = async (req, res) => {
+    let vJsonFileName = req.body.JsonFileName;
+    let vSearchSymbol = req.body.SearchSymbol;
+    let vExpiryEpoch = req.body.ExpiryEpoch;
+    let vStrikePriceCE = req.body.StrikePriceCE;
+    let vStrikePricePE = req.body.StrikePricePE;
+
+    // console.log(vJsonFileName);
+    try{
+        let objTokenDataCE = await fnGetOptTradeTokenData(vJsonFileName, vSearchSymbol, "CE", vExpiryEpoch, vStrikePriceCE);
+        let objTokenDataPE = await fnGetOptTradeTokenData(vJsonFileName, vSearchSymbol, "PE", vExpiryEpoch, vStrikePricePE);
+
+        // console.log(objTokenDataCE.data.Token);
+        // console.log(objTokenDataCE.data);
+        // console.log(objTokenDataPE.data);
+        
+        let objFData = { TokenCE: objTokenDataCE.data.Token, TokenPE: objTokenDataPE.data.Token, TrdSymbolCE: objTokenDataCE.data.TrdSymbol, TrdSymbolPE: objTokenDataPE.data.TrdSymbol, ExchSeg: objTokenDataPE.data.ExchSeg, Exchange: objTokenDataPE.data.Exchange, LotSize: objTokenDataPE.data.LotSize, MaxPerOrdQty: objTokenDataPE.data.MaxPerOrdQty };
+
+        res.send({ status: objTokenDataCE.status, message: objTokenDataCE.message, data: objFData });
+    }
+    catch (err) {
+        res.send({ status: err.status, message: err.message, data: err.data });
+    }
+    // res.send({ status: "success", message: "Option Token Received", data: "" });
 }
 
 exports.fnPlaceOptionNormalOrder = async (req, res) => {
@@ -1601,6 +1628,57 @@ const fnGetTradeTokenData = async (pJsonFileName, pSearchSymbol, pOptionType, pE
         });
     });
   
+    return objData;
+}
+
+const fnGetOptTradeTokenData = async (pJsonFileName, pSearchSymbol, pOptionType, pExpiryEpoch, pStrikePrice) => {
+    const objData = new Promise((resolve, reject) => {
+        // console.log(pJsonFileName + " - " + pSearchSymbol + " - " + pOptionType + " - " + pExpiryEpoch + " - " + pStrikePrice);
+        const vLocalUrl = process.env.API_PATH + "json/" + pJsonFileName;
+        let vToken = "";
+        let vExchSeg = "";
+        let vExchange = "";
+        let vTrdSymbol = "";
+        let vLotSize = "";
+        let vMaxPerOrdQty = "";
+
+        axios.get(vLocalUrl)
+        .then((response) => {
+            let vData = response.data;
+
+            if(vData["Symbol"]){
+            for (let i = 0; i < vData["Symbol"].length; i++){
+                if((vData["Symbol"][i].pSymbolName === pSearchSymbol) && (vData["Symbol"][i].pExpiryDate === parseInt(pExpiryEpoch)) && (vData["Symbol"][i].pStrikePrice === pStrikePrice) && (vData["Symbol"][i].pOptionType === pOptionType)){
+                    vToken = vData["Symbol"][i].pSymbol;
+                    vExchSeg = vData["Symbol"][i].pExchSeg;
+                    vExchange = vData["Symbol"][i].pExchange;
+                    vTrdSymbol = vData["Symbol"][i].pTrdSymbol;
+                    vLotSize = vData["Symbol"][i].pLotSize;
+                    vMaxPerOrdQty = vData["Symbol"][i].MaxPerOrdQty;
+                    
+                    // console.log(vData["Symbol"][i].pSymbol + " - " + vData["Symbol"][i].pTrdSymbol);
+                }
+            }
+            if (vToken === ""){
+                reject({ "status": "warning", "message": "Option Token Not Found, Check Expiry Date!", "data": "" });
+            }
+            else{
+                resolve({ "status": "success", "message": "Success - Option Data Received!", "data": { Token: vToken, ExchSeg: vExchSeg, Exchange: vExchange, TrdSymbol: vTrdSymbol, LotSize: vLotSize, MaxPerOrdQty: vMaxPerOrdQty } });
+            }
+            }
+            else {
+            // console.log("Failed");
+            reject({ "status": "warning", "message": "Invalid File Name. Please Check!", "data": "" });
+            }
+        })
+        .catch((error) => {
+            reject({ "status": "danger", "message": "File Not Found! " + error.message, "data": "" });
+        });
+        // resolve({ "status": "success", "message": "Success - Option Data Received!", "data": "" });
+    });
+
+    // console.log(pExpiryEpoch);
+
     return objData;
 }
 

@@ -93,6 +93,7 @@ route.post("/kotakNeo/getOrderBook", kotakPaperController.fnGetOrderBook);
 route.post("/kotakNeo/getTradeBook", kotakPaperController.fnGetTradeBook);
 route.post("/kotakNeo/placeCloseTrade", kotakPaperController.fnPlaceCloseTrade);
 route.post("/kotakNeo/getToken4OptRate", kotakPaperController.fnGetTokenforOptionRate);
+route.post("/kotakNeo/getOptToken4CurrStrike", kotakPaperController.fnGetOptTokenforCurrStrike);
 route.post("/kotakNeo/placeOptNrmlOrder", kotakPaperController.fnPlaceOptionNormalOrder);
 route.post("/kotakNeo/placeCloseOptTrade", kotakPaperController.fnPlaceCloseOptTrade);
 route.post("/kotakNeo/getBackupRate", kotakPaperController.fnExecBackupRate);

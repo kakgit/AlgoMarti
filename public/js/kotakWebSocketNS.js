@@ -1,6 +1,6 @@
 let objKNeoWS = null;
 
-function fnConnectionWS(vConnectionType){
+function fnConnectionWS(){
     var vToken = document.getElementById("txtAccessToken").value;
     var vSid = document.getElementById("txtSid").value;
     var vServerIdHS = document.getElementById("txtHsServerId").value;
@@ -17,14 +17,18 @@ function fnConnectionWS(vConnectionType){
 }
 
 function fnConnectHSM(token, sid){
+    let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
     let objIndexTick = document.getElementById("hidSpotPrice");
     let objScriptTick = document.getElementById("txtCurrentRate");
+
+    let objTokenCE = document.getElementById("hidTokenCE");
+    let objTokenPE = document.getElementById("hidTokenPE");
 
     let url = "wss://mlhsm.kotaksecurities.com"; //<!--wss://qhsm.kotaksecurities.online/is for UAT with VPN,wss://mlhsm.kotaksecurities.com/ for prod   -->
     objKNeoWS = new HSWebSocket(url);
 
     objKNeoWS.onopen = function () {
-        consoleLog('[Socket]: Connected to "' + url + '"\n');
+        console.log('[Socket]: Connected to "' + url + '"\n');
         let jObj = {};
         jObj["Authorization"] = token;
         jObj["Sid"] = sid; 
@@ -43,20 +47,25 @@ function fnConnectHSM(token, sid){
 
     objKNeoWS.onmessage = function (objMsg) {
         const objRes= JSON.parse(objMsg);
-        console.log('[Res]: ' + objMsg + "\n");
+        // console.log('[Res]: ' + objMsg + "\n");
 
         if((objRes[0].name === "if")){
             if(objRes[0].iv !== undefined){
                 objIndexTick.value = objRes[0].iv;
             }
         }
-        if((objRes[0].name === "sf")){
+
+        if(objRes[0].name === "sf"){
             if(objRes[0].ltp !== undefined){
                 objScriptTick.value = objRes[0].ltp;
+                // console.log(objRes[0].ltp);
             }
         }
 
         if(objRes[0].type === "cn"){
+            if(objCurrPos !== null){
+                fnRestartOptionStream();
+            }
             // wsub('ifs', 'sub_indices', '5');
             // setTimeout(wsub, 1000, 'mws', 'sub_scrips', '6');
             // wsub('mws', 'sub_scrips', '2');
@@ -72,7 +81,8 @@ function fnSubFeeds(typeRequest, scrips, channel_number){
         objKNeoWS.send(JSON.stringify(jObj));
     }
     else{
-        console.log("Please Connect to Websocket.......")
+        console.log("Websocket Inactive, Connecting please wait....")
+        fnConnectionWS();
     }
     return true;
 }
