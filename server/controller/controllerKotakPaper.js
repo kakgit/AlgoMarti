@@ -9,7 +9,7 @@ exports.defaultRoute = (req, res) => {
     res.render("kotakPaper.ejs");
 }
 
-exports.fnSpeedNifty = (req, res) => {
+exports.fnScalperNifty = (req, res) => {
     //res.send("Crud Application");
     res.render("kotakPaperNS.ejs");
 }

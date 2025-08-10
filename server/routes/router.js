@@ -12,6 +12,7 @@ const tvConfsController = require('../controller/controllerJSON.js');
 const abController = require("../controller/controllerAliceBlue.js");
 const aliceLiveController = require("../controller/controllerAliceLive.js");
 const kotakLiveController = require("../controller/controllerKotakLive.js");
+const kotakLiveControllerNS = require("../controller/controllerKotakScalper.js");
 const kotakPaperController = require("../controller/controllerKotakPaper.js");
 const deltaLiveController = require("../controller/controllerDeltaLive.js");
 
@@ -27,11 +28,14 @@ route.get("/aliceLive", aliceLiveServices.defaultRoute);
 //Kotak Paper Route
 route.get("/kotakPaper", kotakPaperController.defaultRoute);
 
-//Kotak Paper Speed Nifty Route
-route.get("/kotakSpeedNiftyPaper", kotakPaperController.fnSpeedNifty);
-
 //Kotak Live Route
 route.get("/kotakLive", kotakLiveController.defaultRoute);
+
+//Kotak Paper Scalper Nifty Route
+route.get("/kotakScalperNiftyPaper", kotakPaperController.fnScalperNifty);
+
+//Kotak Live Scalper Nifty Route
+route.get("/kotakScalperNiftyLive", kotakLiveControllerNS.defaultRoute);
 
 //Delta Demo Route
 route.get("/deltaLive", deltaLiveController.defaultRoute);

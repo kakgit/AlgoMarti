@@ -90,10 +90,10 @@ function fnSubFeeds(typeRequest, scrips, channel_number){
 function fnUnSubTickerData(typeRequest, scrips, channel_number){
 //mwu
     let jObj = {"type":typeRequest, "scrips":scrips, "channelnum":channel_number};
-    if (objKNeoWS != null) {
+    // if (objKNeoWS != null) {
         objKNeoWS.send(JSON.stringify(jObj));
-    }
-    else{
-        console.log("Please Connect to Websocket.......")
-    }    
+    // }
+    // else{
+    //     console.log("Please Connect to Websocket.......")
+    // }    
 }

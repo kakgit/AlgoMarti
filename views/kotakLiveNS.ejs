@@ -1,13 +1,11 @@
 	
 <script src="/js/hslib.js" type="text/javascript"></script>
-<!-- <script src="/js/demo.js" type="text/javascript"></script>
-<script src="/js/neo.js" type="text/javascript"></script> -->
 
 <div id="main" class="container-xxl">
     <div class="page-heading">
         <div class="row">
             <div class="col-4">
-                <h3>Kotak - Nifty Scalper D Trader</h3>
+                <h3>Kotak - Nifty Scalper Live Trader</h3>
             </div>
             <div class="col-4 text-center">
                 <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
@@ -22,10 +20,10 @@
             <div class="col-12 col-lg-12">
                 <div class="row" style="text-align: center;">
                     <div class="col-6 col-lg-3 col-md-6">
-                        <button class="badge bg-danger" onclick="fnShowTraderLoginMdl(this);" id="btnTraderStatus">TRADER - Disconnected</button>
+                        <button class="badge bg-danger" onclick="fnShowKotakTraderLoginMdl(this);" id="btnTraderStatus">TRADER - Disconnected</button>
                     </div>
                     <div class="col-6 col-lg-3 col-md-6">
-                        <button class="badge bg-danger" onclick="fnToggleAutoPaperTrader();" id="btnAutoTraderStatus">Auto Trader - OFF</button>
+                        <button class="badge bg-danger" onclick="fnToggleAutoTrader();" id="btnAutoTraderStatus">Auto Trader - OFF</button>
                     </div>
                     <div class="col-6 col-lg-3 col-md-6">
                         <button class="badge bg-warning" onclick="//fnToggleRealTrade();" id="btnRealTradeStatus">Paper Trade - ON</button>
@@ -64,7 +62,7 @@
                                         </form>
                                     </div>
                                     <div class="col-2" style="text-align: right;">Start With </div>
-                                    <div class="col-1"><input type="text" class="form-control" min="1" value="1" maxlength="3" id="txtStartLotNos" onchange="fnChangeStartLotNos(this);" /></div>
+                                    <div class="col-1"><input type="text" class="form-control" min="1" value="1" maxlength="3" id="txtStartLotNos" onchange="fnChangeKotakStartLotNos(this);" /></div>
                                     <div class="col-1"> Qty</div>
                                     <div class="col-1" style="text-align: right;">
                                         <a data-bs-toggle="collapse" href="#divTraderClps" role="button" aria-expanded="true" aria-controls="divTraderClps">
@@ -75,134 +73,145 @@
                             </div>
                             <div class="card-body">
                                 <div class="collapse show" id="divTraderClps">
-                                    <div class="tab-content" id="TabMTContent">
-                                        <div class="container-fluid">
-                                            <div class="row">
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    To Trade Strike
-                                                </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    Symbols List
-                                                </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    Expiry
-                                                </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    Current Rate
-                                                </div>
+                                    <div class="container-fluid">
+                                        <div class="row">
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                To Trade Strike
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                Symbols List
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                Expiry
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                Current Rate
+                                            </div>
 
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    <select id="ddlOptionStrike" onchange="fnChangeOptionStrike(this);" class="form-select">
-                                                        <option value="-10">-10 ITM</option>
-                                                        <option value="-9">-9 ITM</option>
-                                                        <option value="-8">-8 ITM</option>
-                                                        <option value="-7">-7 ITM</option>
-                                                        <option value="-6">-6 ITM</option>
-                                                        <option value="-5">-5 ITM</option>
-                                                        <option value="-4">-4 ITM</option>
-                                                        <option value="-3">-3 ITM</option>
-                                                        <option value="-2">-2 ITM</option>
-                                                        <option value="-1">-1 ITM</option>
-                                                        <option value="0" selected="true">ATM</option>
-                                                        <option value="1">+1 OTM</option>
-                                                        <option value="2">+2 OTM</option>
-                                                        <option value="3">+3 OTM</option>
-                                                        <option value="4">+4 OTM</option>
-                                                        <option value="5">+5 OTM</option>
-                                                        <option value="6">+6 OTM</option>
-                                                        <option value="7">+7 OTM</option>
-                                                        <option value="8">+8 OTM</option>
-                                                        <option value="9">+9 OTM</option>
-                                                        <option value="10">+10 OTM</option>
-                                                    </select>                
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <select id="ddlOptionStrike" onchange="fnChangeOptionStrike(this);" class="form-select">
+                                                    <option value="-10">-10 ITM</option>
+                                                    <option value="-9">-9 ITM</option>
+                                                    <option value="-8">-8 ITM</option>
+                                                    <option value="-7">-7 ITM</option>
+                                                    <option value="-6">-6 ITM</option>
+                                                    <option value="-5">-5 ITM</option>
+                                                    <option value="-4">-4 ITM</option>
+                                                    <option value="-3">-3 ITM</option>
+                                                    <option value="-2">-2 ITM</option>
+                                                    <option value="-1">-1 ITM</option>
+                                                    <option value="0" selected="true">ATM</option>
+                                                    <option value="1">+1 OTM</option>
+                                                    <option value="2">+2 OTM</option>
+                                                    <option value="3">+3 OTM</option>
+                                                    <option value="4">+4 OTM</option>
+                                                    <option value="5">+5 OTM</option>
+                                                    <option value="6">+6 OTM</option>
+                                                    <option value="7">+7 OTM</option>
+                                                    <option value="8">+8 OTM</option>
+                                                    <option value="9">+9 OTM</option>
+                                                    <option value="10">+10 OTM</option>
+                                                </select>                
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <select id="ddlOptionsSymbols" class="form-select" onchange="fnGetSelSymbolData(this.value);" placeholder="NSE Cash Symbols">
+                                                    <option value=''>Select Option Symbol</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <select id="ddlOptionsExpiry" class="form-select" onchange="//fnGetExpValByChdAPT(this.value);">
+                                                </select>
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <div class="input-group mb-3">
+                                                    <button class="btn btn-danger" type="button" id="btnGetRatePE" onclick="fnGetCurrRateSettings('PE');"><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
+                                                    <input id="txtCurrentRateView" type="number" min="1" class="form-control" placeholder="Current Rate" />
+                                                    <button class="btn btn-success" type="button" id="btnGetRateCE" onclick="fnGetCurrRateSettings('CE');"><i class="fa fa-chevron-up" aria-hidden="true"></i></button>
                                                 </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    <select id="ddlOptionsSymbols" class="form-select" onchange="fnGetSelSymbolData(this.value);" placeholder="Symbols">
-                                                    </select>
-                                                </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    <select id="ddlOptionsExpiry" class="form-select" onchange="//fnGetExpValByChdAPT(this.value);">
-                                                    </select>
-                                                </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    <div class="input-group mb-3">
-                                                        <button class="btn btn-danger" type="button" id="btnGetRatePE" onclick="fnGetCurrRateSettings('PE');"><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
-                                                        <input id="txtCurrentRateView" type="number" min="1" class="form-control" placeholder="Current Rate" />
-                                                        <button class="btn btn-success" type="button" id="btnGetRateCE" onclick="fnGetCurrRateSettings('CE');"><i class="fa fa-chevron-up" aria-hidden="true"></i></button>
-                                                    </div>
-                                                </div>
+                                            </div>
 
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    Lot Size
-                                                </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    Quantity
-                                                </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    Stop Loss Points
-                                                </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    Take Profit Points
-                                                </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                Lot Size
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                Quantity
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                Stop Loss Points
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                Take Profit Points
+                                            </div>
 
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    <input type="number" min="1" class="form-control" placeholder="Lot Size" id="txtOptionLotSize" value="1" />
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <input type="number" min="1" class="form-control" placeholder="Lot Size" id="txtOptionLotSize" value="1" />
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <input type="number" min="1" class="form-control" placeholder="Quantity" id="txtOptionsQty" value="1" />
+                                                
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <input type="text" class="form-control" id="txtOptionsSL1" name="txtOptionsSL1" value="" placeholder="Stop Loss" />
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <input type="text" class="form-control" id="txtOptionsTP1" name="txtOptionsTP1" value="" placeholder="Take Profit" />
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <input type="text" id="hidJsonFileName" class="form-control" value="" placeholder="File Name" />
+                                                    <input type="text" id="hidSpotOptionCE" class="form-control" placeholder="Spot Option CE" value="" />
+                                                    <input type="text" id="hidTokenCE" class="form-control" placeholder="Token CE" value="" />
+                                                    <input type="text" id="hidTrdSymbolCE" class="form-control" placeholder="Trd Symbol CE" value="" />
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <input type="text" id="hidSearchSymbol" class="form-control" value="" placeholder="Search Symbol" />
+                                                    <input type="text" id="hidSpotOptionPE" class="form-control" placeholder="Spot Option PE" value="" />
+                                                    <input type="text" id="hidTokenPE" class="form-control" placeholder="Token PE" value="" />
+                                                    <input type="text" id="hidTrdSymbolPE" class="form-control" placeholder="Trd Symbol PE" value="" />
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <input type="text" id="hidSegment" class="form-control" value="" placeholder="Segment" />
+                                                <input type="text" id="hidMaxQty" class="form-control" placeholder="Max Quantity" value="" />
+                                                <input type="text" id="hidExSeg" class="form-control" placeholder="Exchange Segment" value="" />
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <input type="text" id="hidOptStrikeInterval" class="form-control" value="" placeholder="Strike Interval" />
+                                                <input type="text" id="hidMaxPerOrdQty" class="form-control" placeholder="Max Order Quantity" value="" />
+                                                <input type="text" id="hidExpiryEPoch" class="form-control" value="" placeholder="Expiry E-Poch" />
+                                            </div>
+                                            <hr/>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <div class="d-grid gap-1">
+                                                    <button class="btn btn-outline-danger" onclick="fnExecPlaceOrderTest('B', 'PE');//fnEmitTradeForAll('PE');" style="display: block;"><b>Buy PE for ALL</b></button>
                                                 </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    <input type="number" min="1" class="form-control" placeholder="Quantity" id="txtOptionsQty" value="1" />
-                                                    
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <div class="d-grid gap-1">
+                                                    <button class="btn btn-outline-success" onclick="fnExecPlaceOrderTest('B', 'CE');//fnEmitTradeForAll('CE');" style="display: block;"><b>Buy CE for ALL</b></button>
                                                 </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    <input type="text" class="form-control" id="txtOptionsSL1" name="txtOptionsSL1" value="" placeholder="Stop Loss" />
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <div class="d-grid gap-1">
+                                                    <button class="btn btn-outline-danger" onclick="fnInitiateManualOption('B', 'PE');"><b>BUY PE</b></button>
                                                 </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    <input type="text" class="form-control" id="txtOptionsTP1" name="txtOptionsTP1" value="" placeholder="Take Profit" />
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6">
+                                                <div class="d-grid gap-1">
+                                                    <button class="btn btn-outline-success" onclick="fnInitiateManualOption('B', 'CE');"><b>BUY CE</b></button>
                                                 </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    <input type="hidden" id="hidJsonFileName" class="form-control" value="" placeholder="File Name" />
-                                                    <input type="hidden" id="hidSpotOptionCE" class="form-control" placeholder="Spot Option CE" value="" />
-                                                    <input type="hidden" id="hidTokenCE" class="form-control" placeholder="Token CE" value="" />
-                                                    <input type="hidden" id="hidTrdSymbolCE" class="form-control" placeholder="Trd Symbol CE" value="" />
+                                            </div>
+                                            <hr/>
+                                            <div class="col-6 col-lg-3 col-md-6" style="display:none;">
+                                                <div class="d-grid gap-1">
+                                                    <button class="btn btn-outline-danger" onclick="fnInitiateManualOptionBO('B', 'PE');"><b>BUY BO PE</b></button>
                                                 </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    <input type="hidden" id="hidSearchSymbol" class="form-control" value="" placeholder="Search Symbol" />
-                                                    <input type="hidden" id="hidSpotOptionPE" class="form-control" placeholder="Spot Option PE" value="" />
-                                                    <input type="hidden" id="hidTokenPE" class="form-control" placeholder="Token PE" value="" />
-                                                    <input type="hidden" id="hidTrdSymbolPE" class="form-control" placeholder="Trd Symbol PE" value="" />
-                                                </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    <input type="hidden" id="hidSegment" class="form-control" value="" placeholder="Segment" />
-                                                    <input type="hidden" id="hidMaxQty" class="form-control" placeholder="Max Quantity" value="" />
-                                                    <input type="hidden" id="hidExSeg" class="form-control" placeholder="Exchange Segment" value="" />
-                                                </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    <input type="hidden" id="hidOptStrikeInterval" class="form-control" value="" placeholder="Strike Interval" />
-                                                    <input type="hidden" id="hidExpiryEPoch" class="form-control" value="" placeholder="Expiry E-Poch" />
-                                                </div>
-                                                <hr/>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    <div class="d-grid gap-1">
-                                                        <button class="btn btn-outline-danger" onclick="fnEmitTradeForAll('PE');" style="display: block;"><b>Buy PE for ALL</b></button>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    <div class="d-grid gap-1">
-                                                        <button class="btn btn-outline-success" onclick="fnEmitTradeForAll('CE');" style="display: block;"><b>Buy CE for ALL</b></button>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    <div class="d-grid gap-1">
-                                                        <button class="btn btn-outline-danger" onclick="fnInitiateManualOption('B', 'PE');"><b>BUY PE</b></button>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6 col-lg-3 col-md-6">
-                                                    <div class="d-grid gap-1">
-                                                        <button class="btn btn-outline-success" onclick="fnInitiateManualOption('B', 'CE');"><b>BUY CE</b></button>
-                                                    </div>
+                                            </div>
+                                            <div class="col-6 col-lg-3 col-md-6" style="display:none;">
+                                                <div class="d-grid gap-1">
+                                                    <button class="btn btn-outline-success" onclick="fnInitiateManualOptionBO('B', 'CE');"><b>BUY BO CE</b></button>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>                        
+                                    </div>
                                     <div class="row" style="display:block;">
                                         <div class="col-12 col-lg-12 col-md-12">
                                             <input type="text" id="txtKotakSession" class="form-control" value="" placeholder="Kotak Session" />
@@ -211,9 +220,8 @@
                                             <input type="text" id="txtSubUserId" class="form-control" value="" placeholder="Sub / UserID" />
                                             <input type="text" id="txtSid" class="form-control" value="" placeholder="SID" />
                                             <input type="text" id="txtHsServerId" class="form-control" value="" placeholder="Hs Server ID" />
-                                            <input type="text" id="channel_number" class="form-control" value="5,6" placeholder="Channel Number" />
                                             <input type="text" id="hidLTP" class="form-control" value="" placeholder="LTP" />
-                                
+
                                             <input type="text" id="hidStrikeInterval" placeholder="Strike Interval" />
                                             <input type="text" id="hidToken" placeholder="Script Token" />
                                             <input type="text" id="hidExchange" placeholder="Exchange" />
@@ -302,7 +310,7 @@
                                             <div class="row">
                                                 <div class="col-4">
                                                     <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                                        <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtAutoChkPosition" name="swtAutoChkPosition" onchange="fnExecTradeTimer();" />
+                                                        <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtAutoChkPosition" name="swtAutoChkPosition" onchange="fnExecTradeTimer();" />
                                                         <label for="swtAutoChkPosition" style="cursor:pointer;">Auto Check Every</label>
                                                     </div>
                                                 </div>
@@ -342,7 +350,8 @@
 
                                                 <div class="col-12">
                                                     &nbsp;
-                                                </div>                                                
+                                                </div>  
+
                                                 <div class="col-4">
                                                     <input type="text" id="hidSpotPrice" class="form-control" value="" placeholder="Spot Price" />
                                                 </div>
@@ -382,20 +391,10 @@
                         <div class="card">
                             <div class="card-header">
                                 <div class="row">
-                                    <div class="col-3">
-                                        <h4>Closed Position(s)</h4>
+                                    <div class="col-6">
+                                        <h4>Orderbook</h4>
                                     </div>
-                                    <div class="col-1" style="font-weight: bold;">
-                                        P&L: 
-                                    </div>
-                                    <div class="col-2" id="tdHeadPL">
-                                        0.00
-                                    </div>
-                                    <div class="col-2" style="font-weight: bold;">
-                                        Yet to Recover:
-                                    </div>
-                                    <div class="col-2">
-                                        <span id="spnYtRL" style="text-align:left;font-weight:bold;color:red;">0.00</span>
+                                    <div class="col-4">
                                     </div>
                                     <div class="col-1">
                                         <button class='nav-link' onclick="fnClearLocalStorageTemp();" role="tab" type="button">Clear All</button>
@@ -408,30 +407,33 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <div class="container-fluid">
-                                    <div class="table-responsive">
-                                        <table class="table">
-                                            <thead>
-                                                <tr style="text-align:center;">
-                                                    <!-- <th scope="col">TradeID</th> -->
-                                                    <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
-                                                    <th scope="col" style="text-wrap: nowrap;">End Date Time</th>
-                                                    <th scope="col" style="text-wrap: nowrap;">Symbol</th>
-                                                    <th scope="col" style="text-wrap: nowrap;">Expiry</th>
-                                                    <th scope="col" style="text-wrap: nowrap;">Strike</th>
-                                                    <th scope="col" style="text-wrap: nowrap;">Qty</th>
-                                                    <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
-                                                    <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
-                                                    <th scope="col" style="text-wrap: nowrap;">Charges</th>
-                                                    <th scope="col" style="text-wrap: nowrap;">Capital</th>
-                                                    <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody id="tBodyTodayPaperTrades">
+                                <div class="collapse show" id="divClosedPosClps">
+                                    <div class="container-fluid">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr style="text-align:center;">
+                                                        <!-- <th scope="col">TradeID</th> -->
+                                                        <th scope="col" style="text-wrap: nowrap;">Date Time</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Symbol</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Expiry</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Strike</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Type</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">B or S</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Qty</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Charges</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Capital</th>
+                                                        <!-- <th scope="col" style="text-wrap: nowrap;">P &amp; L</th> -->
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody id="divClsdOrderbook">
 
-                                                </tbody>
-                                        </table>
-                                    </div>
+                                                    </tbody>
+                                            </table>
+                                        </div>
+                                    </div>                    
                                 </div>
                             </div>
                         </div>
@@ -439,70 +441,54 @@
                             <div class="card-header">
                                 <div class="row">
                                     <div class="col-6">
-                                        <h4>Order / Trade Book</h4>
+                                        <h4>Trade Book</h4>
                                     </div>
-                                    <div class="col-4">
+                                    <div class="col-3">
 
                                     </div>
                                     <div class="col-1">
-                                        <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnGetOrderTradeBook();"></i>
+                                        <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnGetOrderBook();"></i>
+                                    </div>
+                                    <div class="col-1">
+                                        <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnGetTradeBook();"></i>
                                     </div>
                                     <div class="col-1" style="text-align: right;">
-                                        <a data-bs-toggle="collapse" href="#divAlgoMsgsClps" role="button" aria-expanded="true" aria-controls="divAlgoMsgsClps">
+                                        <a data-bs-toggle="collapse" href="#divTradeBook" role="button" aria-expanded="true" aria-controls="divTradeBook">
                                             <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
                                           </a>
                                     </div>                                    
                                 </div>
                             </div>
                             <div class="card-body">
-                                <div class="collapse show" id="divAlgoMsgsClps">
+                                <div class="collapse show" id="divTradeBook">
+                                    <div class="container-fluid">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr style="text-align:center;">
+                                                        <!-- <th scope="col">TradeID</th> -->
+                                                        <th scope="col" style="text-wrap: nowrap;">Date Time</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Symbol</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Expiry</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Strike</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Type</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">B or S</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Qty</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Charges</th>
+                                                        <th scope="col" style="text-wrap: nowrap;">Capital</th>
+                                                        <!-- <th scope="col" style="text-wrap: nowrap;">P &amp; L</th> -->
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody id="divTodayTrades">
+    
+                                                    </tbody>
+                                            </table>
+                                        </div>
+                                    </div>                    
                                 </div>
                             </div>
-                        </div>
-                        <div style="display: none;">
-                            <br />		
-                            <input type="button" id="connect_hsm" class="bg-info" value="Connect HSM" onclick="wconnect('Hsm')" /> 
-                            <br />		
-
-                            Channels <br />
-                            <input type="button" id="pause_channel" class="bg-danger" value="Pause " onclick="resumeandpause11('cp',document.getElementById('channel_number').value)" />
-                            
-                            <input type="button" id="resume_channel" class="bg-success" value="Resume" onclick="resumeandpause11('cr',document.getElementById('channel_number').value)" /> <br />	   
-                            <br/>
-                            <input type="button" id="btnUnSubScript" value="Stop Script" onclick="wunsub('mwu', 'sub_scrips', '6');" />
-                            <input type="button" id="btnUnSubIndex" value="Stop Index" onclick="wunsub('ifu', 'sub_indices', '5');" />
-                            <div class="row">
-                                <div class="col-sm-4">
-                                    Stream for Scrips(input=exchange_identifier)  <br /> 
-                                    <textarea id="sub_scrips" value="">nse_cm|11536</textarea> <br />
-                                        
-                                    <input type="button" value="Subscribe Scrip" rows="5" cols="100" onclick="wsub('mws', 'sub_scrips', '6');" /><input id="txtScript" type="text" /><br />
-                                </div>
-                                <div class="col-sm-4">
-                                    Stream Indices <br /> 
-                                    <textarea id="sub_indices">nse_cm|Nifty 50</textarea><br />
-                                    <input type="button" value="Subscribe Index" rows="5" cols="100" onclick="wsub('ifs', 'sub_indices', '5');" /><input id="txtIndex" type="text" /><br />
-                                </div>
-                                <div class="col-sm-4">
-                                    Stream MD  <br /> 
-                                    <textarea id="sub_depth">nse_cm|11536&nse_cm|11000&nse_cm|11001</textarea><br />
-                                    <input type="button" value="Subscribe Depth" rows="5" cols="100" onclick="wsub('dps', 'sub_depth', '3');" /><br />
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-sm-3">			   
-                                </div>
-                                <div class="col-sm-9">
-                                    Streaming ... Scrips nse_cm|1594 nse_cm|3456 nse_cm|11536<br />
-                                    <textarea id="stream_scrips" rows="10" cols="100"></textarea>
-                                    <br />
-                                    Streaming ... Orders <br />
-                                    <textarea id="stream_scrips1" rows="10" cols="100"></textarea>
-                                    <br />
-                                </div>
-                            </div>
-
                         </div>
                     </div>
                 </div>
@@ -513,6 +499,6 @@
 
 <%- include('partials/kotakSettings.ejs') %>
 
-<script src="/js/kotakPaperNS.js"></script>
+<script src="/js/kotakLiveNS.js"></script>
 <script src="/js/kotakSettingsNS.js"></script>
 <script src="/js/kotakWebSocketNS.js"></script>
