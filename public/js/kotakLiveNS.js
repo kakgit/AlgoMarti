@@ -3231,7 +3231,7 @@ function fnInitClsOptRealTrade1(pQty){
                     localStorage.removeItem("KotakCurrOptPosiS");
                     fnResetOpenPositionDetails();
                     // userKotakWS.close();
-                    resumeandpause('cp', '9');
+                    // resumeandpause('cp', '9');
                     fnGenMessage("No Open Position", `badge bg-success`, "btnPositionStatus");
                 }
                 else{
