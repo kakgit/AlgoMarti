@@ -2263,7 +2263,7 @@ function fnCheckOptTradeTimer(){
     }
 }
 
-async function fnCheckOptionStatus(){
+function fnCheckOptionStatus(){
     var objTimerSwitch = document.getElementById("swtAutoChkPosition");
     let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
 
@@ -2398,7 +2398,6 @@ function fnUpdateOptSLTP(){
 }
 
 function fnCheckOptBuyingPosition(){
-
     let objSelSLTP = document.getElementById("ddlTrailSLTP");
 
     let objTrailSL = document.getElementById("lblTrailSL");

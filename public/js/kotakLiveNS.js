@@ -2599,7 +2599,8 @@ function fnLoadOptTimerSwitchSetting(){
     else {
         objTimerSwitch.checked = false;
     }
-    fnCheckOptTradeTimer();
+    // fnCheckOptTradeTimer();
+    fnCheckOptionStatus();
 }
 
 function fnCheckOptTradeTimer(){
@@ -2644,6 +2645,37 @@ function fnCheckOptTradeTimer(){
         clearInterval(vTradeInst);
 
         fnGenMessage("Auto Check for Current Price is Off!", `badge bg-danger`, "spnGenMsg");
+    }
+}
+
+function fnCheckOptionStatus(){
+    var objTimerSwitch = document.getElementById("swtAutoChkPosition");
+    let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
+
+    if (objCurrPos !== null){
+        if (objTimerSwitch.checked){
+            localStorage.setItem("TimerSwtS", "true");
+            switch(gByorSl){
+                case "B":
+                    fnCheckOptBuyingPosition();
+                    break;
+                case "S":
+                    fnCheckOptSellingPosition();
+                    break;
+                default:
+                    fnGenMessage("Invalid Transaction Type, Please Check!", `badge bg-danger`, "spnGenMsg");
+
+                }
+            fnGenMessage("Auto Check for Current Price is On!", `badge bg-success`, "spnGenMsg");
+        }
+        else{
+            localStorage.setItem("TimerSwtS", "false");
+            fnGenMessage("Auto Check for Current Price is Off!", `badge bg-danger`, "spnGenMsg");
+        }
+    }
+    else{
+        console.log("No Open Trade, Will start when the trade is Open");
+        fnGenMessage("No Open Trade, Will start when the trade is Open", `badge bg-warning`, "spnGenMsg");
     }
 }
 
@@ -2760,6 +2792,11 @@ function fnCheckOptBuyingPosition(){
     let objProfitLoss = document.getElementById("lblProfitLoss");
     let vLTP = document.getElementById("txtCurrentRate");
 
+    if(vLTP.value === ""){
+        console.log("Waiting for Current Price....");
+        setTimeout(fnCheckOptBuyingPosition, 2000);
+    }
+
     objSellPrice.innerHTML = "<span class='blink'>" + vLTP.value + "</span>";
     let vPLVal = ((parseFloat(vLTP.value) - parseFloat(gBuyPrice)) * parseInt(gLotSize) * parseInt(gQty)).toFixed(2);
     objProfitLoss.innerText = vPLVal;
@@ -2871,6 +2908,7 @@ function fnCheckOptBuyingPosition(){
         }
         else{
             // fnGenMessage("Position is Open, keep watching...", `badge bg-warning`, "spnGenMsg");
+            setTimeout(fnCheckOptionStatus, 2000);
             console.log("Position is Open, Keep Watching...")
         }
 
