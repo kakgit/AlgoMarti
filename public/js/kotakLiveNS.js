@@ -1142,7 +1142,7 @@ async function fnExecOptionTrade(pBuySel, pOptionType){
                 let vDate = new Date();
                 let vMultOrdId = vDate.valueOf();
 
-                //let objNrmlOrdr = await fnPlaceOptNrmlOrdr1(objHsServerId.value, objSid.value, objAccessToken.value, objKotakSession.value, objOptQty.value, objLotSize.value, vTrdToken, objExcSeg.value, pBuySel, vTrdSymbol, pOptionType, objSearchSymbol.value, vRndStrkByOptStep, objCurrRate.value, objMaxQty.value, vMultOrdId);
+                let objNrmlOrdr = await fnPlaceOptNrmlOrdr1(objHsServerId.value, objSid.value, objAccessToken.value, objKotakSession.value, objOptQty.value, objLotSize.value, vTrdToken, objExcSeg.value, pBuySel, vTrdSymbol, pOptionType, objSearchSymbol.value, vRndStrkByOptStep, objCurrRate.value, objMaxQty.value, vMultOrdId);
                 if(objNrmlOrdr.status === "success"){
 
                     gByorSl = objNrmlOrdr.data.ByorSl;
