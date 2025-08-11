@@ -129,7 +129,7 @@ function fnGetSetAllStatus(){
         fnSetLotsByQtyMulLossAmt();
         fnGetSetOptionStrike();
         fnSetInitOptTrdDtls();
-        fnSetInitialTradeDetails();
+        // fnSetInitialTradeDetails();
         fnLoadOptTimerSwitchSetting();
         fnLoadMartiSwitchSettings();
         fnLoadTradeSide();
@@ -660,7 +660,7 @@ async function fnGetSelSymbolData(pThisVal){
             let objStream = JSON.parse(localStorage.getItem("IdxStream"));
 
             fnSubFeeds('ifs', objStream.StreamObj, objStream.Channel);
-            setInterval(fnGetSpotOptionsByStep, 5000);
+            setInterval(fnGetSpotOptionsByStep, 10000);
 
             fnGenMessage(objSymData.message, `badge bg-${objSymData.status}`, "spnGenMsg");   
         }
@@ -1014,9 +1014,23 @@ function fnInitiateManualOption(pBuySel, pOptionType){
     }
 }
 
-function fnDisconnectWS(){
-    console.log("WS Disconnected....")
-    objKNeoWS.close();
+function fnReconnectWS(){
+    let objSpotPrice = document.getElementById("hidSpotPrice");
+    let objIdxStream = JSON.parse(localStorage.getItem("IdxStream"));
+
+    if(objKNeoWS.readyState === 1){
+        if(objIdxStream !== null){
+            fnSubFeeds('ifs', objIdxStream.StreamObj, objIdxStream.Channel);
+            console.log("Streaming Live.....");
+        }
+        else{
+            fnGetSpotOptionsByStep();
+        }
+    }
+    else{
+        fnConnectionWS();
+        console.log("WS Connecting.....");
+    }
 }
 
 async function fnGetOptionRateTicker(pBuySel, pOptionType){
@@ -1280,6 +1294,8 @@ function fnGetOrderBook(){
     let objSid = document.getElementById("txtSid");
     let objAccessToken = document.getElementById("txtAccessToken");
     let objKotakSession = document.getElementById("txtKotakSession");
+    let objHeadPL = document.getElementById("tdHeadPL");
+    let objYtRL = document.getElementById("spnYtRL");
     let vNetProfit = 0;
 
     let vHeaders = new Headers();
@@ -1370,12 +1386,27 @@ function fnGetOrderBook(){
                 vTempHtml += '<tr><td>Total Trades </td><td>' + vTotalTrades + '</td><td colspan="3" style="text-align:right;font-weight:bold;color:orange;">Net PL</td><td colspan="3" style="text-align:left;font-weight:bold;color:orange;">' + vNetProfit.toFixed(2) + '</td><td></td><td style="font-weight:bold;text-align:right;color:red;">' + vTotalCharges.toFixed(2) + '</td><td style="font-weight:bold;text-align:right;color:red;">' + vHighCapital.toFixed(2) + '</td></tr>';
 
                 objClsdOrdbook.innerHTML = vTempHtml;
+
+                objYtRL.innerText = parseFloat(localStorage.getItem("TotLossAmtR")).toFixed(2);
+
+                if(vNetProfit < 0){
+                    objHeadPL.innerHTML = '<span Style="text-align:left;font-weight:bold;color:red;">' + (vNetProfit).toFixed(2) + '</span>';
+                }
+                else{
+                    objHeadPL.innerHTML = '<span Style="text-align:left;font-weight:bold;color:green;">' + (vNetProfit).toFixed(2) + '</span>';
+                }
             }
 
-        if(vNetProfit >= 15000){
-            localStorage.setItem("isAutoTrader", "true");
-            $('#btnAutoTraderStatus').trigger('click');
-        }
+            if(vNetProfit >= 15000){
+                localStorage.setItem("isAutoTrader", "true");
+                $('#btnAutoTraderStatus').trigger('click');
+            }
+
+            if((objStreamLS !== null) && (objCurrPos === null)){
+                fnUnSubTickerData('mwu', objStreamLS.StreamObj, objStreamLS.Channel);
+                objCurrRate.value = "";
+                localStorage.removeItem("OptStream");
+            }
 
             fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");            
         }
@@ -1700,63 +1731,7 @@ function fnChangeMarti(){
 }
 
 function fnExecTradeTimer(){
-    var objCurrPosiLst = localStorage.getItem("KotakCurrOptPosiS");
-
-    if(objCurrPosiLst !== null){
-        fnCheckOptTradeTimer();
-    }
-    else{
-        fnCheckTradeTimer();
-    }
-}
-
-function fnCheckTradeTimer(){
-    var objTimeMS = document.getElementById("txtTimeMS");
-    var objTimerSwitch = document.getElementById("swtAutoChkPosition");
-    var objCurrPosiLst = localStorage.getItem("KotakCurrPosiS");
-    
-    if (isNaN(parseInt(objTimeMS.value)) || (parseInt(objTimeMS.value) < 5)) {
-        objTimeMS.value = 5;
-    }
-
-    let vTimer = 1000 * parseInt(objTimeMS.value);
-
-    if (objTimerSwitch.checked)
-    {
-        localStorage.setItem("TimerSwtS", "true");
-
-        if (objCurrPosiLst !== null) {
-            clearInterval(vTradeInst);
-
-            switch(gByorSl){
-                case "B":
-                    vTradeInst = setInterval(fnCheckBuyingPosition, vTimer);
-                    break;
-                case "S":
-                    vTradeInst = setInterval(fnCheckSellingPosition, vTimer);
-                    break;
-                default:
-                    fnGenMessage("Invalid Transaction Type, Please Check!", `badge bg-danger`, "spnGenMsg");
-
-            }
-
-            //vTradeInst = setInterval(fnSetUpdatedTradeDetails, vTimer);
-
-            //fnSetUpdatedTradeDetails();
-            fnGenMessage("Auto Check for Current Price is On!", `badge bg-success`, "spnGenMsg");
-        }
-        else
-        {
-            clearInterval(vTradeInst);
-            fnGenMessage("No Open Trade, Will start when the trade is Open", `badge bg-warning`, "spnGenMsg");
-        }
-    }
-    else {
-        localStorage.setItem("TimerSwtS", "false");
-        clearInterval(vTradeInst);
-
-        fnGenMessage("Auto Check for Current Price is Off!", `badge bg-danger`, "spnGenMsg");
-    }
+    fnCheckOptionStatus();
 }
 
 function fnSetInitialTradeDetails(){
@@ -2599,53 +2574,7 @@ function fnLoadOptTimerSwitchSetting(){
     else {
         objTimerSwitch.checked = false;
     }
-    // fnCheckOptTradeTimer();
     fnCheckOptionStatus();
-}
-
-function fnCheckOptTradeTimer(){
-    var objTimeMS = document.getElementById("txtTimeMS");
-    var objTimerSwitch = document.getElementById("swtAutoChkPosition");
-    var objCurrPosiLst = localStorage.getItem("KotakCurrOptPosiS");
-    
-    if (isNaN(parseInt(objTimeMS.value)) || (parseInt(objTimeMS.value) < 3)) {
-        objTimeMS.value = 3;
-    }
-
-    let vTimer = 1000 * parseInt(objTimeMS.value);
-
-    if (objTimerSwitch.checked)
-    {
-        localStorage.setItem("TimerSwtS", "true");
-
-        if (objCurrPosiLst !== null) {
-            clearInterval(vTradeInst);
-
-            switch(gByorSl){
-                case "B":
-                    vTradeInst = setInterval(fnCheckOptBuyingPosition, vTimer);
-                    break;
-                case "S":
-                    vTradeInst = setInterval(fnCheckOptSellingPosition, vTimer);
-                    break;
-                default:
-                    fnGenMessage("Invalid Transaction Type, Please Check!", `badge bg-danger`, "spnGenMsg");
-
-            }
-            fnGenMessage("Auto Check for Current Price is On!", `badge bg-success`, "spnGenMsg");
-        }
-        else
-        {
-            clearInterval(vTradeInst);
-            fnGenMessage("No Open Trade, Will start when the trade is Open", `badge bg-warning`, "spnGenMsg");
-        }
-    }
-    else {
-        localStorage.setItem("TimerSwtS", "false");
-        clearInterval(vTradeInst);
-
-        fnGenMessage("Auto Check for Current Price is Off!", `badge bg-danger`, "spnGenMsg");
-    }
 }
 
 function fnCheckOptionStatus(){
@@ -2669,11 +2598,27 @@ function fnCheckOptionStatus(){
             fnGenMessage("Auto Check for Current Price is On!", `badge bg-success`, "spnGenMsg");
         }
         else{
+            let vLTP = document.getElementById("txtCurrentRate");
+            let objSellPrice = document.getElementById("lblSellPrice");
+            let objProfitLoss = document.getElementById("lblProfitLoss");
+
+            objSellPrice.innerHTML = "<span class='blink'>" + vLTP.value + "</span>";
+            let vPLVal = ((parseFloat(vLTP.value) - parseFloat(gBuyPrice)) * parseInt(gLotSize) * parseInt(gQty)).toFixed(2);
+            objProfitLoss.innerText = vPLVal;
+
             localStorage.setItem("TimerSwtS", "false");
             fnGenMessage("Auto Check for Current Price is Off!", `badge bg-danger`, "spnGenMsg");
+            setTimeout(fnCheckOptionStatus, 3000);
         }
     }
     else{
+        if (objTimerSwitch.checked){
+            localStorage.setItem("TimerSwtS", "true");
+        }
+        else{
+            localStorage.setItem("TimerSwtS", "false");
+        }
+
         console.log("No Open Trade, Will start when the trade is Open");
         fnGenMessage("No Open Trade, Will start when the trade is Open", `badge bg-warning`, "spnGenMsg");
     }
@@ -2793,8 +2738,8 @@ function fnCheckOptBuyingPosition(){
     let vLTP = document.getElementById("txtCurrentRate");
 
     if(vLTP.value === ""){
-        console.log("Waiting for Current Price....");
-        setTimeout(fnCheckOptBuyingPosition, 2000);
+        console.log("Waiting for LTP at OptBuyPos....");
+        setTimeout(fnCheckOptionStatus, 2000);
     }
 
     objSellPrice.innerHTML = "<span class='blink'>" + vLTP.value + "</span>";
