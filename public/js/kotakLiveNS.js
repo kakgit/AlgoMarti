@@ -1402,6 +1402,8 @@ function fnGetOrderBook(){
                 $('#btnAutoTraderStatus').trigger('click');
             }
 
+            let objStreamLS = JSON.parse(localStorage.getItem("OptStream"));
+
             if((objStreamLS !== null) && (objCurrPos === null)){
                 fnUnSubTickerData('mwu', objStreamLS.StreamObj, objStreamLS.Channel);
                 objCurrRate.value = "";
@@ -3372,8 +3374,8 @@ function fnSetNextOptTradeSettings(pAvgPrice, pQty, pCharges){
             else{
                 vNextQty = vStartLots;
             }
-            console.log("vDivAmt: " + vDivAmt);
-            console.log("vNextQty: " + vNextQty);
+            // console.log("vDivAmt: " + vDivAmt);
+            // console.log("vNextQty: " + vNextQty);
             if(vNextQty <= 1)
                 vNextQty = vStartLots;
 
