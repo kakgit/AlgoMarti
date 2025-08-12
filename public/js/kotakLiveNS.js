@@ -1403,6 +1403,7 @@ function fnGetOrderBook(){
             }
 
             let objStreamLS = JSON.parse(localStorage.getItem("OptStream"));
+            let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
 
             if((objStreamLS !== null) && (objCurrPos === null)){
                 fnUnSubTickerData('mwu', objStreamLS.StreamObj, objStreamLS.Channel);
