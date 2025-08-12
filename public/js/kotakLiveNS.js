@@ -1296,6 +1296,7 @@ function fnGetOrderBook(){
     let objKotakSession = document.getElementById("txtKotakSession");
     let objHeadPL = document.getElementById("tdHeadPL");
     let objYtRL = document.getElementById("spnYtRL");
+    let objCurrRate = document.getElementById("txtCurrentRate");
     let vNetProfit = 0;
 
     let vHeaders = new Headers();
