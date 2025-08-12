@@ -247,18 +247,19 @@ async function fnInnitiateAutoTrade(pMsg){
 
             if(objCurrPos === null || objCurrPos === ""){
                 if(((vTradeSide === "true") && (pMsg.OptionType === "CE")) || ((vTradeSide === "false") && (pMsg.OptionType === "PE")) || (vTradeSide === "-1")){
-                    let objSymbData = await fnExecSelSymbData(pMsg.Symbol);
+                    fnGetOptionRateTicker("B", pMsg.OptionType);
+                    // let objSymbData = await fnExecSelSymbData(pMsg.Symbol);
 
-                    if(objSymbData.status === "success"){
-                        fnGetOptionRateTicker("B", pMsg.OptionType);
-                        // fnExecOptionTrade("B", pMsg.OptionType);
-                        // console.log(objSymbData);
-                        // console.log("New Trade Executed");
-                        // fnGenMessage("Success - "+ pMsg.OptionType +" Trade Executed!", "badge bg-success", "spnGenMsg");
-                    }
-                    else{
-                        fnGenMessage("Error At Auto Trade for - "+ pMsg.OptionType, "badge bg-warning", "spnGenMsg");
-                    }
+                    // if(objSymbData.status === "success"){
+                    //     fnGetOptionRateTicker("B", pMsg.OptionType);
+                    //     // fnExecOptionTrade("B", pMsg.OptionType);
+                    //     // console.log(objSymbData);
+                    //     // console.log("New Trade Executed");
+                    //     // fnGenMessage("Success - "+ pMsg.OptionType +" Trade Executed!", "badge bg-success", "spnGenMsg");
+                    // }
+                    // else{
+                    //     fnGenMessage("Error At Auto Trade for - "+ pMsg.OptionType, "badge bg-warning", "spnGenMsg");
+                    // }
                 }
                 else{
                     //console.log("No Trade");
