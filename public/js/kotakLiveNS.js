@@ -788,6 +788,12 @@ async function fnGetSpotOptionsByStep(){
     objSpotOptionPE.value = vRndStrkByOptStepPE;
 }
 
+function fnUpdateIndexTicker(){
+    let objStream = JSON.parse(localStorage.getItem("IdxStream"));
+
+    fnSubFeeds('ifs', objStream.StreamObj, objStream.Channel);
+}
+
 function fnGetOptTokenDet4CurrStrike(pFileName, pSearchSymbol, pExpiry2Epoch, vRndStrkByOptStepCE, vRndStrkByOptStepPE){
     const objOptToken = new Promise((resolve, reject) => {
         let vHeaders = new Headers();
