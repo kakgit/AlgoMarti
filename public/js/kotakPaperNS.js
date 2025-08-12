@@ -24,6 +24,10 @@ let gRoundStrike = 0;
 let gTSLCrossed = false;
 let startTime = 0;
 
+let gActTrdCE = false;
+let gActTrdPE = false;
+let gTrdExcPrc = false;
+
 window.addEventListener("DOMContentLoaded", function(){
     fnGetSetPaperTraderLoginStatus();
 
@@ -50,6 +54,7 @@ window.addEventListener("DOMContentLoaded", function(){
     });
 
     socket.on("tv-exec", (pMsg) => {
+        let isLsAutoTrader = localStorage.getItem("isAutoPaperTrader");
         let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
         let objLiveMsgs = JSON.parse(localStorage.getItem("msgsCI"));
         let vDate = new Date();
@@ -67,27 +72,28 @@ window.addEventListener("DOMContentLoaded", function(){
             objLiveMsgs.TrdMsgs.push(vTempMsg);
             localStorage.setItem("msgsCI", JSON.stringify(objLiveMsgs));
         }
-        // if(objCurrPos === null || objCurrPos === ""){
-        //     localStorage.setItem("OHLC", JSON.stringify({SymbolNo: pMsg.Symbol, OptType: pMsg.OptionType, Open: pMsg.Open, High: pMsg.High, Low: pMsg.Low, Close: pMsg.Close }));
-        // }
 
-        // console.log("OHLC: " + localStorage.getItem("OHLC"));
-        fnInnitiateAutoTrade(pMsg);
+        if(isLsAutoTrader === "false"){
+            fnGenMessage("Trade Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
+        }else{
+            fnInnitiateAutoTrade11(pMsg);
+        }
     });
 
     socket.on("tv-exec-close", (pMsg) => {
-        let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
+        fnCloseOptTrade11();
+        // let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
 
-        if(objCurrPos === null || objCurrPos === ""){
-            fnGenMessage("No Open Positions to Close!", `badge bg-warning`, "spnGenMsg");
-        }
-        else if(objCurrPos.TradeData[0].OptionType === pMsg.OptionType){
-            fnCloseOptTrade();
-            fnGenMessage("Position is Close!", `badge bg-success`, "spnGenMsg");
-        }
-        else{
-            fnGenMessage("No "+ pMsg.OptionType +" Position to Close!", `badge bg-warning`, "spnGenMsg");
-        }
+        // if(objCurrPos === null || objCurrPos === ""){
+        //     fnGenMessage("No Open Positions to Close!", `badge bg-warning`, "spnGenMsg");
+        // }
+        // else if(objCurrPos.TradeData[0].OptionType === pMsg.OptionType){
+        //     fnCloseOptTrade();
+        //     fnGenMessage("Position is Closed!", `badge bg-success`, "spnGenMsg");
+        // }
+        // else{
+        //     fnGenMessage("No "+ pMsg.OptionType +" Position to Close!", `badge bg-warning`, "spnGenMsg");
+        // }
     });
 
     socket.on("CdlTrend", (pMsg) => {
@@ -137,7 +143,6 @@ function fnGetSetAllStatus(){
         fnSetLotsByQtyMulLossAmt();
         fnGetSetOptionStrike();
         fnSetInitOptTrdDtls();
-        // fnSetInitialTradeDetails();
         fnLoadOptTimerSwitchSetting();
         fnLoadMartiSwitchSettings();
         fnLoadTradeSide();
@@ -146,6 +151,94 @@ function fnGetSetAllStatus(){
     else{
         fnClearTraderFields();
     }
+}
+
+function fnTestBuy(pOptType){
+    if(pOptType === "CE"){
+        console.log("CE Trade to Open Waiting....!");
+
+        if(gTrdExcPrc === true){
+            setTimeout(fnTestBuy, 5000, pOptType);
+        }
+        else{
+            fnTestExecBuyTrade(pOptType);
+        }
+    }
+    else if(pOptType === "PE"){
+        console.log("PE Trade to Open Waiting....!");
+        if(gTrdExcPrc === true){
+            setTimeout(fnTestBuy, 5000, pOptType);
+        }
+        else{
+            fnTestExecBuyTrade(pOptType);
+        }
+    }
+}
+
+function fnTestClose(pOptType){
+    if(pOptType === "CE"){
+        console.log("CE Trade to Close Waiting..!");
+
+        if(gTrdExcPrc === true){
+            setTimeout(fnTestClose, 5000, pOptType);
+        }
+        else{
+            fnTestExecCloseTrade(pOptType);
+        }
+    }
+    else if(pOptType === "PE"){
+        console.log("PE Trade to Close Waiting..!");
+
+        if(gTrdExcPrc === true){
+            setTimeout(fnTestClose, 5000, pOptType);
+        }
+        else{
+            fnTestExecCloseTrade(pOptType);
+        }
+    }    
+}
+
+async function fnTestExecBuyTrade(pOptType){
+    gTrdExcPrc = true;
+    if(gActTrdCE === true || gActTrdPE === true){
+        console.log("CE or PE Trade is already running...........!");
+    }
+    else{
+        await fnSleep(3000);
+        if(pOptType === "CE"){
+            gActTrdPE = false;
+            gActTrdCE = true;
+            console.log(pOptType + " Trade Executed!");
+        }
+        else if(pOptType === "PE"){
+            gActTrdPE = true;
+            gActTrdCE = false;
+            console.log(pOptType + " Trade Executed!");
+        }
+    }
+    gTrdExcPrc = false;
+}
+
+async function fnTestExecCloseTrade(pOptType){
+    gTrdExcPrc = true;
+    if(gActTrdCE === true && pOptType === "CE"){
+        await fnSleep(5000);
+        gActTrdCE = false;
+        console.log(pOptType + " Close Trade Executed!");
+    }
+    else if(gActTrdPE === true && pOptType === "PE"){
+        await fnSleep(5000);
+        gActTrdPE = false;
+        console.log(pOptType + " Close Trade Executed!");
+    }
+    else{
+        console.log("No " + pOptType + " Trade is Open to Close!");
+    }
+    gTrdExcPrc = false;
+}
+
+function fnSleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function fnToggleAutoPaperTrader(){
@@ -231,6 +324,51 @@ function fnEmitTradeForAll(pOptionType){
             console.log('error: ', error);
             fnGenMessage("Error to Fetch Trade Msg.", `badge bg-danger`, "spnGenMsg");
         });        
+    }
+}
+
+async function fnInnitiateAutoTrade11(pMsg){
+    try{
+        let vTradeSide = localStorage.getItem("TradeSideSwtS");
+        if(gActTrdCE === true || gActTrdPE === true){
+            console.log("CE or PE Trade is already running...........!");
+        }
+        else{
+            if(pMsg.OptionType === "CE"){
+                console.log("CE Trade to Open Waiting....!");
+                if(((vTradeSide === "true") && (pMsg.OptionType === "CE")) || ((vTradeSide === "false") && (pMsg.OptionType === "PE")) || (vTradeSide === "-1")){
+                    if(gTrdExcPrc === true){
+                        setTimeout(fnInnitiateAutoTrade11, 5000, pMsg.OptionType);
+                    }
+                    else{
+                        fnGetOptionRateTicker("B", pMsg.OptionType);
+                    }
+                }
+                else{
+                    fnGenMessage(pMsg.OptionType +" Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
+                }
+            }
+            else if(pMsg.OptionType === "PE"){
+                console.log("PE Trade to Open Waiting....!");
+                if(((vTradeSide === "true") && (pMsg.OptionType === "CE")) || ((vTradeSide === "false") && (pMsg.OptionType === "PE")) || (vTradeSide === "-1")){
+                    if(gTrdExcPrc === true){
+                        setTimeout(fnInnitiateAutoTrade11, 5000, pMsg.OptionType);
+                    }
+                    else{
+                        fnGetOptionRateTicker("B", pMsg.OptionType);
+                    }
+                }
+                else{
+                    fnGenMessage(pMsg.OptionType +" Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
+                }
+            }
+            else{
+                fnGenMessage("Invalid Option Type!", "badge bg-warning", "spnGenMsg");
+            }
+        }
+    }
+    catch(err){
+        fnGenMessage(err.message, `badge bg-${err.status}`, "spnGenMsg");
     }
 }
 
@@ -752,6 +890,35 @@ function fnInitiateManualOption(pBuySel, pOptionType){
     }
 }
 
+function fnInitiateManualOption11(pBuySel, pOptionType){
+    if(gActTrdCE === true || gActTrdPE === true){
+        console.log("CE or PE Trade is already running...........!");
+    }
+    else{
+        if(pOptionType === "CE"){
+            console.log("CE Trade to Open Waiting....!");
+            if(gTrdExcPrc === true){
+                setTimeout(fnInitiateManualOption11, 5000, pOptionType);
+            }
+            else{
+                fnGetOptionRateTicker(pBuySel, pOptionType);
+            }
+        }
+        else if(pOptionType === "PE"){
+            console.log("PE Trade to Open Waiting....!");
+            if(gTrdExcPrc === true){
+                setTimeout(fnInitiateManualOption11, 5000, pOptionType);
+            }
+            else{
+                fnGetOptionRateTicker(pBuySel, pOptionType);
+            }
+        }
+        else{
+            fnGenMessage("Invalid Option Type!", "badge bg-warning", "spnGenMsg");
+        }
+    }
+}
+
 function fnReconnectWS(){
     let objSpotPrice = document.getElementById("hidSpotPrice");
     let objIdxStream = JSON.parse(localStorage.getItem("IdxStream"));
@@ -772,6 +939,8 @@ function fnReconnectWS(){
 }
 
 async function fnGetOptionRateTicker(pBuySel, pOptionType){
+    gTrdExcPrc = true;
+
     let vTokenCE = document.getElementById("hidTokenCE").value;
     let vTokenPE = document.getElementById("hidTokenPE").value;
     let vExcSeg = document.getElementById("hidExSeg").value;
@@ -826,7 +995,7 @@ async function fnGetOptionRateTicker(pBuySel, pOptionType){
         }
     }
     else{
-        console.log("No Option Provided.............................................................");
+        console.log("No Option Provided....................");
     }
 }
 
@@ -889,9 +1058,7 @@ async function fnExecOptionTrade(pBuySel, pOptionType){
             }
             else{
                 clearInterval(gInnTrdInrvl);
-                console.log("Start Waiting.....");
-                await fnSleep(3000);
-                console.log("End Waiting.....");
+
                 let objNrmlOrdr = await fnPlaceOptNrmlOrdr(objHsServerId.value, objSid.value, objAccessToken.value, objKotakSession.value, objOptQty.value, objLotSize.value, vTrdToken, objExcSeg.value, pBuySel, vTrdSymbol, pOptionType, objSearchSymbol.value, vRndStrkByOptStep, objCurrRate.value, objMaxQty.value);
                 if(objNrmlOrdr.status === "success"){
 
@@ -942,7 +1109,17 @@ async function fnExecOptionTrade(pBuySel, pOptionType){
                     fnGenMessage(objNrmlOrdr.message, `badge bg-${objNrmlOrdr.status}`, "spnGenMsg");
                     console.log("Trade Executed....................");
 
+                    if(pOptionType === "CE"){
+                        gActTrdCE = true;
+                    }
+                    else if(pOptionType === "PE"){
+                        gActTrdPE = true;
+                    }
+
+                    gTrdExcPrc = false;
+
                     fnSetInitOptTrdDtls();
+                    await fnSleep(3000);
                 }
                 else{
                     fnGenMessage(objNrmlOrdr.message, `badge bg-${objNrmlOrdr.status}`, "spnGenMsg");
@@ -996,10 +1173,6 @@ function fnGetTokenDetails4Option(pFileName, pSearchSymbol, pOptionType, pExpiry
     });
 
     return objOptToken;
-}
-
-function fnSleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function fnPlaceOptNrmlOrdr(pHsServerId, pSid, pAccessToken, pKotakSession, pOptionQty, pLotSize, pToken, pExchSeg, pBuySel, pTrdSymbol, pOptionType, pSearchSymbol, pStrikePrice, pCurrRate, pMaxQty){
@@ -2457,7 +2630,7 @@ function fnCheckOptBuyingPosition(){
             // console.log("Exec 50%");
         }
         else if((parseFloat(vLTP.value) <= gAmtSL) || (parseFloat(vLTP.value) >= gAmtTP)){
-            fnCloseOptTrade();
+            fnCloseOptTrade11();
         }
         else{
             // fnGenMessage("Position is Open, keep watching...", `badge bg-warning`, "spnGenMsg");
@@ -2580,10 +2753,6 @@ async function fnClose50PrctOptTrade(){
         else{
             let v50PrctQty = Math.round(parseInt(objCurrPos.TradeData[0].Quantity) / 2);
 
-            console.log("Start Waiting.....");
-            await fnSleep(3000);
-            console.log("End Waiting.....");
-
             let objClsTrd = await fnInitClsOptPaperTrade(v50PrctQty);
 
             if(objClsTrd.status === "success"){
@@ -2600,7 +2769,78 @@ async function fnClose50PrctOptTrade(){
     }
 }
 
+function fnCloseOptTrade11(){
+    let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
+    let pOptType = ""; 
+
+    if(objCurrPos !== null){
+        pOptType = objCurrPos.TradeData[0].OptionType;
+    }
+    else{
+        pOptType = "";
+    }
+
+    if(pOptType === "CE"){
+        console.log("CE Trade to Close Waiting..!");
+
+        if(gTrdExcPrc === true){
+            setTimeout(fnCloseOptTrade11, 5000, pOptType);
+        }
+        else{
+            fnCloseOptTrade();
+        }
+    }
+    else if(pOptType === "PE"){
+        console.log("PE Trade to Close Waiting..!");
+
+        if(gTrdExcPrc === true){
+            setTimeout(fnCloseOptTrade11, 5000, pOptType);
+        }
+        else{
+            fnCloseOptTrade();
+        }
+    }
+    else{
+        console.log("No Open Position to Close!");
+    }
+}
+
 async function fnCloseOptTrade(){
+    gTrdExcPrc = true;
+
+    if(gActTrdCE === true){
+        let objClsTrd = await fnInitClsOptPaperTrade(0);
+
+        if(objClsTrd.status === "success"){
+            await fnSleep(5000);
+            gActTrdCE = false;
+            gTrdExcPrc = false;
+            console.log("CE Close Trade Executed!");
+            fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+        }
+        else{
+            fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+        }
+    }
+    else if(gActTrdPE === true){
+        let objClsTrd = await fnInitClsOptPaperTrade(0);
+
+        if(objClsTrd.status === "success"){
+            await fnSleep(5000);
+            gActTrdCE = false;
+            gTrdExcPrc = false;
+            console.log("PE Close Trade Executed!");
+            fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+        }
+        else{
+            fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+        }
+    }
+    else{
+        console.log("No " + pOptType + " Trade is Open to Close!");
+    }
+    gTrdExcPrc = false;
+
     try{
         let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
 
@@ -2608,10 +2848,6 @@ async function fnCloseOptTrade(){
             fnGenMessage("No Open Positions to Close!", `badge bg-warning`, "spnGenMsg");
         }
         else{
-            console.log("Start Waiting.....");
-            await fnSleep(3000);
-            console.log("End Waiting.....");
-            
             let objClsTrd = await fnInitClsOptPaperTrade(0);
 
             if(objClsTrd.status === "success"){
