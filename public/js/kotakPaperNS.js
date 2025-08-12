@@ -889,7 +889,9 @@ async function fnExecOptionTrade(pBuySel, pOptionType){
             }
             else{
                 clearInterval(gInnTrdInrvl);
-
+                console.log("Start Waiting.....");
+                await fnSleep(3000);
+                console.log("End Waiting.....");
                 let objNrmlOrdr = await fnPlaceOptNrmlOrdr(objHsServerId.value, objSid.value, objAccessToken.value, objKotakSession.value, objOptQty.value, objLotSize.value, vTrdToken, objExcSeg.value, pBuySel, vTrdSymbol, pOptionType, objSearchSymbol.value, vRndStrkByOptStep, objCurrRate.value, objMaxQty.value);
                 if(objNrmlOrdr.status === "success"){
 
@@ -994,6 +996,10 @@ function fnGetTokenDetails4Option(pFileName, pSearchSymbol, pOptionType, pExpiry
     });
 
     return objOptToken;
+}
+
+function fnSleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function fnPlaceOptNrmlOrdr(pHsServerId, pSid, pAccessToken, pKotakSession, pOptionQty, pLotSize, pToken, pExchSeg, pBuySel, pTrdSymbol, pOptionType, pSearchSymbol, pStrikePrice, pCurrRate, pMaxQty){
@@ -2574,6 +2580,10 @@ async function fnClose50PrctOptTrade(){
         else{
             let v50PrctQty = Math.round(parseInt(objCurrPos.TradeData[0].Quantity) / 2);
 
+            console.log("Start Waiting.....");
+            await fnSleep(3000);
+            console.log("End Waiting.....");
+
             let objClsTrd = await fnInitClsOptPaperTrade(v50PrctQty);
 
             if(objClsTrd.status === "success"){
@@ -2598,6 +2608,10 @@ async function fnCloseOptTrade(){
             fnGenMessage("No Open Positions to Close!", `badge bg-warning`, "spnGenMsg");
         }
         else{
+            console.log("Start Waiting.....");
+            await fnSleep(3000);
+            console.log("End Waiting.....");
+            
             let objClsTrd = await fnInitClsOptPaperTrade(0);
 
             if(objClsTrd.status === "success"){
