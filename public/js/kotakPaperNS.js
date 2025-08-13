@@ -2837,7 +2837,7 @@ async function fnCloseOptTrade(){
         }
     }
     else{
-        console.log("No " + pOptType + " Trade is Open to Close!");
+        console.log("No PE or CE Trade is Open to Close!");
     }
     gTrdExcPrc = false;
 
