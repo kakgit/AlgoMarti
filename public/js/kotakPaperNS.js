@@ -81,7 +81,7 @@ window.addEventListener("DOMContentLoaded", function(){
     });
 
     socket.on("tv-exec-close", (pMsg) => {
-        fnCloseOptTrade11();
+        fnCloseOptTrade11(pMsg);
         // let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
 
         // if(objCurrPos === null || objCurrPos === ""){
@@ -2630,7 +2630,7 @@ function fnCheckOptBuyingPosition(){
             // console.log("Exec 50%");
         }
         else if((parseFloat(vLTP.value) <= gAmtSL) || (parseFloat(vLTP.value) >= gAmtTP)){
-            fnCloseOptTrade11();
+            fnCloseOptTrade();
         }
         else{
             // fnGenMessage("Position is Open, keep watching...", `badge bg-warning`, "spnGenMsg");
@@ -2769,7 +2769,7 @@ async function fnClose50PrctOptTrade(){
     }
 }
 
-function fnCloseOptTrade11(){
+function fnCloseOptTrade11(pMsg){
     let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
     let pOptType = ""; 
 
@@ -2780,7 +2780,7 @@ function fnCloseOptTrade11(){
         pOptType = "";
     }
 
-    if(pOptType === "CE"){
+    if(pOptType === pMsg.OptionType){
         console.log("CE Trade to Close Waiting..!");
 
         if(gTrdExcPrc === true){
@@ -2790,7 +2790,7 @@ function fnCloseOptTrade11(){
             fnCloseOptTrade();
         }
     }
-    else if(pOptType === "PE"){
+    else if(pOptType === pMsg.OptionType){
         console.log("PE Trade to Close Waiting..!");
 
         if(gTrdExcPrc === true){
