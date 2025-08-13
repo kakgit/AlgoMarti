@@ -120,6 +120,24 @@ route.post("/kotakReal/placeOptNrmlOrder1", kotakLiveController.fnPlaceOptionNor
 route.post("/kotakReal/placeOptBracketOrder", kotakLiveController.fnPlaceOptionBracketOrder);
 route.post("/kotakReal/placeCloseOptTrade1", kotakLiveController.fnPlaceCloseOptTrade1);
 
+//Kotak Neo Live Routes
+route.post("/kotakSpeed/getLoginDetails", kotakLiveControllerNS.fnLoginKotakNeo)
+route.post("/kotakSpeed/setNseCmCsv2NseCashJson", kotakLiveControllerNS.fnNseCmCsv2NseCashJson)
+route.post("/kotakSpeed/setNseFoCsv2OptJson", kotakLiveControllerNS.fnNseFoCsv2OptJson)
+route.post("/kotakSpeed/setBseFoCsv2OptJson", kotakLiveControllerNS.fnBseFoCsv2OptJson)
+route.post("/kotakSpeed/getJsonFiles", kotakLiveControllerNS.fnGetJsonFilesData);
+route.post("/kotakSpeed/placeNormalOrder", kotakLiveControllerNS.fnPlaceNormalOrder);
+route.post("/kotakSpeed/getOrderBook", kotakLiveControllerNS.fnGetOrderBook);
+route.post("/kotakSpeed/getTradeBook", kotakLiveControllerNS.fnGetTradeBook);
+route.post("/kotakSpeed/placeCloseTrade", kotakLiveControllerNS.fnPlaceCloseTrade);
+route.post("/kotakSpeed/getToken4OptRate", kotakLiveControllerNS.fnGetTokenforOptionRate);
+route.post("/kotakSpeed/placeOptNrmlOrder", kotakLiveControllerNS.fnPlaceOptionNormalOrder);
+route.post("/kotakSpeed/placeCloseOptTrade", kotakLiveControllerNS.fnPlaceCloseOptTrade);
+route.post("/kotakSpeed/getBackupRate", kotakLiveControllerNS.fnExecBackupRate);
+route.post("/kotakSpeed/placeOptNrmlOrder1", kotakLiveControllerNS.fnPlaceOptionNormalOrder1);
+route.post("/kotakSpeed/placeOptBracketOrder", kotakLiveControllerNS.fnPlaceOptionBracketOrder);
+route.post("/kotakSpeed/placeCloseOptTrade1", kotakLiveControllerNS.fnPlaceCloseOptTrade1);
+
 //Delta Expchange Routes
 route.post("/deltaExc/validateLogin", deltaLiveController.fnValidateUserLogin);
 route.post("/deltaExc/getSpotPriceByProd", deltaLiveController.fnGetSpotPriceByProd);

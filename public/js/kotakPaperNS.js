@@ -75,7 +75,8 @@ window.addEventListener("DOMContentLoaded", function(){
 
         if(isLsAutoTrader === "false"){
             fnGenMessage("Trade Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
-        }else{
+        }
+        else{
             fnInnitiateAutoTrade11(pMsg);
         }
     });
@@ -922,6 +923,28 @@ function fnInitiateManualOption11(pBuySel, pOptionType){
 function fnReconnectWS(){
     let objSpotPrice = document.getElementById("hidSpotPrice");
     let objIdxStream = JSON.parse(localStorage.getItem("IdxStream"));
+    let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
+
+    if(objCurrPos !== null){
+        if(objCurrPos.TradeData[0].OptionType === "CE"){
+            gActTrdCE = true;
+            gActTrdPE = false;
+        }
+        else if(objCurrPos.TradeData[0].OptionType === "PE"){
+            gActTrdCE = false;
+            gActTrdPE = true;
+        }
+        else{
+            gActTrdCE = false;
+            gActTrdPE = false;
+            gTrdExcPrc = false;
+        }
+    }
+    else{
+        gActTrdCE = false;
+        gActTrdPE = false;
+        gTrdExcPrc = false;
+    }
 
     if(objKNeoWS.readyState === 1){
         if(objIdxStream !== null){
@@ -1009,6 +1032,7 @@ async function fnExecOptionTrade(pBuySel, pOptionType){
     let objOptQty = document.getElementById("txtOptionsQty");
     let objMaxQty = document.getElementById("hidMaxQty");
     let objLossBadge = document.getElementById("spnLossTrd");
+    let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
 
     try{
         if(gIsTraderLogin === false){
@@ -1016,6 +1040,9 @@ async function fnExecOptionTrade(pBuySel, pOptionType){
         }
         else if(objOptQty.value === "" || objOptQty.value <= 0){
             fnGenMessage("Please Input Valid Quantity!", `badge bg-danger`, "spnGenMsg");
+        }
+        else if(objCurrPos !== null){
+            fnGenMessage("Trade is Already Open....", `badge bg-danger`, "spnGenMsg");
         }
         else{
             let objJsonFileName = document.getElementById("hidJsonFileName");
@@ -1198,7 +1225,6 @@ function fnPlaceOptNrmlOrdr(pHsServerId, pSid, pAccessToken, pKotakSession, pOpt
                 fnGenMessage("Error in Placing Option Order.", `badge bg-danger`, "spnGenMsg");
                 reject({ "status": "danger", "message": "Error in Placing Option Order!", "data": "" });
             });
-
     });
     return objOptOrdr;
 }
@@ -2262,9 +2288,30 @@ function fnSetInitOptTrdDtls(){
 }
 
 function fnRestartOptionStream(){
-    let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
     let objStreamLS = JSON.parse(localStorage.getItem("OptStream"));
     let objCurrRate = document.getElementById("txtCurrentRate");
+    let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
+
+    if(objCurrPos !== null){
+        if(objCurrPos.TradeData[0].OptionType === "CE"){
+            gActTrdCE = true;
+            gActTrdPE = false;
+        }
+        else if(objCurrPos.TradeData[0].OptionType === "PE"){
+            gActTrdCE = false;
+            gActTrdPE = true;
+        }
+        else{
+            gActTrdCE = false;
+            gActTrdPE = false;
+            gTrdExcPrc = false;
+        }
+    }
+    else{
+        gActTrdCE = false;
+        gActTrdPE = false;
+        gTrdExcPrc = false;
+    }
 
     if(objCurrPos !== null){
         if(objStreamLS !== null){
@@ -2841,26 +2888,26 @@ async function fnCloseOptTrade(){
     }
     gTrdExcPrc = false;
 
-    try{
-        let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
+    // try{
+    //     let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
 
-        if (objCurrPos === null){
-            fnGenMessage("No Open Positions to Close!", `badge bg-warning`, "spnGenMsg");
-        }
-        else{
-            let objClsTrd = await fnInitClsOptPaperTrade(0);
+    //     if (objCurrPos === null){
+    //         fnGenMessage("No Open Positions to Close!", `badge bg-warning`, "spnGenMsg");
+    //     }
+    //     else{
+    //         let objClsTrd = await fnInitClsOptPaperTrade(0);
 
-            if(objClsTrd.status === "success"){
-                fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
-            }
-            else{
-                fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
-            }
-        }
-    }
-    catch(err){
-        fnGenMessage(err.message, `badge bg-${err.status}`, "spnGenMsg");
-    }
+    //         if(objClsTrd.status === "success"){
+    //             fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+    //         }
+    //         else{
+    //             fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+    //         }
+    //     }
+    // }
+    // catch(err){
+    //     fnGenMessage(err.message, `badge bg-${err.status}`, "spnGenMsg");
+    // }
 }
 
 function fnInitClsOptPaperTrade(pQty){

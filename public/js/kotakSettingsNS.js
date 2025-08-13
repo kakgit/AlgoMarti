@@ -83,7 +83,7 @@ function fnLoginKotakNeo(){
         fnGenMessage("Please Enter Mobile Pin", `badge bg-warning`, "spnAliceBlueLogin");
     }
     else{
-        fetch("/kotakNeo/getLoginDetails", requestOptions)
+        fetch("/kotakSpeed/getLoginDetails", requestOptions)
         .then(response => response.json())
         .then(objResult => {
             if(objResult.status === "success"){
@@ -377,7 +377,7 @@ function fnConvertCsv2Json(pFnCsv2Json){
         body: vAction,
         redirect: 'follow'
     };
-    fetch("/kotakNeo/" + pFnCsv2Json, requestOptions)
+    fetch("/kotakSpeed/" + pFnCsv2Json, requestOptions)
     .then(response => response.json())
     .then(objResult => {
         if(objResult.status === "success"){
@@ -417,7 +417,7 @@ function getJsonDataFile(){
     redirect: 'follow'
     };
 
-    fetch("/kotakNeo/getJsonFiles", objRequestOptions)
+    fetch("/kotakSpeed/getJsonFiles", objRequestOptions)
     .then(objResponse => objResponse.json())
     .then(objResult => {
         if(objResult.status === "success")
