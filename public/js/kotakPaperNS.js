@@ -338,7 +338,7 @@ async function fnInnitiateAutoTrade11(pMsg){
                 console.log("CE Trade to Open Waiting....!");
                 if(((vTradeSide === "true") && (pMsg.OptionType === "CE")) || ((vTradeSide === "false") && (pMsg.OptionType === "PE")) || (vTradeSide === "-1")){
                     if(gTrdExcPrc === true){
-                        setTimeout(fnInnitiateAutoTrade11, 5000, pMsg.OptionType);
+                        setTimeout(fnInnitiateAutoTrade11, 3000, pMsg.OptionType);
                     }
                     else{
                         fnGetOptionRateTicker("B", pMsg.OptionType);
@@ -352,7 +352,7 @@ async function fnInnitiateAutoTrade11(pMsg){
                 console.log("PE Trade to Open Waiting....!");
                 if(((vTradeSide === "true") && (pMsg.OptionType === "CE")) || ((vTradeSide === "false") && (pMsg.OptionType === "PE")) || (vTradeSide === "-1")){
                     if(gTrdExcPrc === true){
-                        setTimeout(fnInnitiateAutoTrade11, 5000, pMsg.OptionType);
+                        setTimeout(fnInnitiateAutoTrade11, 3000, pMsg.OptionType);
                     }
                     else{
                         fnGetOptionRateTicker("B", pMsg.OptionType);
@@ -898,7 +898,7 @@ function fnInitiateManualOption11(pBuySel, pOptionType){
         if(pOptionType === "CE"){
             console.log("CE Trade to Open Waiting....!");
             if(gTrdExcPrc === true){
-                setTimeout(fnInitiateManualOption11, 5000, pOptionType);
+                setTimeout(fnInitiateManualOption11, 3000, pOptionType);
             }
             else{
                 fnGetOptionRateTicker(pBuySel, pOptionType);
@@ -907,7 +907,7 @@ function fnInitiateManualOption11(pBuySel, pOptionType){
         else if(pOptionType === "PE"){
             console.log("PE Trade to Open Waiting....!");
             if(gTrdExcPrc === true){
-                setTimeout(fnInitiateManualOption11, 5000, pOptionType);
+                setTimeout(fnInitiateManualOption11, 3000, pOptionType);
             }
             else{
                 fnGetOptionRateTicker(pBuySel, pOptionType);
@@ -2784,7 +2784,7 @@ function fnCloseOptTrade11(){
         console.log("CE Trade to Close Waiting..!");
 
         if(gTrdExcPrc === true){
-            setTimeout(fnCloseOptTrade11, 5000, pOptType);
+            setTimeout(fnCloseOptTrade11, 3000, pOptType);
         }
         else{
             fnCloseOptTrade();
@@ -2794,7 +2794,7 @@ function fnCloseOptTrade11(){
         console.log("PE Trade to Close Waiting..!");
 
         if(gTrdExcPrc === true){
-            setTimeout(fnCloseOptTrade11, 5000, pOptType);
+            setTimeout(fnCloseOptTrade11, 3000, pOptType);
         }
         else{
             fnCloseOptTrade();
@@ -2812,7 +2812,7 @@ async function fnCloseOptTrade(){
         let objClsTrd = await fnInitClsOptPaperTrade(0);
 
         if(objClsTrd.status === "success"){
-            await fnSleep(5000);
+            await fnSleep(3000);
             gActTrdCE = false;
             gTrdExcPrc = false;
             console.log("CE Close Trade Executed!");
@@ -2826,7 +2826,7 @@ async function fnCloseOptTrade(){
         let objClsTrd = await fnInitClsOptPaperTrade(0);
 
         if(objClsTrd.status === "success"){
-            await fnSleep(5000);
+            await fnSleep(3000);
             gActTrdCE = false;
             gTrdExcPrc = false;
             console.log("PE Close Trade Executed!");
