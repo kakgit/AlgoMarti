@@ -2827,7 +2827,7 @@ async function fnCloseOptTrade(){
 
         if(objClsTrd.status === "success"){
             await fnSleep(3000);
-            gActTrdCE = false;
+            gActTrdPE = false;
             gTrdExcPrc = false;
             console.log("PE Close Trade Executed!");
             fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
