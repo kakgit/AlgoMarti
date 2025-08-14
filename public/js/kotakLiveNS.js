@@ -1209,6 +1209,7 @@ async function fnGetOptionRateTicker(pBuySel, pOptionType){
 }
 
 async function fnExecOptionTrade(pBuySel, pOptionType){
+    let objCurrPos = JSON.parse(localStorage.getItem("KotakCurrOptPosiS"));
     let objSpotOption = document.getElementById("hidSpotOption");
     let objHsServerId = document.getElementById("txtHsServerId");
     let objSid = document.getElementById("txtSid");
