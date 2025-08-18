@@ -341,20 +341,6 @@ function fnDisplayChangePwd(){
   }
 }
 
-function fnClearPrevLoginSession(){
-  //let objSession = document.getElementById("txtKotakSession");
-  gIsTraderLogin = false;
-  localStorage.removeItem("lsLoginDate");
-  localStorage.removeItem("lsKotakNeoSession");
-  localStorage.removeItem("AppCredS");
-
-  localStorage.removeItem("isAutoTrader");
-  localStorage.removeItem("isDeltaAutoTrader");
-  localStorage.removeItem("KotakUserDetS");
-  //objSession.value = "";
-  //fnChangeBtnProps("btnTraderStatus", "badge bg-danger", "Trader - Disconnected");
-}
-
 function fnShowMyProfileMdl(){
   if(gIsTraderLogin){
     fnGenMessage("Profile Details", `badge bg-primary`, "spnABProfile");

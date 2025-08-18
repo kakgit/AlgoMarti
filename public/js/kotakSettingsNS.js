@@ -29,122 +29,6 @@ function fnUpdDldLink(pThisVal){
     objBseCm.href = "https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/"+ pThisVal +"/transformed/bse_fo.csv";
 }
 
-function fnLoginKotakNeo(){
-    let objConsumerKey = document.getElementById("txtConsumerKey");
-    let objConsumerSecret = document.getElementById("txtConsumerSecret");
-    let objUserNameAPI = document.getElementById("txtUserNameAPI");
-    let objPasswordAPI = document.getElementById("txtPasswordAPI");
-    let objMobileNo = document.getElementById("txtMobileNo");
-    let objPassword = document.getElementById("txtPassword");
-    let objMpin = document.getElementById("txtMpin");
-
-    let objKotakSession = document.getElementById("txtKotakSession");
-    let objViewToken = document.getElementById("txtViewToken");
-    let objAccessToken = document.getElementById("txtAccessToken");
-    let objSubUserId = document.getElementById("txtSubUserId");
-    let objSid = document.getElementById("txtSid");
-    let objHsServerId = document.getElementById("txtHsServerId");
-
-    let objCurrMargin = document.getElementById("txtCurrMargin");
-
-    let vHeaders = new Headers();
-    vHeaders.append("Content-Type", "application/json");
-
-    let vAction = JSON.stringify({
-        "ConsumerKey" : objConsumerKey.value,
-        "ConsumerSecret" : objConsumerSecret.value,
-        "UserNameAPI" : objUserNameAPI.value,
-        "PasswordAPI" : objPasswordAPI.value,
-        "MobileNo" : objMobileNo.value,
-        "Password" : objPassword.value,
-        "Mpin" : objMpin.value
-    });
-
-    let requestOptions = {
-        method: 'POST',
-        headers: vHeaders,
-        body: vAction,
-        redirect: 'follow'
-    };
-
-    if(objConsumerKey.value === ""){
-        fnGenMessage("Please Enter Consumer Key", `badge bg-warning`, "spnAliceBlueLogin");
-    }
-    else if(objConsumerSecret.value === ""){
-        fnGenMessage("Please Enter Consumer Secret", `badge bg-warning`, "spnAliceBlueLogin");
-    }
-    else if(objMobileNo.value === ""){
-        fnGenMessage("Please Enter Mobile No", `badge bg-warning`, "spnAliceBlueLogin");
-    }
-    else if(objPassword.value === ""){
-        fnGenMessage("Please Enter Password", `badge bg-warning`, "spnAliceBlueLogin");
-    }
-    else if(objMpin.value === ""){
-        fnGenMessage("Please Enter Mobile Pin", `badge bg-warning`, "spnAliceBlueLogin");
-    }
-    else{
-        fetch("/kotakSpeed/getLoginDetails", requestOptions)
-        .then(response => response.json())
-        .then(objResult => {
-            if(objResult.status === "success"){
-
-                objKotakSession.value = objResult.data.Session;
-                objViewToken.value = objResult.data.ViewToken;
-                objAccessToken.value = objResult.data.AccessToken;
-                objSubUserId.value = objResult.data.SubUserId;
-                objSid.value = objResult.data.Sid;
-                objHsServerId.value = objResult.data.HsServerId;
-
-                objCurrMargin.value = objResult.data.Limits.Net;
-
-                localStorage.setItem("lsKotakMobileNo", objMobileNo.value);
-                localStorage.setItem("lsKotakPassword", objPassword.value);
-                localStorage.setItem("lsKotakMpin", objMpin.value);
-                localStorage.setItem("lsKotakConsumerKey", objConsumerKey.value);
-                localStorage.setItem("lsKotakConsumerSecret", objConsumerSecret.value);
-                localStorage.setItem("lsKotakUserNameAPI", objUserNameAPI.value);
-                localStorage.setItem("lsKotakPasswordAPI", objPasswordAPI.value);
-
-                localStorage.setItem("lsKotakNeoSession", objKotakSession.value);
-                localStorage.setItem("lsKotakViewToken", objViewToken.value);
-                localStorage.setItem("lsKotakAccessToken", objAccessToken.value);
-                localStorage.setItem("lsKotakSub", objSubUserId.value);
-                localStorage.setItem("lsKotakSid", objSid.value);
-                localStorage.setItem("lsKotakHsServerId", objHsServerId.value);
-                localStorage.setItem("lsNetLimit", objCurrMargin.value);
-
-                const vDate = new Date();
-                let vToday = vDate.getDate();            
-                localStorage.setItem("lsLoginDate", vToday);
-
-                $('#mdlKotakLogin').modal('hide');
-                //fnChangeBtnProps("btnTraderStatus", "badge bg-success", "TRADER - Connected");
-                fnGetSetTraderLoginStatus();
-                //fnSetPerDayTP();
-                fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-            }
-            else if(objResult.status === "danger"){
-                //console.log(objResult.data);
-                fnClearPrevLoginSession();
-                fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-            }
-            else if(objResult.status === "warning"){
-                fnClearPrevLoginSession();
-                fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-            }
-            else{
-                fnClearPrevLoginSession();
-                fnGenMessage("Error in Login, Contact Admin.", `badge bg-danger`, "spnGenMsg");
-            }
-        })
-        .catch(error => {
-            fnClearPrevLoginSession();
-            //console.log('error: ', error);
-            fnGenMessage("Error to Fetch with Login Details.", `badge bg-danger`, "spnGenMsg");
-        });
-    }
-}
-
 function fnSetPerDayTP(){
     let objCurrMargin = document.getElementById("txtCurrMargin");
     let objPerDayTP = document.getElementById("txtPerDayTP");
@@ -221,88 +105,6 @@ function fnClearPrevTraderSession(){
   localStorage.removeItem("lsKotakNeoSession");
   localStorage.removeItem("isAutoTrader");
   localStorage.removeItem("KotakUserDetS");
-}
-
-function fnGetSetTraderLoginStatus(){
-    let bAppStatus = localStorage.getItem("AppMsgStatusS");
-
-    let lsKotakConsumerKey = localStorage.getItem("lsKotakConsumerKey");
-    let lsKotakConsumerSecret = localStorage.getItem("lsKotakConsumerSecret");
-    let lsKotakUserNameAPI = localStorage.getItem("lsKotakUserNameAPI");
-    let lsKotakPasswordAPI = localStorage.getItem("lsKotakPasswordAPI");
-
-    let lsKotakLoginID = localStorage.getItem("lsKotakMobileNo");
-    let lsKotakPassword = localStorage.getItem("lsKotakPassword");
-    let lsKotakMpin = localStorage.getItem("lsKotakMpin");
-
-    let lsSessionID = localStorage.getItem("lsKotakNeoSession");
-    let lsViewToken = localStorage.getItem("lsKotakViewToken");
-    let lsAccessToken = localStorage.getItem("lsKotakAccessToken");
-    let lsSub = localStorage.getItem("lsKotakSub");
-    let lsSid = localStorage.getItem("lsKotakSid");
-    let lsHsServerID = localStorage.getItem("lsKotakHsServerId");
-
-    let objClientId = document.getElementById("txtMobileNo");
-    let objKotakPassword = document.getElementById("txtPassword");
-    let objKotakMpin = document.getElementById("txtMpin");
-
-    let objSession = document.getElementById("txtKotakSession");
-    let objViewToken = document.getElementById("txtViewToken");
-    let objAccessToken = document.getElementById("txtAccessToken");
-    let objSubUserId = document.getElementById("txtSubUserId");
-    let objSid = document.getElementById("txtSid");
-    let objHsServerId = document.getElementById("txtHsServerId");
-    
-    let objTraderStatus = document.getElementById("btnTraderStatus");
-
-    const vDate = new Date();
-    let vToday = vDate.getDate();
-
-    objClientId.value = lsKotakLoginID;
-
-    objSession.value = lsSessionID;
-    objViewToken.value = lsViewToken;
-    objAccessToken.value = lsAccessToken;
-    objSid.value = lsSid;
-    objSubUserId.value = lsSub;
-    objHsServerId.value = lsHsServerID;
-
-    if (bAppStatus === "false") {
-        localStorage.removeItem("lsKotakNeoSession");
-        localStorage.removeItem("lsKotakViewToken");
-        localStorage.removeItem("lsKotakAccessToken");
-        localStorage.removeItem("lsKotakSub");
-        localStorage.removeItem("lsKotakSid");
-        localStorage.removeItem("lsKotakHsServerId");
-        gIsTraderLogin = false;
-        objSession.value = "";
-    }
-
-    if (objSession.value == "") {
-        fnChangeBtnProps(objTraderStatus.id, "badge bg-danger", "TRADER - Disconnected");
-        gIsTraderLogin = false;
-    }
-    else {
-        fnChangeBtnProps(objTraderStatus.id, "badge bg-success", "TRADER - Connected");
-        gIsTraderLogin = true;
-    }
-    fnGetSetAutoTraderStatus();
-    fnGetSetAllStatus();
-}
-
-function fnGetSetAutoTraderStatus(){
-    let isLsAutoTrader = localStorage.getItem("isAutoTrader");
-    let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
-
-    if(gIsTraderLogin === true && isLsAutoTrader === "true")
-    {
-        fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-success", "Auto Trader - ON");
-    }
-    else
-    {
-        fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
-        localStorage.setItem("isAutoTrader", false);
-    }
 }
 
 function fnToggleAutoTrader(){
@@ -538,11 +340,11 @@ function fnGetIndSymSettings(){
   
     gIndData = {
         UpdDt: vSecDt, Symbol: [
-            { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty 50', SearchSymbol: 'NIFTY', Token: 1, Segment: 'nse_cm', LotSize: 75, MaxLots: 24, StrikeInterval: 50, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-08-14', '2025-08-21', '2025-08-28', '2025-08-28'] },
+            { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty 50', SearchSymbol: 'NIFTY', Token: 1, Segment: 'nse_cm', LotSize: 75, MaxLots: 24, StrikeInterval: 50, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-08-21', '2025-08-28'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty Bank', SearchSymbol: 'BANKNIFTY', Token: 2, Segment: 'nse_cm', LotSize: 30, MaxLots: 30, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-08-28'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty Fin Service', SearchSymbol: 'FINNIFTY', Token: 3, Segment: 'nse_cm', LotSize: 65, MaxLots: 27, StrikeInterval: 50, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-08-28'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'NIFTY MID SELECT', SearchSymbol: 'MIDCPNIFTY', Token: 4, Segment: 'nse_cm', LotSize: 120, MaxLots: 23, StrikeInterval: 25, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-08-28'] },
-            { JsonFileName: 'bse_idx_opt.json', SymbolName: 'SENSEX', SearchSymbol: 'SENSEX', Token: 5, Segment: 'bse_cm', LotSize: 20, MaxLots: 50, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-08-12', '2025-08-26'] },
+            { JsonFileName: 'bse_idx_opt.json', SymbolName: 'SENSEX', SearchSymbol: 'SENSEX', Token: 5, Segment: 'bse_cm', LotSize: 20, MaxLots: 50, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-08-19', '2025-08-26'] },
             { JsonFileName: 'bse_idx_opt.json', SymbolName: 'BANKEX', SearchSymbol: 'BANKEX', Token: 6, Segment: 'bse_cm', LotSize: 30, MaxLots: 30, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-08-26'] },
         ] };
 

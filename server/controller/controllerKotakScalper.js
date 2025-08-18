@@ -40,7 +40,7 @@ exports.fnLoginKotakNeo = async (req, res) => {
 
             let objLimits = await fnGetUserLimits(vHsServerId, vSid, vViewToken, vAccessToken.data);
 
-            //console.log(objLimits.data);
+            // console.log(objLimits.data);
 
             res.send({ "status": "success", "message": "Trader Login - Successful", "data": { Session: objSession.data.data.token, SubUserId: vSubUserId, Sid: objSession.data.data.sid, ViewToken: vViewToken, HsServerId: vHsServerId, AccessToken: vAccessToken.data, Limits: objLimits.data } });
         }
