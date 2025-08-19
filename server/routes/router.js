@@ -15,9 +15,13 @@ const kotakLiveController = require("../controller/controllerKotakLive.js");
 const kotakLiveControllerNS = require("../controller/controllerKotakScalper.js");
 const kotakPaperController = require("../controller/controllerKotakPaper.js");
 const deltaLiveController = require("../controller/controllerDeltaLive.js");
+const deltaFutDemoController = require("../controller/controllerDeltaFutDemo.js");
 
 //home Routes
 route.get("/", homeServices.defaultRoute);
+
+//Paper Trade Routes
+route.get("/paperTrade", homeServices.paperTrade);
 
 //Tradingview Signals Routes
 route.get("/mahesh", homeServices.signalsTV);
@@ -37,8 +41,11 @@ route.get("/kotakScalperNiftyPaper", kotakPaperController.fnScalperNifty);
 //Kotak Live Scalper Nifty Route
 route.get("/kotakScalperNiftyLive", kotakLiveControllerNS.defaultRoute);
 
-//Delta Demo Route
+//Delta Options Demo Route
 route.get("/deltaLive", deltaLiveController.defaultRoute);
+
+//Delta Futures Demo Route
+route.get("/deltaFutures-Demo", deltaFutDemoController.defaultRoute);
 
 //Samco Routes
 route.get("/samco", samcoServices.defaultRoute);
@@ -138,7 +145,7 @@ route.post("/kotakSpeed/placeOptNrmlOrder1", kotakLiveControllerNS.fnPlaceOption
 route.post("/kotakSpeed/placeOptBracketOrder", kotakLiveControllerNS.fnPlaceOptionBracketOrder);
 route.post("/kotakSpeed/placeCloseOptTrade1", kotakLiveControllerNS.fnPlaceCloseOptTrade1);
 
-//Delta Expchange Routes
+//Delta Exchange Routes
 route.post("/deltaExc/validateLogin", deltaLiveController.fnValidateUserLogin);
 route.post("/deltaExc/getSpotPriceByProd", deltaLiveController.fnGetSpotPriceByProd);
 route.post("/deltaExc/getProdBySymbol", deltaLiveController.fnGetProdBySymbol);

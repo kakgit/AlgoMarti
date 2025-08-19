@@ -16,6 +16,10 @@ exports.defaultRoute = (req, res) => {
     // })
 }
 
+exports.paperTrade = (req, res) => {
+    res.render("paperTrade.ejs");
+}
+
 exports.signalsTV = (req, res) => {
     //res.send("Crud Application");
     res.render("signalsTV.ejs");
