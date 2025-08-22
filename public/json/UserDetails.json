@@ -1,16 +1,16 @@
 {
-    "UpdDt": 1741799212305,
+    "UpdDt": "2025-08-19T13:42:47.997Z",
     "UserDet": [
         {
             "UserId": 1740834367766,
             "FullName": "Anil Kumar K",
             "EmailId": "kamarthi.anil@gmail.com",
-            "Password": "$2a$10$FlVmD65QN2aqx/toSRfSOuvcA4HREZvuqDBCr9n5gm2itAd8EAHTG",
+            "Password": "$2a$10$zZIz7jf7TlL7IRUmcCnOD.H/HcZfa77NZZwwd8LMXDFkVx5nnh/8S",
             "PhoneNumber": "+916301904398",
             "IsActive": true,
             "IsAdmin": true,
             "CreatedAt": "2025-03-01T13:06:07.931Z",
-            "UpdatedAt": "2025-03-12T01:54:38.851Z"
+            "UpdatedAt": "2025-08-19T13:43:20.114Z"
         },
         {
             "UserId": 1740935571846,
@@ -19,9 +19,9 @@
             "Password": "$2a$10$hTBN1wgExqGTy/foALL66OVOouBcVAvehXd4Y5t8IT0jGOODaDRA6",
             "PhoneNumber": "+919676974919",
             "IsActive": true,
-            "IsAdmin": false,
+            "IsAdmin": true,
             "CreatedAt": "2025-03-02T17:12:52.036Z",
-            "UpdatedAt": "2025-04-29T05:03:52.547Z"
+            "UpdatedAt": "2025-08-19T13:45:03.093Z"
         }
     ]
 }

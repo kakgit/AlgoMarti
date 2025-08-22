@@ -1,1 +1,38 @@
-Coming Soon .....
+<div id="main" class="container-xxl">
+    <div class="page-heading">
+        <div class="row">
+            <div class="col-4">
+                <h3>Delta - Futures Scalper Demo</h3>
+            </div>
+            <div class="col-4 text-center">
+                <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
+            </div>
+            <div class="col-4" style="text-align: right;">
+                <a href="javascript: void(null);" class="btn btn-outline-primary" onclick="fnChangeLater();"><i class="fa fa-cogs" aria-hidden="true" style="color: orangered;"></i> Delta Settings</a>
+            </div>
+        </div>
+    </div>
+    <div class="page-content">
+        <section class="row">
+            <div class="col-12 col-lg-12">
+                <div class="row" style="text-align: center;">
+                    <div class="col-6 col-lg-4 col-md-6">
+                        <button class="badge bg-danger" onclick="fnShowTraderLoginMdl(this);" id="btnTraderStatus">TRADER - Disconnected</button>
+                    </div>
+                    <div class="col-6 col-lg-4 col-md-6">
+                        <button class="badge bg-danger" onclick="fnToggleAutoTrader();" id="btnAutoTraderStatus">Auto Trader - OFF</button>
+                    </div>
+                    <div class="col-6 col-lg-4 col-md-6">
+                        <button class="badge bg-success" onclick="fnPositionStatus()" id="btnPositionStatus">No Open Position</button>
+                    </div>
+                    <div class="col-12">&nbsp;</div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<%- include('partials/deltaFutSettings.ejs') %>
+
+<script src="/js/deltaFutScalper.js"></script>
+<script src="/js/deltaFutScalperSettings.js"></script>

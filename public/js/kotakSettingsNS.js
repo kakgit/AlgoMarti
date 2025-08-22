@@ -340,11 +340,11 @@ function fnGetIndSymSettings(){
   
     gIndData = {
         UpdDt: vSecDt, Symbol: [
-            { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty 50', SearchSymbol: 'NIFTY', Token: 1, Segment: 'nse_cm', LotSize: 75, MaxLots: 24, StrikeInterval: 50, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-08-21', '2025-08-28'] },
+            { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty 50', SearchSymbol: 'NIFTY', Token: 1, Segment: 'nse_cm', LotSize: 75, MaxLots: 24, StrikeInterval: 50, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-08-28'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty Bank', SearchSymbol: 'BANKNIFTY', Token: 2, Segment: 'nse_cm', LotSize: 30, MaxLots: 30, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-08-28'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'Nifty Fin Service', SearchSymbol: 'FINNIFTY', Token: 3, Segment: 'nse_cm', LotSize: 65, MaxLots: 27, StrikeInterval: 50, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-08-28'] },
             { JsonFileName: 'nse_idx_opt.json', SymbolName: 'NIFTY MID SELECT', SearchSymbol: 'MIDCPNIFTY', Token: 4, Segment: 'nse_cm', LotSize: 120, MaxLots: 23, StrikeInterval: 25, StopLoss: 10, TakeProfit: 20, ExpiryDates: ['2025-08-28'] },
-            { JsonFileName: 'bse_idx_opt.json', SymbolName: 'SENSEX', SearchSymbol: 'SENSEX', Token: 5, Segment: 'bse_cm', LotSize: 20, MaxLots: 50, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-08-19', '2025-08-26'] },
+            { JsonFileName: 'bse_idx_opt.json', SymbolName: 'SENSEX', SearchSymbol: 'SENSEX', Token: 5, Segment: 'bse_cm', LotSize: 20, MaxLots: 50, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-08-26'] },
             { JsonFileName: 'bse_idx_opt.json', SymbolName: 'BANKEX', SearchSymbol: 'BANKEX', Token: 6, Segment: 'bse_cm', LotSize: 30, MaxLots: 30, StrikeInterval: 100, StopLoss: 20, TakeProfit: 40, ExpiryDates: ['2025-08-26'] },
         ] };
 

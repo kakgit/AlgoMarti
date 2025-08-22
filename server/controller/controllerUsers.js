@@ -500,6 +500,7 @@ exports.fnSendPwdByEmail = async(req, res) => {
     let vEmailId = req.body.EmailId;
     let vRandPwd = req.body.RandPwd;
 
+    console.log(vRandPwd);
     let transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {

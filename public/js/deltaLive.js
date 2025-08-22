@@ -38,7 +38,7 @@ window.addEventListener("DOMContentLoaded", function(){
         fnInitFutAutoTrade(objMsg);
     });
 
-// 2222222222 - Auto Emit Trade
+    // 2222222222 - Auto Emit Trade
     socket.on("DeltaEmitOpt", (pMsg) => {
         let objAppCred = JSON.parse(localStorage.getItem("AppCredS"));
 
@@ -64,7 +64,7 @@ window.addEventListener("DOMContentLoaded", function(){
         }
     });
 
-// 44444444 - Send Trade to All
+    // 44444444 - Send Trade to All
     socket.on("DeltaMsgRec1", (pMsg) => {
         let isLsAutoTrader = localStorage.getItem("isDeltaAutoTrader");
 

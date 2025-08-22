@@ -1,0 +1,58 @@
+
+
+<!--Disabled Backdrop Modal for Trader Login-->
+<div class="modal fade text-left" id="mdlDeltaLogin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
+    data-bs-backdrop="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h4 class="modal-title" id="myModalLabel4">Delta Exchange Login Details</h4>
+                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
+            </div>
+            <div class="modal-body">
+                <!-- // Basic multiple Column Form section start -->
+                <section id="multiple-column-form">
+                    <div class="row match-height">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header text-center">
+                                    &nbsp;<span id="spnDeltaLogin" class="badge bg-primary">Please Input Login Details</span>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <form class="form">
+                                            <div class="row">
+                                                <div class="col-md-12 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtUserAPIKey">API Key</label>
+                                                        <input type="text" id="txtUserAPIKey" class="form-control" value="zhckjOdxFmHCTFx664ZpJ5H7Oxb3Db" placeholder="API Key" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-12 col-12">
+                                                    <div class="form-group">
+                                                        <label for="txtAPISecret">API Secret Code</label>
+                                                        <input type="text" id="txtAPISecret" class="form-control" value="IqSL4kBct7CakpEDH9grdWuAgjM0zg4KgB3yGoRjj4xPZm8Qz57LWLaVWqCK" placeholder="API Secret" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                    <i class="bx bx-x d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">CLOSE</span>
+                </button>
+                <button id="btnSubmit" type="button" class="btn btn-primary ms-1" onclick="fnValidateDeltaLogin();">
+                    <i class="bx bx-check d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">SUBMIT</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -150,6 +150,10 @@ route.post("/deltaExc/validateLogin", deltaLiveController.fnValidateUserLogin);
 route.post("/deltaExc/getSpotPriceByProd", deltaLiveController.fnGetSpotPriceByProd);
 route.post("/deltaExc/getProdBySymbol", deltaLiveController.fnGetProdBySymbol);
 
+//Delta Futures Routes
+route.post("/deltaExcFut/validateLogin", deltaFutDemoController.fnValidateUserLogin);
+
+
 //Samples
 route.post("/deltaExc/getTestWalletAPI", deltaLiveController.fnTestWalletAPI);
 route.post("/deltaExc/setLeverageAPI", deltaLiveController.fnSetLeverageAPI);
