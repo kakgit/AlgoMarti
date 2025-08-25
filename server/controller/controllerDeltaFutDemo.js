@@ -45,3 +45,61 @@ exports.fnValidateUserLogin = async (req, res) => {
         });
     });
 }
+
+exports.fnHistoricalOHLCAPI = async (req, res) => {
+    const vNow = new Date();
+    const vRoundedTime = fnRoundTimeToNearestXMinutes(vNow, 5);
+    let vEndTime = ((vRoundedTime.valueOf())/1000) - 60;
+    let vStartTime = vEndTime - 300;
+    // console.log("Rounded Time (nearest 5 minutes):", vEndTime);
+
+    const vMethod = "GET";
+    const vPath = '/v2/history/candles';
+    const vTimeStamp = Math.floor(new Date().getTime() / 1000);
+
+    const vQueryStr = "?resolution=5m&symbol=BTCUSD&start="+ vStartTime +"&end=" + vEndTime;
+    const vBody = "";
+    const vSignature = fnGetSignature(vMethod, vPath, vQueryStr, vTimeStamp, vBody);
+    let config = {
+        method: vMethod,
+        maxBodyLength: Infinity,
+        url: vBaseUrl + vPath + vQueryStr,
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'api-key': vApiKey,
+            'signature': vSignature,
+            'timestamp': vTimeStamp
+            }
+        };
+
+      axios.request(config)
+      .then((objResult) => {
+        let objRes = JSON.stringify(objResult.data);
+        console.log(objRes);
+        res.send({ "status": "success", "message": "OHLC Information Feched!", "data": objRes });
+    })
+      .catch((objError) => {
+        console.log(objError);
+        res.send({ "status": "danger", "message": "Error in OHLC. Contact Administrator!", "data": objError });
+    });
+    // res.send({ "status": "success", "message": "OHLC Information Feched!", "data": "" });
+
+}
+
+function fnGetSignature(pMethod, pPath, pQueryStr, pTimeStamp, pBody){
+  if (!pBody || R.isEmpty(pBody)) pBody = "";
+  else if (R.is(Object, pBody)) pBody = JSON.stringify(pBody);
+
+  const vMessage = pMethod + pTimeStamp + pPath + pQueryStr + pBody;
+  return crypto
+    .createHmac("sha256", vApiSecret)
+    .update(vMessage)
+    .digest("hex");
+}
+
+function fnRoundTimeToNearestXMinutes(pDate, pMinutes) {
+  const vMinutesInMs = 1000 * 60 * pMinutes; // Milliseconds in 5 minutes
+  const vRoundedTimestamp = Math.floor(pDate.getTime() / vMinutesInMs) * vMinutesInMs;
+  return new Date(vRoundedTimestamp);
+}
