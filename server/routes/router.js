@@ -153,6 +153,7 @@ route.post("/deltaExc/getProdBySymbol", deltaLiveController.fnGetProdBySymbol);
 //Delta Futures Routes
 route.post("/deltaExcFut/validateLogin", deltaFutDemoController.fnValidateUserLogin);
 route.post("/deltaExcFut/getHistOHLC", deltaFutDemoController.fnHistoricalOHLCAPI);
+route.post("/deltaExcFut/getCurrBSRates", deltaFutDemoController.fnGetCurrBuySellRates);
 
 
 //Samples
