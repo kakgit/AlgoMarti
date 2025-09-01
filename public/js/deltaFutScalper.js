@@ -3,7 +3,7 @@ let gByorSl = "";
 let gCurrPos = null;
 let gBuyPrice, gSellPrice, gLotSize, gQty, gAmtSL, gAmtTP, gCharges, gCapital, gPL, gOrderDT = 0;
 let gBrokerage = 0.02;
-let gMaxTradeTime = 1;
+let gMaxTradeTime = 15;
 let gLeverage = 160;
 let gTimerID = 0;
 
@@ -193,6 +193,7 @@ function fnGetRates(pTicData){
 function fnUpdateOpnPosStatus(){
     let objCharges = document.getElementById("tdCharges");
     let objProfitLoss = document.getElementById("tdProfitLoss");
+    let objTrdExitTime = document.getElementById("txtTrdExitTime");
 
     let vDate = new Date();
     let vCurrDT = vDate.valueOf();
@@ -204,8 +205,8 @@ function fnUpdateOpnPosStatus(){
 	objProfitLoss.innerText = (gPL).toFixed(2);
 
 	if(gByorSl === "buy"){
-		if(vTimeDiff < gMaxTradeTime)
-		fnInnitiateTimer(gMaxTradeTime - vTimeDiff);
+		if(vTimeDiff < parseInt(objTrdExitTime.value))
+		fnInnitiateTimer(parseInt(objTrdExitTime.value) - vTimeDiff);
 
 		let objBestSell = document.getElementById("txtBestSellPrice");
 		let objSellPrice = document.getElementById("tdSellPrice");
@@ -221,8 +222,8 @@ function fnUpdateOpnPosStatus(){
 		fnCheckBuySLTP(gSellPrice);
 	}
 	else if(gByorSl === "sell"){
-		if(vTimeDiff < gMaxTradeTime)
-		fnInnitiateTimer(gMaxTradeTime - vTimeDiff);
+		if(vTimeDiff < parseInt(objTrdExitTime.value))
+		fnInnitiateTimer(parseInt(objTrdExitTime.value) - vTimeDiff);
 
 		let objBestBuy = document.getElementById("txtBestBuyPrice");
 		let objBuyPrice = document.getElementById("tdBuyPrice");
@@ -734,6 +735,8 @@ function fnSetLotsByQtyMulLossAmt(){
 function fnLoadTodayTrades(){
     let objTodayTradeList = document.getElementById("tBodyTodayPaperTrades");
    	let objTradeBook = JSON.parse(localStorage.getItem("TrdBkFut"));
+    let objHeadPL = document.getElementById("tdHeadPL");
+    let objYtRL = document.getElementById("spnYtRL");
 
    	// console.log(objTradeBook);
     
@@ -742,11 +745,22 @@ function fnLoadTodayTrades(){
     }
     else{
         let vTempHtml = "";
+        let vTotalTrades = 0;
+        let vNetProfit = 0;
+        let vTotalCharges = 0;
+        let vHighCapital = 0;
 
 		for (let i = 0; i < objTradeBook.TradeData.length; i++){
 			let vCharges = fnGetTradeCharges(objTradeBook.TradeData[i].OpenDTVal, objTradeBook.TradeData[i].CloseDTVal, objTradeBook.TradeData[i].LotSize, objTradeBook.TradeData[i].Qty, objTradeBook.TradeData[i].BuyPrice, objTradeBook.TradeData[i].SellPrice, objTradeBook.TradeData[i].TransType);
     		let vCapital = fnGetTradeCapital(objTradeBook.TradeData[i].TransType, objTradeBook.TradeData[i].BuyPrice, objTradeBook.TradeData[i].SellPrice, objTradeBook.TradeData[i].LotSize, objTradeBook.TradeData[i].Qty);
     		let vPL = fnGetTradePL(objTradeBook.TradeData[i].SellPrice, objTradeBook.TradeData[i].BuyPrice, objTradeBook.TradeData[i].LotSize, objTradeBook.TradeData[i].Qty, vCharges);
+            vTotalTrades += 1;
+            vTotalCharges += parseFloat(vCharges);
+            vNetProfit += vPL;
+
+	        if(parseFloat(vCapital) > vHighCapital){
+	            vHighCapital = vCapital;
+	        }
 
             vTempHtml += '<tr>';
             vTempHtml += '<td style="text-wrap: nowrap;" onclick=\'fnDeleteThisTrade(' + objTradeBook.TradeData[i].OrderID + ');\'>' + objTradeBook.TradeData[i].OpenDT + '</td>';
@@ -763,14 +777,25 @@ function fnLoadTodayTrades(){
 
             vTempHtml += '</tr>';
 		}    	
+		vTempHtml += '<tr><td>Total Trades </td><td>' + vTotalTrades + '</td><td colspan="3"></td><td colspan="3""></td><td style="font-weight:bold;text-align:right;">' + (vHighCapital).toFixed(2) + '</td><td style="font-weight:bold;text-align:right;color:red;">' + (vTotalCharges).toFixed(2) + '</td><td style="font-weight:bold;text-align:right;">' + (vNetProfit).toFixed(2) + '</td></tr>';
 
         objTodayTradeList.innerHTML = vTempHtml;
+
+        if(vNetProfit < 0){
+            objHeadPL.innerHTML = '<span Style="text-align:left;font-weight:bold;color:red;">' + (vNetProfit).toFixed(2) + '</span>';
+        }
+        else{
+            objHeadPL.innerHTML = '<span Style="text-align:left;font-weight:bold;color:green;">' + (vNetProfit).toFixed(2) + '</span>';
+        }
+        objYtRL.innerText = parseFloat(localStorage.getItem("TotLossAmtDelta")).toFixed(2);
     }
 }
 
 function fnGetTradeCharges(pOpenDT, pCloseDT, pLotSize, pQty, pBuyPrice, pSellPrice, pTransType){
+    let objTrdExitTime = document.getElementById("txtTrdExitTime");
+
 	let vDateDiff = pCloseDT - pOpenDT;
-	let vMaxTradeTime = 60000 * gMaxTradeTime;
+	let vMaxTradeTime = 60000 * parseInt(objTrdExitTime.value);
 	let vBuyBrokerage = ((parseFloat(pBuyPrice * parseFloat(pLotSize) * parseFloat(pQty)) * gBrokerage) / 100) * 1.18;
 	let vSellBrokerage = ((parseFloat(pSellPrice * parseFloat(pLotSize) * parseFloat(pQty)) * gBrokerage) / 100) * 1.18;
 	let vTotalBrokerage = 0;
