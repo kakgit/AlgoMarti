@@ -199,11 +199,13 @@
                                 <div style="text-wrap: nowrap;display:block;" id="divTimer">Trade closes in <span id="time"></span> minutes!</div>
                             </div>
                             <div class="col-2">
-                                <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnInnitiateTimer();"></i>
+                                <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnTest();"></i>
                             </div>
-                            <div class="col-2"></div>
                             <div class="col-1" style="text-align: right;">
                                 <button class='nav-link' onclick="fnClearLocalStorageTemp();" role="tab" type="button">Clear All</button>
+                            </div>
+                            <div class="col-2" style="text-align: right;">
+                                <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px;">&nbsp;
                             </div>
                             <div class="col-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divOpenPosClps" role="button" aria-expanded="true" aria-controls="divOpenPosClps">
@@ -256,7 +258,9 @@
                                 <div class="col-1">
                                     <input type="number" class="form-control" placeholder="Trade Exit Max Time" id="txtTrdExitTime" value="15" />
                                 </div>
-                                <div class="col-3"></div>
+                                <div class="col-3">
+                                    <input type="number" class="form-control" placeholder="Current Rate" id="txtCurrentRate" value="" onchange="fnGetCurrentRateTesting();" />
+                                </div>
                                 <div class="col-2">
                                     <div class="d-grid gap-1">
                                         <button id="btn50PerClose" class="btn btn-outline-warning" onclick="fnClose50PrctTrade();"  disabled><b>EXIT 50% QTY</b></button>
