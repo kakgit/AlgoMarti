@@ -6,6 +6,7 @@ let gBrokerage = 0.02;
 let gMaxTradeTime = 15;
 let gLeverage = 160;
 let gTimerID = 0;
+let gTimeDiff = 900;
 
 window.addEventListener("DOMContentLoaded", function(){
 	fnGetAllStatus();
@@ -193,11 +194,9 @@ function fnGetRates(pTicData){
 function fnUpdateOpnPosStatus(){
     let objCharges = document.getElementById("tdCharges");
     let objProfitLoss = document.getElementById("tdProfitLoss");
-    let objTrdExitTime = document.getElementById("txtTrdExitTime");
 
     let vDate = new Date();
     let vCurrDT = vDate.valueOf();
-    let vTimeDiff = (vCurrDT - gOrderDT)/60000;
 
 	gCharges = fnGetTradeCharges(gOrderDT, vCurrDT, gLotSize, gQty, gBuyPrice, gSellPrice, gByorSl);
 	objCharges.innerText = (gCharges).toFixed(3);
@@ -205,9 +204,6 @@ function fnUpdateOpnPosStatus(){
 	objProfitLoss.innerText = (gPL).toFixed(2);
 
 	if(gByorSl === "buy"){
-		if(vTimeDiff < parseInt(objTrdExitTime.value))
-		fnInnitiateTimer(parseInt(objTrdExitTime.value) - vTimeDiff);
-
 		let objBestSell = document.getElementById("txtBestSellPrice");
 		let objSellPrice = document.getElementById("tdSellPrice");
 		
@@ -222,9 +218,6 @@ function fnUpdateOpnPosStatus(){
 		fnCheckBuySLTP(gSellPrice);
 	}
 	else if(gByorSl === "sell"){
-		if(vTimeDiff < parseInt(objTrdExitTime.value))
-		fnInnitiateTimer(parseInt(objTrdExitTime.value) - vTimeDiff);
-
 		let objBestBuy = document.getElementById("txtBestBuyPrice");
 		let objBuyPrice = document.getElementById("tdBuyPrice");
 
@@ -244,10 +237,12 @@ function fnUpdateOpnPosStatus(){
 }
 
 function fnCheckBuySLTP(pCurrPrice){
-    console.log(localStorage.getItem("TotLossAmtDelta"));
-
 	if(pCurrPrice <= gAmtSL){
 		console.log("SL Hit");
+		fnCloseManualFutures(gByorSl);
+	}
+	else if(gTimeDiff < 15){
+		console.log("Timer Ending...");
 		fnCloseManualFutures(gByorSl);
 	}
 	else if(pCurrPrice >= gAmtTP){
@@ -264,6 +259,10 @@ function fnCheckBuySLTP(pCurrPrice){
 function fnCheckSellSLTP(pCurrPrice){
 	if(pCurrPrice >= gAmtSL){
 		console.log("SL Hit");
+		fnCloseManualFutures(gByorSl);
+	}
+	else if(gTimeDiff < 15){
+		console.log("Timer Ending...");
 		fnCloseManualFutures(gByorSl);
 	}
 	else if(pCurrPrice <= gAmtTP){
@@ -424,11 +423,20 @@ function fnSetInitFutTrdDtls(){
     let objCapital = document.getElementById("tdCapital");
     let objCharges = document.getElementById("tdCharges");
     let objProfitLoss = document.getElementById("tdProfitLoss");
+    let objTrdExitTime = document.getElementById("txtTrdExitTime");
 
     console.log(gCurrPos);
 
 	if(gCurrPos !== null){
         gOrderDT = gCurrPos.TradeData[0].OrderID;
+
+	    let vDate = new Date();
+	    let vCurrDT = vDate.valueOf();
+	    let vTimeDiff = ((vCurrDT - gOrderDT)/60000) + 0.15;
+
+		if(vTimeDiff < parseInt(objTrdExitTime.value))
+		fnInnitiateTimer(parseInt(objTrdExitTime.value) - vTimeDiff);
+
 		gBuyPrice = parseFloat(gCurrPos.TradeData[0].BuyPrice).toFixed(2);
 		gSellPrice = parseFloat(gCurrPos.TradeData[0].SellPrice).toFixed(2);
 		gLotSize = parseFloat(gCurrPos.TradeData[0].LotSize);
@@ -436,9 +444,6 @@ function fnSetInitFutTrdDtls(){
         gByorSl = gCurrPos.TradeData[0].TransType;
 		gAmtSL = gCurrPos.TradeData[0].AmtSL;
 		gAmtTP = gCurrPos.TradeData[0].AmtTP;
-
-        let vDate = new Date();
-        let vCurrDT = vDate.valueOf();
 
 		objDateTime.innerText = gCurrPos.TradeData[0].OpenDT;
 		objSymbol.innerText = gCurrPos.TradeData[0].FutSymbol;
@@ -847,6 +852,8 @@ function fnClearLocalStorageTemp(){
 	localStorage.removeItem("StartQtyNoDelta");
 	localStorage.removeItem("QtyMulDelta");
 	localStorage.removeItem("TotLossAmtDelta");
+    clearInterval(gTimerID);
+
 	fnGetAllStatus();
 }
 
@@ -865,7 +872,7 @@ function fnStartTimer(duration, display) {
         // get the number of seconds that have elapsed since 
         // startTimer() was called
         diff = duration - (((Date.now() - start) / 1000) | 0);
-
+        gTimeDiff = diff;
         // does the same job as parseInt truncates the float
         minutes = (diff / 60) | 0;
         seconds = (diff % 60) | 0;
