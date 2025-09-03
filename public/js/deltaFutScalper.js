@@ -1,12 +1,16 @@
 let objDeltaWS = null;
 let gByorSl = "";
 let gCurrPos = null;
-let gBuyPrice, gSellPrice, gLotSize, gQty, gAmtSL, gAmtTP, gCharges, gCapital, gPL, gOrderDT = 0;
+let gBuyPrice, gSellPrice, gLotSize, gQty, gAmtSL, gAmtTP, gCharges, gCapital, gOrderDT = 0;
 let gBrokerage = 0.02;
 let gMaxTradeTime = 15;
 let gLeverage = 160;
 let gTimerID = 0;
 let gTimeDiff = 900;
+let g50PrctRcvry = 1.5;
+let gOldPLAmt = 0;
+let gNewPLAmt = 0;
+let gPL = 0;
 
 window.addEventListener("DOMContentLoaded", function(){
 	fnGetAllStatus();
@@ -268,11 +272,7 @@ function fnGetCurrentRateTesting(){
 
 function fnCheckBuySLTP(pCurrPrice){
     let vTotLossAmt = JSON.parse(localStorage.getItem("TotLossAmtDelta"));
-    let vNewProfit = Math.abs(parseFloat(localStorage.getItem("TotLossAmtDelta")) * 1.5);
-
-	// console.log("vNewProfit: " + vNewProfit);
-	// console.log("vTotLossAmt: " + vTotLossAmt);
-	// console.log("gPL: " + gPL);
+    let vNewProfit = Math.abs(parseFloat(localStorage.getItem("TotLossAmtDelta")) * g50PrctRcvry);
 
     if(vTotLossAmt === null || isNaN(vTotLossAmt)){
     	vTotLossAmt = 0;
@@ -281,20 +281,15 @@ function fnCheckBuySLTP(pCurrPrice){
     	vNewProfit = 0;
     }
 
-	// console.log("gPL----: " + gPL);
-	// console.log("vTotLossAmt----: " + vTotLossAmt);
-	// console.log("vNewProfit----: " + vNewProfit);
-
-
 	if(pCurrPrice <= gAmtSL){
 		console.log("SL Hit");
 		fnCloseManualFutures(gByorSl);
 	}
-	// else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit))){
-	// 	console.log("50 Profit Taken.............");
-	// 	fnClose50PrctTrade();
-	// }
-	else if(gTimeDiff < 15){
+	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit))){
+		console.log("50 Profit Taken.............");
+		fnClose50PrctTrade();
+	}
+	else if(gTimeDiff < gMaxTradeTime){
 		console.log("Timer Ending...");
 		fnCloseManualFutures(gByorSl);
 	}
@@ -303,13 +298,13 @@ function fnCheckBuySLTP(pCurrPrice){
 		fnCloseManualFutures(gByorSl);
 	}
 	else{
-		console.log("Still continuing");
+		console.log("Buy Trade is Still ON");
 	}
 }
 
 function fnCheckSellSLTP(pCurrPrice){
     let vTotLossAmt = JSON.parse(localStorage.getItem("TotLossAmtDelta"));
-    let vNewProfit = Math.abs(parseFloat(localStorage.getItem("TotLossAmtDelta")) * 1.5);
+    let vNewProfit = Math.abs(parseFloat(localStorage.getItem("TotLossAmtDelta")) * g50PrctRcvry);
 
     if(vTotLossAmt === null || isNaN(vTotLossAmt)){
     	vTotLossAmt = 0;
@@ -322,11 +317,11 @@ function fnCheckSellSLTP(pCurrPrice){
 		console.log("SL Hit");
 		fnCloseManualFutures(gByorSl);
 	}
-	// else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit))){
-	// 	console.log("50 Profit Taken.............");
-	// 	fnClose50PrctTrade();
-	// }
-	else if(gTimeDiff < 15){
+	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit))){
+		console.log("50 Profit Taken.............");
+		fnClose50PrctTrade();
+	}
+	else if(gTimeDiff < gMaxTradeTime){
 		console.log("Timer Ending...");
 		fnCloseManualFutures(gByorSl);
 	}
@@ -335,7 +330,7 @@ function fnCheckSellSLTP(pCurrPrice){
 		fnCloseManualFutures(gByorSl);
 	}
 	else{
-		console.log("Still continuing");
+		console.log("Sell Trade is Still ON");
 	}
 }
 
@@ -539,6 +534,7 @@ function fnSetInitFutTrdDtls(){
 			objCharges.innerText = 0.00;
 		}
 	    fnSet50PrctQty();
+        fnGenMessage("<span class='blink'>Position Is Open</span>", `badge bg-warning`, "btnPositionStatus");
 	}
 	else{
 		objDateTime.innerText = "";
@@ -576,20 +572,17 @@ function fnGetFutBestRates(){
 	    fetch("/deltaExcFut/getCurrBSRates", requestOptions)
 	    .then(response => response.json())
 	    .then(objResult => {
-	        // console.log(objResult);
+
 	        if(objResult.status === "success"){
 	        	let vRes = JSON.parse(objResult.data);
 
-	            // console.log(vRes);
-	            // console.log(vRes.result.quotes.best_bid);
-	            // console.log(vRes.result.quotes.best_ask);
 	            let objBestRates = { BestBuy : vRes.result.quotes.best_ask, BestSell : vRes.result.quotes.best_bid }
 
                 resolve({ "status": objResult.status, "message": objResult.message, "data": objBestRates });
 	        }
 	        else if(objResult.status === "danger"){
 	            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-		            // console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
+
 		            // fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
 	                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
 	            }
@@ -608,7 +601,6 @@ function fnGetFutBestRates(){
 	        }
 	    })
 	    .catch(error => {
-	        // console.log(error);
 	        // fnGenMessage(error.message, `badge bg-danger`, "spnGenMsg");
             reject({ "status": "danger", "message": "Error in Getting Fut Best Rates...", "data": "" });
 	    });
@@ -682,14 +674,14 @@ async function fnInnitiateClsFutTrade(pQty){
     let objBestRates = await fnGetFutBestRates();
 	if(objBestRates.status === "success"){
 		// UNCOMMENT for LIVE TRADE in DEMO
-	    // let vBestBuy = parseFloat(objBestRates.data.BestBuy);
-	    // let vBestSell = parseFloat(objBestRates.data.BestSell);
+	    let vBestBuy = parseFloat(objBestRates.data.BestBuy);
+	    let vBestSell = parseFloat(objBestRates.data.BestSell);
 		// UNCOMMENT for LIVE TRADE in DEMO
 
-		// COMMENT for LIVE TRADE in DEMO
-		let vBestBuy = gBuyPrice;
-		let vBestSell = gSellPrice;
-		// COMMENT for LIVE TRADE in DEMO
+		// // COMMENT for LIVE TRADE in DEMO
+		// let vBestBuy = gBuyPrice;
+		// let vBestSell = gSellPrice;
+		// // COMMENT for LIVE TRADE in DEMO
 
 	    gCurrPos.TradeData[0].CloseDT = vToday;
 
@@ -711,18 +703,20 @@ async function fnInnitiateClsFutTrade(pQty){
 		    let vTradePL = fnGetTradePL(gCurrPos.TradeData[0].SellPrice, gCurrPos.TradeData[0].BuyPrice, gCurrPos.TradeData[0].LotSize, pQty, vCharges);
 		    gCurrPos.TradeData[0].ProfitLoss = vTradePL;
 
-		    // console.log("Buy Price: " + gCurrPos.TradeData[0].BuyPrice);
-		    // console.log("Sell Price: " + gCurrPos.TradeData[0].SellPrice);
-		    // console.log("Lot Size: " + gCurrPos.TradeData[0].LotSize);
-		    // console.log("Qty: " + pQty);
-		    // console.log("Charges: " + vCharges);
-		    // console.log("PL: " + vTradePL);
-	        let vOldLossAmt = JSON.parse(localStorage.getItem("TotLossAmtDelta"));
-	        let vNewLossAmt = vOldLossAmt + vTradePL;
-		    // console.log("Old Loss Amt: " + vOldLossAmt);
-		    // console.log("New Loss Amt: " + vNewLossAmt);
-		    //localStorage.setItem("TotLossAmtDelta", vNewLossAmt);
-		    gPL = vNewLossAmt;
+	        gOldPLAmt = JSON.parse(localStorage.getItem("TotLossAmtDelta"));
+	        gNewPLAmt = vTradePL;
+	    	let vTotNewPL = gOldPLAmt + gNewPLAmt;
+	    	localStorage.setItem("OldPLAmtDelta", gOldPLAmt);
+	    	localStorage.setItem("NewPLAmtDelta", gNewPLAmt);
+	    	localStorage.setItem("TotLossAmtDelta", vTotNewPL);
+	    }
+	    else{
+	    	gOldPLAmt = JSON.parse(localStorage.getItem("TotLossAmtDelta"));
+	    	gNewPLAmt = gPL;
+	    	let vTotNewPL = gOldPLAmt + gNewPLAmt;
+	    	localStorage.setItem("OldPLAmtDelta", gOldPLAmt);
+	    	localStorage.setItem("NewPLAmtDelta", gNewPLAmt);
+	    	localStorage.setItem("TotLossAmtDelta", vTotNewPL);
 	    }
 	}
 	else{
@@ -743,6 +737,7 @@ async function fnInnitiateClsFutTrade(pQty){
 	    if(pQty === 0){
 		    localStorage.removeItem("DeltaCurrFutPosiS");
 		    gCurrPos = null;
+            fnGenMessage("No Open Position", `badge bg-success`, "btnPositionStatus");
 	    }
 	    else{
             gCurrPos.TradeData[0].Qty = vToCntuQty;
@@ -763,32 +758,20 @@ async function fnInnitiateClsFutTrade(pQty){
 
 function fnSetNextOptTradeSettings(){
     let objQty = document.getElementById("txtFuturesQty");
-    let vOldLossAmt = JSON.parse(localStorage.getItem("TotLossAmtDelta"));
+    let vOldLossAmt = localStorage.getItem("OldPLAmtDelta");
+	let vNewLossAmt = localStorage.getItem("NewPLAmtDelta");
+	let vTotLossAmt = localStorage.getItem("TotLossAmtDelta");
+
     let vOldQtyMul = JSON.parse(localStorage.getItem("QtyMulDelta"));
     let vStartLots = JSON.parse(localStorage.getItem("StartQtyNoDelta"));
 
-    if(vOldLossAmt === null)
-        vOldLossAmt = 0;
-    if(vOldQtyMul === null)
-        vOldQtyMul = 0;
-
-	let vNewLossAmt = parseFloat(vOldLossAmt) + parseFloat(gPL);
-
-	// console.log("gPL: " + gPL);
-	// console.log("vOldLossAmt: " + vOldLossAmt);
-	// console.log("New Loss Amt: " + vNewLossAmt);
-	// console.log("vStartLots: " + vStartLots);
-
-	if(parseFloat(gPL) < 0){
-        localStorage.setItem("TotLossAmtDelta", vNewLossAmt);
-
+	if(parseFloat(vNewLossAmt) < 0){
         let vNextQty = parseInt(vOldQtyMul) * 2;
         localStorage.setItem("QtyMulDelta", vNextQty);
         objQty.value = vNextQty;
 	}
-	else if(parseFloat(vNewLossAmt) < 0){
-        localStorage.setItem("TotLossAmtDelta", vNewLossAmt);
-        let vDivAmt = parseFloat(vNewLossAmt) / parseFloat(vOldLossAmt);
+	else if(parseFloat(vTotLossAmt) < 0){
+        let vDivAmt = parseFloat(vTotLossAmt) / parseFloat(vOldLossAmt);
         let vNextQty = Math.round(vDivAmt * parseInt(vOldQtyMul));
 
         if(vNextQty < vStartLots)
@@ -810,8 +793,6 @@ function fnSetLotsByQtyMulLossAmt(){
     let vQtyMul = JSON.parse(localStorage.getItem("QtyMulDelta"));
     let objOptQty = document.getElementById("txtFuturesQty");
     let vTotLossAmt = JSON.parse(localStorage.getItem("TotLossAmtDelta"));
-
-    // console.log("Q: " + vQtyMul);
     
     if (vQtyMul === null || vQtyMul === "") {
         localStorage.setItem("QtyMulDelta", vStartLots);
@@ -836,8 +817,6 @@ function fnLoadTodayTrades(){
    	let objTradeBook = JSON.parse(localStorage.getItem("TrdBkFut"));
     let objHeadPL = document.getElementById("tdHeadPL");
     let objYtRL = document.getElementById("spnYtRL");
-
-   	// console.log(objTradeBook);
     
     if (objTradeBook == null) {
         objTodayTradeList.innerHTML = '<div class="col-sm-12" style="border:0px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 40px;">No Trades Yet</div>';
@@ -939,8 +918,6 @@ function fnGetTradePL(pSellPrice, pBuyPrice, pLotSize, pQty, pCharges){
 }
 
 function fnClearLocalStorageTemp(){
-	// console.log(localStorage.getItem("DeltaCurrFutPosiS"));
-	// console.log(gCurrPos);
     localStorage.removeItem("DeltaCurrFutPosiS");
 	localStorage.removeItem("TrdBkFut");
 	localStorage.removeItem("StartQtyNoDelta");
@@ -991,4 +968,20 @@ function fnStartTimer(duration, display) {
 function fnTest(){
 	console.log("Total Loss in Momory: " + localStorage.getItem("TotLossAmtDelta"));
 	console.log("gPL: " + gPL);
+}
+
+function fnPositionStatus(){
+    let objBtnPosition = document.getElementById("btnPositionStatus");
+
+    if(localStorage.getItem("DeltaCurrFutPosiS") === null)
+    {
+        fnGenMessage("Position Closed!", `badge bg-success`, "spnGenMsg");
+        fnGenMessage("No Open Position", `badge bg-success`, "btnPositionStatus");
+    }
+    else
+    {
+        objBtnPosition.className = "badge bg-warning";
+        objBtnPosition.innerText = "Position is open";
+        fnGenMessage("Position is Still Open!", `badge bg-warning`, "spnGenMsg");
+    }
 }
