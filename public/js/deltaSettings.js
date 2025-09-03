@@ -106,10 +106,8 @@ function fnGetSetTraderLoginStatus(){
     let vTraderStatus = localStorage.getItem("lsDeltaLoginValid");
     let objTraderStatus = document.getElementById("btnTraderStatus");
     let lsPrevSessionDate = localStorage.getItem("lsLoginDate");
-    const vDate = new Date();
-    let vToday = vDate.getDate();
 
-    if((vTraderStatus === "true") && (parseInt(vToday) === parseInt(lsPrevSessionDate))){
+    if((vTraderStatus === "true")){
         fnChangeBtnProps(objTraderStatus.id, "badge bg-success", "Trader - Valid");
     }
     else{

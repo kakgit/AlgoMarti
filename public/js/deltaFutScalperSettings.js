@@ -1,13 +1,10 @@
 
 function fnGetSetTraderLoginStatus(){
-
     let vTraderStatus = localStorage.getItem("lsDeltaLoginValid");
     let objTraderStatus = document.getElementById("btnTraderStatus");
     let lsPrevSessionDate = localStorage.getItem("lsLoginDate");
-    const vDate = new Date();
-    let vToday = vDate.getDate();
 
-    if((vTraderStatus === "true") && (parseInt(vToday) === parseInt(lsPrevSessionDate))){
+    if(vTraderStatus === "true"){
         fnChangeBtnProps(objTraderStatus.id, "badge bg-success", "Trader - Valid");
     }
     else{
@@ -147,8 +144,24 @@ function fnGetSetAutoTraderStatus(){
 }
 
 function fnClearLoginStatus(){
-  localStorage.removeItem("lsDeltaLoginValid");
-  localStorage.removeItem("isDeltaAutoTrader");
+    localStorage.removeItem("lsDeltaLoginValid");
+    localStorage.removeItem("isDeltaAutoTrader");
 
-  fnGetSetTraderLoginStatus();
+    fnGetSetTraderLoginStatus();
+}
+
+function fnClearPrevLoginSession(){
+    //let objSession = document.getElementById("txtKotakSession");
+    gIsTraderLogin = false;
+    localStorage.removeItem("lsLoginDate");
+    localStorage.removeItem("lsKotakNeoSession");
+    localStorage.removeItem("AppCredS");
+
+    localStorage.removeItem("isAutoTrader");
+    localStorage.removeItem("isDeltaAutoTrader");
+    localStorage.removeItem("KotakUserDetS");
+    localStorage.removeItem("lsDeltaLoginValid");
+
+  //objSession.value = "";
+  //fnChangeBtnProps("btnTraderStatus", "badge bg-danger", "Trader - Disconnected");
 }

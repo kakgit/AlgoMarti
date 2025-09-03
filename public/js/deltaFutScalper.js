@@ -14,6 +14,45 @@ let gPL = 0;
 
 window.addEventListener("DOMContentLoaded", function(){
 	fnGetAllStatus();
+
+    socket.on("CdlEmaTrend", (pMsg) => {
+        let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
+        let objJson = JSON.parse(pMsg);
+
+        if(objJson.Direc === "UP"){
+            objTradeSideVal.value = true;
+        }
+        else if(objJson.Direc === "DN"){
+            objTradeSideVal.value = false;
+        }
+        else{
+            objTradeSideVal.value = -1;
+        }
+        fnTradeSide();
+    });
+
+    socket.on("tv-btcusd-exec", (pMsg) => {
+        let isLsAutoTrader = localStorage.getItem("isDeltaAutoTrader");
+        let vTradeSide = localStorage.getItem("TradeSideSwtS");
+
+        console.log(vTradeSide);
+
+        if(isLsAutoTrader === "false"){
+            fnGenMessage("Trade Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
+        }
+        else{
+        	if(((vTradeSide === "true") && (pMsg.TransType === "buy")) || ((vTradeSide === "false") && (pMsg.OptionType === "sell")) || (vTradeSide === "-1")){
+	            fnInitiateManualFutures(pMsg.TransType);
+        	}
+        	else{
+                fnGenMessage(pMsg.TransType +" Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
+        	}
+        }
+    });
+
+    socket.on("tv-btcusd-close", (pMsg) => {
+        fnCloseManualFutures(pMsg.TransType);
+    });
 });
 
 function fnGetAllStatus(){
@@ -30,6 +69,8 @@ function fnGetAllStatus(){
 		fnSetInitFutTrdDtls();
 		fnLoadSlTp();
 		fnLoadTodayTrades();
+
+		fnLoadTradeSide();
 	}
 }
 
@@ -983,5 +1024,31 @@ function fnPositionStatus(){
         objBtnPosition.className = "badge bg-warning";
         objBtnPosition.innerText = "Position is open";
         fnGenMessage("Position is Still Open!", `badge bg-warning`, "spnGenMsg");
+    }
+}
+
+//********** Indicators Sections *************//
+
+function fnTradeSide(){
+    let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
+
+    localStorage.setItem("TradeSideSwtS", objTradeSideVal.value);
+}
+
+function fnLoadTradeSide(){
+    if(localStorage.getItem("TradeSideSwtS") === null){
+        localStorage.setItem("TradeSideSwtS", "-1");
+    }
+    let lsTradeSideSwitchS = localStorage.getItem("TradeSideSwtS");
+    let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
+
+    if(lsTradeSideSwitchS === "true"){
+        objTradeSideVal.value = true;
+    }
+    else if(lsTradeSideSwitchS === "false"){
+        objTradeSideVal.value = false;
+    }
+    else{
+        objTradeSideVal.value = -1;
     }
 }

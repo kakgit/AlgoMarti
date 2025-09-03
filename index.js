@@ -195,6 +195,24 @@ app.post("/tv-msg-ema-trend", (req, res) => {
     res.send("success");
 });
 
+app.post("/tv-btcusd-exec", (req, res) => {
+    const vTransType = req.body.direc;
+
+    let objMsg = {TransType: vTransType};
+
+    io.emit("tv-btcusd-exec", objMsg);
+    res.send({ status: "success", message: "Open " + objMsg.TransType + " Trade Received!", data: objMsg });
+});
+
+app.post("/tv-btcusd-close", (req, res) => {
+    const vTransType = req.body.direc;
+
+    let objMsg = {TransType: vTransType};
+
+    io.emit("tv-btcusd-close", objMsg);
+    res.send({ status: "success", message: "Close " + objMsg.TransType + " Trade Received!", data: objMsg });
+});
+
 const storage = multer.diskStorage({
     destination: function(req, file, callback){
         callback(null, __dirname + "/public/uploads");
