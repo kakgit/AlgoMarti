@@ -100,6 +100,21 @@
                                         </div>
                                     </div>
 
+                                    <div class="col-3">Loss Recovery %</div>
+                                    <div class="col-3">X-Multiplier</div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-3">
+                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtLossRecvPerct" value="50" onchange="fnUpdateLossRecPrct(this);" />
+                                    </div>
+                                    <div class="col-3">
+                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtMultiplierX" value="2.0" onchange="fnUpdateMultiplierX(this);" />
+                                    </div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+
                                     <div class="col-2">Best Buying Price</div>
                                     <div class="col-2">Mark Price</div>
                                     <div class="col-2">Best Selling Price</div>
@@ -134,28 +149,29 @@
                                             <button class="btn btn-outline-danger" onclick="fnCloseWS();" style="display: block;"><b>Disconnect</b></button>
                                         </div>
                                     </div>
-                                    <br/><br/>
-
-                                    <div class="col-2">Open</div>
-                                    <div class="col-2">High</div>
-                                    <div class="col-2">Low</div>
-                                    <div class="col-2">Close</div>
-                                    <div class="col-4"></div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtCandleOpen" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Candle High Price" id="txtCandleHigh" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Candle Low Price" id="txtCandleLow" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Candle Close Price" id="txtCandleClose" />
-                                    </div>
-                                    <div class="col-4">
-                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-primary" onclick="fnGetHistoricalOHLC();" style="display: block;"><b>Get Historical OHLC</b></button>
+                                    
+                                    <div style="display:none;">
+                                        <div class="col-2">Open</div>
+                                        <div class="col-2">High</div>
+                                        <div class="col-2">Low</div>
+                                        <div class="col-2">Close</div>
+                                        <div class="col-4"></div>
+                                        <div class="col-2">
+                                            <input type="number" class="form-control" placeholder="Candle Open Price" id="txtCandleOpen" />
+                                        </div>
+                                        <div class="col-2">
+                                            <input type="number" class="form-control" placeholder="Candle High Price" id="txtCandleHigh" />
+                                        </div>
+                                        <div class="col-2">
+                                            <input type="number" class="form-control" placeholder="Candle Low Price" id="txtCandleLow" />
+                                        </div>
+                                        <div class="col-2">
+                                            <input type="number" class="form-control" placeholder="Candle Close Price" id="txtCandleClose" />
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="d-grid gap-1">
+                                                <button class="btn btn-outline-primary" onclick="fnGetHistoricalOHLC();" style="display: block;"><b>Get Historical OHLC</b></button>
+                                            </div>
                                         </div>
                                     </div>
                                     <br/><br/>
