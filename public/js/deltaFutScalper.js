@@ -3,7 +3,7 @@ let gByorSl = "";
 let gCurrPos = null;
 let gBuyPrice, gSellPrice, gLotSize, gQty, gAmtSL, gAmtTP, gCharges, gCapital, gOrderDT = 0;
 let gBrokerage = 0.02;
-let gMaxTradeTime = 1;
+let gMaxTradeTime = 15;
 let gLeverage = 160;
 let gTimerID = 0;
 let gTimeDiff = 900;
@@ -482,6 +482,7 @@ function fnCheckBuySLTP(pCurrPrice){
 function fnCheckSellSLTP(pCurrPrice){
     let vTotLossAmt = JSON.parse(localStorage.getItem("TotLossAmtDelta"));
     let vNewProfit = Math.abs(parseFloat(localStorage.getItem("TotLossAmtDelta")) * parseFloat(gMultiplierX));
+	let objCounterSwt = document.getElementById("swtTradeCounter");
 
     if(vTotLossAmt === null || isNaN(vTotLossAmt)){
     	vTotLossAmt = 0;
@@ -500,7 +501,9 @@ function fnCheckSellSLTP(pCurrPrice){
 	}
 	else if(gTimeDiff < gMaxTradeTime){
 		// console.log("Timer Ending...");
-		fnCloseManualFutures(gByorSl);
+		if(objCounterSwt.checked){
+			fnCloseManualFutures(gByorSl);
+		}
 	}
 	else if(pCurrPrice <= gAmtTP){
 		// console.log("TP Hit");
