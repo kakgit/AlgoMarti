@@ -47,17 +47,18 @@ exports.fnValidateUserLogin = async (req, res) => {
 }
 
 exports.fnHistoricalOHLCAPI = async (req, res) => {
+    let vCandleMinutes = req.body.CandleMinutes;
     const vNow = new Date();
-    const vRoundedTime = fnRoundTimeToNearestXMinutes(vNow, 5);
+    const vRoundedTime = fnRoundTimeToNearestXMinutes(vNow, vCandleMinutes);
     let vEndTime = ((vRoundedTime.valueOf())/1000) - 60;
-    let vStartTime = vEndTime - 300;
+    let vStartTime = vEndTime - (vCandleMinutes * 60);
     // console.log("Rounded Time (nearest 5 minutes):", vEndTime);
 
     const vMethod = "GET";
     const vPath = '/v2/history/candles';
     const vTimeStamp = Math.floor(new Date().getTime() / 1000);
 
-    const vQueryStr = "?resolution=5m&symbol=BTCUSD&start="+ vStartTime +"&end=" + vEndTime;
+    const vQueryStr = "?resolution=" + vCandleMinutes + "m&symbol=BTCUSD&start="+ vStartTime +"&end=" + vEndTime;
     const vBody = "";
     const vSignature = fnGetSignature(vMethod, vPath, vQueryStr, vTimeStamp, vBody);
     let config = {
@@ -76,7 +77,7 @@ exports.fnHistoricalOHLCAPI = async (req, res) => {
       axios.request(config)
       .then((objResult) => {
         let objRes = JSON.stringify(objResult.data);
-        console.log(objRes);
+        // console.log(objRes);
         res.send({ "status": "success", "message": "OHLC Information Feched!", "data": objRes });
     })
       .catch((objError) => {

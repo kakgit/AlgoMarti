@@ -38,8 +38,6 @@
                                 <h4>Manual Trader</h4>
                             </div>
                             <div class="col-2">
-                            </div>
-                            <div class="col-2">
                                 <form name="frmSide">
                                     <div class="tw-toggle" style="white-space: nowrap;">
                                         <input id="txtBN1" type="radio" name="rdoTradeSide" value="false" onclick="fnTradeSide();" />
@@ -56,6 +54,12 @@
                             <div class="col-2" style="text-align: right;">Start With </div>
                             <div class="col-1"><input type="text" class="form-control" min="1" value="1" id="txtStartQty" onchange="fnChangeStartQty(this);" /></div>
                             <div class="col-1"> Qty</div>
+                            <div class="col-1" style="text-align: right;">
+                                <span class="badge rounded-pill text-bg-success" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnConnectWS();">&nbsp;</span>
+                            </div>
+                            <div class="col-1" style="text-align: right;">
+                                <span class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnCloseWS();">&nbsp;</span>
+                            </div>
                             <div class="col-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divTraderClps" role="button" aria-expanded="true" aria-controls="divTraderClps">
                                     <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
@@ -100,26 +104,18 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-3">Loss Recovery %</div>
-                                    <div class="col-3">X-Multiplier</div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-                                    <div class="col-3">
-                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtLossRecvPerct" value="50" onchange="fnUpdateLossRecPrct(this);" />
-                                    </div>
-                                    <div class="col-3">
-                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtMultiplierX" value="2.0" onchange="fnUpdateMultiplierX(this);" />
-                                    </div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-
+                                    <div class="col-2">Loss Recovery %</div>
+                                    <div class="col-2">X-Multiplier</div>
                                     <div class="col-2">Best Buying Price</div>
                                     <div class="col-2">Mark Price</div>
                                     <div class="col-2">Best Selling Price</div>
-                                    <div class="col-6"></div>
-
+                                    <div class="col-2"></div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtLossRecvPerct" value="50" onchange="fnUpdateLossRecPrct(this);" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtMultiplierX" value="2.0" onchange="fnUpdateMultiplierX(this);" />
+                                    </div>
                                     <div class="col-2">
                                         <input type="number" class="form-control" placeholder="Best Buy Price" id="txtBestBuyPrice" />
                                     </div>
@@ -139,18 +135,7 @@
                                             <button class="btn btn-outline-primary" onclick="fnUnsubscribe();" style="display: block;"><b>Unsub</b></button>
                                         </div>
                                     </div>
-                                    <div class="col-2">
-                                        <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success" onclick="fnConnectWS();" style="display: block;"><b>Connect</b></button>
-                                        </div>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-danger" onclick="fnCloseWS();" style="display: block;"><b>Disconnect</b></button>
-                                        </div>
-                                    </div>
                                     
-                                    <div style="display:none;">
                                         <div class="col-2">Open</div>
                                         <div class="col-2">High</div>
                                         <div class="col-2">Low</div>
@@ -173,7 +158,6 @@
                                                 <button class="btn btn-outline-primary" onclick="fnGetHistoricalOHLC();" style="display: block;"><b>Get Historical OHLC</b></button>
                                             </div>
                                         </div>
-                                    </div>
                                     <br/><br/>
                                     <hr/>
                                     <div class="col-3">
@@ -208,7 +192,10 @@
                                 <h4>Open Position(s)</h4>
                             </div>
                             <div class="col-3">
-                                <div style="text-wrap: nowrap;display:block;" id="divTimer">Trade closes in <span id="time"></span> minutes!</div>
+                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                                    <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtTradeCounter" name="swtAutoChkPosition" onchange="fnUpdateTrdSwtCounter();" />
+                                    <label id="divTimer" for="swtAutoChkPosition" style="cursor:pointer;text-wrap:nowrap;">Trade closes in <span id="time"></span> minutes!</label>
+                                </div>
                             </div>
                             <div class="col-2">
                                 <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnTest();"></i>
@@ -217,7 +204,7 @@
                                 <button class='nav-link' onclick="fnClearLocalStorageTemp();" role="tab" type="button">Clear All</button>
                             </div>
                             <div class="col-2" style="text-align: right;">
-                                <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px;">&nbsp;
+                                <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px;">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divOpenPosClps" role="button" aria-expanded="true" aria-controls="divOpenPosClps">

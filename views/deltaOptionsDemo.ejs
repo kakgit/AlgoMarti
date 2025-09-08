@@ -1,0 +1,202 @@
+<div id="main" class="container-xxl">
+    <div class="page-heading">
+        <div class="row">
+            <div class="col-4">
+                <h3>Delta - Options Demo</h3>
+            </div>
+            <div class="col-4 text-center">
+                <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
+            </div>
+            <div class="col-4" style="text-align: right;">
+                <a href="javascript: void(null);" class="btn btn-outline-primary" onclick="fnChangeLater();"><i class="fa fa-cogs" aria-hidden="true" style="color: orangered;"></i> Delta Options Settings</a>
+            </div>
+        </div>
+    </div>
+    <div class="page-content">
+        <section class="row">
+            <div class="col-12 col-lg-12">
+                <div class="row" style="text-align: center;">
+                    <div class="col-6 col-lg-4 col-md-6">
+                        <button class="badge bg-danger" onclick="fnShowTraderLoginMdl(this);" id="btnTraderStatus">Trader - Invalid</button>
+                    </div>
+                    <div class="col-6 col-lg-4 col-md-6">
+                        <button class="badge bg-danger" onclick="fnToggleAutoTrader();" id="btnAutoTraderStatus">Auto Trader - OFF</button>
+                    </div>
+                    <div class="col-6 col-lg-4 col-md-6">
+                        <button class="badge bg-success" onclick="fnPositionStatus()" id="btnPositionStatus">No Open Position</button>
+                    </div>
+                    <div class="col-12">&nbsp;</div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <section class="row">
+        <div class="col-12">
+            <div class="card" id="cardManualTrader">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-3">
+                            <h4>Manual Trader</h4>
+                        </div>
+                        <div class="col-2">
+                            <form name="frmSide">
+                                <div class="tw-toggle" style="white-space: nowrap;">
+                                    <input id="txtBN1" type="radio" name="rdoTradeSide" value="false" onclick="fnTradeSide();" />
+                                    <label class="toggle toggle-yes" for="txtBN1"><i class="fa fa-arrow-down"></i></label>
+                                    <input id="txtBN2" checked type="radio" name="rdoTradeSide" value="-1" onclick="fnTradeSide();" />
+                                    <label class="toggle toggle-yes" for="txtBN2"><i class="fa fa-minus"></i></label>
+                                    <input id="txtBN3" type="radio" name="rdoTradeSide" value="true" onclick="fnTradeSide();" />
+                                    <label class="toggle toggle-yes" for="txtBN3"><i class="fa fa-arrow-up"></i></label>
+                                    <span></span>
+                                    <label for="TradeSide">Side</label>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-2" style="text-align: right;">Start With </div>
+                        <div class="col-1"><input type="text" class="form-control" min="1" value="1" id="txtStartQty" onchange="fnChangeStartQty(this);" /></div>
+                        <div class="col-1"> Qty</div>
+                        <div class="col-1" style="text-align: right;">
+                            <span class="badge rounded-pill text-bg-success" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnConnectWS();">&nbsp;</span>
+                        </div>
+                        <div class="col-1" style="text-align: right;">
+                            <span class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnCloseWS();">&nbsp;</span>
+                        </div>
+                        <div class="col-1" style="text-align: right;">
+                            <a data-bs-toggle="collapse" href="#divTraderClps" role="button" aria-expanded="true" aria-controls="divTraderClps">
+                                <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                            </a>
+                        </div>                                    
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="collapse show" id="divTraderClps">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-3">
+                                    Symbols List
+                                </div>
+                                <div class="col-3">
+                                    Expiry
+                                </div>
+                                <div class="col-3">
+                                    Quantity
+                                </div>
+                                <div class="col-3">
+                                    Lot Size
+                                </div>
+
+                                <div class="col-3">
+                                    <select id="ddlFuturesSymbols" class="form-select" onchange="//fnGetSelSymbolData(this.value);" placeholder="Select Symbol">
+                                        <option value=''>Select Symbol</option>
+                                        <option value='BTCUSD' selected>BTCUSD</option>
+                                        <option value='ETHUSD'>ETHUSD</option>
+                                    </select>
+                                </div>
+                                <div class="col-3">
+                                    <div class="input-group mb-3">
+                                        <select id="selExpiry" type="select" class="form-select"></select>
+                                        <button class="btn btn-success" type="button" id="btnGetMarginFut" onclick="fnGetAvailableMargin();"><i class="fa fa-edit" aria-hidden="true"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <input type="number" min="1" class="form-control" placeholder="Quantity" id="txtQty" value="1" />
+                                </div>
+                                <div class="col-3">
+                                    <input type="text" value="0.001" id="txtLotSize" class="form-control" />
+                                </div>
+
+
+                                <div class="col-2">Loss Recovery %</div>
+                                <div class="col-2">X-Multiplier</div>
+                                <div class="col-2">Best Buying Price</div>
+                                <div class="col-2">Spot Price</div>
+                                <div class="col-2">Best Selling Price</div>
+                                <div class="col-2"></div>
+                                <div class="col-2">
+                                    <input type="number" class="form-control" placeholder="Candle Open Price" id="txtLossRecvPerct" value="50" onchange="fnUpdateLossRecPrct(this);" />
+                                </div>
+                                <div class="col-2">
+                                    <input type="number" class="form-control" placeholder="Candle Open Price" id="txtMultiplierX" value="2.0" onchange="fnUpdateMultiplierX(this);" />
+                                </div>
+                                <div class="col-2">
+                                    <input type="number" class="form-control" placeholder="Best Buy Price" id="txtBestBuyPrice" />
+                                </div>
+                                <div class="col-2">
+                                    <input type="number" class="form-control" placeholder="Spot Price" id="txtSpotPrice" />
+                                </div>
+                                <div class="col-2">
+                                    <input type="number" class="form-control" placeholder="Best Sell Price" id="txtBestSellPrice" />
+                                </div>
+                                <div class="col-1">
+                                    <div class="d-grid gap-1">
+                                        <button class="btn btn-outline-primary" onclick="fnSubscribe();" style="display: block;"><b>Sub</b></button>
+                                    </div>
+                                </div>
+                                <div class="col-1">
+                                        <div class="d-grid gap-1">
+                                        <button class="btn btn-outline-primary" onclick="fnUnsubscribe();" style="display: block;"><b>Unsub</b></button>
+                                    </div>
+                                </div>
+
+                                <div class="col-3">
+                                    Available Margin
+                                </div>
+                                <div class="col-3">
+
+                                </div>
+                                <div class="col-3">
+
+                                </div>
+                                <div class="col-3">
+
+                                </div>
+                                <div class="col-3">
+                                    <div class="input-group mb-3">
+                                        <input id="txtMarginFut" type="number" min="100" class="form-control" placeholder="Available Margin" value="1000" />
+                                        <button class="btn btn-success" type="button" id="btnGetMarginFut" onclick="fnGetAvailableMargin();"><i class="fa fa-chevron-up" aria-hidden="true"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+
+                                </div>
+                                <div class="col-3">
+
+                                </div>
+                                <div class="col-3">
+
+                                </div>
+
+                                <hr/>
+                                <div class="col-3">
+                                    <div class="d-grid gap-1">
+                                        <button class="btn btn-outline-warning" onclick="fnCloseManualOption('CE');"><b>EXIT CE</b></button>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="d-grid gap-1">
+                                        <button class="btn btn-outline-danger" onclick="fnInitiateManualOption('CE');"><b>SELL CE</b></button>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="d-grid gap-1">
+                                        <button class="btn btn-outline-warning" onclick="fnCloseManualOption('PE');"><b>EXIT PE</b></button>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="d-grid gap-1">
+                                        <button class="btn btn-outline-success" onclick="fnInitiateManualOption('PE');"><b>SELL PE</b></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<%- include('partials/deltaOptSettings.ejs') %>
+
+<script src="/js/deltaOptions.js"></script>
+<script src="/js/deltaOptionsSettings.js"></script>

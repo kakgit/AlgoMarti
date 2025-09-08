@@ -16,6 +16,7 @@ const kotakLiveControllerNS = require("../controller/controllerKotakScalper.js")
 const kotakPaperController = require("../controller/controllerKotakPaper.js");
 const deltaLiveController = require("../controller/controllerDeltaLive.js");
 const deltaFutDemoController = require("../controller/controllerDeltaFutDemo.js");
+const deltaOptDemoController = require("../controller/controllerDeltaOptDemo.js");
 
 //home Routes
 route.get("/", homeServices.defaultRoute);
@@ -46,6 +47,9 @@ route.get("/deltaLive", deltaLiveController.defaultRoute);
 
 //Delta Futures Demo Route
 route.get("/deltaFutures-Demo", deltaFutDemoController.defaultRoute);
+
+//Delta Futures Demo Route
+route.get("/deltaOptions-Demo", deltaOptDemoController.defaultRoute);
 
 //Samco Routes
 route.get("/samco", samcoServices.defaultRoute);

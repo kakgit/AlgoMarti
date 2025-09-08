@@ -49,14 +49,12 @@ function fnGetSetAppStatus(){
   let objLiPwd = document.getElementById("liChangePwd");
 
   let lsPrevSessionDate = localStorage.getItem("lsLoginDate");
-  const vDate = new Date();
-  let vToday = vDate.getDate();
 
   if(lsPrevSessionDate === null || lsPrevSessionDate === ""){
     lsPrevSessionDate = 0;
   }
 
-  if ((parseInt(vToday) === parseInt(lsPrevSessionDate)) && (bAppStatus === "true")) {
+  if (bAppStatus === "true") {
       objLoginTxt.innerText = "LOGOUT";
       objSpnGreet.innerText = "Hi, " + objAppCred.FullName;
       objLiPwd.style.display = "block";
