@@ -18,14 +18,7 @@ exports.fnGetOptionChainSDK = async (req, res) => {
     let vOptionType = "CE"; //req.body.OptionType;
     let vExpiryDate = "10-09-2025"; //req.body.OptionExpiry;
     let vContractType = "call_options,put_options";
-    let vCallOI = 0;
-    let vPutOI = 0;
-    // if(vOptionType === "PE"){
-    //     vContractType = "put_options";
-    // }
-    // else{
-    //     vContractType = "call_options";
-    // }
+
     new DeltaRestClient(vApiKey, vApiSecret).then(client => {
         client.apis.Products.getOptionChain({
             contract_types: vContractType, underlying_asset_symbols: vUAssetSymbol, expiry_date: vExpiryDate
@@ -33,9 +26,6 @@ exports.fnGetOptionChainSDK = async (req, res) => {
             let objResult = JSON.parse(response.data);
 
             if(objResult.success){
-                // for(let i=0; i<objResult.data.length; i++){
-                //     console.log(objResult.data[i].close);
-                // }
                 res.send({ "status": "success", "message": "Option Chain Data Received Successfully!", "data": objResult });
             }
             else{

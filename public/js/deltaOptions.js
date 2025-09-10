@@ -32,10 +32,11 @@ function fnGetAllStatus(){
 function fnFillEpiryDates(){
 	let objExpiry = document.getElementById("selExpiry");
 
+    objExpiry.innerHTML += "<option value='100925'>10-09-2025</option>";
+    objExpiry.innerHTML += "<option value='110925'>11-09-2025</option>";
     objExpiry.innerHTML += "<option value='120925'>12-09-2025</option>";
     objExpiry.innerHTML += "<option value='190925'>19-09-2025</option>";
     objExpiry.innerHTML += "<option value='260925'>26-09-2025</option>";
-
 }
 
 function fnLoadDefQty(){

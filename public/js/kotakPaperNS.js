@@ -142,7 +142,7 @@ function fnGetSetAllStatus(){
         fnSetDefaultLotNos();
         fnLoadDefaultSLTP();
         fnSetLotsByQtyMulLossAmt();
-        fnGetSetOptionStrike();
+        //fnGetSetOptionStrike();
         fnLoadMartiSwitchSettings();
         fnLoadTradeSide();
         fnSetInitOptTrdDtls();
@@ -2848,6 +2848,8 @@ function fnCloseOptTrade11(pMsg){
 
 async function fnCloseOptTrade(){
     gTrdExcPrc = true;
+    let objStreamLS = JSON.parse(localStorage.getItem("OptStream"));
+    let objCurrRate = document.getElementById("txtCurrentRate");
 
     if(gActTrdCE === true){
         let objClsTrd = await fnInitClsOptPaperTrade(0);
@@ -2857,6 +2859,11 @@ async function fnCloseOptTrade(){
             gActTrdCE = false;
             gTrdExcPrc = false;
             console.log("CE Close Trade Executed!");
+
+            fnUnSubTickerData('mwu', objStreamLS.StreamObj, objStreamLS.Channel);
+            objCurrRate.value = "";
+            localStorage.removeItem("OptStream");
+
             fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
         }
         else{
@@ -2871,6 +2878,11 @@ async function fnCloseOptTrade(){
             gActTrdPE = false;
             gTrdExcPrc = false;
             console.log("PE Close Trade Executed!");
+
+            fnUnSubTickerData('mwu', objStreamLS.StreamObj, objStreamLS.Channel);
+            objCurrRate.value = "";
+            localStorage.removeItem("OptStream");
+
             fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
         }
         else{
@@ -3258,7 +3270,7 @@ function fnSetTodayOptTradeDetails(){
     //     localStorage.setItem("isAutoPaperTrader", "true");
     //     $('#btnAutoTraderStatus').trigger('click');
     // }
-    fnCloseOpenStream();
+    // fnCloseOpenStream();
 }
 
 function fnCloseOpenStream(){
