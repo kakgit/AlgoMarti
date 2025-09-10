@@ -176,6 +176,98 @@ function fnUnsubscribe(){
 	objBestSell.value = "";
 }
 
+async function getOptionsData(){
+    let objApiKey = document.getElementById("txtUserAPIKey");
+    let objApiSecret = document.getElementById("txtAPISecret");
+    let objSymbDDL = document.getElementById("ddlSymbols");
+    let objSpotPrice = document.getElementById("txtSpotPrice");
+    let objExpiryDate = document.getElementById("selExpiry");
+
+    try{
+	    let objOptionChain = await fnGetOptionChain(objApiKey.value, objApiSecret.value, "objSpotPriceByProd.data.result.underlying_asset_symbol", "objExpiryDate.value", "objMsg.optionType");
+	    if(objOptionChain.status === "success"){
+            let vCallOITotal = 0;
+            let vPutOITotal = 0;
+            let vCallOIChgTotal = 0;
+            let vPutOIChgTotal = 0;
+
+            console.log(objOptionChain);
+            console.log(objOptionChain.data.result.length);
+            for(let i=0; i<objOptionChain.data.result.length; i++){
+                if(objOptionChain.data.result[i].contract_type === "put_options"){
+                    vPutOITotal += parseFloat(objOptionChain.data.result[i].oi_value_usd);
+                    vPutOIChgTotal += parseFloat(objOptionChain.data.result[i].oi_change_usd_6h);
+                }
+                else if(objOptionChain.data.result[i].contract_type === "call_options"){
+                    vCallOITotal += parseFloat(objOptionChain.data.result[i].oi_value_usd);
+                    vCallOIChgTotal += parseFloat(objOptionChain.data.result[i].oi_change_usd_6h);
+                }
+            }
+        console.log("Call: " + (vCallOITotal).toFixed(2));                
+        console.log("Put: " + (vPutOITotal).toFixed(2));                
+        console.log("Call Chg: " + (vCallOIChgTotal).toFixed(2));                
+        console.log("Put Chg: " + (vPutOIChgTotal).toFixed(2));                
+
+	    }
+        else{
+            fnGenMessage(objOptionChain.message, `badge bg-${objOptionChain.status}`, "spnGenMsg");
+        }
+    }
+    catch(err){
+        fnGenMessage(err.message, `badge bg-danger`, "spnGenMsg");
+    }
+}
+
+function fnGetOptionChain(pApiKey, pApiSecret, pUndAssetSymb, pOtionExpiry, pOptionType){
+    const objPromise = new Promise((resolve, reject) => {
+
+        let vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+
+        let vAction = JSON.stringify({
+            "ApiKey" : pApiKey,
+            "ApiSecret" : pApiSecret,
+            "UndAssetSymbol" : pUndAssetSymb,
+            "OptionExpiry" : pOtionExpiry,
+            "OptionType" : pOptionType
+        });
+
+        let requestOptions = {
+            method: 'POST',
+            headers: vHeaders,
+            body: vAction,
+            redirect: 'follow'
+        };
+
+        fetch("/deltaExcOpt/getOptionChainSDK", requestOptions)
+        .then(response => response.json())
+        .then(objResult => {
+            if(objResult.status === "success"){
+                // console.log(objResult);
+
+                resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+            else if(objResult.status === "danger"){
+                if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+                    reject({ "status": objResult.status, "message": objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, "data": objResult.data });
+                }
+                else{
+                    reject({ "status": objResult.status, "message": objResult.data.response.body.error.code + " Contact Admin!", "data": objResult.data });
+                }
+            }
+            else if(objResult.status === "warning"){
+                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+            else{
+                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+        })
+        .catch(error => {
+            reject({ "status": "danger", "message": "Error At Option Chain. Catch!", "data": "" });
+        });
+    });
+    return objPromise;
+}
 
 
 function fnClearLocalStorageTemp(){

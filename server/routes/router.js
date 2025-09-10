@@ -159,6 +159,9 @@ route.post("/deltaExcFut/validateLogin", deltaFutDemoController.fnValidateUserLo
 route.post("/deltaExcFut/getHistOHLC", deltaFutDemoController.fnHistoricalOHLCAPI);
 route.post("/deltaExcFut/getCurrBSRates", deltaFutDemoController.fnGetCurrBuySellRates);
 
+//Delta Options Routes
+route.post("/deltaExcOpt/getOptionChainSDK", deltaOptDemoController.fnGetOptionChainSDK);
+
 
 //Samples
 route.post("/deltaExc/getTestWalletAPI", deltaLiveController.fnTestWalletAPI);
