@@ -396,8 +396,6 @@ function fnUpdateOpnPosStatus(){
 		gCurrPos.TradeData[0].Charges = gCharges;
 		gCurrPos.TradeData[0].ProfitLoss = gPL;
 
-		console.log(gCharges);
-
 		fnCheckBuySLTP(gSellPrice);
 	}
 	else if(gByorSl === "sell"){
@@ -450,6 +448,7 @@ function fnCheckBuySLTP(pCurrPrice){
     let vTotLossAmt = JSON.parse(localStorage.getItem("TotLossAmtDelta"));
     let vNewProfit = Math.abs(parseFloat(localStorage.getItem("TotLossAmtDelta")) * parseFloat(gMultiplierX));
 	let objCounterSwt = document.getElementById("swtTradeCounter");
+	let objBrkRec = document.getElementById("tdHeadBrkRec");
 
     if(vTotLossAmt === null || isNaN(vTotLossAmt)){
     	vTotLossAmt = 0;
@@ -459,6 +458,7 @@ function fnCheckBuySLTP(pCurrPrice){
     }
 
 	let vBrokTotLossRec = Math.abs(parseFloat(vTotLossAmt) - parseFloat(gCharges));
+	objBrkRec.innerText = (vBrokTotLossRec).toFixed(2);
 
     // console.log("vTotLossAmt: " + vTotLossAmt);
 	// console.log("gCharges: " + gCharges);
@@ -495,6 +495,7 @@ function fnCheckSellSLTP(pCurrPrice){
     let vTotLossAmt = JSON.parse(localStorage.getItem("TotLossAmtDelta"));
     let vNewProfit = Math.abs(parseFloat(localStorage.getItem("TotLossAmtDelta")) * parseFloat(gMultiplierX));
 	let objCounterSwt = document.getElementById("swtTradeCounter");
+	let objBrkRec = document.getElementById("tdHeadBrkRec");
 
     if(vTotLossAmt === null || isNaN(vTotLossAmt)){
     	vTotLossAmt = 0;
@@ -504,6 +505,7 @@ function fnCheckSellSLTP(pCurrPrice){
     }
 
 	let vBrokTotLossRec = Math.abs(parseFloat(vTotLossAmt) - parseFloat(gCharges));
+	objBrkRec.innerText =  (vBrokTotLossRec).toFixed(2);
 
     // console.log("vTotLossAmt: " + vTotLossAmt);
 	// console.log("gCharges: " + gCharges);
