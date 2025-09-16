@@ -457,8 +457,8 @@ function fnCheckBuySLTP(pCurrPrice){
     	vNewProfit = 0;
     }
 
-	let vBrokTotLossRec = Math.abs(parseFloat(vTotLossAmt) - parseFloat(gCharges));
-	objBrkRec.innerText = (vBrokTotLossRec).toFixed(2);
+	// let vBrokTotLossRec = Math.abs(parseFloat(vTotLossAmt) - parseFloat(gCharges));
+	// objBrkRec.innerText = (vBrokTotLossRec).toFixed(2);
 
     // console.log("vTotLossAmt: " + vTotLossAmt);
 	// console.log("gCharges: " + gCharges);
@@ -473,9 +473,9 @@ function fnCheckBuySLTP(pCurrPrice){
 		// console.log("50 Profit Taken.............");
 		fnClosePrctTrade();
 	}
-	else if(parseFloat(gPL) >= vBrokTotLossRec){
-		fnCloseManualFutures(gByorSl);
-	}
+	// else if(parseFloat(gPL) >= vBrokTotLossRec){
+	// 	fnCloseManualFutures(gByorSl);
+	// }
 	else if(gTimeDiff < gMaxTradeTime){
 		// console.log("Timer Ending...");
 		if(objCounterSwt.checked){
@@ -504,8 +504,8 @@ function fnCheckSellSLTP(pCurrPrice){
     	vNewProfit = 0;
     }
 
-	let vBrokTotLossRec = Math.abs(parseFloat(vTotLossAmt) - parseFloat(gCharges));
-	objBrkRec.innerText =  (vBrokTotLossRec).toFixed(2);
+	// let vBrokTotLossRec = Math.abs(parseFloat(vTotLossAmt) - parseFloat(gCharges));
+	// objBrkRec.innerText =  (vBrokTotLossRec).toFixed(2);
 
     // console.log("vTotLossAmt: " + vTotLossAmt);
 	// console.log("gCharges: " + gCharges);
@@ -520,9 +520,9 @@ function fnCheckSellSLTP(pCurrPrice){
 		// console.log("50 Profit Taken.............");
 		fnClosePrctTrade();
 	}
-	else if(parseFloat(gPL) >= vBrokTotLossRec){
-		fnCloseManualFutures(gByorSl);
-	}
+	// else if(parseFloat(gPL) >= vBrokTotLossRec){
+	// 	fnCloseManualFutures(gByorSl);
+	// }
 	else if(gTimeDiff < gMaxTradeTime){
 		// console.log("Timer Ending...");
 		if(objCounterSwt.checked){
@@ -945,6 +945,7 @@ async function fnInnitiateClsFutTrade(pQty){
 	    else{
 	    	if(vToCntuQty === 0){
 			    localStorage.removeItem("DeltaCurrFutPosiS");
+
 			    gCurrPos = null;
 	    	}
 	    	else{
@@ -995,6 +996,16 @@ function fnSetNextOptTradeSettings(){
         // localStorage.setItem("TradeStep", 0);
         fnSetLotsByQtyMulLossAmt();
     }
+
+	// console.log(gCharges);
+
+	if(gPL > 0){
+		let vBalLossAmt = localStorage.getItem("TotLossAmtDelta");
+		let vNewTarget = parseFloat(vBalLossAmt) - parseFloat(gCharges);
+		localStorage.setItem("TotLossAmtDelta", vNewTarget);
+		// console.log("ADD Brokerage");
+	}
+	// console.log(localStorage.getItem("TotLossAmtDelta"))
 }
 
 function fnSetLotsByQtyMulLossAmt(){
