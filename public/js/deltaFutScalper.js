@@ -396,6 +396,8 @@ function fnUpdateOpnPosStatus(){
 		gCurrPos.TradeData[0].Charges = gCharges;
 		gCurrPos.TradeData[0].ProfitLoss = gPL;
 
+		console.log(gCharges);
+
 		fnCheckBuySLTP(gSellPrice);
 	}
 	else if(gByorSl === "sell"){
@@ -456,6 +458,13 @@ function fnCheckBuySLTP(pCurrPrice){
     	vNewProfit = 0;
     }
 
+	let vBrokTotLossRec = Math.abs(parseFloat(vTotLossAmt) - parseFloat(gCharges));
+
+    // console.log("vTotLossAmt: " + vTotLossAmt);
+	// console.log("gCharges: " + gCharges);
+	// console.log("vBrokTotLossRec: " + vBrokTotLossRec);
+	// console.log("gPL: " + gPL);
+
 	if(pCurrPrice <= gAmtSL){
 		// console.log("SL Hit");
 		fnCloseManualFutures(gByorSl);
@@ -463,6 +472,9 @@ function fnCheckBuySLTP(pCurrPrice){
 	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit))){
 		// console.log("50 Profit Taken.............");
 		fnClosePrctTrade();
+	}
+	else if(parseFloat(gPL) >= vBrokTotLossRec){
+		fnCloseManualFutures(gByorSl);
 	}
 	else if(gTimeDiff < gMaxTradeTime){
 		// console.log("Timer Ending...");
@@ -491,6 +503,13 @@ function fnCheckSellSLTP(pCurrPrice){
     	vNewProfit = 0;
     }
 
+	let vBrokTotLossRec = Math.abs(parseFloat(vTotLossAmt) - parseFloat(gCharges));
+
+    // console.log("vTotLossAmt: " + vTotLossAmt);
+	// console.log("gCharges: " + gCharges);
+	// console.log("vBrokTotLossRec: " + vBrokTotLossRec);
+	// console.log("gPL: " + gPL);
+
 	if(pCurrPrice >= gAmtSL){
 		// console.log("SL Hit");
 		fnCloseManualFutures(gByorSl);
@@ -498,6 +517,9 @@ function fnCheckSellSLTP(pCurrPrice){
 	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit))){
 		// console.log("50 Profit Taken.............");
 		fnClosePrctTrade();
+	}
+	else if(parseFloat(gPL) >= vBrokTotLossRec){
+		fnCloseManualFutures(gByorSl);
 	}
 	else if(gTimeDiff < gMaxTradeTime){
 		// console.log("Timer Ending...");

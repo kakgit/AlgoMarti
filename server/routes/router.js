@@ -161,7 +161,8 @@ route.post("/deltaExcFut/getCurrBSRates", deltaFutDemoController.fnGetCurrBuySel
 
 //Delta Options Routes
 route.post("/deltaExcOpt/getOptionChainSDK", deltaOptDemoController.fnGetOptionChainSDK);
-
+route.post("/deltaExcOpt/getOptChnSDKByAstOptTypExp", deltaOptDemoController.fnGetOptChnSDKByAstOptTypExp);
+route.post("/deltaExcOpt/getBestRatesBySymb", deltaOptDemoController.fnGetBestRatesBySymbol);
 
 //Samples
 route.post("/deltaExc/getTestWalletAPI", deltaLiveController.fnTestWalletAPI);

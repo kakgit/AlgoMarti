@@ -105,6 +105,35 @@
                                     <input type="text" value="0.001" id="txtLotSize" class="form-control" />
                                 </div>
 
+                                <div class="col-3">
+                                    Delta (Maximum)
+                                </div>
+                                <div class="col-3">
+                                    Premium (Minimum)
+                                </div>
+                                <div class="col-3">
+                                    Stop Loss (% of Premium)
+                                </div>
+                                <div class="col-3">
+                                </div>
+
+                                <div class="col-3">
+                                    <input type="number" max="1" class="form-control" placeholder="Delta" id="txtDelta" value="0.35" />
+                                </div>
+                                <div class="col-3">
+                                    <input type="number" min="10" class="form-control" placeholder="Premium" id="txtPremium" value="200" />
+                                </div>
+                                <div class="col-3">
+                                    <div class="input-group mb-3">
+                                        <input type="number" class="form-control" placeholder="SL Percent" id="txtStopLoss" value="20" />
+                                        <button class="btn btn-warning" type="button" id="btnUpdSLPer" onclick="fnUpdateSLPercent();"><i class="fa fa-wrench" aria-hidden="true"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="d-grid gap-1">
+                                        <button id="btn50PerClose" class="btn btn-outline-warning" onclick="fnClose50PrctTrade();"  disabled><b>EXIT 50% QTY</b></button>
+                                    </div>
+                                </div>
 
                                 <div class="col-2">Loss Recovery %</div>
                                 <div class="col-2">X-Multiplier</div>
@@ -138,53 +167,29 @@
                                     </div>
                                 </div>
 
-                                <div class="col-3">
-                                    Available Margin
-                                </div>
-                                <div class="col-3">
-
-                                </div>
-                                <div class="col-3">
-
-                                </div>
-                                <div class="col-3">
-
-                                </div>
-                                <div class="col-3">
-                                    <div class="input-group mb-3">
-                                        <input id="txtMarginFut" type="number" min="100" class="form-control" placeholder="Available Margin" value="1000" />
-                                        <button class="btn btn-success" type="button" id="btnGetMarginFut" onclick="fnGetAvailableMargin();"><i class="fa fa-chevron-up" aria-hidden="true"></i></button>
-                                    </div>
-                                </div>
-                                <div class="col-3">
-
-                                </div>
-                                <div class="col-3">
-
-                                </div>
-                                <div class="col-3">
-
-                                </div>
-
                                 <hr/>
                                 <div class="col-3">
                                     <div class="d-grid gap-1">
-                                        <button class="btn btn-outline-warning" onclick="getOptionsData();//fnCloseManualOption('CE');"><b>EXIT CE</b></button>
+                                        <button class="btn btn-outline-warning" onclick="fnCloseManualOption('C');"><b>EXIT CE</b></button>
                                     </div>
                                 </div>
                                 <div class="col-3">
                                     <div class="d-grid gap-1">
-                                        <button class="btn btn-outline-danger" onclick="fnInitiateManualOption('CE');"><b>SELL CE</b></button>
+                                        <button class="btn btn-outline-danger" onclick="fnInitiateManualOption('C');">
+                                            <b>SELL CE</b>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="col-3">
                                     <div class="d-grid gap-1">
-                                        <button class="btn btn-outline-warning" onclick="fnCloseManualOption('PE');"><b>EXIT PE</b></button>
+                                        <button class="btn btn-outline-warning" onclick="fnCloseManualOption('P');"><b>EXIT PE</b></button>
                                     </div>
                                 </div>
                                 <div class="col-3">
                                     <div class="d-grid gap-1">
-                                        <button class="btn btn-outline-success" onclick="fnInitiateManualOption('PE');"><b>SELL PE</b></button>
+                                        <button class="btn btn-outline-success" onclick="fnInitiateManualOption('P');">
+                                            <b>SELL PE</b>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -192,6 +197,56 @@
                     </div>
                 </div>
             </div>
+            <div class="card" id="cardOpenPosition">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-3">
+                            <h4>Open Position(s)</h4>
+                        </div>
+                        <div class="col-3">
+                        </div>
+                        <div class="col-2">
+                            <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnTest();"></i>
+                        </div>
+                        <div class="col-1" style="text-align: right;">
+                            <button class='nav-link' onclick="fnClearLocalStorageTemp();" role="tab" type="button">Clear All</button>
+                        </div>
+                        <div class="col-2" style="text-align: right;">
+                        </div>
+                        <div class="col-1" style="text-align: right;">
+                            <a data-bs-toggle="collapse" href="#divOpenPosClps" role="button" aria-expanded="true" aria-controls="divOpenPosClps">
+                                <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="collapse show" id="divOpenPosClps">
+                        <div class="container-fluid">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr style="text-align:center;">
+                                            <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
+                                            <th scope="col" style="text-wrap: nowrap;">Symbol</th>
+                                            <th scope="col" style="text-wrap: nowrap;">Lot Sz</th>
+                                            <th scope="col" style="text-wrap: nowrap;">Qty</th>
+                                            <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
+                                            <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
+                                            <th scope="col" style="text-wrap: nowrap;">Capital</th>
+                                            <th scope="col" style="text-wrap: nowrap;">Charges</th>
+                                            <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tBodyCurrTrades">
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            
         </div>
     </section>
 </div>
