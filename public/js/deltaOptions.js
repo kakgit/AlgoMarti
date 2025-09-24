@@ -29,8 +29,8 @@ function fnGetAllStatus(){
 		// fnLoadLossRecoveryMultiplier();
 		fnLoadCurrentTradePos();
 		// // UNCOMMENT for LIVE TRADING in DEMO
-		fnSubscribe();
-		fnSubscribeInterval();
+		// fnSubscribe();
+		// fnSubscribeInterval();
 		// // UNCOMMENT for LIVE TRADING in DEMO
 		fnSetInitOptTrdDtls();
 		// fnLoadSlTp();
@@ -134,7 +134,7 @@ function fnConnectWS(){
 	objDeltaWS.onmessage = function (pMsg){
         let vTicData = JSON.parse(pMsg.data);
 
-		// console.log(vTicData);
+		console.log(vTicData);
 		switch (vTicData.type){
 			case "v2/ticker":
 				// console.log(vTicData);

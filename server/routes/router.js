@@ -17,6 +17,7 @@ const kotakPaperController = require("../controller/controllerKotakPaper.js");
 const deltaLiveController = require("../controller/controllerDeltaLive.js");
 const deltaFutDemoController = require("../controller/controllerDeltaFutDemo.js");
 const deltaOptDemoController = require("../controller/controllerDeltaOptDemo.js");
+const deltaCalDemoController = require("../controller/controllerDeltaCalDemo.js");
 
 //home Routes
 route.get("/", homeServices.defaultRoute);
@@ -47,6 +48,9 @@ route.get("/deltaLive", deltaLiveController.defaultRoute);
 
 //Delta Futures Demo Route
 route.get("/deltaFutures-Demo", deltaFutDemoController.defaultRoute);
+
+//Delta Futures Demo Route
+route.get("/deltaCal-Demo", deltaCalDemoController.defaultRoute);
 
 //Delta Futures Demo Route
 route.get("/deltaOptions-Demo", deltaOptDemoController.defaultRoute);
@@ -163,6 +167,11 @@ route.post("/deltaExcFut/getCurrBSRates", deltaFutDemoController.fnGetCurrBuySel
 route.post("/deltaExcOpt/getOptionChainSDK", deltaOptDemoController.fnGetOptionChainSDK);
 route.post("/deltaExcOpt/getOptChnSDKByAstOptTypExp", deltaOptDemoController.fnGetOptChnSDKByAstOptTypExp);
 route.post("/deltaExcOpt/getBestRatesBySymb", deltaOptDemoController.fnGetBestRatesBySymbol);
+
+//Delta Calendar Routes
+route.post("/deltaExcCal/getOptChnSDKByUndAstExp", deltaCalDemoController.fnGetOptChnSDKByUndAstExp);
+route.post("/deltaExcCal/getBestRatesBySymb", deltaCalDemoController.fnGetBestRatesBySymbol);
+route.post("/deltaExcCal/getOptChnSDKByUndAstExpOpTyp", deltaCalDemoController.fnGetOptChnSDKByUndAstExpOpTyp);
 
 //Samples
 route.post("/deltaExc/getTestWalletAPI", deltaLiveController.fnTestWalletAPI);
