@@ -68,7 +68,7 @@ function fnGetAllStatus(){
 		fnLoadCurrentTradePos();
 		// UNCOMMENT for LIVE TRADING in DEMO
 		fnSubscribe();
-		fnGetHistoricalOHLC();
+		// fnGetHistoricalOHLC();
 		fnSubscribeInterval();
 		// UNCOMMENT for LIVE TRADING in DEMO
 		fnSetInitFutTrdDtls();
@@ -255,7 +255,7 @@ function fnConnectWS(){
 function fnSubscribeInterval(){
 	// console.log("Interval subscription.....");
 	setInterval(fnSubscribe, 60000);
-	setInterval(fnGetHistoricalOHLC, 60000);
+	// setInterval(fnGetHistoricalOHLC, 60000);
 }
 
 function fnSubscribe(){
@@ -469,7 +469,7 @@ function fnCheckBuySLTP(pCurrPrice){
 		// console.log("SL Hit");
 		fnCloseManualFutures(gByorSl);
 	}
-	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit))){
+	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit)) && (parseInt(gQty) > 10)){
 		// console.log("50 Profit Taken.............");
 		fnClosePrctTrade();
 	}
@@ -516,7 +516,7 @@ function fnCheckSellSLTP(pCurrPrice){
 		// console.log("SL Hit");
 		fnCloseManualFutures(gByorSl);
 	}
-	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit))){
+	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit)) && (parseInt(gQty) > 10)){
 		// console.log("50 Profit Taken.............");
 		fnClosePrctTrade();
 	}

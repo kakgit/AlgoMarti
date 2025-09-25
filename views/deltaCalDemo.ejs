@@ -80,7 +80,7 @@
                                     </div>
 
                                     <div class="col-3">
-                                        <select id="ddlSymbols" class="form-select" onchange="//fnGetSelSymbolData(this.value);" placeholder="Select Symbol">
+                                        <select id="ddlSymbols" class="form-select" onchange="//fnGetSelSymbolData(this.value);" placeholder="Select Symbol" title="BTC">
                                             <option value=''>Select Symbol</option>
                                             <option value='BTC' selected>BTCUSD</option>
                                             <option value='ETH'>ETHUSD</option>
@@ -114,19 +114,19 @@
                                         <input type="number" min="1" class="form-control" placeholder="Sell Quantity" id="txtSellQty" value="1" />
                                     </div>
                                     <div class="col-2">
-                                        <input type="text" value="0.47" id="txtDeltaSellLegMin" class="form-control" />
+                                        <input type="text" value="0.27" id="txtDeltaSellLegMin" class="form-control" />
                                     </div>
                                     <div class="col-2">
-                                        <input type="text" value="0.55" id="txtDeltaSellLegMax" class="form-control" />
+                                        <input type="text" value="0.35" id="txtDeltaSellLegMax" class="form-control" />
                                     </div>
                                     <div class="col-2">
-                                        <input type="text" value="0.25" id="txtDeltaSellLegProfit" class="form-control" />
+                                        <input type="text" value="0.10" id="txtDeltaSellLegProfit" class="form-control" />
                                     </div>
                                     <div class="col-2">
-                                        <input type="text" value="0.75" id="txtDeltaSellLegLoss" class="form-control" />
+                                        <input type="text" value="0.50" id="txtDeltaSellLegLoss" class="form-control" />
                                     </div>
                                     <div class="col-2">
-                                        <input type="text" value="0.55" id="txtDeltaSellNewPos" class="form-control" />
+                                        <input type="text" value="0.33" id="txtDeltaSellNewPos" class="form-control" />
                                     </div>
 
                                     <div class="col-2">Buy Qty</div>
@@ -208,7 +208,7 @@
 
                             </div>
                             <div class="col-1">
-
+                                <i class="fa fa-refresh" aria-hidden="true" style="color: orange; cursor: pointer;" onclick="fnTest();"></i>
                             </div>
                             <div class="col-1">
                                 <i class="fa fa-link" aria-hidden="true" style="color: orange; cursor: pointer;" onclick="fnShowOCModal();"></i>
@@ -250,6 +250,62 @@
                                         </thead>
                                         <tbody id="tBodyCurrTrades">
 
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="cardClosedPositions">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-3">
+                                <h4>Closed Position(s)</h4>
+                            </div>
+                            <div class="col-1" style="font-weight: bold;">
+                                P&L: 
+                            </div>
+                            <div class="col-1" id="tdHeadPL">
+                                0.00
+                            </div>
+                            <div class="col-2" style="font-weight: bold;">
+
+                            </div>
+                            <div class="col-3">
+
+                            </div>
+                            <div class="col-1">
+                                <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnLoadTodayTrades();"></i>
+                            </div>
+                            <div class="col-1" style="text-align: right;">
+                                <a data-bs-toggle="collapse" href="#divClosedPosClps" role="button" aria-expanded="true" aria-controls="divClosedPosClps">
+                                    <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                                </a>
+                            </div>                            
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="collapse show" id="divClosedPosClps">
+                            <div class="container-fluid">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr style="text-align:center;">
+                                                <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
+                                                <th scope="col" style="text-wrap: nowrap;">End Date Time</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Symbol</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Tr Type</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Lot Sz</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Qty</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Charges</th>
+                                                <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tBodyTodayPaperTrades">
+                                            
                                         </tbody>
                                     </table>
                                 </div>
