@@ -360,7 +360,7 @@ async function fnGetOptionChain(){
 		   		}
 		   		else if((vContType === "call_options") && (vDelta <= (parseFloat(objMaxDeltaSell.value))) && (vDelta >= (parseFloat(objMinDeltaSell.value)))){
 		            vTempHtmlCE += '<tr>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;"><input type="radio" name="rdoSellCE" onclick="fnSelectOption(`SELL`, `CE`, `' + objSellOptChnData.data[i].Symbol + '`);" /></td>';
+		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;"><input type="radio" name="rdoSellCE" onclick="fnSelectOption(`SELL`, `CE`, `' + vSymbol + '`);" /></td>';
 		            vTempHtmlCE += '<td style="text-wrap: nowrap;">' + (vDelta).toFixed(2) + '</td>';
 		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;">' + vSymbol + '</td>';
 		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestBid).toFixed(2) + '</td>';
@@ -393,11 +393,11 @@ async function fnGetOptionChain(){
 		   	// console.log(objBuyOptChnData);
 
 		   	for(let i=0; i<objBuyOptChnData.data.length; i++){
-		   		let vContType = objSellOptChnData.data[i].ContType;
-		   		let vDelta = parseFloat(objSellOptChnData.data[i].Delta);
-		   		let vSymbol = objSellOptChnData.data[i].Symbol;
-		   		let vBestBid = parseFloat(objSellOptChnData.data[i].BestBid);
-		   		let vBestAsk = parseFloat(objSellOptChnData.data[i].BestAsk);
+		   		let vContType = objBuyOptChnData.data[i].ContType;
+		   		let vDelta = parseFloat(objBuyOptChnData.data[i].Delta);
+		   		let vSymbol = objBuyOptChnData.data[i].Symbol;
+		   		let vBestBid = parseFloat(objBuyOptChnData.data[i].BestBid);
+		   		let vBestAsk = parseFloat(objBuyOptChnData.data[i].BestAsk);
 
 		   		if((vContType === "put_options") && (vDelta >= -(parseFloat(objMaxDeltaBuy.value))) && (vDelta <= -(parseFloat(objMinDeltaBuy.value)))){
 		            vTempHtmlPE += '<tr>';
