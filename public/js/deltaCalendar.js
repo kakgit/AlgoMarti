@@ -6,7 +6,8 @@ let gUnSubList = [];
 let gBrokerage = 0.015;
 let gSymbBRateList = {};
 let gSymbBDeltaList = {};
-let gSymbTickList = [];
+let gSymbSRateList = {};
+let gSymbSDeltaList = {};
 let gUpdPos = true;
 let gPosChanged = false;
 let gMaxProfit = 0;
@@ -27,7 +28,6 @@ function fnGetAllStatus(){
 		fnLoadDefQty();
 		fnLoadMaxPL();
 		fnLoadCurrentTradePos();
-		fnUpdateSymbTickList();
 		fnSubscribeInterval();
 	}
 }
@@ -214,7 +214,8 @@ function fnConnectWS(){
     objDeltaWS.onclose = function (){
 
 		objDeltaWS = null;
-		fnSubscribe();
+		// fnSubscribe();
+		fnSubscribeInterval();
 		// objBestBuy.value = "";
 		// objBestSell.value = "";
 
@@ -261,6 +262,7 @@ function fnSubscribe(){
 	else{
 	    let vSendData = { "type": "subscribe", "payload": { "channels": [{ "name": "v2/ticker", "symbols": gSubList }]}};
 		console.log("Subscribing to Channel....");
+		// console.log(gSubList);
 		gPosChanged = false;
 	    objDeltaWS.send(JSON.stringify(vSendData));
 	}
@@ -295,34 +297,15 @@ function fnSubscribeInterval(){
 	}
 }
 
-function fnUpdateSymbTickList(){
-	gSymbTickList = [];
-
-	if(gCurrPos.TradeData.length > 0){
-		for(let i=0; i<gCurrPos.TradeData.length; i++){
-			if(gCurrPos.TradeData[i].Status === "OPEN"){
-				gSymbTickList.push({[gCurrPos.TradeData[i].ProductID] : [gCurrPos.TradeData[i].BuyPrice, gCurrPos.TradeData[i].SellPrice, gCurrPos.TradeData[i].Delta ]});
-			}
-		}
-	}
-	console.log(gSymbTickList);
-}
-
 function fnUpdateRates(pTicData){
-	if(gUpdPos){
-	    // console.log(pTicData);
-	    document.getElementById(pTicData.symbol).innerHTML = '<span class="blink">' + (parseFloat(pTicData.quotes.best_ask)).toFixed(2); + '</span>';
+    // document.getElementById(pTicData.symbol).innerHTML = '<span class="blink">' + (parseFloat(pTicData.quotes.best_ask)).toFixed(2); + '</span>';
+	// console.log(pTicData);
+    gSymbBRateList[pTicData.symbol] = pTicData.quotes.best_ask;
+    gSymbBDeltaList[pTicData.symbol] = pTicData.greeks.delta;
+    gSymbSRateList[pTicData.symbol] = pTicData.quotes.best_bid;
+    gSymbSDeltaList[pTicData.symbol] = pTicData.greeks.delta;
 
-	    // gSymbTickList[pTicData.symbol][0].BestBuy = pTicData.quotes.best_ask;
-	    // gSymbTickList[pTicData.symbol].BestSell = pTicData.quotes.best_bid;
-	    // gSymbTickList[pTicData.symbol].Delta = pTicData.greeks.delta;
-
-	    gSymbBRateList[pTicData.symbol] = pTicData.quotes.best_ask;
-	    gSymbBDeltaList[pTicData.symbol] = pTicData.greeks.delta;
-
-	    // console.log("Ticker From Here....");
-	    // console.log(gSymbTickList);
-	}
+    // console.log(pTicData.quotes.best_bid);
 }
 
 async function fnGetOptionChain(){
@@ -360,22 +343,28 @@ async function fnGetOptionChain(){
 		   	// console.log(objSellOptChnData);
 
 		   	for(let i=0; i<objSellOptChnData.data.length; i++){
-		   		if((objSellOptChnData.data[i].ContType === "put_options") && (parseFloat(objSellOptChnData.data[i].Delta) >= -(parseFloat(objMaxDeltaSell.value))) && (parseFloat(objSellOptChnData.data[i].Delta) <= -(parseFloat(objMinDeltaSell.value)))){
+		   		let vContType = objSellOptChnData.data[i].ContType;
+		   		let vDelta = parseFloat(objSellOptChnData.data[i].Delta);
+		   		let vSymbol = objSellOptChnData.data[i].Symbol;
+		   		let vBestBid = parseFloat(objSellOptChnData.data[i].BestBid);
+		   		let vBestAsk = parseFloat(objSellOptChnData.data[i].BestAsk);
+
+		   		if((vContType === "put_options") && (vDelta >= -(parseFloat(objMaxDeltaSell.value))) && (vDelta <= -(parseFloat(objMinDeltaSell.value)))){
 		            vTempHtmlPE += '<tr>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:center;"><input type="radio" name="rdoSellPE" onclick="fnSelectOption(`SELL`, `PE`, `' + objSellOptChnData.data[i].Symbol + '`);" /></td>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap;">' + objSellOptChnData.data[i].Delta + '</td>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:center;">' + objSellOptChnData.data[i].Symbol + '</td>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:right;">' + objSellOptChnData.data[i].BestBid + '</td>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:right;">' + objSellOptChnData.data[i].BestAsk + '</td>';
+		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:center;"><input type="radio" name="rdoSellPE" onclick="fnSelectOption(`SELL`, `PE`, `' + vSymbol + '`);" /></td>';
+		            vTempHtmlPE += '<td style="text-wrap: nowrap;">' + (vDelta).toFixed(2) + '</td>';
+		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:center;">' + vSymbol + '</td>';
+		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestBid).toFixed(2) + '</td>';
+		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestAsk).toFixed(2) + '</td>';
 		            vTempHtmlPE += '</tr>';
 		   		}
-		   		else if((objSellOptChnData.data[i].ContType === "call_options") && (parseFloat(objSellOptChnData.data[i].Delta) <= (parseFloat(objMaxDeltaSell.value))) && (parseFloat(objSellOptChnData.data[i].Delta) >= (parseFloat(objMinDeltaSell.value)))){
+		   		else if((vContType === "call_options") && (vDelta <= (parseFloat(objMaxDeltaSell.value))) && (vDelta >= (parseFloat(objMinDeltaSell.value)))){
 		            vTempHtmlCE += '<tr>';
 		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;"><input type="radio" name="rdoSellCE" onclick="fnSelectOption(`SELL`, `CE`, `' + objSellOptChnData.data[i].Symbol + '`);" /></td>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap;">' + objSellOptChnData.data[i].Delta + '</td>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;">' + objSellOptChnData.data[i].Symbol + '</td>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:right;">' + objSellOptChnData.data[i].BestBid + '</td>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:right;">' + objSellOptChnData.data[i].BestAsk + '</td>';
+		            vTempHtmlCE += '<td style="text-wrap: nowrap;">' + (vDelta).toFixed(2) + '</td>';
+		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;">' + vSymbol + '</td>';
+		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestBid).toFixed(2) + '</td>';
+		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestAsk).toFixed(2) + '</td>';
 		            vTempHtmlCE += '</tr>';
 		   		}
 		   		else{
@@ -404,22 +393,28 @@ async function fnGetOptionChain(){
 		   	// console.log(objBuyOptChnData);
 
 		   	for(let i=0; i<objBuyOptChnData.data.length; i++){
-		   		if((objBuyOptChnData.data[i].ContType === "put_options") && (parseFloat(objBuyOptChnData.data[i].Delta) >= -(parseFloat(objMaxDeltaBuy.value))) && (parseFloat(objBuyOptChnData.data[i].Delta) <= -(parseFloat(objMinDeltaBuy.value)))){
+		   		let vContType = objSellOptChnData.data[i].ContType;
+		   		let vDelta = parseFloat(objSellOptChnData.data[i].Delta);
+		   		let vSymbol = objSellOptChnData.data[i].Symbol;
+		   		let vBestBid = parseFloat(objSellOptChnData.data[i].BestBid);
+		   		let vBestAsk = parseFloat(objSellOptChnData.data[i].BestAsk);
+
+		   		if((vContType === "put_options") && (vDelta >= -(parseFloat(objMaxDeltaBuy.value))) && (vDelta <= -(parseFloat(objMinDeltaBuy.value)))){
 		            vTempHtmlPE += '<tr>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:center;"><input type="radio" name="rdoBuyPE" onclick="fnSelectOption(`BUY`, `PE`, `' + objBuyOptChnData.data[i].Symbol + '`);" /></td>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap;">' + objBuyOptChnData.data[i].Delta + '</td>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:center;">' + objBuyOptChnData.data[i].Symbol + '</td>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:right;">' + objBuyOptChnData.data[i].BestBid + '</td>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:right;">' + objBuyOptChnData.data[i].BestAsk + '</td>';
+		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:center;"><input type="radio" name="rdoBuyPE" onclick="fnSelectOption(`BUY`, `PE`, `' + vSymbol + '`);" /></td>';
+		            vTempHtmlPE += '<td style="text-wrap: nowrap;">' + (vDelta).toFixed(2) + '</td>';
+		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:center;">' + vSymbol + '</td>';
+		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestBid).toFixed(2) + '</td>';
+		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestAsk).toFixed(2) + '</td>';
 		            vTempHtmlPE += '</tr>';
 		   		}
-		   		else if((objBuyOptChnData.data[i].ContType === "call_options") && (parseFloat(objBuyOptChnData.data[i].Delta) <= (parseFloat(objMaxDeltaBuy.value))) && (parseFloat(objBuyOptChnData.data[i].Delta) >= (parseFloat(objMinDeltaBuy.value)))){
+		   		else if((vContType === "call_options") && (vDelta <= (parseFloat(objMaxDeltaBuy.value))) && (vDelta >= (parseFloat(objMinDeltaBuy.value)))){
 		            vTempHtmlCE += '<tr>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;"><input type="radio" name="rdoBuyCE" onclick="fnSelectOption(`BUY`, `CE`, `' + objBuyOptChnData.data[i].Symbol + '`);" /></td>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap;">' + objBuyOptChnData.data[i].Delta + '</td>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;">' + objBuyOptChnData.data[i].Symbol + '</td>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:right;">' + objBuyOptChnData.data[i].BestBid + '</td>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:right;">' + objBuyOptChnData.data[i].BestAsk + '</td>';
+		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;"><input type="radio" name="rdoBuyCE" onclick="fnSelectOption(`BUY`, `CE`, `' + vSymbol + '`);" /></td>';
+		            vTempHtmlCE += '<td style="text-wrap: nowrap;">' + (vDelta).toFixed(2) + '</td>';
+		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;">' + vSymbol + '</td>';
+		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestBid).toFixed(2) + '</td>';
+		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestAsk).toFixed(2) + '</td>';
 		            vTempHtmlCE += '</tr>';
 		   		}
 		   		else{
@@ -633,7 +628,6 @@ async function fnExecTrade(){
 	    }	}
 
 	gPosChanged = true;
-	fnUpdateSymbTickList();
 	fnUpdateOpenPositions();
 
 	console.log("Trade Innitiated!!!!!");
@@ -642,8 +636,10 @@ async function fnExecTrade(){
 
 function fnSaveUpdCurrPos(){
 	let IsSwap = false;
-	let objDeltaTP = document.getElementById("txtDeltaSellLegProfit");
-	let objDeltaSL = document.getElementById("txtDeltaSellLegLoss");
+	let objSDeltaTP = document.getElementById("txtDeltaSellLegProfit");
+	let objSDeltaSL = document.getElementById("txtDeltaSellLegLoss");
+	let objBDeltaTP = document.getElementById("txtDeltaBuyLegProfit");
+	let objBDeltaSL = document.getElementById("txtDeltaBuyLegLoss");
 	let vSymbol = "";
 	let vTransType = "";
 	let vOptionType = "";
@@ -652,11 +648,11 @@ function fnSaveUpdCurrPos(){
 
 	for(let i=0; i<gCurrPos.TradeData.length; i++){
 		if(gCurrPos.TradeData[i].Status === "OPEN"){
-			gCurrPos.TradeData[i].BuyPrice = parseFloat(gSymbBRateList[gCurrPos.TradeData[i].Symbol]);
-			gCurrPos.TradeData[i].Delta = (parseFloat(gSymbBDeltaList[gCurrPos.TradeData[i].Symbol])).toFixed(3);
-
 			if(gCurrPos.TradeData[i].TransType === "SELL"){
-				if((gCurrPos.TradeData[i].OptionType === "CE") && (parseFloat(gCurrPos.TradeData[i].Delta) < parseFloat(objDeltaTP.value)) || (parseFloat(gCurrPos.TradeData[i].Delta) > parseFloat(objDeltaSL.value))){
+				gCurrPos.TradeData[i].BuyPrice = parseFloat(gSymbBRateList[gCurrPos.TradeData[i].Symbol]);
+				gCurrPos.TradeData[i].Delta = (parseFloat(gSymbBDeltaList[gCurrPos.TradeData[i].Symbol])).toFixed(3);
+
+				if((gCurrPos.TradeData[i].OptionType === "CE") && ((parseFloat(gCurrPos.TradeData[i].Delta) < parseFloat(objSDeltaTP.value)) || (parseFloat(gCurrPos.TradeData[i].Delta) > parseFloat(objSDeltaSL.value)))){
 					IsSwap = true;
 					vSymbol = gCurrPos.TradeData[i].Symbol;
 					vTransType = gCurrPos.TradeData[i].TransType;
@@ -665,7 +661,30 @@ function fnSaveUpdCurrPos(){
 					vUndAst = gCurrPos.TradeData[i].UndrAsstSymb;
 					console.log("CE Swap");
 				}
-				else if((gCurrPos.TradeData[i].OptionType === "PE") && (parseFloat(gCurrPos.TradeData[i].Delta) > -(parseFloat(objDeltaTP.value))) || (parseFloat(gCurrPos.TradeData[i].Delta) < -(parseFloat(objDeltaSL.value)))){
+				else if((gCurrPos.TradeData[i].OptionType === "PE") && ((parseFloat(gCurrPos.TradeData[i].Delta) > -(parseFloat(objSDeltaTP.value))) || (parseFloat(gCurrPos.TradeData[i].Delta) < -(parseFloat(objSDeltaSL.value))))){
+					IsSwap = true;
+					vSymbol = gCurrPos.TradeData[i].Symbol;
+					vTransType = gCurrPos.TradeData[i].TransType;
+					vOptionType = gCurrPos.TradeData[i].OptionType;
+					vExpiry = gCurrPos.TradeData[i].Expiry;
+					vUndAst = gCurrPos.TradeData[i].UndrAsstSymb;
+					console.log("PE Swap");
+				}
+			}
+			else if(gCurrPos.TradeData[i].TransType === "BUY"){
+				gCurrPos.TradeData[i].SellPrice = parseFloat(gSymbSRateList[gCurrPos.TradeData[i].Symbol]);
+				gCurrPos.TradeData[i].Delta = (parseFloat(gSymbSDeltaList[gCurrPos.TradeData[i].Symbol])).toFixed(3);
+
+				if((gCurrPos.TradeData[i].OptionType === "CE") && ((parseFloat(gCurrPos.TradeData[i].Delta) > parseFloat(objBDeltaTP.value)) || (parseFloat(gCurrPos.TradeData[i].Delta) < parseFloat(objBDeltaSL.value)))){
+					IsSwap = true;
+					vSymbol = gCurrPos.TradeData[i].Symbol;
+					vTransType = gCurrPos.TradeData[i].TransType;
+					vOptionType = gCurrPos.TradeData[i].OptionType;
+					vExpiry = gCurrPos.TradeData[i].Expiry;
+					vUndAst = gCurrPos.TradeData[i].UndrAsstSymb;
+					console.log("HERE is CE Swap " + gCurrPos.TradeData[i].Delta);
+				}
+				else if((gCurrPos.TradeData[i].OptionType === "PE") && ((parseFloat(gCurrPos.TradeData[i].Delta) < -(parseFloat(objBDeltaTP.value))) || (parseFloat(gCurrPos.TradeData[i].Delta) > -(parseFloat(objBDeltaSL.value))))){
 					IsSwap = true;
 					vSymbol = gCurrPos.TradeData[i].Symbol;
 					vTransType = gCurrPos.TradeData[i].TransType;
@@ -707,13 +726,19 @@ function fnUpdateOpenPositions(){
 
 	        for(let i=0; i<gCurrPos.TradeData.length; i++){
 	            let vOpenDT = gCurrPos.TradeData[i].OpenDT;
+	            let vSymbol = gCurrPos.TradeData[i].Symbol;
+	            let vTransType = gCurrPos.TradeData[i].TransType;
+	            let vOptionType = gCurrPos.TradeData[i].OptionType;
+	            let vExpiry = gCurrPos.TradeData[i].Expiry;
+	            let vUndrAsstSymb = gCurrPos.TradeData[i].UndrAsstSymb;
 	            let vIndexPrice = parseFloat(gCurrPos.TradeData[i].StrikePrice);
+	            let vDelta = gCurrPos.TradeData[i].Delta;
 	            let vLotSize = gCurrPos.TradeData[i].LotSize;
 	            let vQty = gCurrPos.TradeData[i].Qty;
 	            let vBuyPrice = gCurrPos.TradeData[i].BuyPrice;
 	            let vSellPrice = gCurrPos.TradeData[i].SellPrice;
 	            let vCharges = fnGetTradeCharges(vIndexPrice, vLotSize, vQty, vBuyPrice, vSellPrice);
-		        let vCapital = fnGetTradeCapital(vSellPrice, vLotSize, vQty, vCharges);
+		        let vCapital = fnGetTradeCapital(vTransType, vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
 	            let vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
 	            let vStatus = gCurrPos.TradeData[i].Status;
                 vTotalCharges += parseFloat(vCharges);
@@ -734,39 +759,45 @@ function fnUpdateOpenPositions(){
 	                vTotalCapital += parseFloat(vCapital);
 
 		            vTempHtml += '<tr>';
-		            vTempHtml += '<td style="text-wrap: nowrap;"><i class="fa fa-eye" aria-hidden="true" style="color:green;" onclick="fnOpenClosePosition(`'+ gCurrPos.TradeData[i].Symbol +'`, `CLOSED`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-exchange" aria-hidden="true" style="color:orange;" onclick="fnSwapOption(`'+ gCurrPos.TradeData[i].Symbol +'`, `'+ gCurrPos.TradeData[i].TransType +'`, `'+ gCurrPos.TradeData[i].OptionType +'`, `'+ gCurrPos.TradeData[i].Expiry +'`, `'+ gCurrPos.TradeData[i].UndrAsstSymb +'`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-wrench" aria-hidden="true" style="color:#01ff1f;"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" aria-hidden="true" style="color:red;" onclick="fnDelLeg(`'+ gCurrPos.TradeData[i].Symbol +'`);"></i></td>';
+		            vTempHtml += '<td style="text-wrap: nowrap;"><i class="fa fa-eye" aria-hidden="true" style="color:green;" title="Close This Leg!" onclick="fnOpenClosePosition(`'+ vSymbol +'`, `CLOSED`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-exchange" aria-hidden="true" style="color:orange;" onclick="fnSwapOption(`'+ vSymbol +'`, `'+ vTransType +'`, `'+ vOptionType +'`, `'+ vExpiry +'`, `'+ vUndrAsstSymb +'`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-wrench" aria-hidden="true" style="color:#01ff1f;"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" aria-hidden="true" style="color:red;" onclick="fnDelLeg(`'+ vSymbol +'`);"></i></td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:center;">' + vOpenDT + '</td>';
-		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; font-weight:bold; color:orange;">' + gCurrPos.TradeData[i].Delta + '</td>';
-		            vTempHtml += '<td style="text-wrap: nowrap; text-align:center;">' + gCurrPos.TradeData[i].Symbol + '</td>';
-		            vTempHtml += '<td style="text-wrap: nowrap; text-align:center;">' + gCurrPos.TradeData[i].TransType + '</td>';
+		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; font-weight:bold; color:orange;">' + vDelta + '</td>';
+		            vTempHtml += '<td style="text-wrap: nowrap; text-align:center;">' + vSymbol + '</td>';
+		            vTempHtml += '<td style="text-wrap: nowrap; text-align:center;">' + vTransType + '</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:#0078ff;">' + vLotSize + '</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:#e3ff00;">' + vQty + '</td>';
-		            vTempHtml += '<td id="'+ gCurrPos.TradeData[i].Symbol +'" style="text-wrap: nowrap; color:#bd00ff;text-align:right;"><span class="blink">' + (vBuyPrice).toFixed(2) + '</span></td>';	            	
-		            vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (vSellPrice).toFixed(2) + '</td>';
+		            if(vTransType === "SELL"){
+			            vTempHtml += '<td id="'+ vSymbol +'" style="text-wrap: nowrap; color:#bd00ff;text-align:right;"><span class="blink">' + (vBuyPrice).toFixed(2) + '</span></td>';
+			            vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (vSellPrice).toFixed(2) + '</td>';
+		            }
+		            else if(vTransType === "BUY"){
+			            vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (vBuyPrice).toFixed(2) + '</td>';
+			            vTempHtml += '<td id="'+ vSymbol +'" style="text-wrap: nowrap; color:#bd00ff;text-align:right;"><span class="blink">' + (vSellPrice).toFixed(2) + '</span></td>';
+		            }
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right;">' + (parseFloat(vCapital)).toFixed(2) + '</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right;">' + (parseFloat(vCharges)).toFixed(2) + '</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right;color:#ff9a00;">'+ (vPL).toFixed(2) +'</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right;">' + vStatus + '</td>';
 		            vTempHtml += '</tr>';
-	            	gSubList.push(gCurrPos.TradeData[i].Symbol);
+	            	gSubList.push(vSymbol);
 	            }
 	            else{
 		            vTempHtml += '<tr>';
-		            vTempHtml += '<td style="text-wrap: nowrap;"><i class="fa fa-eye-slash" aria-hidden="true" style="color:red;" onclick="fnOpenClosePosition(`'+ gCurrPos.TradeData[i].Symbol +'`, `OPEN`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-exchange" style="color:#808080;" aria-hidden="true" onclick="alert(`Position Already Closed!`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-wrench" aria-hidden="true" style="color:#01ff1f;"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" aria-hidden="true" style="color:red;" onclick="fnDelLeg(`'+ gCurrPos.TradeData[i].Symbol +'`);"></i></td>';
+		            vTempHtml += '<td style="text-wrap: nowrap;"><i class="fa fa-eye-slash" aria-hidden="true" style="color:red;" title="Re-open This Leg!" onclick="fnOpenClosePosition(`'+ vSymbol +'`, `OPEN`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-exchange" style="color:#808080;" aria-hidden="true" onclick="alert(`Position Already Closed!`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-wrench" aria-hidden="true" style="color:#01ff1f;"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" aria-hidden="true" style="color:red;" onclick="fnDelLeg(`'+ vSymbol +'`);"></i></td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; color:#808080; text-align:center;">' + vOpenDT + '</td>';
-		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; font-weight:bold; color:#808080;">' + gCurrPos.TradeData[i].Delta + '</td>';
-		            vTempHtml += '<td style="text-wrap: nowrap; color:#808080; text-align:center;">' + gCurrPos.TradeData[i].Symbol + '</td>';
-		            vTempHtml += '<td style="text-wrap: nowrap; color:#808080; text-align:center;">' + gCurrPos.TradeData[i].TransType + '</td>';
+		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; font-weight:bold; color:#808080;">' + vDelta + '</td>';
+		            vTempHtml += '<td style="text-wrap: nowrap; color:#808080; text-align:center;">' + vSymbol + '</td>';
+		            vTempHtml += '<td style="text-wrap: nowrap; color:#808080; text-align:center;">' + vTransType + '</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:#808080;">' + vLotSize + '</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:#808080;">' + vQty + '</td>';
-	            	vTempHtml += '<td id="'+ gCurrPos.TradeData[i].Symbol +'" style="text-wrap: nowrap;text-align:right; color:#808080;">' + (vBuyPrice).toFixed(2) + '</td>';
+	            	vTempHtml += '<td id="'+ vSymbol +'" style="text-wrap: nowrap;text-align:right; color:#808080;">' + (vBuyPrice).toFixed(2) + '</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right; color:#808080;">' + (vSellPrice).toFixed(2) + '</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:#808080;">' + (parseFloat(vCapital)).toFixed(2) + '</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:#808080;">' + (parseFloat(vCharges)).toFixed(2) + '</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:#808080;">'+ (vPL).toFixed(2) +'</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; color:#808080; text-align:right;">' + vStatus + '</td>';
 		            vTempHtml += '</tr>';
-	            	gUnSubList.push(gCurrPos.TradeData[i].Symbol);
+	            	gUnSubList.push(vSymbol);
 	            }
 	        }
 	        vTempHtml += '<tr><td></td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">Total Trades: </td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">'+ vTotalTrades +'</td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">Investment: </td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">'+ vDeployedCapital +'</td><td></td><td></td><td></td><td></td><td style="text-wrap: nowrap; text-align:right; color: red; font-weight:bold;">'+ (vTotalCapital).toFixed(2) +'</td><td style="text-wrap: nowrap; text-align:right; color: red; font-weight:bold;">'+ (vTotalCharges).toFixed(2) +'</td><td style="text-wrap: nowrap; text-align:right; color: white; font-weight:bold;">'+ (vNetPL).toFixed(2) +'</td><td style="text-wrap: nowrap; text-align:right; color: white; font-weight:bold;">'+ (vPercentPL).toFixed(1) +'%</td></tr>';
@@ -792,12 +823,21 @@ async function fnSwapOption(pSymbol, pTransType, pOptionType, pExpiry, pUndAst){
     let objApiKey = document.getElementById("txtUserAPIKey");
     let objApiSecret = document.getElementById("txtAPISecret");
     let objLotSize = document.getElementById("txtLotSize");
+    let objBuyQty = document.getElementById("txtBuyQty");
     let objSellQty = document.getElementById("txtSellQty");
     let vDate = new Date();
     let vOrdId = vDate.valueOf();
     let vMonth = vDate.getMonth() + 1;
     let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
     gUnSubList = [];
+    let vQty = 0;
+
+    if(pTransType === "BUY"){
+    	vQty = objBuyQty.value;
+    }
+    else if(pTransType === "SELL"){
+    	vQty = objSellQty.value;
+    }
 
     let objOptChnData = await fnGetOptChnByUndAstExpOpTyp(objApiKey.value, objApiSecret.value, pUndAst, pExpiry, pOptionType, pTransType);
 	if(objOptChnData.status === "success"){
@@ -809,9 +849,9 @@ async function fnSwapOption(pSymbol, pTransType, pOptionType, pExpiry, pUndAst){
         let vUndrAsstSymb = objOptChnData.data[0].UndrAsstSymb;
 	    let objSellLegAdjTP = document.getElementById("txtDeltaSellLegProfit");
 	    let objSellLegAdjSL = document.getElementById("txtDeltaSellLegLoss");
-		let vProductID = objBestRates.data.result.product_id;
+		let vProductID = objOptChnData.data[0].ProductID;
 
-        let vExcTradeDtls = { ProductID : vProductID, OpenDTVal : vOrdId, OpenDT : vToday, Symbol : vSymbol, OptionType : pOptionType, TransType : pTransType, UndrAsstSymb : pUndAst, StrikePrice : vStrPrice, Expiry : pExpiry, LotSize : parseFloat(objLotSize.value), Qty : parseFloat(objSellQty.value), BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, DeltaTP : parseFloat(objSellLegAdjTP.value), DeltaSL : parseFloat(objSellLegAdjSL.value), Status : "OPEN" };
+        let vExcTradeDtls = { ProductID : vProductID, OpenDTVal : vOrdId, OpenDT : vToday, Symbol : vSymbol, OptionType : pOptionType, TransType : pTransType, UndrAsstSymb : pUndAst, StrikePrice : vStrPrice, Expiry : pExpiry, LotSize : parseFloat(objLotSize.value), Qty : parseFloat(vQty), BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, DeltaTP : parseFloat(objSellLegAdjTP.value), DeltaSL : parseFloat(objSellLegAdjSL.value), Status : "OPEN" };
 
         gCurrPos.TradeData.push(vExcTradeDtls);
         
@@ -989,27 +1029,29 @@ function fnOpenClosePosition(pSymbol, pStatus){
 }
 
 function fnDelLeg(pSymbol){
-	gUpdPos = false;
+	if(confirm("Are You Sure, You Want to Delete This " + pSymbol)){
+		gUpdPos = false;
 
-	fnCloseWS();
-	gSymbBRateList = {};
-	gSymbBDeltaList = {};
+		fnCloseWS();
+		gSymbBRateList = {};
+		gSymbBDeltaList = {};
 
-	let vDelRec = null;
+		let vDelRec = null;
 
-	for(let i=0; i<gCurrPos.TradeData.length; i++){
-		if(gCurrPos.TradeData[i].Symbol === pSymbol){
-			vDelRec = i;
+		for(let i=0; i<gCurrPos.TradeData.length; i++){
+			if(gCurrPos.TradeData[i].Symbol === pSymbol){
+				vDelRec = i;
+			}
 		}
+
+		gCurrPos.TradeData.pop(vDelRec);
+
+	    let objExcTradeDtls = JSON.stringify(gCurrPos);
+	    localStorage.setItem("DeltaCalPosiS", objExcTradeDtls);
+	    gUpdPos = true;
+	    gPosChanged = true;
+	    fnUpdateOpenPositions();
 	}
-
-	gCurrPos.TradeData.pop(vDelRec);
-
-    let objExcTradeDtls = JSON.stringify(gCurrPos);
-    localStorage.setItem("DeltaCalPosiS", objExcTradeDtls);
-    gUpdPos = true;
-    gPosChanged = true;
-    fnUpdateOpenPositions();
 }
 
 function fnExitAllOpenPosition(){
@@ -1057,10 +1099,15 @@ function fnGetTradeCharges(pIndexPrice, pLotSize, pQty, pBuyPrice, pSellPrice){
     return vEffectiveBrokerage;
 }
 
-function fnGetTradeCapital(pSellPrice, pLotSize, pQty, pCharges){
+function fnGetTradeCapital(pTransType, pBuyPrice, pSellPrice, pLotSize, pQty, pCharges){
     let vTotalCapital = 0;
     
-    vTotalCapital = ((pSellPrice * pLotSize * pQty) + pCharges) * 1.5;
+    if(pTransType === "BUY"){
+    	vTotalCapital = ((pBuyPrice * pLotSize * pQty) + pCharges);    	
+    }
+    else{
+	    vTotalCapital = ((pSellPrice * pLotSize * pQty) + pCharges) * 1.5;
+    }
     
     return vTotalCapital;
 }
@@ -1097,7 +1144,7 @@ function fnLoadClosedTrades(){
             let vBuyPrice = objTradeBook.TradeData[i].BuyPrice;
             let vSellPrice = objTradeBook.TradeData[i].SellPrice;
             let vCharges = fnGetTradeCharges(vIndexPrice, vLotSize, vQty, vBuyPrice, vSellPrice);
-	        let vCapital = fnGetTradeCapital(vSellPrice, vLotSize, vQty, vCharges);
+	        let vCapital = fnGetTradeCapital(vTransType, vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
             let vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
 
             vTotalTrades += 1;
@@ -1158,7 +1205,5 @@ function fnTest(){
 	else
 		gUpdPos = true;
 
-	console.log(gSymbTickList[0][95995]);
-	console.log(gSymbTickList[1][95991]);
-	//console.log(gCurrPos);
+	console.log(gUpdPos);
 }
