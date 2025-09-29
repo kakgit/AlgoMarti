@@ -63,10 +63,13 @@
                         <div class="collapse show" id="divTraderClps">
                             <div class="container-fluid">
                                 <div class="row">
-                                    <div class="col-3">
+                                    <div class="col-2">
+                                        Strategy
+                                    </div>
+                                    <div class="col-2">
                                         Select Symbol
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col-2">
                                         Lot Size
                                     </div>
                                     <div class="col-2">
@@ -79,14 +82,21 @@
                                         Buy Expiry Date
                                     </div>
 
-                                    <div class="col-3">
+                                    <div class="col-2">
+                                        <div class="input-group mb-3">
+                                            <select id="ddlStrategy" class="form-select" onchange="//fnGetSelSymbolData(this.value);" placeholder="Select Strategy" title="Select Strategy">
+                                            </select>
+                                            <button class="btn btn-success" type="button" id="btnGetMarginFut" onclick="fnOpenStrategyDialog();"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
                                         <select id="ddlSymbols" class="form-select" onchange="//fnGetSelSymbolData(this.value);" placeholder="Select Symbol" title="BTC">
                                             <option value=''>Select Symbol</option>
                                             <option value='BTC' selected>BTCUSD</option>
                                             <option value='ETH'>ETHUSD</option>
                                         </select>
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col-2">
                                         <input type="text" value="0.001" id="txtLotSize" class="form-control" />
                                     </div>
                                     <div class="col-2">

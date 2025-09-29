@@ -43,7 +43,7 @@ window.addEventListener("DOMContentLoaded", function(){
             fnGenMessage("Trade Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
         }
         else{
-        	if(((vTradeSide === "true") && (pMsg.TransType === "buy")) || ((vTradeSide === "false") && (pMsg.OptionType === "sell")) || (vTradeSide === "-1")){
+        	if(((vTradeSide === "true") && (pMsg.TransType === "buy")) || ((vTradeSide === "false") && (pMsg.TransType === "sell")) || (vTradeSide === "-1")){
 	            fnInitiateManualFutures(pMsg.TransType);
         	}
         	else{

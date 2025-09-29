@@ -162,3 +162,56 @@
         </div>
     </div>
 </div>
+
+<!--Disabled Backdrop Modal for New Strategy Name-->
+<div class="modal fade text-left" id="mdlDeltaNewStrategy" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
+    data-bs-backdrop="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-s" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h4 class="modal-title" id="myModalLabel4">Add New Strategy</h4>
+                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
+            </div>
+            <div class="modal-body">
+                <!-- // Basic multiple Column Form section start -->
+                <div class="row match-height">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header text-center">
+                                &nbsp;<span class="badge bg-primary">Please Input Strategy Details</span>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-12 col-12">
+                                            <div class="form-group">
+                                                <label for="txtStrategyName">Strategy Name</label>
+                                                <input type="text" id="txtStrategyName" class="form-control" value="" placeholder="Strategy Name" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12 col-12">
+                                            <div class="form-group">
+                                                <label for="txtDescription">Description</label>
+                                                <textarea class="form-control" rows="5" id="txtDescription" placeholder="Description" value=""></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                    <i class="bx bx-x d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">CLOSE</span>
+                </button>
+                <button type="button" class="btn btn-primary ms-1" onclick="fnAddNewStrategy();">
+                    <i class="bx bx-check d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">SAVE</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

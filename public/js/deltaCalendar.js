@@ -1179,7 +1179,10 @@ function fnLoadClosedTrades(){
 }
 
 
-
+function fnOpenStrategyDialog(){
+	$('#mdlDeltaNewStrategy').modal('show');
+	console.log("working no");
+}
 
 function fnClearLocalStorageTemp(){
     localStorage.removeItem("DeltaCalPosiS");
