@@ -38,7 +38,7 @@
                                 <h4>Manual Trader</h4>
                             </div>
                             <div class="col-1">
-
+                                <span class="badge rounded-pill text-bg-warning" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnOpenStrategyEditor();" title="Manage">&nbsp;</span>
                             </div>
                             <div class="col-2" style="text-align: right;">Start With </div>
                             <div class="col-1"><input type="text" class="form-control" min="1" value="1" id="txtStartQty" onchange="fnChangeStartQty(this);" /></div>
@@ -72,25 +72,25 @@
                                     <div class="col-2">
                                         Lot Size
                                     </div>
-                                    <div class="col-2">
+                                    <!-- <div class="col-2">
                                         Select Expiry Type
-                                    </div>
-                                    <div class="col-2">
+                                    </div> -->
+                                    <div class="col-3">
                                         Sell Expiry Date
                                     </div>
-                                    <div class="col-2">
+                                    <div class="col-3">
                                         Buy Expiry Date
                                     </div>
 
                                     <div class="col-2">
                                         <div class="input-group mb-3">
-                                            <select id="ddlStrategy" class="form-select" onchange="//fnGetSelSymbolData(this.value);" placeholder="Select Strategy" title="Select Strategy">
+                                            <select id="ddlStrategy" class="form-select" onchange="fnSetStratDetails(this.value);" placeholder="Select Strategy" title="Select Strategy">
                                             </select>
-                                            <button class="btn btn-success" type="button" id="btnGetMarginFut" onclick="fnOpenStrategyDialog();"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                            <button class="btn btn-success" type="button" onclick="fnOpenStrategyDialog();"><i class="fa fa-plus" aria-hidden="true"></i></button>
                                         </div>
                                     </div>
                                     <div class="col-2">
-                                        <select id="ddlSymbols" class="form-select" onchange="//fnGetSelSymbolData(this.value);" placeholder="Select Symbol" title="BTC">
+                                        <select id="ddlSymbols" class="form-select" onchange="fnSetSymbolData(this.value);" placeholder="Select Symbol" title="BTC">
                                             <option value=''>Select Symbol</option>
                                             <option value='BTC' selected>BTCUSD</option>
                                             <option value='ETH'>ETHUSD</option>
@@ -99,70 +99,18 @@
                                     <div class="col-2">
                                         <input type="text" value="0.001" id="txtLotSize" class="form-control" />
                                     </div>
-                                    <div class="col-2">
+                                    <!-- <div class="col-2">
                                         <select id="ddlDateTypes" class="form-select" onchange="fnUpdateDates();" placeholder="Date Types">
                                             <option value=0>Daily</option>
                                             <option value=1>Weekly</option>
                                             <option value=2>Monthly</option>
                                         </select>
+                                    </div> -->
+                                    <div class="col-3">
+                                        <input type="date" class="form-control" placeholder="Sell Leg Date" id="txtSellLegDate" value="" />
                                     </div>
-                                    <div class="col-2">
-                                        <input type="text" class="form-control" placeholder="Sell Leg Date" id="txtSellLegDate" value="" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="text" class="form-control" placeholder="Buy Leg Date" id="txtBuyLegDate" value="" />
-                                    </div>
-
-                                    <div class="col-2">Sell Qty</div>
-                                    <div class="col-2">Sell Delta (Min)</div>
-                                    <div class="col-2">Sell Delta (Max)</div>
-                                    <div class="col-2">Sell Delta (ADJ Profit)</div>
-                                    <div class="col-2">Sell Delta (ADJ Loss)</div>
-                                    <div class="col-2">New Position Delta</div>
-
-                                    <div class="col-2">
-                                        <input type="number" min="1" class="form-control" placeholder="Sell Quantity" id="txtSellQty" value="1" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="text" value="0.35" id="txtDeltaSellLegMin" class="form-control" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="text" value="0.51" id="txtDeltaSellLegMax" class="form-control" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="text" value="0.20" id="txtDeltaSellLegProfit" class="form-control" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="text" value="0.60" id="txtDeltaSellLegLoss" class="form-control" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="text" value="0.51" id="txtDeltaSellNewPos" class="form-control" />
-                                    </div>
-
-                                    <div class="col-2">Buy Qty</div>
-                                    <div class="col-2">Buy Delta (Min)</div>
-                                    <div class="col-2">Buy Delta (Max)</div>
-                                    <div class="col-2">Buy Delta (ADJ Profit)</div>
-                                    <div class="col-2">Buy Delta (ADJ Loss)</div>
-                                    <div class="col-2">Buy Delta (Max)</div>
-
-                                    <div class="col-2">
-                                        <input type="number" min="1" class="form-control" placeholder="Buy Quantity" id="txtBuyQty" value="1000" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="text" value="0.35" id="txtDeltaBuyLegMin" class="form-control" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="text" value="0.43" id="txtDeltaBuyLegMax" class="form-control" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="text" value="0.75" id="txtDeltaBuyLegProfit" class="form-control" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="text" value="0.15" id="txtDeltaBuyLegLoss" class="form-control" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="text" value="0.43" id="txtDeltaBuyNewPos" class="form-control" />
+                                    <div class="col-3">
+                                        <input type="date" class="form-control" placeholder="Buy Leg Date" id="txtBuyLegDate" value="" />
                                     </div>
 
                                     <div class="col-3">Exit All at Loss %</div>
@@ -176,7 +124,12 @@
                                     <div class="col-3">
                                         <input type="text" value="50" id="txtExitProfitPer" class="form-control" />
                                     </div>
-                                    <div class="col-6">
+                                    <div class="col-3">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-primary" onclick="fnManageStrategy();"><b>Manage Strategy</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
                                         <div class="d-grid gap-1">
                                             <button class="btn btn-outline-success" onclick="fnGetOptionChain();"><b>Get Option Chain</b></button>
                                         </div>
@@ -218,7 +171,7 @@
 
                             </div>
                             <div class="col-1">
-                                <i class="fa fa-refresh" aria-hidden="true" style="color: orange; cursor: pointer;" onclick="fnTest();"></i>
+                                <i class="fa fa-refresh" aria-hidden="true" style="color: orange; cursor: pointer;" onclick="fnLoadStrategyDetails();"></i>
                             </div>
                             <div class="col-1">
                                 <i class="fa fa-link" aria-hidden="true" style="color: orange; cursor: pointer;" onclick="fnShowOCModal();"></i>

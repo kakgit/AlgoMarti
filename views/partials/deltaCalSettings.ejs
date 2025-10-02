@@ -57,8 +57,7 @@
 </div>
 
 <!--Disabled Backdrop Modal for Selecting Option Legs-->
-<div class="modal fade text-left" id="mdlDeltaOC" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
-    data-bs-backdrop="false" aria-hidden="true">
+<div class="modal fade text-left" id="mdlDeltaOC" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4" data-bs-backdrop="false" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-secondary">
@@ -178,7 +177,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header text-center">
-                                &nbsp;<span class="badge bg-primary">Please Input Strategy Details</span>
+                                &nbsp;<span class="badge bg-primary" id="spnStratMsgs">Please Input Strategy Details</span>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -191,8 +190,8 @@
                                         </div>
                                         <div class="col-md-12 col-12">
                                             <div class="form-group">
-                                                <label for="txtDescription">Description</label>
-                                                <textarea class="form-control" rows="5" id="txtDescription" placeholder="Description" value=""></textarea>
+                                                <label for="taDescription">Description</label>
+                                                <textarea class="form-control" rows="5" id="taDescription" placeholder="Description"></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -212,6 +211,135 @@
                     <span class="d-none d-sm-block">SAVE</span>
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!--Disabled Backdrop Modal for New Strategy Editor-->
+<div class="modal fade text-left" id="mdlStrategyEditor" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4" data-bs-backdrop="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h4 class="modal-title" id="myModalLabel4">Strategy Editor</h4>
+                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-2">Strategy Name</div>
+                        <div class="col-2">
+                            <input type="text" value="" id="txtEditStratName" class="form-control" />
+                            <input type="hidden" value="" id="hidStratID" class="form-control" />
+                        </div>
+                        <div class="col-1">
+                            <i class="fa fa-trash" aria-hidden="true" style="color: red; cursor: pointer;" onclick="fnDelStrategy();"></i>
+                        </div>
+                        <div class="col-7">
+                            <textarea class="form-control" rows="3" id="taEditDescription" placeholder="Description"></textarea>
+                        </div>
+                        <div class="col-12">&nbsp;</div>
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col-12" style="text-align: center; font-weight: bold; color: red;">SELL LEG SETTINGS</div>
+
+                                <div class="col-12" style="color: white;">Option Chain Display Settings</div>
+                                <div class="col-6" style="color: white;">MIN - Delta</div>
+                                <div class="col-6" style="color: white;">MAX - Delta</div>
+                                <div class="col-6">
+                                    <input type="text" value="0.35" id="txtDeltaSellLegMin" class="form-control" />
+                                </div>
+                                <div class="col-6">
+                                    <input type="text" value="0.51" id="txtDeltaSellLegMax" class="form-control" />
+                                </div>
+
+                                <div class="col-12" style="color: cadetblue">Position Sizing</div>
+                                <div class="col-6" style="color: cadetblue;">Start QTY</div>
+                                <div class="col-6" style="color: cadetblue;">Multiplier</div>
+                                <div class="col-6">
+                                    <input type="number" min="1" class="form-control" placeholder="Sell Quantity" id="txtSellQty" value="1" />
+                                </div>
+                                <div class="col-6">
+                                    <select id="ddlSellMultiplier" class="form-select" placeholder="Multiplier" title="MULTIPLIER">
+                                        <option value=1 selected>1x</option>
+                                        <option value=2>2x</option>
+                                        <option value=3>3x</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-12" style="color: orange;">Position Adjustments</div>
+                                <div class="col-4" style="color: orange;">TP - Delta</div>
+                                <div class="col-4" style="color: orange;">SL - Delta</div>
+                                <div class="col-4" style="color: orange;">New Position - Delta</div>
+                                <div class="col-4">
+                                    <input type="text" value="0.20" id="txtDeltaSellLegProfit" class="form-control" />
+                                </div>
+                                <div class="col-4">
+                                    <input type="text" value="0.80" id="txtDeltaSellLegLoss" class="form-control" />
+                                </div>
+                                <div class="col-4">
+                                    <input type="text" value="0.53" id="txtDeltaSellNewPos" class="form-control" />
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col-12" style="text-align: center; font-weight: bold; color: chartreuse;">BUY LEG SETTINGS</div>
+
+                                <div class="col-12" style="color: white;">Option Chain Display Settings</div>
+                                <div class="col-6" style="color: white;">MIN - Delta</div>
+                                <div class="col-6" style="color: white;">MAX - Delta</div>
+                                <div class="col-6">
+                                    <input type="text" value="0.35" id="txtDeltaBuyLegMin" class="form-control" />
+                                </div>
+                                <div class="col-6">
+                                    <input type="text" value="0.43" id="txtDeltaBuyLegMax" class="form-control" />
+                                </div>
+
+                                <div class="col-12" style="color: cadetblue">Position Sizing</div>
+                                <div class="col-6" style="color: cadetblue;">Start QTY</div>
+                                <div class="col-6" style="color: cadetblue;">Multiplier</div>
+                                <div class="col-6">
+                                    <input type="number" min="1" class="form-control" placeholder="Buy Quantity" id="txtBuyQty" value="1000" />
+                                </div>
+                                <div class="col-6">
+                                    <select id="ddlBuyMultiplier" class="form-select" placeholder="Multiplier" title="MULTIPLIER">
+                                        <option value=1 selected>1x</option>
+                                        <option value=2>2x</option>
+                                        <option value=3>3x</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-12" style="color: orange;">Position Adjustments</div>
+                                <div class="col-4" style="color: orange;">TP - Delta</div>
+                                <div class="col-4" style="color: orange;">SL - Delta</div>
+                                <div class="col-4" style="color: orange;">New Position - Delta</div>
+                                <div class="col-4">
+                                    <input type="text" value="0.75" id="txtDeltaBuyLegProfit" class="form-control" />
+                                </div>
+                                <div class="col-4">
+                                    <input type="text" value="0" id="txtDeltaBuyLegLoss" class="form-control" />
+                                </div>
+                                <div class="col-4">
+                                    <input type="text" value="0.23" id="txtDeltaBuyNewPos" class="form-control" />
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                    <i class="bx bx-x d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">CLOSE</span>
+                </button>
+                <button id="btnSubmit" type="button" class="btn btn-primary ms-1" onclick="fnSaveStrategy();">
+                    <i class="bx bx-check d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">SAVE STRATEGY</span>
+                </button>
+            </div>
+
         </div>
     </div>
 </div>

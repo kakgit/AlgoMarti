@@ -1,5 +1,6 @@
 
 let objDeltaWS = null;
+let gCurrStrats = { StratsData : []};
 let gCurrPos = { TradeData : []};
 let gSubList = [];
 let gUnSubList = [];
@@ -24,8 +25,11 @@ function fnGetAllStatus(){
 	if(bAppStatus){
 		// fnValidateDeltaLogin();
 		fnGetSetAutoTraderStatus();	
-		fnGetDates();
+		fnLoadCurrStrategies();
+		fnLoadDefSymbol();
+		// fnGetDates();
 		fnLoadDefQty();
+		fnLoadDefStrategy();
 		fnLoadMaxPL();
 		fnLoadCurrentTradePos();
 		fnSubscribeInterval();
@@ -129,6 +133,34 @@ function fnSetDDMMYYYY(pDateToConv){
     return vRetVal;
 }
 
+function fnLoadDefSymbol(){
+	let objDefSymM = JSON.parse(localStorage.getItem("DeltaDefSymb"));
+	let objSelSymb = document.getElementById("ddlSymbols");
+
+	if(objDefSymM === null){
+		objDefSymM = "";
+	}
+
+	objSelSymb.value = objDefSymM;
+	fnSetSymbolData(objDefSymM);
+}
+
+function fnSetSymbolData(pThisVal){
+	let objLotSize = document.getElementById("txtLotSize");
+
+	localStorage.setItem("DeltaDefSymb", JSON.stringify(pThisVal));
+
+	if(pThisVal === "BTC"){
+		objLotSize.value = 0.001;
+	}
+	else if(pThisVal === "ETH"){
+		objLotSize.value = 0.01;
+	}
+	else{
+		objLotSize.value = 0;
+	}
+}
+
 function fnLoadDefQty(){
 	let objStartQtyM = JSON.parse(localStorage.getItem("StartQtyNoDeltaCal"));
 
@@ -198,6 +230,194 @@ function fnLoadCurrentTradePos(){
     }
     fnUpdateOpenPositions();
     fnLoadClosedTrades();
+}
+
+function fnLoadCurrStrategies(){
+   	let objStrats = JSON.parse(localStorage.getItem("DeltaStrats"));
+   	let objStratsDDL = document.getElementById("ddlStrategy");
+
+   	gCurrStrats = objStrats;
+
+   	if(gCurrStrats === null){
+		gCurrStrats = { StratsData : []};
+   	}
+   	else{
+	    objStratsDDL.innerHTML = "<option value=''>Select Strategy</option>";
+
+	    for(let i=0; i<gCurrStrats.StratsData.length; i++){
+		    objStratsDDL.innerHTML += "<option value="+ gCurrStrats.StratsData[i].StratID +">"+ gCurrStrats.StratsData[i].StratName +"</option>";
+	    }
+
+   	}
+}
+
+function fnLoadDefStrategy(){
+   	let objDefStrat = JSON.parse(localStorage.getItem("DeltaDefStrat"));
+   	let objStratsDDL = document.getElementById("ddlStrategy");
+
+   	if(objDefStrat === null){
+   		objStratsDDL.value = "";
+   	}
+   	else{
+   		objStratsDDL.value = objDefStrat;
+   	}
+
+   	fnLoadStrategyDetails();
+}
+
+function fnSetStratDetails(pThisVal){
+	localStorage.setItem("DeltaDefStrat", JSON.stringify(pThisVal));
+
+   	fnLoadStrategyDetails();
+}
+
+function fnDelStrategy(){
+   	let objStratID = document.getElementById("hidStratID");
+
+   	if(objStratID.value === ""){
+        fnGenMessage("No Strategy to Delete!", `badge bg-warning`, "spnGenMsg");
+   	}
+   	else{
+   		if(confirm("Are You Sure You Want to Delete This Strategy?")){
+   			let objSelData = null;
+   			for(let i=0; i<gCurrStrats.StratsData.length; i++){
+   				if(gCurrStrats.StratsData[i].StratID === parseInt(objStratID.value)){
+   					objSelData = gCurrStrats.StratsData[i];
+   				}
+   			}
+			gCurrStrats.StratsData.pop(objSelData);
+			localStorage.setItem("DeltaStrats", JSON.stringify(gCurrStrats));
+			localStorage.removeItem("DeltaDefStrat");
+			fnLoadDefStrategy();
+			fnLoadCurrStrategies();
+	        fnGenMessage("Strategy Deleted!", `badge bg-success`, "spnGenMsg");
+    		$('#mdlStrategyEditor').modal('hide');
+   		}
+   	}
+}
+
+function fnSaveStrategy(){
+   	let objStratID = document.getElementById("hidStratID");
+
+   	if(objStratID.value === ""){
+        fnGenMessage("No Strategy to Edit!", `badge bg-warning`, "spnGenMsg");
+   	}
+   	else{
+   	   	let objStratName = document.getElementById("txtEditStratName");
+	   	let objStratDesc = document.getElementById("taEditDescription");
+
+	   	let objSellDeltaMinOC = document.getElementById("txtDeltaSellLegMin");
+	   	let objSellDeltaMaxOC = document.getElementById("txtDeltaSellLegMax");
+	   	let objSellQty = document.getElementById("txtSellQty");
+	   	let objSellMultiplier = document.getElementById("ddlSellMultiplier");
+	   	let objSellAdjDeltaTP = document.getElementById("txtDeltaSellLegProfit");
+	   	let objSellAdjDeltaSL = document.getElementById("txtDeltaSellLegLoss");
+	   	let objSellNewPosDelta = document.getElementById("txtDeltaSellNewPos");
+
+	   	let objBuyDeltaMinOC = document.getElementById("txtDeltaBuyLegMin");
+	   	let objBuyDeltaMaxOC = document.getElementById("txtDeltaBuyLegMax");
+	   	let objBuyQty = document.getElementById("txtBuyQty");
+	   	let objBuyMultiplier = document.getElementById("ddlBuyMultiplier");
+	   	let objBuyAdjDeltaTP = document.getElementById("txtDeltaBuyLegProfit");
+	   	let objBuyAdjDeltaSL = document.getElementById("txtDeltaBuyLegLoss");
+	   	let objBuyNewPosDelta = document.getElementById("txtDeltaBuyNewPos");
+
+   		for(let i=0; i<gCurrStrats.StratsData.length; i++){
+   			if(gCurrStrats.StratsData[i].StratID === parseInt(objStratID.value)){
+   				gCurrStrats.StratsData[i].StratName = objStratName.value;
+   				gCurrStrats.StratsData[i].StratDesc = objStratDesc.value;
+
+   				gCurrStrats.StratsData[i].SellDeltaMinOC = objSellDeltaMinOC.value;
+   				gCurrStrats.StratsData[i].SellDeltaMaxOC = objSellDeltaMaxOC.value;
+   				gCurrStrats.StratsData[i].SellStartQty = objSellQty.value;
+   				gCurrStrats.StratsData[i].SellMultiplier = objSellMultiplier.value;
+   				gCurrStrats.StratsData[i].SellAdjDeltaTP = objSellAdjDeltaTP.value;
+   				gCurrStrats.StratsData[i].SellAdjDeltaSL = objSellAdjDeltaSL.value;
+   				gCurrStrats.StratsData[i].SellNewPosDelta = objSellNewPosDelta.value;
+
+   				gCurrStrats.StratsData[i].BuyDeltaMinOC = objBuyDeltaMinOC.value;
+   				gCurrStrats.StratsData[i].BuyDeltaMaxOC = objBuyDeltaMaxOC.value;
+   				gCurrStrats.StratsData[i].BuyStartQty = objBuyQty.value;
+   				gCurrStrats.StratsData[i].BuyMultiplier = objBuyMultiplier.value;
+   				gCurrStrats.StratsData[i].BuyAdjDeltaTP = objBuyAdjDeltaTP.value;
+   				gCurrStrats.StratsData[i].BuyAdjDeltaSL = objBuyAdjDeltaSL.value;
+   				gCurrStrats.StratsData[i].BuyNewPosDelta = objBuyNewPosDelta.value;
+   			}
+   		}
+		localStorage.setItem("DeltaStrats", JSON.stringify(gCurrStrats));
+		fnLoadCurrStrategies();
+		fnLoadDefStrategy();
+        fnGenMessage("Strategy Updated!", `badge bg-success`, "spnGenMsg");
+		$('#mdlStrategyEditor').modal('hide');
+   	}
+}
+
+function fnLoadStrategyDetails(){
+   	let objDefStrat = JSON.parse(localStorage.getItem("DeltaDefStrat"));
+   	let objStratID = document.getElementById("hidStratID");
+   	let objStratName = document.getElementById("txtEditStratName");
+   	let objStratDesc = document.getElementById("taEditDescription");
+
+   	let objSellDeltaMinOC = document.getElementById("txtDeltaSellLegMin");
+   	let objSellDeltaMaxOC = document.getElementById("txtDeltaSellLegMax");
+   	let objSellQty = document.getElementById("txtSellQty");
+   	let objSellMultiplier = document.getElementById("ddlSellMultiplier");
+   	let objSellAdjDeltaTP = document.getElementById("txtDeltaSellLegProfit");
+   	let objSellAdjDeltaSL = document.getElementById("txtDeltaSellLegLoss");
+   	let objSellNewPosDelta = document.getElementById("txtDeltaSellNewPos");
+   	
+   	let objBuyDeltaMinOC = document.getElementById("txtDeltaBuyLegMin");
+   	let objBuyDeltaMaxOC = document.getElementById("txtDeltaBuyLegMax");
+   	let objBuyQty = document.getElementById("txtBuyQty");
+   	let objBuyMultiplier = document.getElementById("ddlBuyMultiplier");
+   	let objBuyAdjDeltaTP = document.getElementById("txtDeltaBuyLegProfit");
+   	let objBuyAdjDeltaSL = document.getElementById("txtDeltaBuyLegLoss");
+   	let objBuyNewPosDelta = document.getElementById("txtDeltaBuyNewPos");
+
+   	if(objDefStrat === null || objDefStrat === ""){
+   		objStratID.value = "";
+   		objStratName.value = "";
+   		objStratDesc.innerText = "";
+   		objSellDeltaMinOC.value = "";
+   		objSellDeltaMaxOC.value = "";
+   		objSellQty.value = "";
+   		objSellMultiplier.value = 1;
+   		objSellAdjDeltaTP.value = "";
+   		objSellAdjDeltaSL.value = "";
+   		objSellNewPosDelta.value = "";
+
+   		objBuyDeltaMinOC.value = "";
+   		objBuyDeltaMaxOC.value = "";
+   		objBuyQty.value = "";
+   		objBuyMultiplier.value = 1;
+   		objBuyAdjDeltaTP.value = "";
+   		objBuyAdjDeltaSL.value = "";
+   		objBuyNewPosDelta.value = "";
+   	}
+   	else{
+   		for(let i=0; i<gCurrStrats.StratsData.length; i++){
+   			if(gCurrStrats.StratsData[i].StratID === parseInt(objDefStrat)){
+   				objStratID.value = gCurrStrats.StratsData[i].StratID;
+   				objStratName.value = gCurrStrats.StratsData[i].StratName;
+   				objStratDesc.innerText = gCurrStrats.StratsData[i].StratDesc;
+		   		objSellDeltaMinOC.value = gCurrStrats.StratsData[i].SellDeltaMinOC;
+		   		objSellDeltaMaxOC.value = gCurrStrats.StratsData[i].SellDeltaMaxOC;
+		   		objSellQty.value = gCurrStrats.StratsData[i].SellStartQty;
+		   		objSellMultiplier.value = gCurrStrats.StratsData[i].SellMultiplier;
+		   		objSellAdjDeltaTP.value = gCurrStrats.StratsData[i].SellAdjDeltaTP;
+		   		objSellAdjDeltaSL.value = gCurrStrats.StratsData[i].SellAdjDeltaSL;
+		   		objSellNewPosDelta.value = gCurrStrats.StratsData[i].SellNewPosDelta;
+
+		   		objBuyDeltaMinOC.value = gCurrStrats.StratsData[i].BuyDeltaMinOC;
+		   		objBuyDeltaMaxOC.value = gCurrStrats.StratsData[i].BuyDeltaMaxOC;
+		   		objBuyQty.value = gCurrStrats.StratsData[i].BuyStartQty;
+		   		objBuyMultiplier.value = gCurrStrats.StratsData[i].BuyMultiplier;
+		   		objBuyAdjDeltaTP.value = gCurrStrats.StratsData[i].BuyAdjDeltaTP;
+		   		objBuyAdjDeltaSL.value = gCurrStrats.StratsData[i].BuyAdjDeltaSL;
+		   		objBuyNewPosDelta.value = gCurrStrats.StratsData[i].BuyNewPosDelta;
+   			}
+   		}
+   	}
 }
 
 function fnConnectWS(){
@@ -312,6 +532,9 @@ async function fnGetOptionChain(){
 	let isAppLogin = JSON.parse(localStorage.getItem("AppMsgStatusS"));
     let isTraderStatus = JSON.parse(localStorage.getItem("lsDeltaCalLoginValid"));
 	let isAutoTrader = JSON.parse(localStorage.getItem("isDeltaCalAutoTrader"));
+	let objSelSymb = document.getElementById("ddlSymbols");
+	let objLotSize = document.getElementById("txtLotSize");
+	let objStrat = document.getElementById("ddlStrategy");
 
 	if(isAppLogin === null || isAppLogin === false){
         fnGenMessage("Login to Account to Start Trading!", `badge bg-warning`, "spnGenMsg");
@@ -322,6 +545,15 @@ async function fnGetOptionChain(){
 	else if(isAutoTrader === null || isAutoTrader === false){
         fnGenMessage("Auto Trading Mode is OFF!", `badge bg-danger`, "spnGenMsg");
 	}
+	else if(objStrat.value === ""){
+        fnGenMessage("Select Strategy to Get Option Chain!", `badge bg-danger`, "spnGenMsg");
+	}
+	else if(objSelSymb.value === ""){
+        fnGenMessage("Select Symbol to Get Option Chain!", `badge bg-danger`, "spnGenMsg");
+	}
+	else if(objLotSize.value === 0 || objLotSize.value === ""){
+        fnGenMessage("Invalid Lot Size, Please Check!", `badge bg-danger`, "spnGenMsg");
+	}
 	else{
 	    let objApiKey = document.getElementById("txtUserAPIKey");
 	    let objApiSecret = document.getElementById("txtAPISecret");
@@ -329,108 +561,113 @@ async function fnGetOptionChain(){
 	    let objSellLegDate = document.getElementById("txtSellLegDate");
 	    let objBuyLegDate = document.getElementById("txtBuyLegDate");
 
-	    let vSellExpiry = objSellLegDate.value;
-	    let vBuyExpiry = objBuyLegDate.value;
+	    let vBuyExpiry = fnSetDDMMYYYY(objBuyLegDate.value);
+	    let vSellExpiry = fnSetDDMMYYYY(objSellLegDate.value);
 
-        let objSellOptChnData = await fnGetOptChnByUndAstExp(objApiKey.value, objApiSecret.value, objSymbDDL.value, vSellExpiry);
-        if(objSellOptChnData.status === "success"){
-		    let objTBCE = document.getElementById("tBodyOptsSellCE");
-		    let objTBPE = document.getElementById("tBodyOptsSellPE");
-		    let objMaxDeltaSell = document.getElementById("txtDeltaSellLegMax");
-		    let objMinDeltaSell = document.getElementById("txtDeltaSellLegMin");
-	        let vTempHtmlCE = "";
-	        let vTempHtmlPE = "";
-		   	// console.log(objSellOptChnData);
+		if(objSellLegDate.value !== ""){
+	        let objSellOptChnData = await fnGetOptChnByUndAstExp(objApiKey.value, objApiSecret.value, objSymbDDL.value, vSellExpiry);
+	        if(objSellOptChnData.status === "success"){
+			    let objTBCE = document.getElementById("tBodyOptsSellCE");
+			    let objTBPE = document.getElementById("tBodyOptsSellPE");
+			    let objMaxDeltaSell = document.getElementById("txtDeltaSellLegMax");
+			    let objMinDeltaSell = document.getElementById("txtDeltaSellLegMin");
+		        let vTempHtmlCE = "";
+		        let vTempHtmlPE = "";
 
-		   	for(let i=0; i<objSellOptChnData.data.length; i++){
-		   		let vContType = objSellOptChnData.data[i].ContType;
-		   		let vDelta = parseFloat(objSellOptChnData.data[i].Delta);
-		   		let vSymbol = objSellOptChnData.data[i].Symbol;
-		   		let vBestBid = parseFloat(objSellOptChnData.data[i].BestBid);
-		   		let vBestAsk = parseFloat(objSellOptChnData.data[i].BestAsk);
+			   	// console.log(objSellOptChnData);
 
-		   		if((vContType === "put_options") && (vDelta >= -(parseFloat(objMaxDeltaSell.value))) && (vDelta <= -(parseFloat(objMinDeltaSell.value)))){
-		            vTempHtmlPE += '<tr>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:center;"><input type="radio" name="rdoSellPE" onclick="fnSelectOption(`SELL`, `PE`, `' + vSymbol + '`);" /></td>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap;">' + (vDelta).toFixed(2) + '</td>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:center;">' + vSymbol + '</td>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestBid).toFixed(2) + '</td>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestAsk).toFixed(2) + '</td>';
-		            vTempHtmlPE += '</tr>';
-		   		}
-		   		else if((vContType === "call_options") && (vDelta <= (parseFloat(objMaxDeltaSell.value))) && (vDelta >= (parseFloat(objMinDeltaSell.value)))){
-		            vTempHtmlCE += '<tr>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;"><input type="radio" name="rdoSellCE" onclick="fnSelectOption(`SELL`, `CE`, `' + vSymbol + '`);" /></td>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap;">' + (vDelta).toFixed(2) + '</td>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;">' + vSymbol + '</td>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestBid).toFixed(2) + '</td>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestAsk).toFixed(2) + '</td>';
-		            vTempHtmlCE += '</tr>';
-		   		}
-		   		else{
-		   			// console.log("No Data in Table");
-		   		}
-			}
+			   	for(let i=0; i<objSellOptChnData.data.length; i++){
+			   		let vContType = objSellOptChnData.data[i].ContType;
+			   		let vDelta = parseFloat(objSellOptChnData.data[i].Delta);
+			   		let vSymbol = objSellOptChnData.data[i].Symbol;
+			   		let vBestBid = parseFloat(objSellOptChnData.data[i].BestBid);
+			   		let vBestAsk = parseFloat(objSellOptChnData.data[i].BestAsk);
 
-        	objTBCE.innerHTML = vTempHtmlCE;
-        	objTBPE.innerHTML = vTempHtmlPE;
+			   		if((vContType === "put_options") && (vDelta >= -(parseFloat(objMaxDeltaSell.value))) && (vDelta <= -(parseFloat(objMinDeltaSell.value)))){
+			            vTempHtmlPE += '<tr>';
+			            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:center;"><input type="radio" name="rdoSellPE" onclick="fnSelectOption(`SELL`, `PE`, `' + vSymbol + '`);" /></td>';
+			            vTempHtmlPE += '<td style="text-wrap: nowrap;">' + (vDelta).toFixed(2) + '</td>';
+			            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:center;">' + vSymbol + '</td>';
+			            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestBid).toFixed(2) + '</td>';
+			            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestAsk).toFixed(2) + '</td>';
+			            vTempHtmlPE += '</tr>';
+			   		}
+			   		else if((vContType === "call_options") && (vDelta <= (parseFloat(objMaxDeltaSell.value))) && (vDelta >= (parseFloat(objMinDeltaSell.value)))){
+			            vTempHtmlCE += '<tr>';
+			            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;"><input type="radio" name="rdoSellCE" onclick="fnSelectOption(`SELL`, `CE`, `' + vSymbol + '`);" /></td>';
+			            vTempHtmlCE += '<td style="text-wrap: nowrap;">' + (vDelta).toFixed(2) + '</td>';
+			            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;">' + vSymbol + '</td>';
+			            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestBid).toFixed(2) + '</td>';
+			            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestAsk).toFixed(2) + '</td>';
+			            vTempHtmlCE += '</tr>';
+			   		}
+			   		else{
+			   			// console.log("No Data in Table");
+			   		}
+				}
 
-			document.getElementById("hidSellCESymb").value = "";
-			document.getElementById("hidSellPESymb").value = "";
-        }
-        else{
-            fnGenMessage(objSellOptChnData.message, `badge bg-${objSellOptChnData.status}`, "spnGenMsg");
-        }
+	        	objTBCE.innerHTML = vTempHtmlCE;
+	        	objTBPE.innerHTML = vTempHtmlPE;
 
-        let objBuyOptChnData = await fnGetOptChnByUndAstExp(objApiKey.value, objApiSecret.value, objSymbDDL.value, vBuyExpiry);
-        if(objBuyOptChnData.status === "success"){
-		    let objTBCE = document.getElementById("tBodyOptsBuyCE");
-		    let objTBPE = document.getElementById("tBodyOptsBuyPE");
-		    let objMaxDeltaBuy = document.getElementById("txtDeltaBuyLegMax");
-		    let objMinDeltaBuy = document.getElementById("txtDeltaBuyLegMin");
-	        let vTempHtmlCE = "";
-	        let vTempHtmlPE = "";
-		   	// console.log(objBuyOptChnData);
+				document.getElementById("hidSellCESymb").value = "";
+				document.getElementById("hidSellPESymb").value = "";
+	        }
+	        else{
+	            fnGenMessage(objSellOptChnData.message, `badge bg-${objSellOptChnData.status}`, "spnGenMsg");
+	        }
+		}
 
-		   	for(let i=0; i<objBuyOptChnData.data.length; i++){
-		   		let vContType = objBuyOptChnData.data[i].ContType;
-		   		let vDelta = parseFloat(objBuyOptChnData.data[i].Delta);
-		   		let vSymbol = objBuyOptChnData.data[i].Symbol;
-		   		let vBestBid = parseFloat(objBuyOptChnData.data[i].BestBid);
-		   		let vBestAsk = parseFloat(objBuyOptChnData.data[i].BestAsk);
+		if(objBuyLegDate.value !== ""){
+	        let objBuyOptChnData = await fnGetOptChnByUndAstExp(objApiKey.value, objApiSecret.value, objSymbDDL.value, vBuyExpiry);
+	        if(objBuyOptChnData.status === "success"){
+			    let objTBCE = document.getElementById("tBodyOptsBuyCE");
+			    let objTBPE = document.getElementById("tBodyOptsBuyPE");
+			    let objMaxDeltaBuy = document.getElementById("txtDeltaBuyLegMax");
+			    let objMinDeltaBuy = document.getElementById("txtDeltaBuyLegMin");
+		        let vTempHtmlCE = "";
+		        let vTempHtmlPE = "";
+			   	// console.log(objBuyOptChnData);
 
-		   		if((vContType === "put_options") && (vDelta >= -(parseFloat(objMaxDeltaBuy.value))) && (vDelta <= -(parseFloat(objMinDeltaBuy.value)))){
-		            vTempHtmlPE += '<tr>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:center;"><input type="radio" name="rdoBuyPE" onclick="fnSelectOption(`BUY`, `PE`, `' + vSymbol + '`);" /></td>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap;">' + (vDelta).toFixed(2) + '</td>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:center;">' + vSymbol + '</td>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestBid).toFixed(2) + '</td>';
-		            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestAsk).toFixed(2) + '</td>';
-		            vTempHtmlPE += '</tr>';
-		   		}
-		   		else if((vContType === "call_options") && (vDelta <= (parseFloat(objMaxDeltaBuy.value))) && (vDelta >= (parseFloat(objMinDeltaBuy.value)))){
-		            vTempHtmlCE += '<tr>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;"><input type="radio" name="rdoBuyCE" onclick="fnSelectOption(`BUY`, `CE`, `' + vSymbol + '`);" /></td>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap;">' + (vDelta).toFixed(2) + '</td>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;">' + vSymbol + '</td>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestBid).toFixed(2) + '</td>';
-		            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestAsk).toFixed(2) + '</td>';
-		            vTempHtmlCE += '</tr>';
-		   		}
-		   		else{
-		   			// console.log("No Data in Table");
-		   		}
-			}
+			   	for(let i=0; i<objBuyOptChnData.data.length; i++){
+			   		let vContType = objBuyOptChnData.data[i].ContType;
+			   		let vDelta = parseFloat(objBuyOptChnData.data[i].Delta);
+			   		let vSymbol = objBuyOptChnData.data[i].Symbol;
+			   		let vBestBid = parseFloat(objBuyOptChnData.data[i].BestBid);
+			   		let vBestAsk = parseFloat(objBuyOptChnData.data[i].BestAsk);
 
-        	objTBCE.innerHTML = vTempHtmlCE;
-        	objTBPE.innerHTML = vTempHtmlPE;
+			   		if((vContType === "put_options") && (vDelta >= -(parseFloat(objMaxDeltaBuy.value))) && (vDelta <= -(parseFloat(objMinDeltaBuy.value)))){
+			            vTempHtmlPE += '<tr>';
+			            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:center;"><input type="radio" name="rdoBuyPE" onclick="fnSelectOption(`BUY`, `PE`, `' + vSymbol + '`);" /></td>';
+			            vTempHtmlPE += '<td style="text-wrap: nowrap;">' + (vDelta).toFixed(2) + '</td>';
+			            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:center;">' + vSymbol + '</td>';
+			            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestBid).toFixed(2) + '</td>';
+			            vTempHtmlPE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestAsk).toFixed(2) + '</td>';
+			            vTempHtmlPE += '</tr>';
+			   		}
+			   		else if((vContType === "call_options") && (vDelta <= (parseFloat(objMaxDeltaBuy.value))) && (vDelta >= (parseFloat(objMinDeltaBuy.value)))){
+			            vTempHtmlCE += '<tr>';
+			            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;"><input type="radio" name="rdoBuyCE" onclick="fnSelectOption(`BUY`, `CE`, `' + vSymbol + '`);" /></td>';
+			            vTempHtmlCE += '<td style="text-wrap: nowrap;">' + (vDelta).toFixed(2) + '</td>';
+			            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:center;">' + vSymbol + '</td>';
+			            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestBid).toFixed(2) + '</td>';
+			            vTempHtmlCE += '<td style="text-wrap: nowrap; text-align:right;">' + (vBestAsk).toFixed(2) + '</td>';
+			            vTempHtmlCE += '</tr>';
+			   		}
+			   		else{
+			   			// console.log("No Data in Table");
+			   		}
+				}
 
-			document.getElementById("hidBuyCESymb").value = "";
-			document.getElementById("hidBuyPESymb").value = "";
-        }
-        else{
-            fnGenMessage(objBuyOptChnData.message, `badge bg-${objBuyOptChnData.status}`, "spnGenMsg");
-        }
+	        	objTBCE.innerHTML = vTempHtmlCE;
+	        	objTBPE.innerHTML = vTempHtmlPE;
+
+				document.getElementById("hidBuyCESymb").value = "";
+				document.getElementById("hidBuyPESymb").value = "";
+	        }
+	        else{
+	            fnGenMessage(objBuyOptChnData.message, `badge bg-${objBuyOptChnData.status}`, "spnGenMsg");
+	        }
+		}
 
     	$('#mdlDeltaOC').modal('show');
         fnGenMessage("Auto Trading Innitiated!", `badge bg-success`, "spnGenMsg");
@@ -1180,8 +1417,44 @@ function fnLoadClosedTrades(){
 
 
 function fnOpenStrategyDialog(){
+	let objStrategyName = document.getElementById("txtStrategyName");
+	let objStrategyDesc = document.getElementById("taDescription");
+
+	objStrategyName.value = "";
+	objStrategyDesc.value = "";
+
 	$('#mdlDeltaNewStrategy').modal('show');
-	console.log("working no");
+}
+
+function fnAddNewStrategy(){
+	let objStrategyName = document.getElementById("txtStrategyName");
+	let objStrategyDesc = document.getElementById("taDescription");
+   	// let objStrats = JSON.parse(localStorage.getItem("DeltaStrats"));
+
+	if(objStrategyName.value === ""){
+        fnGenMessage("Please Input Valid Strategy Name!", `badge bg-danger`, "spnStratMsgs");
+	}
+	else{
+		const vToday = new Date();
+
+		gCurrStrats.StratsData.push({ StratID : vToday.valueOf(), StratName : objStrategyName.value, StratDesc : objStrategyDesc.value, SellDeltaMinOC : 0.20, SellDeltaMaxOC : 0.60, SellStartQty : 1000, SellMultiplier : 1, SellAdjDeltaTP : 0.20, SellAdjDeltaSL : 0.80, SellNewPosDelta : 0.53, BuyDeltaMinOC : 0.20, BuyDeltaMaxOC : 0.60, BuyStartQty : 1000, BuyMultiplier : 1, BuyAdjDeltaTP : 0.80, BuyAdjDeltaSL : 0.20, BuyNewPosDelta : 0.53 });
+
+		localStorage.setItem("DeltaStrats", JSON.stringify(gCurrStrats));
+
+		fnLoadCurrStrategies();
+		fnLoadDefStrategy();
+		$('#mdlDeltaNewStrategy').modal('hide');
+        fnGenMessage("New Strategy Created!", `badge bg-success`, "spnGenMsg");
+	}
+	console.log(gCurrStrats);
+}
+
+function fnManageStrategy(){
+	$('#mdlStrategyEditor').modal('show');
+}
+
+function fnOpenStrategyEditor(){
+	$('#mdlStrategyEditor').modal('show');
 }
 
 function fnClearLocalStorageTemp(){
@@ -1189,6 +1462,9 @@ function fnClearLocalStorageTemp(){
 	localStorage.removeItem("DeltaTrdBkCal");
     localStorage.removeItem("DeltaMaxProfit");
     localStorage.removeItem("DeltaMaxLoss");
+    // localStorage.removeItem("DeltaStrats");
+    localStorage.removeItem("DeltaDefSymb");
+    localStorage.removeItem("DeltaDefStrat");
 	// localStorage.removeItem("TrdBkOpt");
 	// localStorage.removeItem("StartQtyNoDeltaOpt");
 	// localStorage.setItem("QtyMulDeltaOpt", 0);
@@ -1203,10 +1479,8 @@ function fnClearLocalStorageTemp(){
 }
 
 function fnTest(){
-	if(gUpdPos)
-		gUpdPos = false;
-	else
-		gUpdPos = true;
-
-	console.log(gUpdPos);
+	// if(gUpdPos)
+	// 	gUpdPos = false;
+	// else
+	// 	gUpdPos = true;
 }
