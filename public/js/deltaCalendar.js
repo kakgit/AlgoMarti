@@ -1056,7 +1056,6 @@ function fnUpdateOpenPositions(){
 	}
 	document.getElementById("divMaxProfit").innerText = (gMaxProfit).toFixed(2);
 	document.getElementById("divMaxLoss").innerText = (gMaxLoss).toFixed(2);
-	console.log(gCurrPos);
 }
 
 async function fnSwapOption(pSymbol, pTransType, pOptionType, pExpiry, pUndAst){
