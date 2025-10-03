@@ -779,8 +779,9 @@ async function fnExecTrade(){
 		    let objSellLegAdjTP = document.getElementById("txtDeltaSellLegProfit");
 		    let objSellLegAdjSL = document.getElementById("txtDeltaSellLegLoss");
 		    let vProductID = objBestRates.data.result.product_id;
+		    let vSellExpiry = fnSetDDMMYYYY(objSellLegDate.value);
 
-            let vExcTradeDtls = { ProductID : vProductID, OpenDTVal : vOrdId, OpenDT : vToday, Symbol : vSymbol, OptionType : vOptionType, TransType : vTransType, UndrAsstSymb : vUndrAsstSymb, StrikePrice : vStrPrice, Expiry : objSellLegDate.value, LotSize : parseFloat(objLotSize.value), Qty : parseFloat(objSellQty.value), BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, DeltaTP : parseFloat(objSellLegAdjTP.value), DeltaSL : parseFloat(objSellLegAdjSL.value), Status : "OPEN" };
+            let vExcTradeDtls = { ProductID : vProductID, OpenDTVal : vOrdId, OpenDT : vToday, Symbol : vSymbol, OptionType : vOptionType, TransType : vTransType, UndrAsstSymb : vUndrAsstSymb, StrikePrice : vStrPrice, Expiry : vSellExpiry, LotSize : parseFloat(objLotSize.value), Qty : parseFloat(objSellQty.value), BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, DeltaTP : parseFloat(objSellLegAdjTP.value), DeltaSL : parseFloat(objSellLegAdjSL.value), Status : "OPEN" };
 
             gCurrPos.TradeData.push(vExcTradeDtls);
 
@@ -804,8 +805,9 @@ async function fnExecTrade(){
 		    let objSellLegAdjTP = document.getElementById("txtDeltaSellLegProfit");
 		    let objSellLegAdjSL = document.getElementById("txtDeltaSellLegLoss");
 		    let vProductID = objBestRates.data.result.product_id;
+		    let vSellExpiry = fnSetDDMMYYYY(objSellLegDate.value);
 
-            let vExcTradeDtls = { ProductID : vProductID, OpenDTVal : vOrdId, OpenDT : vToday, Symbol : vSymbol, OptionType : vOptionType, TransType : vTransType, UndrAsstSymb : vUndrAsstSymb, StrikePrice : vStrPrice, Expiry : objSellLegDate.value, LotSize : parseFloat(objLotSize.value), Qty : parseFloat(objSellQty.value), BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, DeltaTP : parseFloat(objSellLegAdjTP.value), DeltaSL : parseFloat(objSellLegAdjSL.value), Status : "OPEN" };
+            let vExcTradeDtls = { ProductID : vProductID, OpenDTVal : vOrdId, OpenDT : vToday, Symbol : vSymbol, OptionType : vOptionType, TransType : vTransType, UndrAsstSymb : vUndrAsstSymb, StrikePrice : vStrPrice, Expiry : vSellExpiry, LotSize : parseFloat(objLotSize.value), Qty : parseFloat(objSellQty.value), BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, DeltaTP : parseFloat(objSellLegAdjTP.value), DeltaSL : parseFloat(objSellLegAdjSL.value), Status : "OPEN" };
 
             gCurrPos.TradeData.push(vExcTradeDtls);
 
@@ -829,8 +831,9 @@ async function fnExecTrade(){
 		    let objBuyLegAdjTP = document.getElementById("txtDeltaBuyLegProfit");
 		    let objBuyLegAdjSL = document.getElementById("txtDeltaBuyLegLoss");
 		    let vProductID = objBestRates.data.result.product_id;
+			let vBuyExpiry = fnSetDDMMYYYY(objBuyLegDate.value);
 
-            let vExcTradeDtls = { ProductID : vProductID, OpenDTVal : vOrdId, OpenDT : vToday, Symbol : vSymbol, OptionType : vOptionType, TransType : vTransType, UndrAsstSymb : vUndrAsstSymb, StrikePrice : vStrPrice, Expiry : objBuyLegDate.value, LotSize : parseFloat(objLotSize.value), Qty : parseFloat(objBuyQty.value), BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, DeltaTP : parseFloat(objBuyLegAdjTP.value), DeltaSL : parseFloat(objBuyLegAdjSL.value), Status : "OPEN" };
+            let vExcTradeDtls = { ProductID : vProductID, OpenDTVal : vOrdId, OpenDT : vToday, Symbol : vSymbol, OptionType : vOptionType, TransType : vTransType, UndrAsstSymb : vUndrAsstSymb, StrikePrice : vStrPrice, Expiry : vBuyExpiry, LotSize : parseFloat(objLotSize.value), Qty : parseFloat(objBuyQty.value), BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, DeltaTP : parseFloat(objBuyLegAdjTP.value), DeltaSL : parseFloat(objBuyLegAdjSL.value), Status : "OPEN" };
 
             gCurrPos.TradeData.push(vExcTradeDtls);
 
@@ -854,8 +857,9 @@ async function fnExecTrade(){
 		    let objBuyLegAdjTP = document.getElementById("txtDeltaBuyLegProfit");
 		    let objBuyLegAdjSL = document.getElementById("txtDeltaBuyLegLoss");
 		    let vProductID = objBestRates.data.result.product_id;
+			let vBuyExpiry = fnSetDDMMYYYY(objBuyLegDate.value);
 
-            let vExcTradeDtls = { ProductID : vProductID, OpenDTVal : vOrdId, OpenDT : vToday, Symbol : vSymbol, OptionType : vOptionType, TransType : vTransType, UndrAsstSymb : vUndrAsstSymb, StrikePrice : vStrPrice, Expiry : objBuyLegDate.value, LotSize : parseFloat(objLotSize.value), Qty : parseFloat(objBuyQty.value), BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, DeltaTP : parseFloat(objBuyLegAdjTP.value), DeltaSL : parseFloat(objBuyLegAdjSL.value), Status : "OPEN" };
+            let vExcTradeDtls = { ProductID : vProductID, OpenDTVal : vOrdId, OpenDT : vToday, Symbol : vSymbol, OptionType : vOptionType, TransType : vTransType, UndrAsstSymb : vUndrAsstSymb, StrikePrice : vStrPrice, Expiry : vBuyExpiry, LotSize : parseFloat(objLotSize.value), Qty : parseFloat(objBuyQty.value), BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, DeltaTP : parseFloat(objBuyLegAdjTP.value), DeltaSL : parseFloat(objBuyLegAdjSL.value), Status : "OPEN" };
 
             gCurrPos.TradeData.push(vExcTradeDtls);
 
@@ -1004,12 +1008,12 @@ function fnUpdateOpenPositions(){
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:#0078ff;">' + vLotSize + '</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:#e3ff00;">' + vQty + '</td>';
 		            if(vTransType === "SELL"){
-			            vTempHtml += '<td id="'+ vSymbol +'" style="text-wrap: nowrap; color:#bd00ff;text-align:right;"><span class="blink">' + (vBuyPrice).toFixed(2) + '</span></td>';
+			            vTempHtml += '<td id="'+ vSymbol +'" style="text-wrap: nowrap; color:white;text-align:right;"><span class="blink">' + (vBuyPrice).toFixed(2) + '</span></td>';
 			            vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (vSellPrice).toFixed(2) + '</td>';
 		            }
 		            else if(vTransType === "BUY"){
 			            vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (vBuyPrice).toFixed(2) + '</td>';
-			            vTempHtml += '<td id="'+ vSymbol +'" style="text-wrap: nowrap; color:#bd00ff;text-align:right;"><span class="blink">' + (vSellPrice).toFixed(2) + '</span></td>';
+			            vTempHtml += '<td id="'+ vSymbol +'" style="text-wrap: nowrap; color:white;text-align:right;"><span class="blink">' + (vSellPrice).toFixed(2) + '</span></td>';
 		            }
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right;">' + (parseFloat(vCapital)).toFixed(2) + '</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right;">' + (parseFloat(vCharges)).toFixed(2) + '</td>';
@@ -1040,7 +1044,7 @@ function fnUpdateOpenPositions(){
 	        vTempHtml += '<tr><td></td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">Total Trades: </td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">'+ vTotalTrades +'</td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">Investment: </td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">'+ vDeployedCapital +'</td><td></td><td></td><td></td><td></td><td style="text-wrap: nowrap; text-align:right; color: red; font-weight:bold;">'+ (vTotalCapital).toFixed(2) +'</td><td style="text-wrap: nowrap; text-align:right; color: red; font-weight:bold;">'+ (vTotalCharges).toFixed(2) +'</td><td style="text-wrap: nowrap; text-align:right; color: white; font-weight:bold;">'+ (vNetPL).toFixed(2) +'</td><td style="text-wrap: nowrap; text-align:right; color: white; font-weight:bold;">'+ (vPercentPL).toFixed(1) +'%</td></tr>';
 	        objCurrTradeList.innerHTML = vTempHtml;
 
-	        if((vPercentPL >= parseInt(objProfitPer.value) || vPercentPL <= -(parseInt(objLossPer.value)))){
+	        if(((vPercentPL >= parseInt(objProfitPer.value)) || (vPercentPL <= -(parseInt(objLossPer.value))))){
 	        	console.log("Exit All Positions.......");
 	        	fnExitAllOpenPosition();
 	        }
@@ -1052,6 +1056,7 @@ function fnUpdateOpenPositions(){
 	}
 	document.getElementById("divMaxProfit").innerText = (gMaxProfit).toFixed(2);
 	document.getElementById("divMaxLoss").innerText = (gMaxLoss).toFixed(2);
+	console.log(gCurrPos);
 }
 
 async function fnSwapOption(pSymbol, pTransType, pOptionType, pExpiry, pUndAst){
