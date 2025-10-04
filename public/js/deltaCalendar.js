@@ -373,7 +373,7 @@ function fnSaveStrategy(){
 	    let objExcTradeDtls = JSON.stringify(gCurrPos);
 	    localStorage.setItem("DeltaCalPosiS", objExcTradeDtls);
 	    fnLoadCurrentTradePos();
-	    
+
         fnGenMessage("Strategy Updated!", `badge bg-success`, "spnGenMsg");
 		$('#mdlStrategyEditor').modal('hide');
    	}
@@ -1048,7 +1048,7 @@ function fnUpdateOpenPositions(){
 	        let vNetPL = 0;
 	        let vTotalCharges = 0;
 	        let vTotalCapital = 0;
-	        let vDeployedCapital = 5000;
+	        let vDeployedCapital = 20000;
 	        let vPercentPL = 0;
 	        let objProfitPer = document.getElementById("txtExitProfitPer");
 	        let objLossPer = document.getElementById("txtExitLossPer");
