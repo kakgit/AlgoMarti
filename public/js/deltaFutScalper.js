@@ -63,6 +63,7 @@ function fnGetAllStatus(){
 	if(bAppStatus){
         fnGetSetTraderLoginStatus();
 		fnGetSetAutoTraderStatus();
+		fnLoadMarti();
 		fnLoadDefQty();
 		fnLoadLossRecoveryMultiplier();
 		fnLoadCurrentTradePos();
@@ -148,6 +149,18 @@ function fnLoadTradeCounter(){
 	else{
 		objCounterSwt.checked = false;
 	}
+}
+
+function fnLoadMarti(){
+    let vMartiM = JSON.parse(localStorage.getItem("DeltaFutMarti"));
+    let objSwtMarti = document.getElementById("swtMartingale");
+
+    if(vMartiM){
+    	objSwtMarti.checked = true;
+    }
+    else{
+    	objSwtMarti.checked = false;
+    }
 }
 
 function fnUpdateTrdSwtCounter(){
@@ -974,27 +987,33 @@ function fnSetNextOptTradeSettings(){
 
     let vOldQtyMul = JSON.parse(localStorage.getItem("QtyMulDelta"));
     let vStartLots = JSON.parse(localStorage.getItem("StartQtyNoDelta"));
+    let objSwtMarti = document.getElementById("swtMartingale");
 
-	if(parseFloat(vNewLossAmt) < 0){
-        let vNextQty = parseInt(vOldQtyMul) * 2;
-        localStorage.setItem("QtyMulDelta", vNextQty);
-        objQty.value = vNextQty;
-	}
-	else if(parseFloat(vTotLossAmt) < 0){
-        let vDivAmt = parseFloat(vTotLossAmt) / parseFloat(vOldLossAmt);
-        let vNextQty = Math.round(vDivAmt * parseInt(vOldQtyMul));
+    if(objSwtMarti.checked){
+		if(parseFloat(vNewLossAmt) < 0){
+	        let vNextQty = parseInt(vOldQtyMul) * 2;
+	        localStorage.setItem("QtyMulDelta", vNextQty);
+	        objQty.value = vNextQty;
+		}
+		else if(parseFloat(vTotLossAmt) < 0){
+	        let vDivAmt = parseFloat(vTotLossAmt) / parseFloat(vOldLossAmt);
+	        let vNextQty = Math.round(vDivAmt * parseInt(vOldQtyMul));
 
-        if(vNextQty < vStartLots)
-        vNextQty += vStartLots;
+	        if(vNextQty < vStartLots)
+	        vNextQty += vStartLots;
 
-        localStorage.setItem("QtyMulDelta", vNextQty);
-        objQty.value = vNextQty;
-	}
-    else {
-        localStorage.setItem("TotLossAmtDelta", 0);
-        localStorage.removeItem("QtyMulDelta");
-        // localStorage.setItem("TradeStep", 0);
-        fnSetLotsByQtyMulLossAmt();
+	        localStorage.setItem("QtyMulDelta", vNextQty);
+	        objQty.value = vNextQty;
+		}
+	    else {
+	        localStorage.setItem("TotLossAmtDelta", 0);
+	        localStorage.removeItem("QtyMulDelta");
+	        // localStorage.setItem("TradeStep", 0);
+	        fnSetLotsByQtyMulLossAmt();
+	    }
+    }
+    else{
+	        fnSetLotsByQtyMulLossAmt();
     }
 
 	// console.log(gCharges);
@@ -1006,6 +1025,14 @@ function fnSetNextOptTradeSettings(){
 		// console.log("ADD Brokerage");
 	}
 	// console.log(localStorage.getItem("TotLossAmtDelta"))
+}
+
+function fnChangeMartingale(){
+    // let vMartiM = JSON.parse(localStorage.getItem("DeltaFutMarti"));
+    let objSwtMarti = document.getElementById("swtMartingale");
+
+    localStorage.setItem("DeltaFutMarti", JSON.stringify(objSwtMarti.checked));
+    // alert(objSwtMarti.checked);
 }
 
 function fnSetLotsByQtyMulLossAmt(){
@@ -1141,6 +1168,7 @@ function fnClearLocalStorageTemp(){
     localStorage.removeItem("DeltaCurrFutPosiS");
 	localStorage.removeItem("TrdBkFut");
 	localStorage.removeItem("StartQtyNoDelta");
+	localStorage.removeItem("DeltaFutMarti");
 	localStorage.setItem("QtyMulDelta", 0);
 	localStorage.setItem("TotLossAmtDelta", 0);
     clearInterval(gTimerID);
