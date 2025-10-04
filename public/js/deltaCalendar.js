@@ -542,7 +542,7 @@ function fnSubscribeInterval(){
         clearInterval(vTradeInst);
 
 		setTimeout(fnSubscribe, 3000);
-	    vTradeInst = setInterval(fnSaveUpdCurrPos, 15000);
+	    vTradeInst = setInterval(fnSaveUpdCurrPos, 60000);
 	}
 }
 
