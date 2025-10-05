@@ -1013,7 +1013,11 @@ function fnSetNextOptTradeSettings(){
 	    }
     }
     else{
-	        fnSetLotsByQtyMulLossAmt();
+    	if(parseFloat(vTotLossAmt) > 0){
+			localStorage.setItem("TotLossAmtDelta", 0);
+    	}
+    	
+        fnSetLotsByQtyMulLossAmt();
     }
 
 	// console.log(gCharges);

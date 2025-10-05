@@ -114,8 +114,9 @@
 
                                     <div class="col-3">Exit All at Loss %</div>
                                     <div class="col-3">Exit All at Profit %</div>
-                                    <div class="col-3"></div>
-                                    <div class="col-3"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2" style="text-align: center;">Add Futures</div>
 
                                     <div class="col-3">
                                         <input type="text" value="50" id="txtExitLossPer" class="form-control" />
@@ -123,14 +124,22 @@
                                     <div class="col-3">
                                         <input type="text" value="50" id="txtExitProfitPer" class="form-control" />
                                     </div>
-                                    <div class="col-3">
+
+                                    <div class="col-2">
                                         <div class="d-grid gap-1">
                                             <button class="btn btn-outline-primary" onclick="fnManageStrategy();"><b>Manage Strategy</b></button>
                                         </div>
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col-2">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success" onclick="fnGetOptionChain();"><b>Get Option Chain</b></button>
+                                            <button class="btn btn-outline-warning" onclick="fnGetOptionChain();"><b>Get Option Chain</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <div class="input-group mb-3">
+                                            <button class="btn btn-danger" type="button" onclick=""><b>S</b></button>
+                                            <input type="text" value="500" id="txtFutQty" class="form-control" />
+                                            <button class="btn btn-success" type="button" onclick=""><b>B</b></button>
                                         </div>
                                     </div>
 
