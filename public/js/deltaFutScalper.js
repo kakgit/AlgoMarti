@@ -2,7 +2,7 @@ let objDeltaWS = null;
 let gByorSl = "";
 let gCurrPos = null;
 let gBuyPrice, gSellPrice, gLotSize, gQty, gAmtSL, gAmtTP, gCharges, gCapital, gOrderDT = 0;
-let gBrokerage = 0.02;
+let gBrokerage = 0.05;
 let gMaxTradeTime = 15;
 let gLeverage = 160;
 let gTimerID = 0;
@@ -63,6 +63,7 @@ function fnGetAllStatus(){
 	if(bAppStatus){
         fnGetSetTraderLoginStatus();
 		fnGetSetAutoTraderStatus();
+		fnLoadDefSymbol();
 		fnLoadMarti();
 		fnLoadDefQty();
 		fnLoadLossRecoveryMultiplier();
@@ -78,6 +79,34 @@ function fnGetAllStatus(){
 		fnLoadTradeCounter();
 
 		fnLoadTradeSide();
+	}
+}
+
+function fnLoadDefSymbol(){
+	let objDefSymM = JSON.parse(localStorage.getItem("DeltaDefSymbFut"));
+	let objSelSymb = document.getElementById("ddlFuturesSymbols");
+
+	if(objDefSymM === null){
+		objDefSymM = "";
+	}
+
+	objSelSymb.value = objDefSymM;
+	fnSetSymbolData(objDefSymM);
+}
+
+function fnSetSymbolData(pThisVal){
+	let objLotSize = document.getElementById("txtLotSize");
+
+	localStorage.setItem("DeltaDefSymbFut", JSON.stringify(pThisVal));
+
+	if(pThisVal === "BTCUSD"){
+		objLotSize.value = 0.001;
+	}
+	else if(pThisVal === "ETHUSD"){
+		objLotSize.value = 0.01;
+	}
+	else{
+		objLotSize.value = 0;
 	}
 }
 
@@ -649,8 +678,8 @@ async function fnInitiateManualFutures(pTransType){
 		    let objLotSize = document.getElementById("txtLotSize");
 		    let vSLPoints = parseFloat(document.getElementById("txtPointsSL").value);
 		    let vTPPoints = parseFloat(document.getElementById("txtPointsTP").value);
-		    let vBestBuy = parseFloat(objBestRates.data.BestBuy);
-		    let vBestSell = parseFloat(objBestRates.data.BestSell);
+		    let vBestBuy = parseFloat(objBestRates.data.BestBuy) + 10;
+		    let vBestSell = parseFloat(objBestRates.data.BestSell) - 10;
 			
 			gByorSl = pTransType;
 
@@ -1169,6 +1198,7 @@ function fnGetTradePL(pSellPrice, pBuyPrice, pLotSize, pQty, pCharges){
 }
 
 function fnClearLocalStorageTemp(){
+    localStorage.removeItem("DeltaDefSymbFut");
     localStorage.removeItem("DeltaCurrFutPosiS");
 	localStorage.removeItem("TrdBkFut");
 	localStorage.removeItem("StartQtyNoDelta");
@@ -1262,4 +1292,59 @@ function fnLoadTradeSide(){
     else{
         objTradeSideVal.value = -1;
     }
+}
+
+
+//********** Sample Code to Place Order *************//
+function fnPlaceLimitOrder(){
+    let objApiKey = document.getElementById("txtUserAPIKey");
+    let objApiSecret = document.getElementById("txtAPISecret");
+    let objFutDDL = document.getElementById("ddlFuturesSymbols");
+    let objClientOrderId = document.getElementById("hidClientOrderId");
+
+    let vDate = new Date();
+    let vOrdId = vDate.valueOf();
+    objClientOrderId.value = vOrdId;
+
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let vAction = JSON.stringify({ ApiKey : objApiKey.value, ApiSecret : objApiSecret.value, ClientOrderID : vOrdId });
+
+    let requestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: vAction,
+        redirect: 'follow'
+    };
+
+    fetch("/deltaExcFut/placeLimitOrder", requestOptions)
+    .then(response => response.json())
+    .then(objResult => {
+        if(objResult.status === "success"){
+
+        	console.log(objResult);
+            // let objBestRates = { BestBuy : vRes.result.quotes.best_ask, BestSell : vRes.result.quotes.best_bid }
+
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "danger"){
+        	console.log(objResult);
+            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+	            fnGenMessage(objResult.data.response.body.error.code + " for IP: " + objResult.data.response.body.error.context.client_ip, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+            else{
+	            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+            }
+        }
+        else if(objResult.status === "warning"){
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else{
+            fnGenMessage("Error in Placing Limit Order!", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        fnGenMessage(error.message, `badge bg-danger`, "spnGenMsg");
+    });
 }
