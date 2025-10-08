@@ -2,7 +2,7 @@ let objDeltaWS = null;
 let gByorSl = "";
 let gCurrPos = null;
 let gBuyPrice, gSellPrice, gLotSize, gQty, gAmtSL, gAmtTP, gCharges, gCapital, gOrderDT = 0;
-let gBrokerage = 0.05;
+let gBrokerage = 0.02;
 let gMaxTradeTime = 15;
 let gLeverage = 160;
 let gTimerID = 0;
@@ -1198,7 +1198,6 @@ function fnGetTradePL(pSellPrice, pBuyPrice, pLotSize, pQty, pCharges){
 }
 
 function fnClearLocalStorageTemp(){
-    localStorage.removeItem("DeltaDefSymbFut");
     localStorage.removeItem("DeltaCurrFutPosiS");
 	localStorage.removeItem("TrdBkFut");
 	localStorage.removeItem("StartQtyNoDelta");
