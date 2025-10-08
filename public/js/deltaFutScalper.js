@@ -678,8 +678,8 @@ async function fnInitiateManualFutures(pTransType){
 		    let objLotSize = document.getElementById("txtLotSize");
 		    let vSLPoints = parseFloat(document.getElementById("txtPointsSL").value);
 		    let vTPPoints = parseFloat(document.getElementById("txtPointsTP").value);
-		    let vBestBuy = parseFloat(objBestRates.data.BestBuy) + 10;
-		    let vBestSell = parseFloat(objBestRates.data.BestSell) - 10;
+		    let vBestBuy = parseFloat(objBestRates.data.BestBuy);
+		    let vBestSell = parseFloat(objBestRates.data.BestSell);
 			
 			gByorSl = pTransType;
 
