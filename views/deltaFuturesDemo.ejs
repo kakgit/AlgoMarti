@@ -37,7 +37,7 @@
                             <div class="col-3">
                                 <h4>Manual Trader</h4>
                             </div>
-                            <div class="col-2">
+                            <div class="col-1">
                                 <form name="frmSide">
                                     <div class="tw-toggle" style="white-space: nowrap;">
                                         <input id="txtBN1" type="radio" name="rdoTradeSide" value="false" onclick="fnTradeSide();" />
@@ -56,6 +56,9 @@
                             <div class="col-1"> Qty</div>
                             <div class="col-1" style="text-align: right;">
                                 <span class="badge rounded-pill text-bg-success" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnConnectWS();">&nbsp;</span>
+                            </div>
+                            <div class="col-1" style="text-align: right;">
+                                <span class="badge rounded-pill text-bg-primary" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnSubscribe();" title="Subscribe to WebSocket">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
                                 <span class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnCloseWS();">&nbsp;</span>
@@ -127,12 +130,12 @@
                                     </div>
                                     <div class="col-1">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-primary" onclick="fnSubscribe();" style="display: block;"><b>Sub</b></button>
+                                            <button class="btn btn-outline-success" onclick="fnManualSubStart();" style="display: block;"><b>START</b></button>
                                         </div>
                                     </div>
                                     <div class="col-1">
                                          <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-primary" onclick="fnUnsubscribe();" style="display: block;"><b>Unsub</b></button>
+                                            <button class="btn btn-outline-danger" onclick="fnManualSubStop();" style="display: block;"><b>STOP</b></button>
                                         </div>
                                     </div>
                                     <div style="display: none;">

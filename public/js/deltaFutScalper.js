@@ -13,6 +13,8 @@ let gOldPLAmt = 0;
 let gNewPLAmt = 0;
 let gPL = 0;
 let gHisCandleMins = 1; //Eg: 1, 3, 5, 15, 30
+let gSubInterval = 0;
+let gManualSubIntvl = 0;
 
 window.addEventListener("DOMContentLoaded", function(){
 	fnGetAllStatus();
@@ -235,6 +237,7 @@ function fnLoadCurrentTradePos(){
 
 function fnCloseWS(){
 	if(objDeltaWS !== null){
+		clearInterval(gSubInterval);
 		objDeltaWS.close();
 	}
 	else{
@@ -251,6 +254,7 @@ function fnConnectWS(){
 
         // objDeltaWS.send(JSON.stringify(vSendData));
         console.log("Conn Started......");
+
         fnGenMessage("Streaming Connection Started and Open!", `badge bg-success`, "spnGenMsg");
     }
     objDeltaWS.onclose = function (){
@@ -296,7 +300,8 @@ function fnConnectWS(){
 
 function fnSubscribeInterval(){
 	// console.log("Interval subscription.....");
-	setInterval(fnSubscribe, 60000);
+	clearInterval(gSubInterval);
+	gSubInterval = setInterval(fnSubscribe, 60000);
 	// setInterval(fnGetHistoricalOHLC, 60000);
 }
 
@@ -795,6 +800,43 @@ function fnSetInitFutTrdDtls(){
 
 		gByorSl = "";
 	}
+}
+
+function fnManualSubStart(){
+	fnManualSubcription();
+	clearInterval(gManualSubIntvl);
+	gManualSubIntvl = setInterval(fnManualSubcription, 15000);
+
+}
+
+async function fnManualSubcription(){
+    let objBestRates = await fnGetFutBestRates();
+    if(objBestRates.status === "success"){
+    	let objBestBuy = document.getElementById("txtBestBuyPrice");
+		let objBestSell = document.getElementById("txtBestSellPrice");
+
+	    objBestBuy.value = parseFloat(objBestRates.data.BestBuy);
+	    objBestSell.value = parseFloat(objBestRates.data.BestSell);
+    	
+		if(gCurrPos !== null){
+			fnUpdateOpnPosStatus();
+		}
+		console.log("Manual Rates Started.....")
+    }
+	else{
+
+	}
+}
+
+function fnManualSubStop(){
+	clearInterval(gManualSubIntvl);
+	console.log("Manual Rates Stopped.....");
+
+   	let objBestBuy = document.getElementById("txtBestBuyPrice");
+	let objBestSell = document.getElementById("txtBestSellPrice");
+
+	objBestBuy.value = "";
+	objBestSell.value= "";
 }
 
 function fnGetFutBestRates(){
