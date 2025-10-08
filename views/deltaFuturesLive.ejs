@@ -2,7 +2,7 @@
     <div class="page-heading">
         <div class="row">
             <div class="col-4">
-                <h3>Delta - Futures Scalper Live</h3>
+                <h3>Delta - Futures Scalper LIVE</h3>
             </div>
             <div class="col-4 text-center">
                 <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
@@ -55,13 +55,13 @@
                             <div class="col-1"><input type="text" class="form-control" min="1" value="1" id="txtStartQty" onchange="fnChangeStartQty(this);" /></div>
                             <div class="col-1"> Qty</div>
                             <div class="col-1" style="text-align: right;">
-                                <span class="badge rounded-pill text-bg-success" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnConnectWS();" title="Connect WebSocket">&nbsp;</span>
+                                <span class="badge rounded-pill text-bg-success" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnConnectWS();">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
                                 <span class="badge rounded-pill text-bg-primary" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnSubscribe();" title="Subscribe to WebSocket">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
-                                <span class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnCloseWS();" title="Disconnect WebSocket">&nbsp;</span>
+                                <span class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnCloseWS();">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divTraderClps" role="button" aria-expanded="true" aria-controls="divTraderClps">
@@ -114,10 +114,10 @@
                                     <div class="col-2">Best Selling Price</div>
                                     <div class="col-2"></div>
                                     <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtLossRecvPerct" value="100" onchange="fnUpdateLossRecPrct(this);" />
+                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtLossRecvPerct" value="50" onchange="fnUpdateLossRecPrct(this);" />
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtMultiplierX" value="1.0" onchange="fnUpdateMultiplierX(this);" />
+                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtMultiplierX" value="2.0" onchange="fnUpdateMultiplierX(this);" />
                                     </div>
                                     <div class="col-2">
                                         <input type="number" class="form-control" placeholder="Best Buy Price" id="txtBestBuyPrice" />
@@ -129,8 +129,14 @@
                                         <input type="number" class="form-control" placeholder="Best Sell Price" id="txtBestSellPrice" />
                                     </div>
                                     <div class="col-1">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-success" onclick="fnManualSubStart();" style="display: block;"><b>START</b></button>
+                                        </div>
                                     </div>
                                     <div class="col-1">
+                                         <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-danger" onclick="fnManualSubStop();" style="display: block;"><b>STOP</b></button>
+                                        </div>
                                     </div>
                                     <div style="display: none;">
                                         <div class="col-2">Open</div>
@@ -267,10 +273,10 @@
                                     </div>
                                 </div>
                                 <div class="col-2">
-                                    <input type="number" class="form-control" placeholder="SL Points" id="txtPointsSL" value="100" />
+                                    <input type="number" class="form-control" placeholder="SL Points" id="txtPointsSL" />
                                 </div>
                                 <div class="col-2">
-                                    <input type="number" class="form-control" placeholder="TP Points" id="txtPointsTP" value="200" />
+                                    <input type="number" class="form-control" placeholder="TP Points" id="txtPointsTP" />
                                 </div>
                                 <div class="col-2">
                                     <div class="d-grid gap-1">

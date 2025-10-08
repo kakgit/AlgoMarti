@@ -805,8 +805,7 @@ function fnSetInitFutTrdDtls(){
 function fnManualSubStart(){
 	fnManualSubcription();
 	clearInterval(gManualSubIntvl);
-	gManualSubIntvl = setInterval(fnManualSubcription, 15000);
-
+	gManualSubIntvl = setInterval(fnManualSubcription, 8000);
 }
 
 async function fnManualSubcription(){
