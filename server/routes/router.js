@@ -162,7 +162,13 @@ route.post("/deltaExc/validateLogin", deltaLiveController.fnValidateUserLogin);
 route.post("/deltaExc/getSpotPriceByProd", deltaLiveController.fnGetSpotPriceByProd);
 route.post("/deltaExc/getProdBySymbol", deltaLiveController.fnGetProdBySymbol);
 
-//Delta Futures Routes
+//Delta Futures Live Routes
+route.post("/deltaExcFutR/validateLogin", deltaFutLiveController.fnValidateUserLogin);
+route.post("/deltaExcFutR/placeRealOrder", deltaFutLiveController.fnPlaceOrderSDK);
+route.post("/deltaExcFutR/getOrderDetails", deltaFutLiveController.fnGetOrderDetails);
+route.post("/deltaExcFutR/getProductsList", deltaFutLiveController.fnGetProductsList);
+
+//Delta Futures Demo Routes
 route.post("/deltaExcFut/validateLogin", deltaFutDemoController.fnValidateUserLogin);
 route.post("/deltaExcFut/getHistOHLC", deltaFutDemoController.fnHistoricalOHLCAPI);
 route.post("/deltaExcFut/getCurrBSRates", deltaFutDemoController.fnGetCurrBuySellRates);
