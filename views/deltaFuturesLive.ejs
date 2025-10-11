@@ -99,6 +99,7 @@
                                             <option value=''>Select Symbol</option>
                                             <option value='BTCUSD' selected>BTCUSD</option>
                                             <option value='ETHUSD'>ETHUSD</option>
+                                            <option value='XRPUSD'>XRPUSD</option>
                                         </select>
                                     </div>
                                     <div class="col-3">
@@ -237,6 +238,7 @@
                                     <table class="table">
                                         <thead>
                                             <tr style="text-align:center;">
+                                                <th scope="col" style="text-wrap: nowrap;">Status</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Symbol</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Tr Type</th>
@@ -251,6 +253,7 @@
                                         </thead>
                                         <tbody>
                                             <tr style="text-align:center;">
+                                                <td id="tdStatus" style="text-wrap: nowrap;"></td>
                                                 <td id="tdDateTime" style="text-wrap: nowrap;"></td>
                                                 <td id="tdSymbol" style="text-wrap: nowrap;"></td>
                                                 <td id="tdTransType" style="text-wrap: nowrap;"></td>
@@ -315,6 +318,8 @@
                         <div class="row">
                             <div class="col-3">
                                 <h4>Closed Position(s)</h4>
+                            </div>
+                            <div class="col-1">
                             </div>
                             <div class="col-1" style="font-weight: bold;">
                                 P&L: 

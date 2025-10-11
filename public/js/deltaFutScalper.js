@@ -991,7 +991,7 @@ async function fnInnitiateClsFutTrade(pQty){
 
 	        gOldPLAmt = JSON.parse(localStorage.getItem("TotLossAmtDelta"));
 	        gNewPLAmt = vTradePL;
-	    	let vTotNewPL = gOldPLAmt + gNewPLAmt;
+	    	let vTotNewPL = -5;//gOldPLAmt + gNewPLAmt;
 	    	localStorage.setItem("OldPLAmtDelta", gOldPLAmt);
 	    	localStorage.setItem("NewPLAmtDelta", gNewPLAmt);
 	    	localStorage.setItem("TotLossAmtDelta", vTotNewPL);
@@ -999,7 +999,7 @@ async function fnInnitiateClsFutTrade(pQty){
 	    else{
 	    	gOldPLAmt = JSON.parse(localStorage.getItem("TotLossAmtDelta"));
 	    	gNewPLAmt = gPL;
-	    	let vTotNewPL = gOldPLAmt + gNewPLAmt;
+	    	let vTotNewPL = -5;//gOldPLAmt + gNewPLAmt;
 	    	localStorage.setItem("OldPLAmtDelta", gOldPLAmt);
 	    	localStorage.setItem("NewPLAmtDelta", gNewPLAmt);
 	    	localStorage.setItem("TotLossAmtDelta", vTotNewPL);

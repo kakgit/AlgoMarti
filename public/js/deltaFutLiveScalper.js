@@ -18,6 +18,7 @@ let gHisCandleMins = 1; //Eg: 1, 3, 5, 15, 30
 // let gSubInterval = 0;
 let gManualSubIntvl = 0;
 let gManCloseWSCon = false;
+let gOpenOrdrCounter = 0;
 
 window.addEventListener("DOMContentLoaded", function(){
 	fnGetAllStatus();
@@ -112,6 +113,9 @@ function fnSetSymbolData(pThisVal){
 	}
 	else if(pThisVal === "ETHUSD"){
 		objLotSize.value = 0.01;
+	}
+	else if(pThisVal === "XRPUSD"){
+		objLotSize.value = 1;
 	}
 	else{
 		objLotSize.value = 0;
@@ -713,7 +717,9 @@ async function fnInitRealFuturesTrade(pTransType){
 			    let vOrderType = objOrder.data.result.order_type;
 			    let vBestBuy = 0;
 			    let vBestSell = 0;
-
+			    let vBuyCommission = 0;
+			    let vSellCommission = 0;
+			    let vProductID = objOrder.data.result.product_id;
 				gByorSl = pTransType;
 
 				if(vState === "closed"){
@@ -726,10 +732,12 @@ async function fnInitRealFuturesTrade(pTransType){
 				}
 
 				if(gByorSl === "buy"){
+				    let vBuyCommission = objOrder.data.result.paid_commission;
 	                gAmtSL = (vBestBuy - vSLPoints).toFixed(2);
 	                gAmtTP = (vBestBuy + vTPPoints).toFixed(2);
 				}
 				else if(gByorSl === "sell"){
+				    let vSellCommission = objOrder.data.result.paid_commission;
 	                gAmtSL = (vBestBuy + vSLPoints).toFixed(2);
 	                gAmtTP = (vBestBuy - vTPPoints).toFixed(2);
 				}
@@ -738,7 +746,7 @@ async function fnInitRealFuturesTrade(pTransType){
 					gAmtTP = 0;				
 				}
 
-	            let vExcTradeDtls = { OrderID : vOrdId, ClientOrderID : vClientOrdID, OpenDT : vToday, FutSymbol : objFutDDL.value, TransType : pTransType, LotSize : objLotSize.value, Qty : objQty.value, BuyPrice : vBestBuy, SellPrice : vBestSell, AmtSL : gAmtSL, AmtTP : gAmtTP, StopLossPts : vSLPoints, TakeProfitPts : vTPPoints, OpenDTVal : vClientOrdID, OrderType : vOrderType, OrderState : vState };
+	            let vExcTradeDtls = { OrderID : vOrdId, ClientOrderID : vClientOrdID, OpenDT : vToday, FutSymbol : objFutDDL.value, TransType : pTransType, LotSize : objLotSize.value, Qty : objQty.value, BuyPrice : vBestBuy, SellPrice : vBestSell, AmtSL : gAmtSL, AmtTP : gAmtTP, StopLossPts : vSLPoints, TakeProfitPts : vTPPoints, OpenDTVal : vClientOrdID, OrderType : vOrderType, OrderState : vState, ProductID : vProductID, BuyCommission : vBuyCommission, SellCommission : vSellCommission };
 
 	            gCurrPosR.TradeData.push(vExcTradeDtls);
 
@@ -748,6 +756,7 @@ async function fnInitRealFuturesTrade(pTransType){
 				localStorage.setItem("QtyMulDeltaR", objQty.value);
 
 	            fnSetInitFutTrdDtls();
+			    console.log(gCurrPosR);
 
 				fnGenMessage("Trade Order Placed!", `badge bg-success`, "spnGenMsg");
 
@@ -877,7 +886,7 @@ async function fnInitiateManualFutures(pTransType){
 }
 
 function fnCheckOpenStatePos(){
-    console.log(gCurrPosR);
+    // console.log(gCurrPosR);
 
     //Get Order details by order id and keep checking for 15 secs and cancel order
     let objApiKey = document.getElementById("txtUserAPIKey");
@@ -899,38 +908,206 @@ function fnCheckOpenStatePos(){
 	        redirect: 'follow'
 	    };
 
-	    console.log("vOrdId: " + vOrdId);
-	    console.log("vClientOrdID: " + vClientOrdID);
-	    // fetch("/deltaExcFutR/placeRealOrder", requestOptions)
-	    // .then(response => response.json())
-	    // .then(objResult => {
+	    fetch("/deltaExcFutR/getOrderDetails", requestOptions)
+	    .then(response => response.json())
+	    .then(objResult => {
+	    	console.log(objResult);
+	        if(objResult.status === "success"){
+	        	// console.log(objResult);
+	        	if(objResult.data.result.length > 0){
+	        		if(objResult.data.result[0].state === "open"){
+	        			gOpenOrdrCounter +=1;
+	        			if(gOpenOrdrCounter < 5){
+	        				setTimeout(fnCheckOpenStatePos, 3000);
+	        			}
+	        			else{
+	        				fnCancelPendingOrder();
+	        			}
+	        		}
+	        		else if(objResult.data.result[0].state === "closed"){
+	        			//Buy or Sell Order is Executed
+			        	console.log("Executed. i.e., Closed");
+			        	console.log(objResult);
+	        		}
+	        		else{
+	        			console.log("Order Not Found");
+	        			//Order is Cancelled
+	        		}
+	        	}
+	        	else{
+	        		console.log("Order Not Found: " + vOrdId);
+		   			// let objSelData = null;
+        			// for(let i=0; i<gCurrPosR.TradeData.length; i++){
+        			// 	if(gCurrPosR.TradeData[i].OrderID === vOrdId){
+		   			// 		objSelData = gCurrPosR.TradeData[i];
+        			// 	}
+        			// }
+	        		// gCurrPosR.TradeData.pop(objSelData);
 
-	    //     if(objResult.status === "success"){
+		            // let objExcTradeDtls = JSON.stringify(gCurrPosR);
+		            // localStorage.setItem("DeltaCurrFutPosiSR", objExcTradeDtls);
 
+		            // fnSetInitFutTrdDtls();
+		        	// console.log(gCurrPosR);
+	        	}
+	            // let objBestRates = { BestBuy : vRes.result.quotes.best_ask, BestSell : vRes.result.quotes.best_bid }
 
-	    //         // let objBestRates = { BestBuy : vRes.result.quotes.best_ask, BestSell : vRes.result.quotes.best_bid }
+	            fnGenMessage(objResult.message, `badge bg-` + objResult.status, "spnGenMsg");
+	        }
+	        else if(objResult.status === "danger"){
+	            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+		            fnGenMessage(objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, `badge bg-` + objResult.status, "spnGenMsg");
+	            }
+	            else{
+		            fnGenMessage("Error: " + objResult.data.response.body.error.code, `badge bg-` + objResult.status, "spnGenMsg");
+	            }
+	        }
+	        else if(objResult.status === "warning"){
+	            fnGenMessage(objResult.message, `badge bg-` + objResult.status, "spnGenMsg");
+	        }
+	        else{
+	            fnGenMessage(objResult.message, `badge bg-` + objResult.status, "spnGenMsg");
+	        }
+	    })
+	    .catch(error => {
+	        fnGenMessage("Error in Receiving Order Details...", `badge bg-danger`, "spnGenMsg");
+	    });
+    }
+    else{
+        fnGenMessage("No Order in Memory!", `badge bg-danger`, "spnGenMsg");
+    }
+}
 
-	    //         resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
-	    //     }
-	    //     else if(objResult.status === "danger"){
-	    //         if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-	    //             resolve({ "status": objResult.status, "message": objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, "data": "" });
-	    //         }
-	    //         else{
-	    //             resolve({ "status": objResult.status, "message": "Error: " + objResult.data.response.body.error.code, "data": objResult.data });
-	    //         }
-	    //     }
-	    //     else if(objResult.status === "warning"){
-	    //         resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
-	    //     }
-	    //     else{
-	    //         fnGenMessage("Error in Placing the Order, Contact Admin!", `badge bg-danger`, "spnGenMsg");
-	    //         reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
-	    //     }
-	    // })
-	    // .catch(error => {
-	    //     reject({ "status": "danger", "message": "Error in Placing Order...", "data": "" });
-	    // });
+function fnCancelPendingOrder(){
+    let objApiKey = document.getElementById("txtUserAPIKey");
+    let objApiSecret = document.getElementById("txtAPISecret");
+
+    if(gCurrPosR.TradeData.length > 0){
+    	let vOrdId = gCurrPosR.TradeData[0].OrderID;
+    	let vClientOrdID = gCurrPosR.TradeData[0].ClientOrderID;
+    	let vSymbol = gCurrPosR.TradeData[0].FutSymbol;
+	    let vHeaders = new Headers();
+	    vHeaders.append("Content-Type", "application/json");
+
+	    let vAction = JSON.stringify({ ApiKey : objApiKey.value, ApiSecret : objApiSecret.value, OrderID : vOrdId, ClientOrdID : vClientOrdID, Symbol : vSymbol });
+
+	    let requestOptions = {
+	        method: 'POST',
+	        headers: vHeaders,
+	        body: vAction,
+	        redirect: 'follow'
+	    };
+
+	    fetch("/deltaExcFutR/cancelPendingOrder", requestOptions)
+	    .then(response => response.json())
+	    .then(objResult => {
+
+	        if(objResult.status === "success"){
+	        	// console.log(objResult);
+        		if(objResult.data.result.state === "cancelled"){
+		   			let objSelData = null;
+        			for(let i=0; i<gCurrPosR.TradeData.length; i++){
+        				if(gCurrPosR.TradeData[i].OrderID === vOrdId){
+		   					objSelData = gCurrPosR.TradeData[i];
+        				}
+        			}
+	        		gCurrPosR.TradeData.pop(objSelData);
+        		}
+
+	            let objExcTradeDtls = JSON.stringify(gCurrPosR);
+	            localStorage.setItem("DeltaCurrFutPosiSR", objExcTradeDtls);
+
+	            fnSetInitFutTrdDtls();
+	        	// console.log(gCurrPosR);
+	            fnGenMessage(objResult.message, `badge bg-` + objResult.status, "spnGenMsg");
+	        }
+	        else if(objResult.status === "danger"){
+	            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+		            fnGenMessage(objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, `badge bg-` + objResult.status, "spnGenMsg");
+	            }
+	            else{
+		            fnGenMessage("Error: " + objResult.data.response.body.error.code, `badge bg-` + objResult.status, "spnGenMsg");
+	            }
+	        }
+	        else if(objResult.status === "warning"){
+	            fnGenMessage(objResult.message, `badge bg-` + objResult.status, "spnGenMsg");
+	        }
+	        else{
+	            fnGenMessage(objResult.message, `badge bg-` + objResult.status, "spnGenMsg");
+	        }
+	    })
+	    .catch(error => {
+	    	console.log(error);
+	        fnGenMessage("Error in Cancelling Pending Order...", `badge bg-danger`, "spnGenMsg");
+	    });
+    }
+    else{
+        fnGenMessage("No Order in Memory!", `badge bg-danger`, "spnGenMsg");
+    }
+}
+
+function fnGetFillPosition(){
+    let objApiKey = document.getElementById("txtUserAPIKey");
+    let objApiSecret = document.getElementById("txtAPISecret");
+
+    if(gCurrPosR.TradeData.length > 0){
+    	let vOrdId = gCurrPosR.TradeData[0].OrderID;
+    	let vClientOrdID = gCurrPosR.TradeData[0].ClientOrderID;
+    	let vSymbol = gCurrPosR.TradeData[0].FutSymbol;
+	    let vHeaders = new Headers();
+	    vHeaders.append("Content-Type", "application/json");
+
+	    let vAction = JSON.stringify({ ApiKey : objApiKey.value, ApiSecret : objApiSecret.value, OrderID : vOrdId, ClientOrdID : vClientOrdID, Symbol : vSymbol });
+
+	    let requestOptions = {
+	        method: 'POST',
+	        headers: vHeaders,
+	        body: vAction,
+	        redirect: 'follow'
+	    };
+
+	    fetch("/deltaExcFutR/getFilledPosition", requestOptions)
+	    .then(response => response.json())
+	    .then(objResult => {
+
+	        if(objResult.status === "success"){
+	        	console.log(objResult);
+        		// if(objResult.data.result.state === "cancelled"){
+		   		// 	let objSelData = null;
+        		// 	for(let i=0; i<gCurrPosR.TradeData.length; i++){
+        		// 		if(gCurrPosR.TradeData[i].OrderID === vOrdId){
+		   		// 			objSelData = gCurrPosR.TradeData[i];
+        		// 		}
+        		// 	}
+	        	// 	gCurrPosR.TradeData.pop(objSelData);
+        		// }
+
+	            // let objExcTradeDtls = JSON.stringify(gCurrPosR);
+	            // localStorage.setItem("DeltaCurrFutPosiSR", objExcTradeDtls);
+
+	            // fnSetInitFutTrdDtls();
+	        	// console.log(gCurrPosR);
+	            fnGenMessage(objResult.message, `badge bg-` + objResult.status, "spnGenMsg");
+	        }
+	        else if(objResult.status === "danger"){
+	            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+		            fnGenMessage(objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, `badge bg-` + objResult.status, "spnGenMsg");
+	            }
+	            else{
+		            fnGenMessage("Error: " + objResult.data.response.body.error.code, `badge bg-` + objResult.status, "spnGenMsg");
+	            }
+	        }
+	        else if(objResult.status === "warning"){
+	            fnGenMessage(objResult.message, `badge bg-` + objResult.status, "spnGenMsg");
+	        }
+	        else{
+	            fnGenMessage(objResult.message, `badge bg-` + objResult.status, "spnGenMsg");
+	        }
+	    })
+	    .catch(error => {
+	    	console.log(error);
+	        fnGenMessage("Error in Cancelling Pending Order...", `badge bg-danger`, "spnGenMsg");
+	    });
     }
     else{
         fnGenMessage("No Order in Memory!", `badge bg-danger`, "spnGenMsg");
@@ -938,6 +1115,7 @@ function fnCheckOpenStatePos(){
 }
 
 function fnSetInitFutTrdDtls(){
+    let objStatus = document.getElementById("tdStatus");
     let objDateTime = document.getElementById("tdDateTime");
     let objSymbol = document.getElementById("tdSymbol");
     let objTransType = document.getElementById("tdTransType");
@@ -950,10 +1128,10 @@ function fnSetInitFutTrdDtls(){
     let objProfitLoss = document.getElementById("tdProfitLoss");
     let objTrdExitTime = document.getElementById("txtTrdExitTime");
 
-    // console.log(gCurrPos);
+    // console.log(gCurrPosR);
 
-	if(gCurrPos !== null){
-        gOrderDT = gCurrPos.TradeData[0].OrderID;
+	if(gCurrPosR.TradeData.length > 0){
+        gOrderDT = gCurrPosR.TradeData[0].OrderID;
 
 	    let vDate = new Date();
 	    let vCurrDT = vDate.valueOf();
@@ -962,17 +1140,23 @@ function fnSetInitFutTrdDtls(){
 		if(vTimeDiff < parseInt(objTrdExitTime.value))
 		fnInnitiateTimer(parseInt(objTrdExitTime.value) - vTimeDiff);
 
-		gBuyPrice = parseFloat(gCurrPos.TradeData[0].BuyPrice).toFixed(2);
-		gSellPrice = parseFloat(gCurrPos.TradeData[0].SellPrice).toFixed(2);
-		gLotSize = parseFloat(gCurrPos.TradeData[0].LotSize);
-		gQty = parseFloat(gCurrPos.TradeData[0].Qty);
-        gByorSl = gCurrPos.TradeData[0].TransType;
-		gAmtSL = gCurrPos.TradeData[0].AmtSL;
-		gAmtTP = gCurrPos.TradeData[0].AmtTP;
+		gBuyPrice = parseFloat(gCurrPosR.TradeData[0].BuyPrice).toFixed(2);
+		gSellPrice = parseFloat(gCurrPosR.TradeData[0].SellPrice).toFixed(2);
+		gLotSize = parseFloat(gCurrPosR.TradeData[0].LotSize);
+		gQty = parseFloat(gCurrPosR.TradeData[0].Qty);
+        gByorSl = gCurrPosR.TradeData[0].TransType;
+		gAmtSL = gCurrPosR.TradeData[0].AmtSL;
+		gAmtTP = gCurrPosR.TradeData[0].AmtTP;
 
-		objDateTime.innerText = gCurrPos.TradeData[0].OpenDT;
-		objSymbol.innerText = gCurrPos.TradeData[0].FutSymbol;
-		objTransType.innerText = gCurrPos.TradeData[0].TransType;
+		if(gCurrPosR.TradeData[0].OrderState === "open"){
+			objStatus.innerText = "PENDING";
+		}
+		else if(gCurrPosR.TradeData[0].OrderState === "closed"){
+			objStatus.innerText = "OPEN";
+		}
+		objDateTime.innerText = gCurrPosR.TradeData[0].OpenDT;
+		objSymbol.innerText = gCurrPosR.TradeData[0].FutSymbol;
+		objTransType.innerText = gCurrPosR.TradeData[0].TransType;
 		objLotSize.innerText = gLotSize;
 		objQty.innerText = gQty;
 		gCapital = fnGetTradeCapital(gByorSl, gBuyPrice, gSellPrice, gLotSize, gQty);
@@ -982,11 +1166,11 @@ function fnSetInitFutTrdDtls(){
 		let vPL = fnGetTradePL(gSellPrice, gBuyPrice, gLotSize, gQty, gCharges);
 		objProfitLoss.innerText = (vPL).toFixed(2);
 
-		if(gCurrPos.TradeData[0].TransType === "buy"){
+		if(gCurrPosR.TradeData[0].TransType === "buy"){
 			objBuyPrice.innerHTML = gBuyPrice;
 			objSellPrice.innerHTML = "<span class='blink'>" + gSellPrice + "</span>";
 		}
-		else if(gCurrPos.TradeData[0].TransType === "sell"){
+		else if(gCurrPosR.TradeData[0].TransType === "sell"){
 			objBuyPrice.innerHTML = "<span class='blink'>" + gBuyPrice + "</span>";
 			objSellPrice.innerHTML = gSellPrice;
 		}
@@ -1000,6 +1184,7 @@ function fnSetInitFutTrdDtls(){
         fnGenMessage("<span class='blink'>Position Is Open</span>", `badge bg-warning`, "btnPositionStatus");
 	}
 	else{
+		objStatus.innerText = "";
 		objDateTime.innerText = "";
 		objSymbol.innerText = "";
 		objTransType.innerText = "";
@@ -1136,7 +1321,7 @@ async function fnCloseManualFutures(pTransType){
 function fnSet50PrctQty(){
     let objBtn50Prct = document.getElementById("btn50PerClose");
 
-    if(gCurrPos.TradeData[0].Qty >= 2){
+    if(gCurrPosR.TradeData[0].Qty >= 2){
         objBtn50Prct.disabled = false;
     }
     else{

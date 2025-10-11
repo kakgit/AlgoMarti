@@ -66,17 +66,17 @@ exports.fnPlaceOrderSDK = async (req, res) => {
             vLimitPrice = vBestSell;
         }
         
-        //******* COMMENT WHEN LIVE */
-        if(vSymbolID === "BTCUSD"){
-            vLimitPrice = "110000";
-        }
-        else if(vSymbolID === "ETHUSD"){
-            vLimitPrice = "2500";
-        }
-        else{
-            vLimitPrice = "0";
-        }
-        //******* COMMENT WHEN LIVE */
+        // //******* COMMENT WHEN LIVE */
+        // if(vSymbolID === "BTCUSD"){
+        //     vLimitPrice = "90000";
+        // }
+        // else if(vSymbolID === "ETHUSD"){
+        //     vLimitPrice = "2000";
+        // }
+        // else{
+        //     vLimitPrice = "0";
+        // }
+        // //******* COMMENT WHEN LIVE */
 
         new DeltaRestClient(vApiKey, vApiSecret).then(client => {
             client.apis.Orders.placeOrder({
@@ -117,43 +117,55 @@ exports.fnGetOrderDetails = async (req, res) => {
     let vOrderID = req.body.OrderID;
     let vClientOrdID = req.body.ClientOrdID;
 
-    console.log("vOrderID: " + vOrderID);
-    console.log("vClientOrdID: " + vClientOrdID);
+    // console.log("vApiKey: " + vApiKey);
+    // console.log("vApiSecret: " + vApiSecret);
+    // console.log("vOrderID: " + vOrderID);
+    // console.log("vClientOrdID: " + vClientOrdID);
 
-    // new DeltaRestClient(vApiKey, vApiSecret).then(client => {
-    //     //for Batch Delete - send only id and client_order_id
-    //     client.apis.Orders.getOrders({
-    //         order: {
-    //             id: 403212634,
-    //             client_order_id: "1744998291906",
-    //             product_id: 27
-    //         }
-    //       }).then(function (response) {
-    //         let objResult = JSON.parse(response.data);
+    new DeltaRestClient(vApiKey, vApiSecret).then(client => {
+        client.apis.Orders.getOrders({
+            order: {
+                id: parseInt(vOrderID),
+                client_order_id: vClientOrdID
+                // product_id: 27
+            }
+          }).then(function (response) {
+            let objResult = JSON.parse(response.data);
 
-    //         if(objResult.success){
-    //             res.send({ "status": "success", "message": "Order Cancelled Successfully!", "data": objResult });
-    //         }
-    //         else{
-    //             res.send({ "status": "warning", "message": "Error: Contact Admin!", "data": objResult });
-    //         }
-    //     })
-    //     .catch(function(objError) {
-    //         console.log(objError);
-    //         res.send({ "status": "danger", "message": objError.response.text, "data": objError });
-    //     });
-    // });
-    res.send({ "status": "success", "message": "Order Details Sent!", "data": "" });
+            if(objResult.success){
+                res.send({ "status": "success", "message": "Order Details Sent Successfully!", "data": objResult });
+            }
+            else{
+                res.send({ "status": "warning", "message": "Error: Contact Admin!", "data": objResult });
+            }
+        })
+        .catch(function(objError) {
+            console.log(objError);
+            res.send({ "status": "danger", "message": objError.response.text, "data": objError });
+        });
+    });
+    // res.send({ "status": "success", "message": "Order Details Sent!", "data": "" });
 }
 
 exports.fnCancelOrderSDK = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+    let vOrderID = req.body.OrderID;
+    let vClientOrdID = req.body.ClientOrdID;
+    let vSymbol = req.body.Symbol;
+    // console.log("vApiKey: " + vApiKey);
+    // console.log("vApiSecret: " + vApiSecret);
+    // console.log("vOrderID: " + vOrderID);
+    // console.log("vClientOrdID: " + vClientOrdID);
+
     new DeltaRestClient(vApiKey, vApiSecret).then(client => {
         //for Batch Delete - send only id and client_order_id
         client.apis.Orders.cancelOrder({
             order: {
-                id: 403212634,
-                client_order_id: "1744998291906",
-                product_id: 27
+                id: parseInt(vOrderID),
+                product_symbol: vSymbol
+                // client_order_id: vClientOrdID
+                // product_id: 27
             }
           }).then(function (response) {
             let objResult = JSON.parse(response.data);
@@ -170,6 +182,7 @@ exports.fnCancelOrderSDK = async (req, res) => {
             res.send({ "status": "danger", "message": objError.response.text, "data": objError });
         });
     });
+    // res.send({ "status": "success", "message": "Pending Order Cancelled!", "data": "" });
 }
 
 exports.fnGetProductsList = async (req, res) => {
@@ -205,6 +218,10 @@ exports.fnGetProductsList = async (req, res) => {
         });
     });
     // res.send({ "status": "success", "message": "Order Placed Successfully!", "data": "" });
+}
+
+exports.fnGetOpenPositionById = async (req, res) => {
+    
 }
 
 const fnGetCurrRates = async (pApiKey, pApiSecret, pSymbolID) => {
