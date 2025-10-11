@@ -1076,7 +1076,7 @@ function fnSetNextOptTradeSettings(){
 	        objQty.value = vNextQty;
 		}
 	    else {
-	        localStorage.setItem("TotLossAmtDelta", 0);
+	        localStorage.setItem("TotLossAmtDelta", -5);
 	        localStorage.removeItem("QtyMulDelta");
 	        // localStorage.setItem("TradeStep", 0);
 	        fnSetLotsByQtyMulLossAmt();
@@ -1084,7 +1084,7 @@ function fnSetNextOptTradeSettings(){
     }
     else{
     	if(parseFloat(vTotLossAmt) > 0){
-			localStorage.setItem("TotLossAmtDelta", 0);
+			localStorage.setItem("TotLossAmtDelta", -5);
     	}
     	
         fnSetLotsByQtyMulLossAmt();
@@ -1095,7 +1095,8 @@ function fnSetNextOptTradeSettings(){
 	if(gPL > 0){
 		let vBalLossAmt = localStorage.getItem("TotLossAmtDelta");
 		let vNewTarget = parseFloat(vBalLossAmt) - parseFloat(gCharges);
-		localStorage.setItem("TotLossAmtDelta", vNewTarget);
+		// localStorage.setItem("TotLossAmtDelta", vNewTarget);
+		localStorage.setItem("TotLossAmtDelta", -5);
 		// console.log("ADD Brokerage");
 	}
 	// console.log(localStorage.getItem("TotLossAmtDelta"))
@@ -1244,7 +1245,7 @@ function fnClearLocalStorageTemp(){
 	localStorage.removeItem("StartQtyNoDelta");
 	localStorage.removeItem("DeltaFutMarti");
 	localStorage.setItem("QtyMulDelta", 0);
-	localStorage.setItem("TotLossAmtDelta", 0);
+	localStorage.setItem("TotLossAmtDelta", -5);
     clearInterval(gTimerID);
 
 	fnGetAllStatus();
