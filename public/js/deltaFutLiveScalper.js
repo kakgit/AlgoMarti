@@ -1308,6 +1308,18 @@ function fnGetFutBestRates(){
     return objPromise;
 }
 
+async function fnClsRealFuturesTrade(pTransType){
+	if(gCurrPosR.TradeData.length === 0){
+		fnGenMessage("No Open Position to Close!", `badge bg-warning`, "spnGenMsg");
+	}
+	else if(gCurrPosR.TradeData[0].TransType !== pTransType){
+        fnGenMessage("No " + pTransType + " Position to Close!", `badge bg-warning`, "spnGenMsg");		
+	}
+	else{
+		
+	}
+}
+
 async function fnCloseManualFutures(pTransType){
 	if(gCurrPos === null){
         fnGenMessage("No Open Position to Close!", `badge bg-warning`, "spnGenMsg");		
