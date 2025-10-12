@@ -886,7 +886,7 @@ async function fnInitiateManualFutures(pTransType){
 }
 
 function fnCheckOpenStatePos(){
-    // console.log(gCurrPosR);
+    console.log(gCurrPosR);
 
     //Get Order details by order id and keep checking for 15 secs and cancel order
     let objApiKey = document.getElementById("txtUserAPIKey");
@@ -936,19 +936,7 @@ function fnCheckOpenStatePos(){
 	        	}
 	        	else{
 	        		console.log("Order Not Found: " + vOrdId);
-		   			// let objSelData = null;
-        			// for(let i=0; i<gCurrPosR.TradeData.length; i++){
-        			// 	if(gCurrPosR.TradeData[i].OrderID === vOrdId){
-		   			// 		objSelData = gCurrPosR.TradeData[i];
-        			// 	}
-        			// }
-	        		// gCurrPosR.TradeData.pop(objSelData);
-
-		            // let objExcTradeDtls = JSON.stringify(gCurrPosR);
-		            // localStorage.setItem("DeltaCurrFutPosiSR", objExcTradeDtls);
-
-		            // fnSetInitFutTrdDtls();
-		        	// console.log(gCurrPosR);
+					fnGetFillPosition();
 	        	}
 	            // let objBestRates = { BestBuy : vRes.result.quotes.best_ask, BestSell : vRes.result.quotes.best_bid }
 
@@ -1053,11 +1041,17 @@ function fnGetFillPosition(){
     if(gCurrPosR.TradeData.length > 0){
     	let vOrdId = gCurrPosR.TradeData[0].OrderID;
     	let vClientOrdID = gCurrPosR.TradeData[0].ClientOrderID;
-    	let vSymbol = gCurrPosR.TradeData[0].FutSymbol;
+    	let vProductID = gCurrPosR.TradeData[0].ProductID;
+    	let vStartValDT = gCurrPosR.TradeData[0].OpenDTVal;
+    	let vTransType = gCurrPosR.TradeData[0].TransType;
+    	let vPointSL = parseFloat(gCurrPosR.TradeData[0].StopLossPts);
+    	let vPointTP = parseFloat(gCurrPosR.TradeData[0].TakeProfitPts);
+    	vStartValDT = vStartValDT * 1000;
+
 	    let vHeaders = new Headers();
 	    vHeaders.append("Content-Type", "application/json");
 
-	    let vAction = JSON.stringify({ ApiKey : objApiKey.value, ApiSecret : objApiSecret.value, OrderID : vOrdId, ClientOrdID : vClientOrdID, Symbol : vSymbol });
+	    let vAction = JSON.stringify({ ApiKey : objApiKey.value, ApiSecret : objApiSecret.value, ClientOrderID : vClientOrdID, ProductID : vProductID, StartValDT : vStartValDT });
 
 	    let requestOptions = {
 	        method: 'POST',
@@ -1066,28 +1060,45 @@ function fnGetFillPosition(){
 	        redirect: 'follow'
 	    };
 
-	    fetch("/deltaExcFutR/getFilledPosition", requestOptions)
+	    fetch("/deltaExcFutR/getFilledPosById", requestOptions)
 	    .then(response => response.json())
 	    .then(objResult => {
 
 	        if(objResult.status === "success"){
 	        	console.log(objResult);
-        		// if(objResult.data.result.state === "cancelled"){
-		   		// 	let objSelData = null;
-        		// 	for(let i=0; i<gCurrPosR.TradeData.length; i++){
-        		// 		if(gCurrPosR.TradeData[i].OrderID === vOrdId){
-		   		// 			objSelData = gCurrPosR.TradeData[i];
-        		// 		}
-        		// 	}
-	        	// 	gCurrPosR.TradeData.pop(objSelData);
-        		// }
+	        	for(let i=0; i<objResult.data.result.length; i++){
+	        		if(objResult.data.result[i].id === vOrdId){
+	        			if(vTransType === "buy"){
+	        				let vFilledPrice = parseFloat(objResult.data.result[i].average_fill_price);
+	        				let vAmtSL = vFilledPrice - vPointSL;
+	        				let vAmtTP = vFilledPrice + vPointTP;
 
-	            // let objExcTradeDtls = JSON.stringify(gCurrPosR);
-	            // localStorage.setItem("DeltaCurrFutPosiSR", objExcTradeDtls);
+		        			gCurrPosR.TradeData[0].BuyPrice = vFilledPrice;
+		        			gCurrPosR.TradeData[0].AmtSL = vAmtSL;
+		        			gCurrPosR.TradeData[0].AmtTP = vAmtTP;
+		        			gCurrPosR.TradeData[0].BuyCommission = parseFloat(objResult.data.result[i].paid_commission);
 
-	            // fnSetInitFutTrdDtls();
-	        	// console.log(gCurrPosR);
+				        	console.log(objResult.data.result[i].average_fill_price);
+	        			}
+	        			else if(vTransType === "sell"){
+	        				let vFilledPrice = parseFloat(objResult.data.result[i].average_fill_price);
+	        				let vAmtSL = vFilledPrice + vPointSL;
+	        				let vAmtTP = vFilledPrice - vPointTP;
+
+		        			gCurrPosR.TradeData[0].SellPrice = vFilledPrice;
+		        			gCurrPosR.TradeData[0].AmtSL = vAmtSL;
+		        			gCurrPosR.TradeData[0].AmtTP = vAmtTP;
+		        			gCurrPosR.TradeData[0].SellCommission = parseFloat(objResult.data.result[i].paid_commission);
+	        			}
+	        		}
+	        	}
+
+	            let objExcTradeDtls = JSON.stringify(gCurrPosR);
+	            localStorage.setItem("DeltaCurrFutPosiSR", objExcTradeDtls);
+
+	            fnSetInitFutTrdDtls();
 	            fnGenMessage(objResult.message, `badge bg-` + objResult.status, "spnGenMsg");
+	            console.log(gCurrPosR);
 	        }
 	        else if(objResult.status === "danger"){
 	            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
@@ -1106,7 +1117,7 @@ function fnGetFillPosition(){
 	    })
 	    .catch(error => {
 	    	console.log(error);
-	        fnGenMessage("Error in Cancelling Pending Order...", `badge bg-danger`, "spnGenMsg");
+	        fnGenMessage("Error in getting Curr Open Positions...", `badge bg-danger`, "spnGenMsg");
 	    });
     }
     else{

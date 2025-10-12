@@ -220,8 +220,39 @@ exports.fnGetProductsList = async (req, res) => {
     // res.send({ "status": "success", "message": "Order Placed Successfully!", "data": "" });
 }
 
-exports.fnGetOpenPositionById = async (req, res) => {
-    
+exports.fnGetOpenPositionByIdSDK = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+    let vClientOrderID = req.body.ClientOrderID;
+    let vProductID = req.body.ProductID;
+    let vStartValDT = req.body.StartValDT;
+    // console.log("vApiKey: " + vApiKey);
+    // console.log("vApiSecret: " + vApiSecret);
+    // console.log("vOrderID: " + vOrderID);
+    // console.log("vClientOrdID: " + vClientOrdID);
+
+    new DeltaRestClient(vApiKey, vApiSecret).then(client => {
+        //for Batch Delete - send only id and client_order_id
+        client.apis.TradeHistory.getOrderHistory({
+                product_ids: (vProductID).toString(),
+                start_time: vStartValDT
+          }).then(function (response) {
+            let objResult = JSON.parse(response.data);
+            // console.log(objResult);
+
+            if(objResult.success){
+                res.send({ "status": "success", "message": "Order Positions Sent Successfully!", "data": objResult });
+            }
+            else{
+                res.send({ "status": "warning", "message": "Error: Contact Admin!", "data": objResult });
+            }
+        })
+        .catch(function(objError) {
+            console.log(objError);
+            res.send({ "status": "danger", "message": objError.response.text, "data": objError });
+        });
+    });
+    // res.send({ "status": "success", "message": "Success!", "data": "" });
 }
 
 const fnGetCurrRates = async (pApiKey, pApiSecret, pSymbolID) => {
