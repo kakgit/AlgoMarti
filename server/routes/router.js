@@ -169,6 +169,7 @@ route.post("/deltaExcFutR/getOrderDetails", deltaFutLiveController.fnGetOrderDet
 route.post("/deltaExcFutR/cancelPendingOrder", deltaFutLiveController.fnCancelOrderSDK);
 route.post("/deltaExcFutR/getFilledPosById", deltaFutLiveController.fnGetOpenPositionByIdSDK);
 route.post("/deltaExcFutR/getProductsList", deltaFutLiveController.fnGetProductsList);
+route.post("/deltaExcFutR/closeRealPosition", deltaFutLiveController.fnCloseRealPoistion);
 
 //Delta Futures Demo Routes
 route.post("/deltaExcFut/validateLogin", deltaFutDemoController.fnValidateUserLogin);

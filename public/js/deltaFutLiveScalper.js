@@ -886,8 +886,6 @@ async function fnInitiateManualFutures(pTransType){
 }
 
 function fnCheckOpenStatePos(){
-    console.log(gCurrPosR);
-
     //Get Order details by order id and keep checking for 15 secs and cancel order
     let objApiKey = document.getElementById("txtUserAPIKey");
     let objApiSecret = document.getElementById("txtAPISecret");
@@ -913,28 +911,35 @@ function fnCheckOpenStatePos(){
 	    .then(objResult => {
 	    	console.log(objResult);
 	        if(objResult.status === "success"){
-	        	// console.log(objResult);
+	        	let vOrderFound = false;
+	        	console.log("INSIDE getOrderDetails >>>>>>>>>");
+	        	console.log(objResult);
 	        	if(objResult.data.result.length > 0){
-	        		if(objResult.data.result[0].state === "open"){
-	        			gOpenOrdrCounter +=1;
-	        			if(gOpenOrdrCounter < 5){
-	        				setTimeout(fnCheckOpenStatePos, 3000);
+	        		for(let i=0; i<objResult.data.result.length; i++){
+	        			if(objResult.data.result[i].id === vOrdId){
+	        				vOrderFound = true;
+			        		if(objResult.data.result[i].state === "open"){
+			        			gOpenOrdrCounter +=1;
+			        			if(gOpenOrdrCounter < 5){
+			        				setTimeout(fnCheckOpenStatePos, 3000);
+			        			}
+			        			else{
+			        				fnCancelPendingOrder();
+			        			}
+			        		}
+			        		else if(objResult.data.result[i].state === "closed"){
+			        			//Buy or Sell Order is Executed
+					        	console.log("Executed. i.e., Closed");
+					        	console.log(objResult);
+			        		}
+			        		else{
+			        			console.log("Order Not Found");
+			        			//Order is Cancelled
+			        		}
 	        			}
-	        			else{
-	        				fnCancelPendingOrder();
-	        			}
-	        		}
-	        		else if(objResult.data.result[0].state === "closed"){
-	        			//Buy or Sell Order is Executed
-			        	console.log("Executed. i.e., Closed");
-			        	console.log(objResult);
-	        		}
-	        		else{
-	        			console.log("Order Not Found");
-	        			//Order is Cancelled
 	        		}
 	        	}
-	        	else{
+	        	if(vOrderFound === false){
 	        		console.log("Order Not Found: " + vOrdId);
 					fnGetFillPosition();
 	        	}
@@ -1065,7 +1070,6 @@ function fnGetFillPosition(){
 	    .then(objResult => {
 
 	        if(objResult.status === "success"){
-	        	console.log(objResult);
 	        	for(let i=0; i<objResult.data.result.length; i++){
 	        		if(objResult.data.result[i].id === vOrdId){
 	        			if(vTransType === "buy"){
@@ -1077,8 +1081,6 @@ function fnGetFillPosition(){
 		        			gCurrPosR.TradeData[0].AmtSL = vAmtSL;
 		        			gCurrPosR.TradeData[0].AmtTP = vAmtTP;
 		        			gCurrPosR.TradeData[0].BuyCommission = parseFloat(objResult.data.result[i].paid_commission);
-
-				        	console.log(objResult.data.result[i].average_fill_price);
 	        			}
 	        			else if(vTransType === "sell"){
 	        				let vFilledPrice = parseFloat(objResult.data.result[i].average_fill_price);
@@ -1316,8 +1318,101 @@ async function fnClsRealFuturesTrade(pTransType){
         fnGenMessage("No " + pTransType + " Position to Close!", `badge bg-warning`, "spnGenMsg");		
 	}
 	else{
-		
+		let objClsTrd = await fnInnitiateClsFutRealTrade(0, pTransType);
+		if(objClsTrd.status === "success"){
+            // fnSetInitFutTrdDtls();
+		    // fnLoadTodayTrades();
+			console.log(objClsTrd);
+            fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+		}
+		else{
+            fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+		}
 	}
+}
+
+async function fnInnitiateClsFutRealTrade(pQty, pTransType){
+    let vDate = new Date();
+    let vMonth = vDate.getMonth() + 1;
+    let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
+    let vToCntuQty = parseInt(gCurrPosR.TradeData[0].Qty) - parseInt(pQty);
+
+	const objClsTrd = new Promise((resolve, reject) => {
+	    let objApiKey = document.getElementById("txtUserAPIKey");
+	    let objApiSecret = document.getElementById("txtAPISecret");
+	    let vOrderID = gCurrPosR.TradeData[0].OrderID;
+	    let vClientOrderID = gCurrPosR.TradeData[0].ClientOrderID;
+	    let vSymbol = gCurrPosR.TradeData[0].FutSymbol;
+	    let vOrderType = "market_order";
+	    let vTransType = "";
+	    let vQty = parseInt(gCurrPosR.TradeData[0].Qty);
+    	let vProductID = gCurrPosR.TradeData[0].ProductID;
+    	let vStartValDT = gCurrPosR.TradeData[0].OpenDTVal;
+    	vStartValDT = vStartValDT * 1000;
+
+	    if(pQty > 0){
+	    	vQty = pQty;
+	    }
+
+	    if(gCurrPosR.TradeData[0].TransType === "buy"){
+	    	vTransType = "sell";
+	    }
+	    else if(gCurrPosR.TradeData[0].TransType === "sell"){
+	    	vTransType = "buy";
+	    }
+	    else{
+	    	vTransType = "";
+	    }
+
+	    if(vTransType === ""){
+	        resolve({ "status": "warning", "message": "Invalid Transaction Type: Must Be BUY or SELL!", "data": "" });
+	    }
+	    else{
+		    let vHeaders = new Headers();
+		    vHeaders.append("Content-Type", "application/json");
+
+		    let vAction = JSON.stringify({ ApiKey : objApiKey.value, ApiSecret : objApiSecret.value, OrderID : vOrderID, ClientOrdID : vClientOrderID, Symbol : vSymbol, OrderType : vOrderType, Quantity : vQty, TransType : vTransType, ProductID : vProductID, StartValDT : vStartValDT });
+
+		    let requestOptions = {
+		        method: 'POST',
+		        headers: vHeaders,
+		        body: vAction,
+		        redirect: 'follow'
+		    };
+
+		    fetch("/deltaExcFutR/closeRealPosition", requestOptions)
+		    .then(response => response.json())
+		    .then(objResult => {
+
+		        if(objResult.status === "success"){
+
+		        	// console.log(objResult);
+	                resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+		        }
+		        else if(objResult.status === "danger"){
+		            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+		                resolve({ "status": objResult.status, "message": objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, "data": "" });
+		            }
+		            else{
+		                resolve({ "status": objResult.status, "message": "Error: " + objResult.data.response.body.error.code, "data": objResult.data });
+		            }
+		        }
+		        else if(objResult.status === "warning"){
+	                resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+		        }
+		        else{
+		            fnGenMessage("Error in Placing the Close Order, Contact Admin!", `badge bg-danger`, "spnGenMsg");
+	                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+		        }
+		    })
+		    .catch(error => {
+	            reject({ "status": "danger", "message": "Error in Placing Close Order...", "data": "" });
+		    });
+
+        // resolve({ "status": "success", "message": "Future Real Trade Closed Successfully!", "data": "" });
+	    }
+	});
+    return objClsTrd;
 }
 
 async function fnCloseManualFutures(pTransType){

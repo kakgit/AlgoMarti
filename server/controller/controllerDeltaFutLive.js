@@ -255,6 +255,71 @@ exports.fnGetOpenPositionByIdSDK = async (req, res) => {
     // res.send({ "status": "success", "message": "Success!", "data": "" });
 }
 
+exports.fnCloseRealPoistion = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+    let vOrderID = req.body.OrderID;
+    let vClientOrderID = req.body.ClientOrdID;
+    let vSymbol = req.body.Symbol;
+    let vOrderType = req.body.OrderType;
+    let vQuantity = req.body.Quantity;
+    let vTransType = req.body.TransType;
+    let vProductID = req.body.ProductID;
+    let vStartValDT = req.body.StartValDT;
+
+    // console.log("vApiKey: " + vApiKey);
+    // console.log("vApiSecret: " + vApiSecret);
+    // console.log("vOrderID: " + vOrderID);
+    // console.log("vClientOrderID: " + vClientOrderID);
+    // console.log("vSymbol: " + vSymbol);
+    // console.log("vOrderType: " + vOrderType);
+    // console.log("vQuantity: " + vQuantity);
+    // console.log("vTransType: " + vTransType);
+    // console.log("vProductID: " + vProductID);
+    // console.log("vStartValDT: " + vStartValDT);
+
+    let objPosDets = await fnGetPositionByIdSDK(vApiKey, vApiSecret, vProductID, vStartValDT, vOrderID, vTransType);
+    if(objPosDets.status === "success"){
+        if(vQuantity > Math.abs(objPosDets.data.size)){
+            vQuantity = Math.abs(objPosDets.data.size);
+            console.log(objPosDets.data.size);
+        }
+        new DeltaRestClient(vApiKey, vApiSecret).then(client => {
+            client.apis.Orders.placeOrder({
+                order: {
+                product_symbol: vSymbol,
+                size: vQuantity,
+                side: vTransType,
+                limit_price: 0,
+                order_type: vOrderType,
+                client_order_id: (vClientOrderID).toString()
+                }
+            }).then(function (response) {
+                let objResult = JSON.parse(response.data);
+
+                if(objResult.success){
+                    res.send({ "status": "success", "message": "Order Placed Successfully!", "data": objResult });
+                }
+                else{
+                    res.send({ "status": "warning", "message": "Error to Close the Open Order!", "data": objResult });
+                }
+            })
+            .catch(function(objError) {
+                // console.log("*************** Error **************");
+                // console.log(objError);
+                res.send({ "status": "danger", "message": objError.response.text, "data": objError });
+            });
+        });
+        // res.send({ "status": "success", "message": objPosDets.message, "data": "" });
+    }
+    else if(objPosDets.status === "warning"){
+        res.send({ "status": "warning", "message": objPosDets.message, "data": "" });
+    }
+    else{
+        res.send({ "status": "danger", "message": "Error: Contact Admin!", "data": objPosDets });
+    }
+}
+
 const fnGetCurrRates = async (pApiKey, pApiSecret, pSymbolID) => {
     const objPromise = new Promise((resolve, reject) => {
         const vMethod = "GET";
@@ -285,6 +350,43 @@ const fnGetCurrRates = async (pApiKey, pApiSecret, pSymbolID) => {
         .catch((objError) => {
             console.log(objError);
             resolve({ "status": "danger", "message": "Error in Best Rates. Contact Administrator!", "data": objError });
+        });
+    });
+
+    return objPromise;
+};
+
+const fnGetPositionByIdSDK = async (pApiKey, pApiSecret, pProductID, pStartValDT, pOrderID, pTransType) => {
+    const objPromise = new Promise((resolve, reject) => {
+        new DeltaRestClient(pApiKey, pApiSecret).then(client => {
+            client.apis.Positions.getPositions({
+                    product_id: pProductID
+            }).then(function (response) {
+                let objResult = JSON.parse(response.data);
+
+                if(objResult.success){
+                    let vRecExists = false;
+                    let objRec = null;
+                    
+                    if((pTransType === "sell" && objResult.result.size > 0) || (pTransType === "buy" && objResult.result.size < 0)){
+                        vRecExists = true;
+                        objRec = objResult.result;
+                    }
+                    if(vRecExists){
+                        resolve({ "status": "success", "message": "Position Details Fetched Successfully!", "data": objRec });
+                    }
+                    else{
+                        resolve({ "status": "warning", "message": "Position Does Not Exists!", "data": "" });
+                    }
+                }
+                else{
+                    resolve({ "status": "danger", "message": "No Open Position with ID!", "data": "" });
+                }
+            })
+            .catch(function(objError) {
+                console.log(objError);
+                resolve({ "status": "danger", "message": objError.response.text, "data": objError });
+            });
         });
     });
 
