@@ -59,7 +59,7 @@ function fnValidateDeltaLogin(){
         .then(response => response.json())
         .then(objResult => {
             if(objResult.status === "success"){
-                // console.log(objResult.data);
+                console.log(objResult.data);
                 localStorage.setItem("lsDeltaApiKey", objApiKey.value);
                 localStorage.setItem("lsDeltaApiSecret", objApiSecret.value);
 

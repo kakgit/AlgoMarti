@@ -54,10 +54,12 @@ exports.fnPlaceOrderSDK = async (req, res) => {
         let vBestBuy = objCurrRates.data.result.quotes.best_ask;
         let vBestSell = objCurrRates.data.result.quotes.best_bid;
         let vLimitPrice = "0";
+        let vPostOnly = true;
 
         if(vOrderType === "market_order"){
             vBestBuy = "0";
             vBestSell = "0";
+            vPostOnly = false;
         }
         if(vTransType === "buy"){
             vLimitPrice = vBestBuy;
@@ -86,6 +88,7 @@ exports.fnPlaceOrderSDK = async (req, res) => {
                 side: vTransType,
                 limit_price: vLimitPrice,
                 order_type: vOrderType,
+                // post_only: vPostOnly,
                 client_order_id: (vClientOrdID).toString()
                 }
             }).then(function (response) {
