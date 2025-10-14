@@ -81,13 +81,13 @@ function fnValidateDeltaLogin(){
             }
             else if(objResult.status === "danger"){
                 fnClearLoginStatus();
-                //ip_not_whitelisted_for_api_key
-                //invalid_api_key
                 if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
                     fnGenMessage(objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, `badge bg-${objResult.status}`, "spnDeltaLogin");
+                    fnGenMessage(objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, `badge bg-${objResult.status}`, "spnGenMsg");
                 }
                 else{
                     fnGenMessage(objResult.data.response.body.error.code + " Contact Admin!", `badge bg-${objResult.status}`, "spnDeltaLogin");
+                    fnGenMessage(objResult.data.response.body.error.code + " Contact Admin!", `badge bg-${objResult.status}`, "spnGenMsg");
                 }
             }
             else if(objResult.status === "warning"){

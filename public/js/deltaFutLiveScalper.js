@@ -295,6 +295,7 @@ function fnConnectWS(){
 		switch (vTicData.type){
 			case "v2/ticker":
 				// console.log("Msg Sub Received........");
+				// document.getElementById("spnSub").className = "blink";
 				fnGetRates(vTicData);
 				break;
 			case "candlestick_5m":
@@ -303,7 +304,7 @@ function fnConnectWS(){
 				break;
 			case "subscriptions":
 
-	            fnGenMessage("Streaming Subscribed and Started!", `badge bg-success`, "spnGenMsg");
+	            // fnGenMessage("Streaming Subscribed and Started!", `badge bg-success`, "spnGenMsg");
 				break;
 			case "unsubscribed":
 
@@ -704,7 +705,7 @@ async function fnInitRealFuturesTrade(pTransType){
 	        let objOrder = await fnPlaceRealOrder(vClientOrdID, objFutDDL.value, objOrderTypeDDL.value, objQty.value, pTransType);
 
 	        if(objOrder.status === "success"){
-			    console.log(objOrder);
+			    // console.log(objOrder);
 			    let vOrdId = objOrder.data.result.id;
 	            let vMonth = vDate.getMonth() + 1;
 	            let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
@@ -730,12 +731,14 @@ async function fnInitRealFuturesTrade(pTransType){
 				}
 
 				if(gByorSl === "buy"){
-				    let vBuyCommission = objOrder.data.result.paid_commission;
+				    let vBuyCommission = parseFloat(objOrder.data.result.paid_commission);
+				    let vSellCommission = 0;
 	                gAmtSL = (vBestBuy - vSLPoints).toFixed(2);
 	                gAmtTP = (vBestBuy + vTPPoints).toFixed(2);
 				}
 				else if(gByorSl === "sell"){
-				    let vSellCommission = objOrder.data.result.paid_commission;
+					let vBuyCommission = 0;
+				    let vSellCommission = parseFloat(objOrder.data.result.paid_commission);
 	                gAmtSL = (vBestBuy + vSLPoints).toFixed(2);
 	                gAmtTP = (vBestBuy - vTPPoints).toFixed(2);
 				}
@@ -754,7 +757,7 @@ async function fnInitRealFuturesTrade(pTransType){
 				localStorage.setItem("QtyMulDeltaR", objQty.value);
 
 	            fnSetInitFutTrdDtls();
-			    console.log(gCurrPosR);
+			    // console.log(gCurrPosR);
 
 				fnGenMessage("Trade Order Placed!", `badge bg-success`, "spnGenMsg");
 
@@ -763,7 +766,7 @@ async function fnInitRealFuturesTrade(pTransType){
 				}
 	        }
 	        else{
-			    console.log(objOrder);
+			    // console.log(objOrder);
 	            fnGenMessage(objOrder.message, `badge bg-${objOrder.status}`, "spnGenMsg");
 	        }
 	    }
@@ -907,11 +910,11 @@ function fnCheckOpenStatePos(){
 	    fetch("/deltaExcFutR/getOrderDetails", requestOptions)
 	    .then(response => response.json())
 	    .then(objResult => {
-	    	console.log(objResult);
+	    	// console.log(objResult);
 	        if(objResult.status === "success"){
 	        	let vOrderFound = false;
-	        	console.log("INSIDE getOrderDetails >>>>>>>>>");
-	        	console.log(objResult);
+	        	// console.log("INSIDE getOrderDetails >>>>>>>>>");
+	        	// console.log(objResult);
 	        	if(objResult.data.result.length > 0){
 	        		for(let i=0; i<objResult.data.result.length; i++){
 	        			if(objResult.data.result[i].id === vOrdId){
@@ -928,18 +931,18 @@ function fnCheckOpenStatePos(){
 			        		else if(objResult.data.result[i].state === "closed"){
 			        			//Buy or Sell Order is Executed
 					            document.getElementById("spnLossTrd").className = "badge rounded-pill text-bg-success";
-					        	console.log("Executed. i.e., Closed");
-					        	console.log(objResult);
+					        	// console.log("Executed. i.e., Closed");
+					        	// console.log(objResult);
 			        		}
 			        		else{
-			        			console.log("Order Not Found");
+			        			// console.log("Order Not Found");
 			        			//Order is Cancelled
 			        		}
 	        			}
 	        		}
 	        	}
 	        	if(vOrderFound === false){
-	        		console.log("Order Not Found: " + vOrdId);
+	        		// console.log("Order Not Found: " + vOrdId);
 					fnGetFillPosition();
 	        	}
 	            // let objBestRates = { BestBuy : vRes.result.quotes.best_ask, BestSell : vRes.result.quotes.best_bid }
@@ -1080,6 +1083,7 @@ function fnGetFillPosition(){
 		        			gCurrPosR.TradeData[0].AmtSL = vAmtSL;
 		        			gCurrPosR.TradeData[0].AmtTP = vAmtTP;
 		        			gCurrPosR.TradeData[0].BuyCommission = parseFloat(objResult.data.result[i].paid_commission);
+		        			gCurrPosR.TradeData[0].SellCommission = 0;
 	        			}
 	        			else if(vTransType === "sell"){
 	        				let vFilledPrice = parseFloat(objResult.data.result[i].average_fill_price);
@@ -1089,6 +1093,7 @@ function fnGetFillPosition(){
 		        			gCurrPosR.TradeData[0].SellPrice = vFilledPrice;
 		        			gCurrPosR.TradeData[0].AmtSL = vAmtSL;
 		        			gCurrPosR.TradeData[0].AmtTP = vAmtTP;
+		        			gCurrPosR.TradeData[0].BuyCommission = 0;
 		        			gCurrPosR.TradeData[0].SellCommission = parseFloat(objResult.data.result[i].paid_commission);
 	        			}
 	        		}
@@ -1099,7 +1104,7 @@ function fnGetFillPosition(){
 
 	            fnSetInitFutTrdDtls();
 	            fnGenMessage(objResult.message, `badge bg-` + objResult.status, "spnGenMsg");
-	            console.log(gCurrPosR);
+	            // console.log(gCurrPosR);
 	        }
 	        else if(objResult.status === "danger"){
 	            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
@@ -1148,6 +1153,8 @@ function fnSetInitFutTrdDtls(){
 	    let vDate = new Date();
 	    let vCurrDT = vDate.valueOf();
 	    let vTimeDiff = ((vCurrDT - gOrderDT)/60000) + 0.15;
+	    let vBuyComm = parseFloat(gCurrPosR.TradeData[0].BuyCommission);
+	    let vSellComm = parseFloat(gCurrPosR.TradeData[0].SellCommission);
 
 		if(vTimeDiff < parseInt(objTrdExitTime.value))
 		fnInnitiateTimer(parseInt(objTrdExitTime.value) - vTimeDiff);
@@ -1173,7 +1180,8 @@ function fnSetInitFutTrdDtls(){
 		objQty.innerText = gQty;
 		gCapital = fnGetTradeCapital(gByorSl, gBuyPrice, gSellPrice, gLotSize, gQty);
 		objCapital.innerText = (gCapital).toFixed(2);
-		gCharges = fnGetTradeCharges(gOrderDT, vCurrDT, gLotSize, gQty, gBuyPrice, gSellPrice, gByorSl);
+		// gCharges = fnGetTradeCharges(gOrderDT, vCurrDT, gLotSize, gQty, gBuyPrice, gSellPrice, gByorSl);
+		gCharges = vBuyComm + vSellComm;
 		objCharges.innerText = (gCharges).toFixed(3);
 		let vPL = fnGetTradePL(gSellPrice, gBuyPrice, gLotSize, gQty, gCharges);
 		objProfitLoss.innerText = (vPL).toFixed(2);
@@ -1321,7 +1329,7 @@ async function fnClsRealFuturesTrade(pTransType){
 		if(objClsTrd.status === "success"){
             fnSetInitFutTrdDtls();
 		    fnLoadTodayTrades();
-			console.log(objClsTrd);
+			// console.log(objClsTrd);
             fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
 		}
 		else{
@@ -1384,18 +1392,16 @@ async function fnInnitiateClsFutRealTrade(pQty, pTransType){
 		    .then(objResult => {
 
 		        if(objResult.status === "success"){
-
-		        	// console.log(objResult);
 		        	gCurrPosR.TradeData[0].Qty = objResult.data.result.size;
         		    gCurrPosR.TradeData[0].CloseDT = vToday;
 				    
 				    if(vTransType === "buy"){
 				    	gCurrPosR.TradeData[0].BuyPrice = objResult.data.result.average_fill_price;
-				    	gCurrPosR.TradeData[0].BuyCommission = objResult.data.result.paid_commission;
+				    	gCurrPosR.TradeData[0].BuyCommission = parseFloat(objResult.data.result.paid_commission);
 				    }
 				    else if(vTransType === "sell"){
 				    	gCurrPosR.TradeData[0].SellPrice = objResult.data.result.average_fill_price;
-				    	gCurrPosR.TradeData[0].SellCommission = objResult.data.result.paid_commission;
+				    	gCurrPosR.TradeData[0].SellCommission = parseFloat(objResult.data.result.paid_commission);
 				    }
 
 				    gCurrPosR.TradeData[0].CloseDTVal = vDate.valueOf();
@@ -1434,6 +1440,9 @@ async function fnInnitiateClsFutRealTrade(pQty, pTransType){
 				        vExistingData.TradeData.push(gCurrPosR.TradeData[0]);
 				        localStorage.setItem("TrdBkFutR", JSON.stringify(vExistingData));
 				    }
+
+		        	// console.log("************######**************");
+		        	// console.log(gCurrPosR);
 
 				    if(pQty === 0){
 					    localStorage.removeItem("DeltaCurrFutPosiSR");
@@ -1474,7 +1483,7 @@ async function fnInnitiateClsFutRealTrade(pQty, pTransType){
 		        }
 		    })
 		    .catch(error => {
-		    	console.log(error);
+		    	// console.log(error);
 	            reject({ "status": "danger", "message": "Error in Placing Close Order...", "data": "" });
 		    });
 
@@ -1738,7 +1747,7 @@ function fnLoadTodayTrades(){
         let vNetProfit = 0;
         let vTotalCharges = 0;
         let vHighCapital = 0;
-console.log(objTradeBook);
+
 		for (let i = 0; i < objTradeBook.TradeData.length; i++){
 			let vOpenDTVal = objTradeBook.TradeData[i].OpenDTVal;
 			let vCloseDTVal = objTradeBook.TradeData[i].CloseDTVal;
@@ -1751,8 +1760,11 @@ console.log(objTradeBook);
 			let vSellPrice = parseFloat(objTradeBook.TradeData[i].SellPrice);
 			let vLotSize = parseFloat(objTradeBook.TradeData[i].LotSize);
 			let vQuantity = parseInt(objTradeBook.TradeData[i].Qty);
+		    let vBuyComm = parseFloat(objTradeBook.TradeData[i].BuyCommission);
+		    let vSellComm = parseFloat(objTradeBook.TradeData[i].SellCommission);
 
-			let vCharges = fnGetTradeCharges(vOpenDTVal, vCloseDTVal, vLotSize, vQuantity, vBuyPrice, vSellPrice, vTransType);
+			// let vCharges = fnGetTradeCharges(vOpenDTVal, vCloseDTVal, vLotSize, vQuantity, vBuyPrice, vSellPrice, vTransType);
+			let vCharges = vBuyComm + vSellComm;
     		let vCapital = fnGetTradeCapital(vTransType, vBuyPrice, vSellPrice, vLotSize, vQuantity);
     		let vPL = fnGetTradePL(vSellPrice, vBuyPrice, vLotSize, vQuantity, vCharges);
             vTotalTrades += 1;
@@ -1773,7 +1785,7 @@ console.log(objTradeBook);
             vTempHtml += '<td style="text-wrap: nowrap; color:green;text-align:right;">' + (vBuyPrice).toFixed(3) + '</td>';
             vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (vSellPrice).toFixed(3) + '</td>';
             vTempHtml += '<td style="text-wrap: nowrap; color:orange;text-align:right;">' + (parseFloat(vCapital)).toFixed(3) + '</td>';
-            vTempHtml += '<td style="text-wrap: nowrap; color:orange;text-align:right;">' + (parseFloat(vCharges)).toFixed(3) + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap; color:orange;text-align:right;" title="'+ vCharges +'">' + (parseFloat(vCharges)).toFixed(3) + '</td>';
             vTempHtml += '<td style="text-wrap: nowrap; text-align:right;">'+ (vPL).toFixed(3) +'</td>';
 
             vTempHtml += '</tr>';
