@@ -1692,12 +1692,12 @@ function fnSetNextOptTradeSettings(){
 
 	// console.log(gCharges);
 
-	if(gPL > 0){
-		let vBalLossAmt = localStorage.getItem("TotLossAmtDeltaR");
-		let vNewTarget = parseFloat(vBalLossAmt) - parseFloat(gCharges);
-		localStorage.setItem("TotLossAmtDeltaR", vNewTarget);
-		// console.log("ADD Brokerage");
-	}
+	// if(gPL > 0){
+	// 	let vBalLossAmt = localStorage.getItem("TotLossAmtDeltaR");
+	// 	let vNewTarget = parseFloat(vBalLossAmt) - parseFloat(gCharges);
+	// 	localStorage.setItem("TotLossAmtDeltaR", vNewTarget);
+	// 	// console.log("ADD Brokerage");
+	// }
 }
 
 function fnChangeMartingale(){
@@ -1742,6 +1742,8 @@ function fnLoadTodayTrades(){
         objTodayTradeList.innerHTML = '<div class="col-sm-12" style="border:0px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 40px;">No Trades Yet</div>';
     }
     else{
+    	console.log(objTradeBook);
+    	
         let vTempHtml = "";
         let vTotalTrades = 0;
         let vNetProfit = 0;

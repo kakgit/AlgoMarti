@@ -18,6 +18,7 @@ const deltaLiveController = require("../controller/controllerDeltaLive.js");
 const deltaFutDemoController = require("../controller/controllerDeltaFutDemo.js");
 const deltaFutLiveController = require("../controller/controllerDeltaFutLive.js");
 const deltaOptDemoController = require("../controller/controllerDeltaOptDemo.js");
+const deltaOptScalpDemoCtrler = require("../controller/controllerDeltaOptScalperDemo.js");
 const deltaCalDemoController = require("../controller/controllerDeltaCalDemo.js");
 
 //home Routes
@@ -56,8 +57,11 @@ route.get("/deltaFutures-Live", deltaFutLiveController.defaultRoute);
 //Delta Futures Calander Route
 route.get("/deltaCal-Demo", deltaCalDemoController.defaultRoute);
 
-//Delta Futures Demo Route
+//Delta Options Demo Route
 route.get("/deltaOptions-Demo", deltaOptDemoController.defaultRoute);
+
+//Delta Options Scalper Demo Route
+route.get("/deltaOptScalper-Demo", deltaOptScalpDemoCtrler.defaultRoute);
 
 //Samco Routes
 route.get("/samco", samcoServices.defaultRoute);
