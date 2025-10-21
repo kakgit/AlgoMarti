@@ -3,7 +3,7 @@ let gByorSl = "";
 let gCurrPos = null;
 let gBuyPrice, gSellPrice, gLotSize, gQty, gAmtSL, gAmtTP, gCharges, gCapital, gOrderDT = 0;
 let gBrokerage = 0.05;
-let gMaxTradeTime = 15;
+let gMaxTradeTime = 30;
 let gLeverage = 160;
 let gTimerID = 0;
 let gTimeDiff = 900;
@@ -349,8 +349,6 @@ function fnGetRates(pTicData){
 	objSpotPrice.value = parseFloat(pTicData.mark_price).toFixed(2);
 	objBestBuy.value = pTicData.quotes.best_ask;
 	objBestSell.value = pTicData.quotes.best_bid;
-
-	// console.log(pTicData);
 
 	if(gCurrPos !== null){
 		fnUpdateOpnPosStatus();
@@ -1093,13 +1091,13 @@ function fnSetNextOptTradeSettings(){
     }
 
 	// console.log(gCharges);
-
-	// if(gPL > 0){
-	// 	let vBalLossAmt = localStorage.getItem("TotLossAmtDelta");
-	// 	let vNewTarget = parseFloat(vBalLossAmt) - parseFloat(gCharges);
-	// 	localStorage.setItem("TotLossAmtDelta", vNewTarget);
-	// 	// console.log("ADD Brokerage");
-	// }
+    //************* for Brokerage and any loss as minimum target
+	if(gPL > 0){
+		let vBalLossAmt = localStorage.getItem("TotLossAmtDelta");
+		let vNewTarget = parseFloat(vBalLossAmt) - parseFloat(gCharges);
+		localStorage.setItem("TotLossAmtDelta", vNewTarget);
+		// console.log("ADD Brokerage");
+	}
 	// console.log(localStorage.getItem("TotLossAmtDelta"))
 }
 

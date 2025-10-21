@@ -61,7 +61,7 @@ route.get("/deltaCal-Demo", deltaCalDemoController.defaultRoute);
 route.get("/deltaOptions-Demo", deltaOptDemoController.defaultRoute);
 
 //Delta Options Scalper Demo Route
-route.get("/deltaOptScalper-Demo", deltaOptScalpDemoCtrler.defaultRoute);
+route.get("/deltaExcOptSclprD", deltaOptScalpDemoCtrler.defaultRoute);
 
 //Samco Routes
 route.get("/samco", samcoServices.defaultRoute);
@@ -174,6 +174,10 @@ route.post("/deltaExcFutR/cancelPendingOrder", deltaFutLiveController.fnCancelOr
 route.post("/deltaExcFutR/getFilledPosById", deltaFutLiveController.fnGetOpenPositionByIdSDK);
 route.post("/deltaExcFutR/getProductsList", deltaFutLiveController.fnGetProductsList);
 route.post("/deltaExcFutR/closeRealPosition", deltaFutLiveController.fnCloseRealPoistion);
+
+//Delta Options Scalper Demo Routes
+route.post("/deltaExcOptSclprD/getSellOptOpenStatus", deltaOptScalpDemoCtrler.fnExecOptOpen);
+
 
 //Delta Futures Demo Routes
 route.post("/deltaExcFut/validateLogin", deltaFutDemoController.fnValidateUserLogin);

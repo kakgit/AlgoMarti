@@ -107,21 +107,41 @@
                                         <input type="date" class="form-control" placeholder="Sell Leg Date" id="txtExpDate" value="" />
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" value="0.53" id="txtDelta" class="form-control" onblur="fnSetDefDelta(this);" />
+                                        <input type="number" value="0.53" id="txtSellDelta" class="form-control" onblur="fnSetDefDelta(this);" />
                                     </div>
 
+                                    <div class="col-2">Stop Loss %</div>
+                                    <div class="col-2">Take Profit %</div>
                                     <div class="col-2">Loss Recovery %</div>
                                     <div class="col-2">X-Multiplier</div>
+                                    <div class="col-4"></div>
+
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="SL Percent" id="txtPercentSL" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="TP Percent" id="txtPercentTP" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Loss Recover %" id="txtLossRecvPerct" value="50" onchange="fnUpdateLossRecPrct(this);" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Multiplier X Times" id="txtMultiplierX" value="2.0" onchange="fnUpdateMultiplierX(this);" />
+                                    </div>
+                                    <div class="col-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-warning" onclick="fnUpdateSlTp();"><b>UPDATE</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-2"></div>
+
                                     <div class="col-2">Best Buying Price</div>
                                     <div class="col-2">Mark Price</div>
                                     <div class="col-2">Best Selling Price</div>
                                     <div class="col-2"></div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtLossRecvPerct" value="50" onchange="fnUpdateLossRecPrct(this);" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtMultiplierX" value="2.0" onchange="fnUpdateMultiplierX(this);" />
-                                    </div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+
                                     <div class="col-2">
                                         <input type="number" class="form-control" placeholder="Best Buy Price" id="txtBestBuyPrice" />
                                     </div>
@@ -142,14 +162,13 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-3">
+                                    <div class="col-4">
                                         <div class="input-group mb-3">
-                                            <button class="btn btn-danger" type="button" onclick="fnStopStrikeSub();"><i class="fa fa-stop" aria-hidden="true"></i></button>
                                             <input type="number" class="form-control" placeholder="Strike Price" id="txtStrikePrice" />
                                             <button class="btn btn-success" type="button" onclick="fnStartStrikeSub();"><i class="fa fa-play" aria-hidden="true"></i></button>
+                                            <button class="btn btn-danger" type="button" onclick="fnStopStrikeSub();"><i class="fa fa-stop" aria-hidden="true"></i></button>
                                         </div>
                                     </div>
-                                    <div class="col-9"></div>
 
                                     <div style="display: none;">
                                         <div class="col-2">Open</div>
@@ -176,6 +195,7 @@
                                         </div>
                                     </div>
                                     <br/><br/>
+
                                     <hr/>
                                     <div class="col-3">
                                         <div class="d-grid gap-1">
@@ -194,7 +214,7 @@
                                     </div>
                                     <div class="col-3">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success" onclick="fnInitiateManualFutures('P');"><b>SELL PUT</b></button>
+                                            <button class="btn btn-outline-success" onclick="fnInitManualSellOpt('P');"><b>SELL PUT</b></button>
                                         </div>
                                     </div>
                                 </div>
@@ -209,7 +229,10 @@
                                 <h4>Open Position(s)</h4>
                             </div>
                             <div class="col-3">
-                                <span id="spnLossTrd" class="badge rounded-pill text-bg-info" style="height: 30px; width: 30px;" onclick="fnTest('C');">&nbsp;</span>
+                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                                    <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtMultiLeg" name="swtMultiLeg" onchange="fnChangeMultiLeg();" />
+                                    <label for="swtMultiLeg" style="cursor:pointer;text-wrap:nowrap;">Multi Leg</label>
+                                </div>
                             </div>
                             <div class="col-2">
                                 <div class="form-check form-switch fs-6" style="white-space: nowrap;">
@@ -237,7 +260,10 @@
                                     <table class="table">
                                         <thead>
                                             <tr style="text-align:center;">
+                                                <th scope="col" style="text-wrap: nowrap;">Actions</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Stgy</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Delta</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Symbol</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Tr Type</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Lot Sz</th>
@@ -247,29 +273,17 @@
                                                 <th scope="col" style="text-wrap: nowrap;">Capital</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Charges</th>
                                                 <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Status</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            <tr style="text-align:center;">
-                                                <td id="tdDateTime" style="text-wrap: nowrap;"></td>
-                                                <td id="tdSymbol" style="text-wrap: nowrap;"></td>
-                                                <td id="tdTransType" style="text-wrap: nowrap;"></td>
-                                                <td id="tdLotSize" style="text-wrap: nowrap;"></td>
-                                                <td id="tdQty" style="text-wrap: nowrap;"></td>
-                                                <td id="tdBuyPrice" style="text-wrap: nowrap; color:green; text-align:right;"></td>
-                                                <td id="tdSellPrice" style="text-wrap: nowrap; color:red;text-align:right;"></td>
-                                                <td id="tdCapital" style="text-wrap: nowrap; color:orange;text-align:right;"></td>
-                                                <td id="tdCharges" style="text-wrap: nowrap; color:orange;text-align:right;"></td>
-                                                <td id="tdProfitLoss" style="text-wrap: nowrap;"></td>
-                                            </tr>
+                                        <tbody id="tBodyCurrTrades">
+
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-6"></div>
-                                <div class="col-2">Stop Loss Points</div>
-                                <div class="col-2">Take Profit Points</div>
                                 <div class="col-2"></div>
                                 <div class="col-1">
                                 </div>
@@ -278,17 +292,6 @@
                                 <div class="col-2">
                                     <div class="d-grid gap-1">
                                         <button id="btn50PerClose" class="btn btn-outline-warning" onclick="fnClosePrctTrade();"  disabled><b>EXIT 50% QTY</b></button>
-                                    </div>
-                                </div>
-                                <div class="col-2">
-                                    <input type="number" class="form-control" placeholder="SL Points" id="txtPointsSL" />
-                                </div>
-                                <div class="col-2">
-                                    <input type="number" class="form-control" placeholder="TP Points" id="txtPointsTP" />
-                                </div>
-                                <div class="col-2">
-                                    <div class="d-grid gap-1">
-                                        <button class="btn btn-outline-warning" onclick="fnUpdateSlTp();"><b>UPDATE</b></button>
                                     </div>
                                 </div>
 
