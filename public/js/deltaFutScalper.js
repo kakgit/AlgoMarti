@@ -933,7 +933,7 @@ async function fnClosePrctTrade(){
             fnGenMessage("No Open Positions to Close 50% Qty!", `badge bg-warning`, "spnGenMsg");
         }
         else{
-            let vPrctQty2Rec = (Math.round(parseInt(gCurrPos.TradeData[0].Qty) * parseFloat(gLossRecPerct)) / 100);
+            let vPrctQty2Rec = (Math.round(parseInt(gCurrPos.TradeData[0].Qty) * parseInt(gLossRecPerct)) / 100);
             let objClsTrd = await fnInnitiateClsFutTrade(vPrctQty2Rec);
 
             if(objClsTrd.status === "success"){
