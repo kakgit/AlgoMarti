@@ -943,7 +943,7 @@ async function fnInitManualSellOpt(pOptType){
 				}
 				else{
 					let vTempQty = parseInt(objQty.value) / 2;
-					if(vTempQty < parseInt(vStartQty){
+					if(vTempQty < parseInt(vStartQty)){
 						vTempQty = parseInt(vStartQty);
 					}
 					localStorage.setItem("QtyMultiplierOSD", vTempQty);
