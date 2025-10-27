@@ -543,7 +543,7 @@ function fnSaveUpdCurrPos(){
     			let vCurrPrice = parseFloat(gSymbBRateList[gCurrPosOSD.TradeData[i].Symbol]);
 				gCurrPosOSD.TradeData[i].BuyPrice = vCurrPrice;
 			    // console.log(vCurrPrice);
-			    console.log(vAmtSL);
+			    // console.log(vAmtSL);
 
 				if((vCurrPrice >= vAmtSL) || (vCurrPrice <= vAmtTP)){
 					vLegID = gCurrPosOSD.TradeData[i].OpenDTVal;
@@ -929,10 +929,11 @@ async function fnInitManualSellOpt(pOptType){
 		    // vExYear = ((vExYear).toString()).slice(2);
 			let vExpValTB = vExDay + "-" + vExMonth + "-" + vExYear;
 			let vContractType = "";
+			let vStartQty = document.getElementById("txtStartQty").value;
 			let vNetPL = localStorage.getItem("NetPLOSD");
 
 			if(gCurrPosOSD.TradeData.length === 0){
-				objQty.value = document.getElementById("txtStartQty").value;
+				objQty.value = vStartQty;
 			}
 			else{
 				if(parseFloat(vNetPL) < 0){
@@ -942,6 +943,9 @@ async function fnInitManualSellOpt(pOptType){
 				}
 				else{
 					let vTempQty = parseInt(objQty.value) / 2;
+					if(vTempQty < parseInt(vStartQty){
+						vTempQty = parseInt(vStartQty);
+					}
 					localStorage.setItem("QtyMultiplierOSD", vTempQty);
 					objQty.value = vTempQty;
 				}
