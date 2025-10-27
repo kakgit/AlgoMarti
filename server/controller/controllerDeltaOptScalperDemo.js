@@ -79,6 +79,44 @@ exports.fnGetOptChnSDKByUndAstExpOpTyp = async (req, res) => {
     // res.send({ "status": "success", "message": "Option Chain Data Received Successfully!", "data": "" });
 }
 
+exports.fnGetBestRatesBySymbol = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+    let vSymbol = req.body.Symbol;
+
+    const vMethod = "GET";
+    const vPath = '/v2/tickers/' + vSymbol;
+    const vTimeStamp = Math.floor(new Date().getTime() / 1000);
+
+    const vQueryStr = "";
+    const vBody = "";
+    const vSignature = fnGetSignature(vApiSecret, vMethod, vPath, vQueryStr, vTimeStamp, vBody);
+    let config = {
+        method: vMethod,
+        maxBodyLength: Infinity,
+        url: gBaseUrl + vPath + vQueryStr,
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'api-key': vApiKey,
+            'signature': vSignature,
+            'timestamp': vTimeStamp
+            }
+        };
+
+      axios.request(config)
+      .then((objResult) => {
+        let objRes = JSON.stringify(objResult.data);
+        // console.log(objRes);
+        res.send({ "status": "success", "message": "Best Buy and Sell Rates Feched!", "data": objRes });
+    })
+      .catch((objError) => {
+        console.log(objError);
+        res.send({ "status": "danger", "message": "Error in Best Rates. Contact Administrator!", "data": objError });
+    });
+    // res.send({ "status": "success", "message": "Current Rate Information Feched!", "data": "" });
+}
+
 const fnGetOptChnByCntrctTypeExp = async (pApiKey, pApiSecret, pOptType, pSymbol, pExpiry, pContractType, pSellDelta) => {
     const objPromise = new Promise((resolve, reject) => {
 

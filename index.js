@@ -94,7 +94,6 @@ app.post("/tv-msg-delta-fut", (req, res) => {
     res.send("Success");
 });
 
-
 app.post("/tv-msg-delta-opt", (req, res) => {
     const vSymbolName = req.body.symbolName;
     const vStrategy = req.body.strategy;
@@ -106,6 +105,18 @@ app.post("/tv-msg-delta-opt", (req, res) => {
     const objMsg = JSON.stringify({ symbolName: vSymbolName, strategy: vStrategy, direction: vDirection, optionType: vOptionType, closePrice: vClosePrice, ignorePrevIndc: vIgnorePrevIndc });
 
     io.emit("DeltaEmitOpt", objMsg);
+
+    res.send({ status: "success", message: vSymbolName + " " + vDirection + " - " + vOptionType + " Trade Sent to Admin!", data: objMsg });
+});
+
+app.post("/tvMsgOSD", (req, res) => {
+    const vSymbolName = req.body.symbolName;
+    const vDirection = req.body.direction;
+    const vOptionType = req.body.optionType;
+
+    const objMsg = JSON.stringify({ symbolName: vSymbolName, direction: vDirection, optionType: vOptionType });
+
+    io.emit("DeltaEmitOSD", objMsg);
 
     res.send({ status: "success", message: vSymbolName + " " + vDirection + " - " + vOptionType + " Trade Sent to Admin!", data: objMsg });
 });

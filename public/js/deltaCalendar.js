@@ -531,7 +531,6 @@ function fnUnsubscribe(){
         else{
             vSendData = { "type": "unsubscribe", "payload": { "channels": [{ "name": "v2/ticker" }]}};
         }
-        
 
 	    objDeltaWS.send(JSON.stringify(vSendData));
 	}

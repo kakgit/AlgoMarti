@@ -177,7 +177,7 @@ route.post("/deltaExcFutR/closeRealPosition", deltaFutLiveController.fnCloseReal
 
 //Delta Options Scalper Demo Routes
 route.post("/deltaExcOptSclprD/getSellOptOpenStatus", deltaOptScalpDemoCtrler.fnExecOptOpen);
-
+route.post("/deltaExcOptSclprD/getBestRatesBySymb", deltaOptScalpDemoCtrler.fnGetBestRatesBySymbol);
 
 //Delta Futures Demo Routes
 route.post("/deltaExcFut/validateLogin", deltaFutDemoController.fnValidateUserLogin);

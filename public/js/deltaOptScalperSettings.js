@@ -107,7 +107,7 @@ function fnValidateDeltaLogin(){
 
 function fnToggleAutoTrader(){
     let bAppStatus = JSON.parse(localStorage.getItem("AppMsgStatusS"));
-    let isLsAutoTrader = localStorage.getItem("isDeltaAutoTrader");
+    let isLsAutoTrader = localStorage.getItem("isAutoTraderOSD");
     
     let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
 
@@ -115,12 +115,12 @@ function fnToggleAutoTrader(){
         if(isLsAutoTrader === null || isLsAutoTrader === "false"){
             fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-success", "Auto Trader - ON");
             fnGenMessage("Auto Trading Mode is ON!", `badge bg-success`, "spnGenMsg");
-            localStorage.setItem("isDeltaAutoTrader", "true");
+            localStorage.setItem("isAutoTraderOSD", "true");
         }
         else{
             fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
             fnGenMessage("Auto Trading Mode is OFF!", `badge bg-danger`, "spnGenMsg");
-            localStorage.setItem("isDeltaAutoTrader", "false");
+            localStorage.setItem("isAutoTraderOSD", "false");
         }
     }
     else{
@@ -129,7 +129,7 @@ function fnToggleAutoTrader(){
 }
 
 function fnGetSetAutoTraderStatus(){
-    let isLsAutoTrader = localStorage.getItem("isDeltaAutoTrader");
+    let isLsAutoTrader = localStorage.getItem("isAutoTraderOSD");
     let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
 
     if(isLsAutoTrader === "true")
@@ -139,13 +139,13 @@ function fnGetSetAutoTraderStatus(){
     else
     {
         fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
-        localStorage.setItem("isDeltaAutoTrader", "false");
+        localStorage.setItem("isAutoTraderOSD", "false");
     }
 }
 
 function fnClearLoginStatus(){
     localStorage.removeItem("lsDeltaLoginValid");
-    localStorage.removeItem("isDeltaAutoTrader");
+    localStorage.removeItem("isAutoTraderOSD");
 
     fnGetSetTraderLoginStatus();
 }
@@ -158,7 +158,7 @@ function fnClearPrevLoginSession(){
     localStorage.removeItem("AppCredS");
 
     localStorage.removeItem("isAutoTrader");
-    localStorage.removeItem("isDeltaAutoTrader");
+    localStorage.removeItem("isAutoTraderOSD");
     localStorage.removeItem("KotakUserDetS");
     localStorage.removeItem("lsDeltaLoginValid");
 
