@@ -58,12 +58,12 @@ window.addEventListener("DOMContentLoaded", function(){
             fnGenMessage("Trade Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
         }
         else{
-        	if(((vTradeSide === "true") && (pMsg.TransType === "buy")) || ((vTradeSide === "false") && (pMsg.TransType === "sell")) || (vTradeSide === "-1")){
+        	// if(((vTradeSide === "true") && (pMsg.TransType === "buy")) || ((vTradeSide === "false") && (pMsg.TransType === "sell")) || (vTradeSide === "-1")){
         		fnInitManualSellOpt(objMsg.optionType);
-        	}
-        	else{
-                fnGenMessage(pMsg.TransType +" Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
-        	}
+        	// }
+        	// else{
+            //     fnGenMessage(pMsg.TransType +" Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
+        	// }
         }
     });
 
@@ -531,6 +531,7 @@ function fnSaveUpdCurrPos(){
 	let vOptionType = "";
 	let vSymbol = "";
 
+    console.log("gPL: " + gPL);
     // console.log(gSymbBRateList);
     // console.log(gCurrPosOSD.TradeData[0].AmtSL);
 
@@ -568,10 +569,11 @@ function fnSaveUpdCurrPos(){
     	}
     }
 
+	fnUpdateOpenPositions();
+
     if(vToPosClose){
     	fnCloseOptPosition(vLegID, vTransType, vOptionType, vSymbol, "CLOSED");
     }
-	fnUpdateOpenPositions();
 }
 
 async function fnCloseOptPosition(pLegID, pTransType, pOptType, pSymbol, pStatus){
@@ -587,6 +589,12 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptType, pSymbol, pStatus
 	
 		let vBestBuyRate = parseFloat(objBestRates.data.result.quotes.best_ask);
 
+		let vIndexPrice = 0;
+		let vLotSize = 0;
+		let vQty = 0;
+		let vBuyPrice = 0;
+		let vSellPrice = 0;
+
 		gUpdPos = false;
 		fnCloseWS();
 		gSymbBRateList = {};
@@ -599,8 +607,27 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptType, pSymbol, pStatus
 				gCurrPosOSD.TradeData[i].BuyPrice = vBestBuyRate;
 			    gCurrPosOSD.TradeData[i].CloseDT = vToday;
 				gCurrPosOSD.TradeData[i].Status = pStatus;
+
+				vIndexPrice = gCurrPosOSD.TradeData[i].StrikePrice;
+				vLotSize = gCurrPosOSD.TradeData[i].LotSize;
+				vQty = gCurrPosOSD.TradeData[i].Qty;
+				vBuyPrice = gCurrPosOSD.TradeData[i].BuyPrice;
+				vSellPrice = gCurrPosOSD.TradeData[i].SellPrice;
 			}
 		}
+
+		let vTotLossAmt = localStorage.getItem("TotLossAmtOSD");
+        let vCharges = fnGetTradeCharges(vIndexPrice, vLotSize, vQty, vBuyPrice, vSellPrice);
+        let vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
+
+        vTotLossAmt = parseFloat(vTotLossAmt) + parseFloat(vPL) - parseFloat(vCharges);
+		localStorage.setItem("TotLossAmtOSD", vTotLossAmt);
+		gPL = vTotLossAmt;
+
+        // console.log("vCharges: " + vCharges);
+        // console.log("vPL: " + vPL);
+        // console.log("vTotLossAmt: " + vTotLossAmt);
+
 	    let objExcTradeDtls = JSON.stringify(gCurrPosOSD);
 	    localStorage.setItem("DeltaCurrOptPosD", objExcTradeDtls);
 
@@ -663,8 +690,8 @@ function fnGetBestRatesBySymbId(pApiKey, pApiSecret, pSymbol){
 }
 
 function fnCheckBuySLTP(pCurrPrice){
-    let vTotLossAmt = JSON.parse(localStorage.getItem("TotLossAmtDeltaOSD"));
-    let vNewProfit = Math.abs(parseFloat(localStorage.getItem("TotLossAmtDeltaOSD")) * parseFloat(gMultiplierX));
+    let vTotLossAmt = JSON.parse(localStorage.getItem("TotLossAmtOSD"));
+    let vNewProfit = Math.abs(parseFloat(localStorage.getItem("TotLossAmtOSD")) * parseFloat(gMultiplierX));
 	let objCounterSwt = document.getElementById("swtTradeCounter");
 	let objBrkRec = document.getElementById("tdHeadBrkRec");
 
@@ -710,8 +737,8 @@ function fnCheckBuySLTP(pCurrPrice){
 }
 
 function fnCheckSellSLTP(pCurrPrice){
-    let vTotLossAmt = JSON.parse(localStorage.getItem("TotLossAmtDeltaOSD"));
-    let vNewProfit = Math.abs(parseFloat(localStorage.getItem("TotLossAmtDeltaOSD")) * parseFloat(gMultiplierX));
+    let vTotLossAmt = JSON.parse(localStorage.getItem("TotLossAmtOSD"));
+    let vNewProfit = Math.abs(parseFloat(localStorage.getItem("TotLossAmtOSD")) * parseFloat(gMultiplierX));
 	let objCounterSwt = document.getElementById("swtTradeCounter");
 	let objBrkRec = document.getElementById("tdHeadBrkRec");
 
@@ -930,19 +957,19 @@ async function fnInitManualSellOpt(pOptType){
 			let vExpValTB = vExDay + "-" + vExMonth + "-" + vExYear;
 			let vContractType = "";
 			let vStartQty = document.getElementById("txtStartQty").value;
-			let vNetPL = localStorage.getItem("NetPLOSD");
+			let vNetPL = localStorage.getItem("CurrPLOSD");
 
 			if(gCurrPosOSD.TradeData.length === 0){
 				objQty.value = vStartQty;
 			}
 			else{
 				if(parseFloat(vNetPL) < 0){
-					let vTempQty = parseInt(objQty.value) * 2;
+					let vTempQty = parseInt(objQty.value) + parseInt(vStartQty);
 					localStorage.setItem("QtyMultiplierOSD", vTempQty);
 					objQty.value = vTempQty;
 				}
 				else{
-					let vTempQty = parseInt(objQty.value) / 2;
+					let vTempQty = parseInt(objQty.value) - parseInt(vStartQty);
 					if(vTempQty < parseInt(vStartQty)){
 						vTempQty = parseInt(vStartQty);
 					}
@@ -1042,6 +1069,7 @@ function fnUpdateOpenPositions(){
 	        let vDeployedCapital = 20000;
 	        let vLegMultiplier = 2;
 		    let vPercentPL = 0;
+		    let vLastPL = 0;
 
 	        for(let i=0; i<gCurrPosOSD.TradeData.length; i++){
 	        	let vProductID = gCurrPosOSD.TradeData[i].ProductID;
@@ -1068,6 +1096,7 @@ function fnUpdateOpenPositions(){
 		        let vCapital = fnGetTradeCapital(vTransType, vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
 	            let vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
                 vNetPL += parseFloat(vPL);
+                vLastPL = vPL;
 
 	            vTotalCharges += parseFloat(vCharges);
 	            vTotalTrades += 1;
@@ -1104,7 +1133,7 @@ function fnUpdateOpenPositions(){
 		            vTempHtml += '<tr>';
 		            vTempHtml += '<td style="text-wrap: nowrap;"><i class="fa fa-eye-slash" aria-hidden="true" style="color:red;" title="Re-open This Leg!" onclick="fnCloseOptPosition('+ vLegID +', `'+ vTransType +'`, `'+ vOptionType +'`, `'+ vSymbol +'`, `OPEN`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-exchange" style="color:#808080;" aria-hidden="true" onclick="//alert(`Position Already Closed!`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-wrench" aria-hidden="true" style="color:#01ff1f;" onclick="fnOpenEditModel('+ vLegID +', '+ vLotSize +', '+ vQty +', `'+ vBuyPrice +'`, `'+ vSellPrice +'`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" aria-hidden="true" style="color:red;" onclick="fnDelLeg('+ vLegID +');"></i></td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; color:#808080; text-align:center;">' + vOpenDT + '</td>';
-		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; font-weight:bold; color:#808080;">' + vDelta + '</td>';
+		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; font-weight:bold; color:#808080;">' + (vDelta).toFixed(2) + '</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; color:#808080; text-align:center;">' + vSymbol + '</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; color:#808080; text-align:center;">' + vTransType + '</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:#808080;">' + vLotSize + '</td>';
@@ -1122,7 +1151,7 @@ function fnUpdateOpenPositions(){
 	        vTempHtml += '<tr><td></td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">Total Trades: </td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">'+ vTotalTrades +'</td><td></td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">Investment: </td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">'+ vDeployedCapital +'</td><td></td><td></td><td></td><td style="text-wrap: nowrap; text-align:right; color: red; font-weight:bold;">'+ (vTotalCapital).toFixed(2) +'</td><td style="text-wrap: nowrap; text-align:right; color: red; font-weight:bold;">'+ (vTotalCharges).toFixed(2) +'</td><td style="text-wrap: nowrap; text-align:right; color: white; font-weight:bold;">'+ (vNetPL).toFixed(2) +'</td><td style="text-wrap: nowrap; text-align:right; color: white; font-weight:bold;">'+ (vPercentPL).toFixed(1) +'%</td></tr>';
 	        objCurrTradeList.innerHTML = vTempHtml;
 
-			localStorage.setItem("NetPLOSD", vNetPL);
+			localStorage.setItem("CurrPLOSD", vLastPL);
 
 	        if(gPosChanged){
 	        	console.log("Sub.........*******");
@@ -1133,6 +1162,10 @@ function fnUpdateOpenPositions(){
 		// console.log(gSubList);
 		// console.log(gUnSubList);
 	}
+}
+
+function fnSetNextTarget(){
+	console.log("Set Target Here");
 }
 
 function fnGetExecutedTrdDtls(pOptType, pSymbol, pExpiry, pQty, pSellDelta, pContractType){
@@ -1458,20 +1491,20 @@ async function fnInnitiateClsFutTrade(pQty){
 		    let vTradePL = fnGetTradePL(gCurrPosOSD.TradeData[0].SellPrice, gCurrPosOSD.TradeData[0].BuyPrice, gCurrPosOSD.TradeData[0].LotSize, pQty, vCharges);
 		    gCurrPosOSD.TradeData[0].ProfitLoss = vTradePL;
 
-	        gOldPLAmt = JSON.parse(localStorage.getItem("TotLossAmtDeltaOSD"));
+	        gOldPLAmt = JSON.parse(localStorage.getItem("TotLossAmtOSD"));
 	        gNewPLAmt = vTradePL;
 	    	let vTotNewPL = gOldPLAmt + gNewPLAmt;
 	    	localStorage.setItem("OldPLAmtDeltaOSD", gOldPLAmt);
 	    	localStorage.setItem("NewPLAmtDeltaOSD", gNewPLAmt);
-	    	localStorage.setItem("TotLossAmtDeltaOSD", vTotNewPL);
+	    	localStorage.setItem("TotLossAmtOSD", vTotNewPL);
 	    }
 	    else{
-	    	gOldPLAmt = JSON.parse(localStorage.getItem("TotLossAmtDeltaOSD"));
+	    	gOldPLAmt = JSON.parse(localStorage.getItem("TotLossAmtOSD"));
 	    	gNewPLAmt = gPL;
 	    	let vTotNewPL = gOldPLAmt + gNewPLAmt;
 	    	localStorage.setItem("OldPLAmtDeltaOSD", gOldPLAmt);
 	    	localStorage.setItem("NewPLAmtDeltaOSD", gNewPLAmt);
-	    	localStorage.setItem("TotLossAmtDeltaOSD", vTotNewPL);
+	    	localStorage.setItem("TotLossAmtOSD", vTotNewPL);
 	    }
 	}
 	else{
@@ -1522,7 +1555,7 @@ function fnSetNextOptTradeSettings(){
     let objQty = document.getElementById("txtQty");
     let vOldLossAmt = localStorage.getItem("OldPLAmtDeltaOSD");
 	let vNewLossAmt = localStorage.getItem("NewPLAmtDeltaOSD");
-	let vTotLossAmt = localStorage.getItem("TotLossAmtDeltaOSD");
+	let vTotLossAmt = localStorage.getItem("TotLossAmtOSD");
 
     let vOldQtyMul = JSON.parse(localStorage.getItem("QtyMultiplierOSD"));
     let vStartLots = JSON.parse(localStorage.getItem("StartQtyNoDeltaOSD"));
@@ -1545,7 +1578,7 @@ function fnSetNextOptTradeSettings(){
 	        objQty.value = vNextQty;
 		}
 	    else {
-	        localStorage.setItem("TotLossAmtDeltaOSD", 0);
+	        localStorage.setItem("TotLossAmtOSD", 0);
 	        localStorage.removeItem("QtyMultiplierOSD");
 	        // localStorage.setItem("TradeStep", 0);
 	        fnSetLotsByQtyMulLossAmt();
@@ -1553,7 +1586,7 @@ function fnSetNextOptTradeSettings(){
     }
     else{
     	if(parseFloat(vTotLossAmt) > 0){
-			localStorage.setItem("TotLossAmtDeltaOSD", 0);
+			localStorage.setItem("TotLossAmtOSD", 0);
     	}
     	
         fnSetLotsByQtyMulLossAmt();
@@ -1562,12 +1595,12 @@ function fnSetNextOptTradeSettings(){
 	// console.log(gCharges);
 
 	if(gPL > 0){
-		let vBalLossAmt = localStorage.getItem("TotLossAmtDeltaOSD");
+		let vBalLossAmt = localStorage.getItem("TotLossAmtOSD");
 		let vNewTarget = parseFloat(vBalLossAmt) - parseFloat(gCharges);
-		localStorage.setItem("TotLossAmtDeltaOSD", vNewTarget);
+		localStorage.setItem("TotLossAmtOSD", vNewTarget);
 		// console.log("ADD Brokerage");
 	}
-	// console.log(localStorage.getItem("TotLossAmtDeltaOSD"))
+	// console.log(localStorage.getItem("TotLossAmtOSD"))
 }
 
 function fnChangeMartingale(){
@@ -1588,7 +1621,7 @@ function fnSetLotsByQtyMulLossAmt(){
     let vStartLots = JSON.parse(localStorage.getItem("StartQtyNoDeltaOSD"));
     let vQtyMul = JSON.parse(localStorage.getItem("QtyMultiplierOSD"));
     let objOptQty = document.getElementById("txtQty");
-    let vTotLossAmt = JSON.parse(localStorage.getItem("TotLossAmtDeltaOSD"));
+    let vTotLossAmt = JSON.parse(localStorage.getItem("TotLossAmtOSD"));
     
     if (vQtyMul === null || vQtyMul === "") {
         localStorage.setItem("QtyMultiplierOSD", vStartLots);
@@ -1600,7 +1633,7 @@ function fnSetLotsByQtyMulLossAmt(){
     
     if (vTotLossAmt === null || vTotLossAmt === "" || vTotLossAmt === 0) {
         localStorage.setItem("QtyMultiplierOSD", vStartLots);
-        localStorage.setItem("TotLossAmtDeltaOSD", 0);
+        localStorage.setItem("TotLossAmtOSD", 0);
         objOptQty.value = vStartLots;
     }
     else {
@@ -1661,7 +1694,7 @@ function fnLoadTodayTrades(){
         else{
             objHeadPL.innerHTML = '<span Style="text-align:left;font-weight:bold;color:green;">' + (vNetProfit).toFixed(2) + '</span>';
         }
-        objYtRL.innerText = parseFloat(localStorage.getItem("TotLossAmtDeltaOSD")).toFixed(2);
+        objYtRL.innerText = parseFloat(localStorage.getItem("TotLossAmtOSD")).toFixed(2);
     }
 }
 
@@ -1789,12 +1822,12 @@ function fnDelLeg(pLegID){
 function fnClearLocalStorageTemp(){
     localStorage.removeItem("DeltaCurrOptPosD");
 	localStorage.removeItem("TrdBkFutOSD");
-	localStorage.removeItem("StartQtyNoDeltaOSD");
+	// localStorage.removeItem("StartQtyNoDeltaOSD");
 	// localStorage.removeItem("DeltaOptMartiOSD");
 	// localStorage.removeItem("DeltaOptMultiLegOSD");
 	localStorage.setItem("QtyMultiplierOSD", 0);
-	localStorage.setItem("TotLossAmtDeltaOSD", 0);
-	localStorage.setItem("NetPLOSD", 0);
+	localStorage.setItem("TotLossAmtOSD", 0);
+	localStorage.setItem("CurrPLOSD", 0);
     localStorage.removeItem("LossRecMOSD");
 	localStorage.removeItem("MultiplierXOSD");
 	localStorage.removeItem("DeltaCurrOptSlTpOSD");
