@@ -1152,7 +1152,8 @@ function fnUpdateOpenPositions(){
 	        objCurrTradeList.innerHTML = vTempHtml;
 
 			localStorage.setItem("CurrPLOSD", vLastPL);
-
+			gPL = vLastPL;
+			
 	        if(gPosChanged){
 	        	console.log("Sub.........*******");
 		        fnSubscribeInterval();
