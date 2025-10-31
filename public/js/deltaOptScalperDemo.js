@@ -875,24 +875,24 @@ function fnUpdateOpenPositions(){
 			localStorage.setItem("CurrPLOSD", vLastPL);
 
 	        if(gCurrPosOSD.TradeData.length > 1){
-	        	fnExecClsTrdOnLossRec(vNetPL, vLastCharges);
+	        	fnExecClsTrdOnLossRec(vNetPL, vLastCharges, vTotalCapital);
 	        }
 	    }
 	}
 }
 
-function fnExecClsTrdOnLossRec(pNetPL, pLastCharges){
+function fnExecClsTrdOnLossRec(pNetPL, pLastCharges, vTotalCapital){
 	let vTotalPL = localStorage.getItem("TotLossAmtOSD");
 	let objMultiplier = document.getElementById("txtMultiplierX");
 	let vMulCharges = parseFloat(pLastCharges) * parseFloat(objMultiplier.value);
 
 	if((parseFloat(vTotalPL) < 0) && parseFloat(pNetPL) > 0){
-		let vCalcProfit = Math.abs(parseInt(vTotalPL) * parseFloat(objMultiplier.value));
+		// let vCalcProfit = Math.abs(parseInt(vTotalPL) * parseFloat(objMultiplier.value));
 
 		// console.log("vCalcProfit: " + vCalcProfit);
 		// console.log("pNetPL: " + pNetPL);
 
-		if(parseFloat(pNetPL) >= vCalcProfit){
+		if(parseFloat(pNetPL) >= parseFloat(vTotalCapital)){
 		console.log("Total Loss Recovery done....");
 			fnClsAllOpenPos();
 		}
