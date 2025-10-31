@@ -1,33 +1,21 @@
 
-let objDeltaWS = null;
-let objStrikeWS = null;
+let obj_WS_OSD = null;
 let gByorSl = "";
 let gCurrPosOSD = { TradeData : []};
 let gBuyPrice, gSellPrice, gLotSize, gQty, gAmtSL, gAmtTP, gCharges, gCapital, gOrderDT = 0;
 let gBrokerage = 0.015;
-let gMaxTradeTime = 15;
-let gLeverage = 160;
-let gTimerID = 0;
-let gTimeDiff = 900;
 let gLossRecPerct = 50;
 let gMultiplierX = 2.0;
-let gOldPLAmt = 0;
-let gNewPLAmt = 0;
-let gPL = 0;
-let gHisCandleMins = 1; //Eg: 1, 3, 5, 15, 30
-let gSubInterval = 0;
 let gTradeInst = 0;
-let gManualSubIntvl = 0;
 let	gManClsStrikeConn = false;
 let gSubList = [];
 let gUnSubList = [];
 let gUpdPos = true;
-let gPosChanged = false;
 let gSymbBRateList = {};
 let gSymbBDeltaList = {};
 let gSymbSRateList = {};
 let gSymbSDeltaList = {};
-let gManCloseWSCon = false;
+let gForceCloseOSD = false;
 
 window.addEventListener("DOMContentLoaded", function(){
 	fnGetAllStatus();
@@ -77,6 +65,7 @@ function fnGetAllStatus(){
 	let bAppStatus = JSON.parse(localStorage.getItem("AppMsgStatusS"));
 
 	if(bAppStatus){
+		fnConnectOSD();
         fnGetSetTraderLoginStatus();
 		fnGetSetAutoTraderStatus();
 		fnLoadDefSymbol();
@@ -92,7 +81,6 @@ function fnGetAllStatus(){
 		fnLoadTodayTrades();
 
 		fnLoadTradeSide();
-		fnSubscribeInterval();
 	}
 }
 
@@ -284,185 +272,149 @@ function fnLoadCurrentTradePos(){
     if(gCurrPosOSD === null){
         gCurrPosOSD = { TradeData : []};
     }
-}
-
-function fnCloseWS(){
-	if(objDeltaWS !== null){
-		gManCloseWSCon = true;
-		objDeltaWS.close();
-	}
-	else{
-		console.log("There is no Open WS Connection!")
-	}
-}
-
-function fnConnectWS(){
-    let vUrl = "wss://socket.india.delta.exchange";
-    objDeltaWS = new WebSocket(vUrl);
-
-    objDeltaWS.onopen = function (){
-        fnGenMessage("Streaming Connection Started and Open!", `badge bg-success`, "spnGenMsg");
+    else{
+    	fnSetSymbolTickerList();
     }
-    objDeltaWS.onclose = function (){
-    	if(gManCloseWSCon){
-			objDeltaWS = null;
-	        clearInterval(gTradeInst);
-	        console.log("Conn Closed....");
+}
+
+//******************* WS Connection and Subscription Fully Updated Version ****************//
+function fnConnectOSD(){
+    let vUrl = "wss://socket.india.delta.exchange";
+    obj_WS_OSD = new WebSocket(vUrl);
+
+    obj_WS_OSD.onopen = function (){
+        fnGenMessage("Streaming Connection Started and Open!", `badge bg-success`, "spnGenMsg");
+		console.log("WS is Open!");
+    }
+    obj_WS_OSD.onerror = function (){
+   		setTimeout(fnSubscribeOSD, 3000);
+        console.log("WS Error, Trying to Reconnect.....");
+    }
+    obj_WS_OSD.onclose = function (){
+    	if(gForceCloseOSD){
+    		gForceCloseOSD = false;
+	        console.log("WS Disconnected & Closed!!!!!!");
     	}
     	else{
-			fnSubscribeInterval();
-	        fnGenMessage("Streaming Connection Closed & Restarted!", `badge bg-danger`, "spnGenMsg");
+	   		fnSubscribeOSD();
+	        console.log("Restarting WS....");
     	}
     }
-    objDeltaWS.onerror = function (){
-        console.log("Conn Error");
-    }
-	objDeltaWS.onmessage = function (pMsg){
+    obj_WS_OSD.onmessage = function (pMsg){
         let vTicData = JSON.parse(pMsg.data);
 
-		// console.log(vTicData);
 		switch (vTicData.type){
 			case "v2/ticker":
-				// console.log("Msg Sub Received........");
+				console.log("Msg Sub Received!!!!!");
+				// console.log(vTicData);
 				fnUpdateRates(vTicData);
 				break;
 			case "subscriptions":
 
 	            fnGenMessage("Streaming Subscribed and Started!", `badge bg-success`, "spnGenMsg");
+				console.log("Subscribed!!!!!!!");
 				break;
 			case "unsubscribed":
 
 	            fnGenMessage("Streaming Unsubscribed!", `badge bg-warning`, "spnGenMsg");
+				console.log("UnSubscribed!!!!!!");
 				break;
-		}
+		}    	
+    }
+}
+
+function fnSubscribeOSD(){
+	if(obj_WS_OSD === null){
+		fnConnectOSD();
+		setTimeout(fnSubscribeOSD, 3000);
+	    console.log("Connecting WS.....");
+	}
+	else{
+		const vTimer = setInterval(() => {
+			if(obj_WS_OSD.readyState === 1){
+				clearInterval(vTimer);
+				//Write Subscription code here
+			    let vSendData = { "type": "subscribe", "payload": { "channels": [{ "name": "v2/ticker", "symbols": gSubList }]}};
+
+			    obj_WS_OSD.send(JSON.stringify(vSendData));
+		  		console.log("Subscribing............");
+			}
+			else{
+		  		console.log("Trying to Reconnect...");
+				fnConnectOSD();
+			}
+		}, 3000);
 	}
 }
 
-function fnSubscribeInterval(){
-	if(gCurrPosOSD.TradeData.length > 0){
-        clearInterval(gTradeInst);
+function fnUnSubscribeOSD(){
+	if(obj_WS_OSD === null){
+		fnConnectOSD();
+		setTimeout(fnUnSubscribeOSD, 3000);
+	    console.log("Already Disconnected, Connecting WS to Unsub.....");
+	}
+	else{
+		const vTimer = setInterval(() => {
+			if(obj_WS_OSD.readyState === 1){
+				clearInterval(vTimer);
+			    let vSendData = { "type": "unsubscribe", "payload": { "channels": [{ "name": "v2/ticker" }]}};
 
-		setTimeout(fnSubscribe, 3000);
-	    gTradeInst = setInterval(fnSaveUpdCurrPos, 15000);
+			    obj_WS_OSD.send(JSON.stringify(vSendData));
+		  		console.log("UnSubscribing........!!!!!");
+			}
+			else{
+		  		console.log("Trying to Reconnect...");
+				fnConnectOSD();
+			}
+		}, 3000);
 	}
 }
+
+function fnRestartConnOSD(){
+	if(obj_WS_OSD !== null){
+		obj_WS_OSD.close();
+	}
+	else{
+        console.log("WS already Disconnected and Reconnecting Now......");		
+		fnSubscribeOSD();
+	}
+}
+
+function fnForceDisconnectOSD(){
+	if(obj_WS_OSD !== null){
+		gForceCloseOSD = true;
+		obj_WS_OSD.close();
+	}
+	else{
+        console.log("WS already Disconnected!!!!!!");		
+	}
+}
+
+function fnCheckStatusOSD(){
+	console.log(obj_WS_OSD);	
+}
+
+function fnAdd2SubList(){
+	let objSymbol = document.getElementById("txtRateTest");
+
+	gSubList.push(objSymbol.value);
+	console.log(gSubList);
+	fnUnSubscribeOSD();
+	fnSubscribeOSD();
+}
+//******************* WS Connection and Subscription Fully Updated Version ****************//
 
 function fnUpdateRates(pTicData){
 	// console.log(pTicData);
     gSymbBRateList[pTicData.symbol] = pTicData.quotes.best_ask;
     gSymbSRateList[pTicData.symbol] = pTicData.quotes.best_bid;
 
-	if(pTicData.contract_type !== "perpetual_futures"){
-	    gSymbBDeltaList[pTicData.symbol] = pTicData.greeks.delta;
-	    gSymbSDeltaList[pTicData.symbol] = pTicData.greeks.delta;
-	}
+	// if(pTicData.contract_type !== "perpetual_futures"){
+	//     gSymbBDeltaList[pTicData.symbol] = pTicData.greeks.delta;
+	//     gSymbSDeltaList[pTicData.symbol] = pTicData.greeks.delta;
+	// }
 
     // console.log(gSymbBRateList);
-}
-
-function fnSubscribe(){
-	if(objDeltaWS === null){
-		fnConnectWS();
-		console.log("WS is looping to Connect.....");
-		setTimeout(fnSubscribe, 3000);
-	}
-	else{
-	    let vSendData = { "type": "subscribe", "payload": { "channels": [{ "name": "v2/ticker", "symbols": gSubList }]}};
-		console.log("Subscribing to Channel....");
-		// console.log(gSubList);
-		gPosChanged = false;
-	    objDeltaWS.send(JSON.stringify(vSendData));
-	}
-}
-
-function fnUnsubscribe(){
-	if(objDeltaWS === null){
-	    fnGenMessage("Already Streaming is Unsubscribed & Disconnected!", `badge bg-warning`, "spnGenMsg");
-	}
-	else{
-	    let vSendData = {};
-        if(gUnSubList.length > 0){
-            vSendData = { "type": "unsubscribe", "payload": { "channels": [{ "name": "v2/ticker", "symbols": gUnSubList }]}};
-        }
-        else{
-            vSendData = { "type": "unsubscribe", "payload": { "channels": [{ "name": "v2/ticker" }]}};
-        }
-
-	    objDeltaWS.send(JSON.stringify(vSendData));
-	}
-}
-
-function fnStartStrikeSub(){
-	let objDdlSymbol = document.getElementById("ddlSymbols");
-	let vSymbol = objDdlSymbol.value + "USD";
-
-	if(objStrikeWS === null){
-		fnConnectStrikeWS();
-		// console.log("WS is looping to Connect.....");
-		setTimeout(fnStartStrikeSub, 3000);
-	}
-	else{
-	    let vSendData = { "type": "subscribe", "payload": { "channels": [{ "name": "v2/ticker", "symbols": [ vSymbol ] }]}};
-		// console.log("Subscribing to Channel....");
-	    objStrikeWS.send(JSON.stringify(vSendData));
-	}
-}
-
-function fnConnectStrikeWS(){
-    let vUrl = "wss://socket.india.delta.exchange";
-    objStrikeWS = new WebSocket(vUrl);
-
-    objStrikeWS.onopen = function (){
-	    console.log("Strike Conn Started......");
-	    // fnGenMessage("Streaming Connection Started and Open!", `badge bg-success`, "spnGenMsg");
-    }
-    objStrikeWS.onclose = function (){
-    	if(gManClsStrikeConn){
-			let objStrikePrice = document.getElementById("txtStrikePrice");
-
-			objStrikeWS = null;
-			objStrikePrice.value = "";
-
-	        fnGenMessage("Strike Streaming Connection Closed!", `badge bg-danger`, "spnGenMsg");
-       	}
-       	else{
-       		fnStartStrikeSub();
-       	}
-
-        console.log("Strike Conn Closed....");
-    }
-    objStrikeWS.onerror = function (){
-        console.log("Strike Conn has Error...");
-    }
-	objStrikeWS.onmessage = function (pMsg){
-        let vTicData = JSON.parse(pMsg.data);
-
-		// console.log(vTicData);
-		switch (vTicData.type){
-			case "v2/ticker":
-				// console.log(vTicData);
-				fnSetStrike(vTicData);
-				break;
-			case "subscriptions":
-				console.log("Strike Streaming Subscribed and Started!");
-	            // fnGenMessage("Strike Streaming Subscribed and Started!", `badge bg-success`, "spnGenMsg");
-				break;
-			case "unsubscribed":
-				console.log("Strike Streaming Unsubscribed!");
-	            // fnGenMessage("Streaming Unsubscribed!", `badge bg-warning`, "spnGenMsg");
-				break;
-		}
-	}
-}
-
-function fnStopStrikeSub(){
-	if(objStrikeWS !== null){
-		gManClsStrikeConn = true;
-		objStrikeWS.close();
-	}
-	else{
-		console.log("There is no Open Strike WS Connection!")
-	}
 }
 
 function fnSetStrike(pTicData){
@@ -475,58 +427,6 @@ function fnSetStrike(pTicData){
 		let vTempVal = Math.round(parseInt(vSpotPrice) / 200) * 200;
 
 		objStrikePrice.value = vTempVal;
-	}
-}
-
-function fnUpdateOpnPosStatus(){
-    let objCharges = document.getElementById("tdCharges");
-    let objProfitLoss = document.getElementById("tdProfitLoss");
-
-    let vDate = new Date();
-    let vCurrDT = vDate.valueOf();
-
-	if(gByorSl === "buy"){
-		let objBestSell = document.getElementById("txtBestSellPrice");
-		let objSellPrice = document.getElementById("tdSellPrice");
-		
-		gSellPrice = parseFloat(objBestSell.value).toFixed(2);
-
-		objSellPrice.innerHTML = "<span class='blink'>" + gSellPrice + "</span>";
-
-		gCharges = fnGetTradeCharges(gOrderDT, vCurrDT, gLotSize, gQty, gBuyPrice, gSellPrice, gByorSl);
-		gPL = fnGetTradePL(gSellPrice, gBuyPrice, gLotSize, gQty, gCharges);
-
-		objCharges.innerText = (gCharges).toFixed(3);
-		objProfitLoss.innerText = (gPL).toFixed(2);
-
-		gCurrPosOSD.TradeData[0].SellPrice = gSellPrice;
-		gCurrPosOSD.TradeData[0].Charges = gCharges;
-		gCurrPosOSD.TradeData[0].ProfitLoss = gPL;
-
-		fnCheckBuySLTP(gSellPrice);
-	}
-	else if(gByorSl === "sell"){
-		let objBestBuy = document.getElementById("txtBestBuyPrice");
-		let objBuyPrice = document.getElementById("tdBuyPrice");
-
-		gBuyPrice = parseFloat(objBestBuy.value).toFixed(2);
-
-		objBuyPrice.innerHTML = "<span class='blink'>" + gBuyPrice + "</span>";
-
-		gCharges = fnGetTradeCharges(gOrderDT, vCurrDT, gLotSize, gQty, gBuyPrice, gSellPrice, gByorSl);
-		gPL = fnGetTradePL(gSellPrice, gBuyPrice, gLotSize, gQty, gCharges);
-
-		objCharges.innerText = (gCharges).toFixed(3);
-		objProfitLoss.innerText = (gPL).toFixed(2);
-
-		gCurrPosOSD.TradeData[0].BuyPrice = gBuyPrice;
-		gCurrPosOSD.TradeData[0].Charges = gCharges;
-		gCurrPosOSD.TradeData[0].ProfitLoss = gPL;
-
-		fnCheckSellSLTP(gBuyPrice);
-	}
-	else{
-		fnGenMessage("No Open Position!", `badge bg-warning`, "spnGenMsg");
 	}
 }
 
@@ -604,7 +504,7 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptType, pSymbol, pStatus
 		let vSellPrice = 0;
 
 		gUpdPos = false;
-		fnCloseWS();
+
 		gSymbBRateList = {};
 		gSymbBDeltaList = {};
 		gSymbSRateList = {};
@@ -633,13 +533,12 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptType, pSymbol, pStatus
 
         vTotLossAmt = parseFloat(vTotLossAmt) + parseFloat(vPL);
 		localStorage.setItem("TotLossAmtOSD", vTotLossAmt);
-		gPL = vTotLossAmt;
 
 	    let objExcTradeDtls = JSON.stringify(gCurrPosOSD);
 	    localStorage.setItem("DeltaCurrOptPosD", objExcTradeDtls);
 
-	    gPosChanged = true;
 	    gUpdPos = true;
+		fnSetSymbolTickerList();
 	    fnUpdateOpenPositions();
 	}
 }
@@ -696,154 +595,6 @@ function fnGetBestRatesBySymbId(pApiKey, pApiSecret, pSymbol){
     return objPromise;
 }
 
-function fnCheckBuySLTP(pCurrPrice){
-    let vTotLossAmt = JSON.parse(localStorage.getItem("TotLossAmtOSD"));
-    let vNewProfit = Math.abs(parseFloat(localStorage.getItem("TotLossAmtOSD")) * parseFloat(gMultiplierX));
-	let objCounterSwt = document.getElementById("swtTradeCounter");
-	let objBrkRec = document.getElementById("tdHeadBrkRec");
-
-    if(vTotLossAmt === null || isNaN(vTotLossAmt)){
-    	vTotLossAmt = 0;
-    }
-    if(vNewProfit === null || isNaN(vNewProfit)){
-    	vNewProfit = 0;
-    }
-
-	// let vBrokTotLossRec = Math.abs(parseFloat(vTotLossAmt) - parseFloat(gCharges));
-	// objBrkRec.innerText = (vBrokTotLossRec).toFixed(2);
-
-    // console.log("vTotLossAmt: " + vTotLossAmt);
-	// console.log("gCharges: " + gCharges);
-	// console.log("vBrokTotLossRec: " + vBrokTotLossRec);
-	// console.log("gPL: " + gPL);
-
-	if(pCurrPrice <= gAmtSL){
-		// console.log("SL Hit");
-		fnCloseManualFutures(gByorSl);
-	}
-	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit)) && (parseInt(gQty) > 10)){
-		// console.log("50 Profit Taken.............");
-		fnClosePrctTrade();
-	}
-	// else if(parseFloat(gPL) >= vBrokTotLossRec){
-	// 	fnCloseManualFutures(gByorSl);
-	// }
-	else if(gTimeDiff < gMaxTradeTime){
-		// console.log("Timer Ending...");
-		if(objCounterSwt.checked){
-			fnCloseManualFutures(gByorSl);
-		}
-	}
-	else if(pCurrPrice >= gAmtTP){
-		// console.log("TP Hit");
-		fnCloseManualFutures(gByorSl);
-	}
-	else{
-		// console.log("Buy Trade is Still ON");
-	}
-}
-
-function fnCheckSellSLTP(pCurrPrice){
-    let vTotLossAmt = JSON.parse(localStorage.getItem("TotLossAmtOSD"));
-    let vNewProfit = Math.abs(parseFloat(localStorage.getItem("TotLossAmtOSD")) * parseFloat(gMultiplierX));
-	let objCounterSwt = document.getElementById("swtTradeCounter");
-	let objBrkRec = document.getElementById("tdHeadBrkRec");
-
-    if(vTotLossAmt === null || isNaN(vTotLossAmt)){
-    	vTotLossAmt = 0;
-    }
-    if(vNewProfit === null || isNaN(vNewProfit)){
-    	vNewProfit = 0;
-    }
-
-	// let vBrokTotLossRec = Math.abs(parseFloat(vTotLossAmt) - parseFloat(gCharges));
-	// objBrkRec.innerText =  (vBrokTotLossRec).toFixed(2);
-
-    // console.log("vTotLossAmt: " + vTotLossAmt);
-	// console.log("gCharges: " + gCharges);
-	// console.log("vBrokTotLossRec: " + vBrokTotLossRec);
-	// console.log("gPL: " + gPL);
-
-	if(pCurrPrice >= gAmtSL){
-		// console.log("SL Hit");
-		fnCloseManualFutures(gByorSl);
-	}
-	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit)) && (parseInt(gQty) > 10)){
-		// console.log("50 Profit Taken.............");
-		fnClosePrctTrade();
-	}
-	// else if(parseFloat(gPL) >= vBrokTotLossRec){
-	// 	fnCloseManualFutures(gByorSl);
-	// }
-	else if(gTimeDiff < gMaxTradeTime){
-		// console.log("Timer Ending...");
-		if(objCounterSwt.checked){
-			fnCloseManualFutures(gByorSl);
-		}
-	}
-	else if(pCurrPrice <= gAmtTP){
-		// console.log("TP Hit");
-		fnCloseManualFutures(gByorSl);
-	}
-	else{
-		// console.log("Sell Trade is Still ON");
-	}
-}
-
-function fnGetHistoricalOHLC(){
-    let vHeaders = new Headers();
-    vHeaders.append("Content-Type", "application/json");
-
-    let vAction = JSON.stringify({ CandleMinutes : gHisCandleMins });
-
-    let requestOptions = {
-        method: 'POST',
-        headers: vHeaders,
-        body: vAction,
-        redirect: 'follow'
-    };
-
-    fetch("/deltaExcFut/getHistOHLC", requestOptions)
-    .then(response => response.json())
-    .then(objResult => {
-        // console.log(objResult);
-        if(objResult.status === "success"){
-        	let vRes = JSON.parse(objResult.data);
-			let objOpen = document.getElementById("txtCandleOpen");
-			let objHigh = document.getElementById("txtCandleHigh");
-			let objLow = document.getElementById("txtCandleLow");
-			let objClose = document.getElementById("txtCandleClose");
-
-			objOpen.value = vRes.result[0].open;
-			objHigh.value = vRes.result[0].high;
-			objLow.value = vRes.result[0].low;
-			objClose.value = vRes.result[0].close;
-            // console.log(vRes);
-
-            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-        }
-        else if(objResult.status === "danger"){
-            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-	            // console.log("Client IP: " + objResult.data.response.body.error.context.client_ip);
-	            fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-            }
-            else{
-	            fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-            }
-        }
-        else if(objResult.status === "warning"){
-            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-        }
-        else{
-            fnGenMessage("Error to Get OHLC Data, Contact Admin!", `badge bg-danger`, "spnGenMsg");
-        }
-    })
-    .catch(error => {
-        // console.log(error);
-        fnGenMessage(error.message, `badge bg-danger`, "spnGenMsg");
-    });
-}
-
 function fnLoadSlTp(){
     let objCurrSlTp = JSON.parse(localStorage.getItem("DeltaCurrOptSlTpOSD"));
     let objTxtSL = document.getElementById("txtPercentSL");
@@ -869,64 +620,6 @@ function fnUpdateSlTp(){
     localStorage.setItem("DeltaCurrOptSlTpOSD", JSON.stringify(objSlTp));
 
     fnGenMessage("Updated SL & TP!", `badge bg-success`, "spnGenMsg");    
-}
-
-async function fnInitiateManualFutures(pTransType){
-    let objCurrPos = JSON.parse(localStorage.getItem("DeltaCurrOptPosD"));
-
-    if (objCurrPos === null){
-        let objBestRates = await fnGetFutBestRates();
-
-        if(objBestRates.status === "success"){
-            let vDate = new Date();
-            let vOrdId = vDate.valueOf();
-            let vMonth = vDate.getMonth() + 1;
-            let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
-
-		    let objFutDDL = document.getElementById("ddlSymbols");
-		    let objQty = document.getElementById("txtQty");
-		    let objLotSize = document.getElementById("txtLotSize");
-		    let vSLPoints = parseFloat(document.getElementById("txtPercentSL").value);
-		    let vTPPoints = parseFloat(document.getElementById("txtPercentTP").value);
-		    let vBestBuy = parseFloat(objBestRates.data.BestBuy);
-		    let vBestSell = parseFloat(objBestRates.data.BestSell);
-			
-			gByorSl = pTransType;
-
-			if(gByorSl === "buy"){
-                gAmtSL = (vBestBuy - vSLPoints).toFixed(2);
-                gAmtTP = (vBestBuy + vTPPoints).toFixed(2);
-			}
-			else if(gByorSl === "sell"){
-                gAmtSL = (vBestBuy + vSLPoints).toFixed(2);
-                gAmtTP = (vBestBuy - vTPPoints).toFixed(2);
-			}
-			else{
-				gAmtSL = 0;
-				gAmtTP = 0;				
-			}
-
-            let vExcTradeDtls = { TradeData: [{ OrderID : vOrdId, OpenDT : vToday, FutSymbol : objFutDDL.value, TransType : pTransType, LotSize : objLotSize.value, Qty : objQty.value, BuyPrice : vBestBuy, SellPrice : vBestSell, AmtSL : gAmtSL, AmtTP : gAmtTP, StopLossPts: vSLPoints, TakeProfitPts : vTPPoints, OpenDTVal : vOrdId }] };
-            let objExcTradeDtls = JSON.stringify(vExcTradeDtls);
-            gCurrPosOSD = vExcTradeDtls;
-
-            localStorage.setItem("DeltaCurrOptPosD", objExcTradeDtls);
-			localStorage.setItem("QtyMultiplierOSD", objQty.value);
-
-            fnSetInitFutTrdDtls();
-
-            fnGenMessage(objBestRates.message, `badge bg-${objBestRates.status}`, "spnGenMsg");
-            document.getElementById("spnLossTrd").className = "badge rounded-pill text-bg-success";
-
-            // console.log("Trade Executed....................");
-        }
-        else{
-            fnGenMessage(objBestRates.message, `badge bg-${objBestRates.status}`, "spnGenMsg");
-        }
-    }
-    else{
-        fnGenMessage("Close the Open Position to Execute New Trade!", `badge bg-warning`, "spnGenMsg");
-    }
 }
 
 async function fnInitManualSellOpt(pOptType){
@@ -1034,7 +727,7 @@ async function fnInitManualSellOpt(pOptType){
 					localStorage.setItem("QtyMultiplierOSD", objQty.value);
 
 					gUpdPos = true;
-					gPosChanged = true;
+					fnSetSymbolTickerList();
 	        	    fnUpdateOpenPositions();
 
 	            fnGenMessage(objTradeDtls.message, `badge bg-${objTradeDtls.status}`, "spnGenMsg");
@@ -1060,14 +753,32 @@ function fnSetDDMMYYYY(pDateToConv){
     return vRetVal;
 }
 
+function fnSetSymbolTickerList(){
+	if(gCurrPosOSD.TradeData.length > 0){
+	    const objSubListArray = [];
+	    gSubList = [];
+
+		for(let i=0; i<gCurrPosOSD.TradeData.length; i++){
+			if(gCurrPosOSD.TradeData[i].Status === "OPEN"){
+		        objSubListArray.push(gCurrPosOSD.TradeData[i].Symbol);
+			}
+		}
+		const setSubList = new Set(objSubListArray);
+		gSubList = [...setSubList];
+		fnUnSubscribeOSD();
+		fnSubscribeOSD();
+
+        clearInterval(gTradeInst);
+	    gTradeInst = setInterval(fnSaveUpdCurrPos, 15000);
+	}
+}
+
 //********* Temp Trade Book **************//
 function fnUpdateOpenPositions(){
 	if(gUpdPos){
 	    let objCurrTradeList = document.getElementById("tBodyCurrTrades");
-	    gSubList = [];
-	    gUnSubList = [];
 
-	    if (gCurrPosOSD.TradeData.length === 0) {
+	    if(gCurrPosOSD.TradeData.length === 0){
 	        objCurrTradeList.innerHTML = '<tr><td colspan="13"><div class="col-sm-12" style="border:0px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 40px;">No Running Trades Yet</div></td></tr>';
 	    }
 	    else{
@@ -1125,7 +836,7 @@ function fnUpdateOpenPositions(){
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:#0078ff;">' + vLotSize + '</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:#e3ff00;">' + vQty + '</td>';
 		            if(vTransType === "sell"){
-			            vTempHtml += '<td id="'+ vSymbol +'" style="text-wrap: nowrap; color:white;text-align:right;"><span class="blink">' + (vBuyPrice) + '</span></td>';
+			            vTempHtml += '<td id="'+ vSymbol +'" style="text-wrap: nowrap; color:white;text-align:right;"><span class="blink">' + (vBuyPrice).toFixed(2) + '</span></td>';
 			            vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (vSellPrice).toFixed(2) + '</td>';
 		            }
 		            else if(vTransType === "buy"){
@@ -1138,7 +849,6 @@ function fnUpdateOpenPositions(){
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right;">' + vStatus + '</td>';
 
 		            vTempHtml += '</tr>';
-	            	gSubList.push(vSymbol);
 	            }
 	            else{
 		            vTempHtml += '<tr>';
@@ -1156,18 +866,13 @@ function fnUpdateOpenPositions(){
 		            vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:#808080;">'+ (vPL).toFixed(2) +'</td>';
 		            vTempHtml += '<td style="text-wrap: nowrap; color:#808080; text-align:right;">' + vStatus + '</td>';
 		            vTempHtml += '</tr>';
-	            	gUnSubList.push(vSymbol);
+	            	// gUnSubList.push(vSymbol);
 	            }
 	        }
 	        vTempHtml += '<tr><td></td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">Total Trades: </td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">'+ vTotalTrades +'</td><td></td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">Investment: </td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">'+ vDeployedCapital +'</td><td></td><td></td><td></td><td style="text-wrap: nowrap; text-align:right; color: red; font-weight:bold;">'+ (vTotalCapital).toFixed(2) +'</td><td style="text-wrap: nowrap; text-align:right; color: red; font-weight:bold;">'+ (vTotalCharges).toFixed(2) +'</td><td style="text-wrap: nowrap; text-align:right; color: white; font-weight:bold;">'+ (vNetPL).toFixed(2) +'</td><td style="text-wrap: nowrap; text-align:right; color: white; font-weight:bold;">'+ (vPercentPL).toFixed(1) +'%</td></tr>';
 	        objCurrTradeList.innerHTML = vTempHtml;
 
 			localStorage.setItem("CurrPLOSD", vLastPL);
-
-	        if(gPosChanged){
-	        	// console.log("Sub.........*******");
-		        fnSubscribeInterval();
-	        }
 
 	        if(gCurrPosOSD.TradeData.length > 1){
 	        	fnExecClsTrdOnLossRec(vLastPL, vLastCharges);
@@ -1213,7 +918,7 @@ function fnClsAllOpenPos(){
     let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
 
 		gUpdPos = false;
-		fnCloseWS();
+
 		gSymbBRateList = {};
 		gSymbBDeltaList = {};
 		gSymbSRateList = {};
@@ -1241,10 +946,10 @@ function fnClsAllOpenPos(){
     fnLoadCurrentTradePos();
 
     gUpdPos = true;
-    gPosChanged = true;
 
     clearInterval(gTradeInst);
-    // fnUpdateOpenPositions();
+	fnSetSymbolTickerList();
+    fnUpdateOpenPositions();
 
 	fnLoadTodayTrades();
 
@@ -1309,383 +1014,6 @@ function fnGetExecutedTrdDtls(pOptType, pSymbol, pExpiry, pQty, pSellDelta, pCon
     return objPromise;
 }
 
-function fnSetInitFutTrdDtls(){
-    let objDateTime = document.getElementById("tdDateTime");
-    let objSymbol = document.getElementById("tdSymbol");
-    let objTransType = document.getElementById("tdTransType");
-    let objLotSize = document.getElementById("tdLotSize");
-    let objQty = document.getElementById("tdQty");
-    let objBuyPrice = document.getElementById("tdBuyPrice");
-    let objSellPrice = document.getElementById("tdSellPrice");
-    let objCapital = document.getElementById("tdCapital");
-    let objCharges = document.getElementById("tdCharges");
-    let objProfitLoss = document.getElementById("tdProfitLoss");
-    let objTrdExitTime = document.getElementById("txtTrdExitTime");
-
-    console.log(gCurrPosOSD);
-
-	if(gCurrPosOSD.TradeData.length > 0){
-        gOrderDT = gCurrPosOSD.TradeData[0].OrderID;
-
-	    let vDate = new Date();
-	    let vCurrDT = vDate.valueOf();
-	    let vTimeDiff = ((vCurrDT - gOrderDT)/60000) + 0.15;
-
-		if(vTimeDiff < parseInt(objTrdExitTime.value))
-		fnInnitiateTimer(parseInt(objTrdExitTime.value) - vTimeDiff);
-
-		gBuyPrice = parseFloat(gCurrPosOSD.TradeData[0].BuyPrice).toFixed(2);
-		gSellPrice = parseFloat(gCurrPosOSD.TradeData[0].SellPrice).toFixed(2);
-		gLotSize = parseFloat(gCurrPosOSD.TradeData[0].LotSize);
-		gQty = parseFloat(gCurrPosOSD.TradeData[0].Qty);
-        gByorSl = gCurrPosOSD.TradeData[0].TransType;
-		gAmtSL = gCurrPosOSD.TradeData[0].AmtSL;
-		gAmtTP = gCurrPosOSD.TradeData[0].AmtTP;
-
-		objDateTime.innerText = gCurrPosOSD.TradeData[0].OpenDT;
-		objSymbol.innerText = gCurrPosOSD.TradeData[0].FutSymbol;
-		objTransType.innerText = gCurrPosOSD.TradeData[0].TransType;
-		objLotSize.innerText = gLotSize;
-		objQty.innerText = gQty;
-		gCapital = fnGetTradeCapital(gByorSl, gBuyPrice, gSellPrice, gLotSize, gQty);
-		objCapital.innerText = (gCapital).toFixed(2);
-		gCharges = fnGetTradeCharges(gOrderDT, vCurrDT, gLotSize, gQty, gBuyPrice, gSellPrice, gByorSl);
-		objCharges.innerText = (gCharges).toFixed(3);
-		let vPL = fnGetTradePL(gSellPrice, gBuyPrice, gLotSize, gQty, gCharges);
-		objProfitLoss.innerText = (vPL).toFixed(2);
-
-		if(gCurrPosOSD.TradeData[0].TransType === "buy"){
-			objBuyPrice.innerHTML = gBuyPrice;
-			objSellPrice.innerHTML = "<span class='blink'>" + gSellPrice + "</span>";
-		}
-		else if(gCurrPosOSD.TradeData[0].TransType === "sell"){
-			objBuyPrice.innerHTML = "<span class='blink'>" + gBuyPrice + "</span>";
-			objSellPrice.innerHTML = gSellPrice;
-		}
-		else{
-			objBuyPrice.innerHTML = 0.00;
-			objSellPrice.innerHTML = 0.00;
-			objCapital.innerText = 0.00;
-			objCharges.innerText = 0.00;
-		}
-	    fnSet50PrctQty();
-        fnGenMessage("<span class='blink'>Position Is Open</span>", `badge bg-warning`, "btnPositionStatus");
-	}
-	else{
-		objDateTime.innerText = "";
-		objSymbol.innerText = "";
-		objTransType.innerText = "";
-		objLotSize.innerText = "";
-		objQty.innerText = "";
-		objBuyPrice.innerText = "";
-		objSellPrice.innerText = "";
-		objCapital.innerText = "";
-		objCharges.innerText = "";
-		objProfitLoss.innerText = "";
-
-		gByorSl = "";
-	}
-}
-
-function fnManualSubStart(){
-	fnManualSubcription();
-	clearInterval(gManualSubIntvl);
-	gManualSubIntvl = setInterval(fnManualSubcription, 8000);
-}
-
-async function fnManualSubcription(){
-    let objBestRates = await fnGetFutBestRates();
-    if(objBestRates.status === "success"){
-    	let objBestBuy = document.getElementById("txtBestBuyPrice");
-		let objBestSell = document.getElementById("txtBestSellPrice");
-
-	    objBestBuy.value = parseFloat(objBestRates.data.BestBuy);
-	    objBestSell.value = parseFloat(objBestRates.data.BestSell);
-    	
-		if(gCurrPosOSD.TradeData.length > 0){
-			fnUpdateOpnPosStatus();
-		}
-		console.log("Manual Rates Started.....")
-    }
-	else{
-
-	}
-}
-
-function fnManualSubStop(){
-	clearInterval(gManualSubIntvl);
-	console.log("Manual Rates Stopped.....");
-
-   	let objBestBuy = document.getElementById("txtBestBuyPrice");
-	let objBestSell = document.getElementById("txtBestSellPrice");
-
-	objBestBuy.value = "";
-	objBestSell.value= "";
-}
-
-function fnGetFutBestRates(){
-	const objPromise = new Promise((resolve, reject) => {
-
-	    let objFutDDL = document.getElementById("ddlSymbols");
-
-	    let vHeaders = new Headers();
-	    vHeaders.append("Content-Type", "application/json");
-
-	    let vAction = JSON.stringify({ Symbol : objFutDDL.value });
-
-	    let requestOptions = {
-	        method: 'POST',
-	        headers: vHeaders,
-	        body: vAction,
-	        redirect: 'follow'
-	    };
-
-	    fetch("/deltaExcFut/getCurrBSRates", requestOptions)
-	    .then(response => response.json())
-	    .then(objResult => {
-
-	        if(objResult.status === "success"){
-	        	let vRes = JSON.parse(objResult.data);
-
-	            let objBestRates = { BestBuy : vRes.result.quotes.best_ask, BestSell : vRes.result.quotes.best_bid }
-
-                resolve({ "status": objResult.status, "message": objResult.message, "data": objBestRates });
-	        }
-	        else if(objResult.status === "danger"){
-	            if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-
-		            // fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-	                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
-	            }
-	            else{
-		            // fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-	                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
-	            }
-	        }
-	        else if(objResult.status === "warning"){
-	            // fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
-	        }
-	        else{
-	            fnGenMessage("Error in Getting Best Rates Data, Contact Admin!", `badge bg-danger`, "spnGenMsg");
-                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
-	        }
-	    })
-	    .catch(error => {
-	        // fnGenMessage(error.message, `badge bg-danger`, "spnGenMsg");
-            reject({ "status": "danger", "message": "Error in Getting Fut Best Rates...", "data": "" });
-	    });
-    });
-
-    return objPromise;
-}
-
-async function fnCloseManualFutures(pTransType){
-	if(gCurrPosOSD.TradeData.length === 0){
-        fnGenMessage("No Open Position to Close!", `badge bg-warning`, "spnGenMsg");		
-	}
-	else if(gCurrPosOSD.TradeData[0].TransType !== pTransType){
-        fnGenMessage("No " + pTransType + " Position to Close!", `badge bg-warning`, "spnGenMsg");		
-	}
-	else{
-		let objClsTrd = await fnInnitiateClsFutTrade(0);
-		if(objClsTrd.status === "success"){
-            fnSetInitFutTrdDtls();
-		    fnLoadTodayTrades();
-
-            fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
-		}
-		else{
-            fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
-		}
-	}
-}
-
-function fnSet50PrctQty(){
-    let objBtn50Prct = document.getElementById("btn50PerClose");
-
-    if(gCurrPosOSD.TradeData[0].Qty >= 2){
-        objBtn50Prct.disabled = false;
-    }
-    else{
-        objBtn50Prct.disabled = true;
-    }
-}
-
-async function fnClosePrctTrade(){
-    try{
-        if (gCurrPosOSD.TradeData.length === 0){
-            fnGenMessage("No Open Positions to Close 50% Qty!", `badge bg-warning`, "spnGenMsg");
-        }
-        else{
-            let vPrctQty2Rec = (Math.round(parseInt(gCurrPosOSD.TradeData[0].Qty) * parseFloat(gLossRecPerct)) / 100);
-            let objClsTrd = await fnInnitiateClsFutTrade(vPrctQty2Rec);
-
-            if(objClsTrd.status === "success"){
-                fnSetInitFutTrdDtls();
-			    fnLoadTodayTrades();
-                fnGenMessage("Partial Qty Closed!", `badge bg-${objClsTrd.status}`, "spnGenMsg");   
-            }
-            else{
-                fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
-            }
-        }
-    }
-    catch(err){
-        fnGenMessage(err.message, `badge bg-${err.status}`, "spnGenMsg");
-    }
-}
-
-async function fnInnitiateClsFutTrade(pQty){
-    let vDate = new Date();
-    let vMonth = vDate.getMonth() + 1;
-    let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
-    let vToCntuQty = parseInt(gCurrPosOSD.TradeData[0].Qty) - parseInt(pQty);
-
-    let objBestRates = await fnGetFutBestRates();
-	if(objBestRates.status === "success"){
-		// UNCOMMENT for LIVE TRADE in DEMO
-	    let vBestBuy = parseFloat(objBestRates.data.BestBuy);
-	    let vBestSell = parseFloat(objBestRates.data.BestSell);
-		// UNCOMMENT for LIVE TRADE in DEMO
-
-		// // COMMENT for LIVE TRADE in DEMO
-		// let vBestBuy = gBuyPrice;
-		// let vBestSell = gSellPrice;
-		// // COMMENT for LIVE TRADE in DEMO
-
-	    gCurrPosOSD.TradeData[0].CloseDT = vToday;
-
-	    if(gByorSl === "buy"){
-	    	gCurrPosOSD.TradeData[0].SellPrice = vBestSell;
-	    }
-	    else if(gByorSl === "sell"){
-	    	gCurrPosOSD.TradeData[0].BuyPrice = vBestBuy;
-	    }
-
-	    gCurrPosOSD.TradeData[0].CloseDTVal = vDate.valueOf();
-
-	    if(pQty !== 0){
-		    gCurrPosOSD.TradeData[0].Qty = pQty;
-		    let vCapital = fnGetTradeCapital(gByorSl, gCurrPosOSD.TradeData[0].BuyPrice, gCurrPosOSD.TradeData[0].SellPrice, gCurrPosOSD.TradeData[0].LotSize, pQty);
-		    gCurrPosOSD.TradeData[0].Capital = vCapital;
-		    let vCharges = fnGetTradeCharges(gCurrPosOSD.TradeData[0].OrderID, vDate.valueOf(), gCurrPosOSD.TradeData[0].LotSize, pQty, gCurrPosOSD.TradeData[0].BuyPrice, gCurrPosOSD.TradeData[0].SellPrice, gByorSl);
-		    gCurrPosOSD.TradeData[0].Charges = vCharges;
-		    let vTradePL = fnGetTradePL(gCurrPosOSD.TradeData[0].SellPrice, gCurrPosOSD.TradeData[0].BuyPrice, gCurrPosOSD.TradeData[0].LotSize, pQty, vCharges);
-		    gCurrPosOSD.TradeData[0].ProfitLoss = vTradePL;
-
-	        gOldPLAmt = JSON.parse(localStorage.getItem("TotLossAmtOSD"));
-	        gNewPLAmt = vTradePL;
-	    	let vTotNewPL = gOldPLAmt + gNewPLAmt;
-	    	localStorage.setItem("OldPLAmtDeltaOSD", gOldPLAmt);
-	    	localStorage.setItem("NewPLAmtDeltaOSD", gNewPLAmt);
-	    	localStorage.setItem("TotLossAmtOSD", vTotNewPL);
-	    }
-	    else{
-	    	gOldPLAmt = JSON.parse(localStorage.getItem("TotLossAmtOSD"));
-	    	gNewPLAmt = gPL;
-	    	let vTotNewPL = gOldPLAmt + gNewPLAmt;
-	    	localStorage.setItem("OldPLAmtDeltaOSD", gOldPLAmt);
-	    	localStorage.setItem("NewPLAmtDeltaOSD", gNewPLAmt);
-	    	localStorage.setItem("TotLossAmtOSD", vTotNewPL);
-	    }
-	}
-	else{
-
-	}
-	const objClsTrd = new Promise((resolve, reject) => {
-	    let objTodayTrades = JSON.parse(localStorage.getItem("TrdBkOSD"));
-
-	    if(objTodayTrades === null){
-	        localStorage.setItem("TrdBkOSD", JSON.stringify(gCurrPosOSD));
-	    }
-	    else{
-	        let vExistingData = objTodayTrades;
-	        vExistingData.TradeData.push(gCurrPosOSD.TradeData[0]);
-	        localStorage.setItem("TrdBkOSD", JSON.stringify(vExistingData));
-	    }
-
-	    if(pQty === 0){
-		    localStorage.removeItem("DeltaCurrOptPosD");
-		    gCurrPosOSD = { TradeData : []};
-            fnGenMessage("No Open Position", `badge bg-success`, "btnPositionStatus");
-	    }
-	    else{
-	    	if(vToCntuQty === 0){
-			    localStorage.removeItem("DeltaCurrOptPosD");
-
-			    gCurrPosOSD = { TradeData : []};
-	    	}
-	    	else{
-	            gCurrPosOSD.TradeData[0].Qty = vToCntuQty;
-	            localStorage.setItem("DeltaCurrOptPosD", JSON.stringify(gCurrPosOSD));	    	
-	    	}
-	    }
-
-	    fnSetNextOptTradeSettings();
-
-        document.getElementById("spnLossTrd").className = "badge rounded-pill text-bg-danger";
-
-	    // fnGenMessage("Trade Closed", `badge bg-success`, "spnGenMsg");
-        resolve({ "status": "success", "message": "Future Paper Trade Closed Successfully!", "data": "" });
-    });
-    clearInterval(gTimerID);
-
-    return objClsTrd;
-}
-
-function fnSetNextOptTradeSettings(){
-    let objQty = document.getElementById("txtQty");
-    let vOldLossAmt = localStorage.getItem("OldPLAmtDeltaOSD");
-	let vNewLossAmt = localStorage.getItem("NewPLAmtDeltaOSD");
-	let vTotLossAmt = localStorage.getItem("TotLossAmtOSD");
-
-    let vOldQtyMul = JSON.parse(localStorage.getItem("QtyMultiplierOSD"));
-    let vStartLots = JSON.parse(localStorage.getItem("StartQtyNoDeltaOSD"));
-    let objSwtMarti = document.getElementById("swtMartingale");
-
-    if(objSwtMarti.checked){
-		if(parseFloat(vNewLossAmt) < 0){
-	        let vNextQty = parseInt(vOldQtyMul) * 2;
-	        localStorage.setItem("QtyMultiplierOSD", vNextQty);
-	        objQty.value = vNextQty;
-		}
-		else if(parseFloat(vTotLossAmt) < 0){
-	        let vDivAmt = parseFloat(vTotLossAmt) / parseFloat(vOldLossAmt);
-	        let vNextQty = Math.round(vDivAmt * parseInt(vOldQtyMul));
-
-	        if(vNextQty < vStartLots)
-	        vNextQty += vStartLots;
-
-	        localStorage.setItem("QtyMultiplierOSD", vNextQty);
-	        objQty.value = vNextQty;
-		}
-	    else {
-	        localStorage.setItem("TotLossAmtOSD", 0);
-	        localStorage.removeItem("QtyMultiplierOSD");
-	        // localStorage.setItem("TradeStep", 0);
-	        fnSetLotsByQtyMulLossAmt();
-	    }
-    }
-    else{
-    	if(parseFloat(vTotLossAmt) > 0){
-			localStorage.setItem("TotLossAmtOSD", 0);
-    	}
-    	
-        fnSetLotsByQtyMulLossAmt();
-    }
-
-	// console.log(gCharges);
-
-	if(gPL > 0){
-		let vBalLossAmt = localStorage.getItem("TotLossAmtOSD");
-		let vNewTarget = parseFloat(vBalLossAmt) - parseFloat(gCharges);
-		localStorage.setItem("TotLossAmtOSD", vNewTarget);
-		// console.log("ADD Brokerage");
-	}
-	// console.log(localStorage.getItem("TotLossAmtOSD"))
-}
-
 function fnChangeMartingale(){
     // let vMartiM = JSON.parse(localStorage.getItem("DeltaOptMartiOSD"));
     let objSwtMarti = document.getElementById("swtMartingale");
@@ -1698,30 +1026,6 @@ function fnChangeMultiLeg(){
     let objSwtMultiLeg = document.getElementById("swtMultiLeg");
 
     localStorage.setItem("DeltaOptMultiLegOSD", JSON.stringify(objSwtMultiLeg.checked));
-}
-
-function fnSetLotsByQtyMulLossAmt(){
-    let vStartLots = JSON.parse(localStorage.getItem("StartQtyNoDeltaOSD"));
-    let vQtyMul = JSON.parse(localStorage.getItem("QtyMultiplierOSD"));
-    let objOptQty = document.getElementById("txtQty");
-    let vTotLossAmt = JSON.parse(localStorage.getItem("TotLossAmtOSD"));
-    
-    if (vQtyMul === null || vQtyMul === "") {
-        localStorage.setItem("QtyMultiplierOSD", vStartLots);
-        objOptQty.value = vStartLots;
-    }
-    else {
-        objOptQty.value = vQtyMul;
-    }
-    
-    if (vTotLossAmt === null || vTotLossAmt === "" || vTotLossAmt === 0) {
-        localStorage.setItem("QtyMultiplierOSD", vStartLots);
-        localStorage.setItem("TotLossAmtOSD", 0);
-        objOptQty.value = vStartLots;
-    }
-    else {
-        objOptQty.value = vQtyMul;
-    }
 }
 
 //************ TradeBook ****************//
@@ -1880,7 +1184,6 @@ function fnDelLeg(pLegID){
 	if(confirm("Are You Sure, You Want to Delete This Leg!")){
 		gUpdPos = false;
 
-		fnCloseWS();
 		gSymbBRateList = {};
 		gSymbBDeltaList = {};
 		gSymbSRateList = {};
@@ -1899,7 +1202,8 @@ function fnDelLeg(pLegID){
 	    let objExcTradeDtls = JSON.stringify(gCurrPosOSD);
 	    localStorage.setItem("DeltaCurrOptPosD", objExcTradeDtls);
 	    gUpdPos = true;
-	    gPosChanged = true;
+
+		fnSetSymbolTickerList();
 	    fnUpdateOpenPositions();
 	}
 }
@@ -1924,60 +1228,6 @@ function fnClearLocalStorageTemp(){
 
 	fnGetAllStatus();
 	console.log("Memory Cleared!!!");
-}
-
-function fnInnitiateTimer(pMinutes){
-	var vMinutes = 60 * pMinutes,
-    display = document.querySelector('#time');
-    fnStartTimer(vMinutes, display);
-}
-
-function fnStartTimer(duration, display) {
-    var start = Date.now(),
-        diff,
-        minutes,
-        seconds;
-    function timer() {
-        // get the number of seconds that have elapsed since 
-        // startTimer() was called
-        diff = duration - (((Date.now() - start) / 1000) | 0);
-        gTimeDiff = diff;
-        // does the same job as parseInt truncates the float
-        minutes = (diff / 60) | 0;
-        seconds = (diff % 60) | 0;
-
-        minutes = minutes < 10 ? "0" + minutes : minutes;
-        seconds = seconds < 10 ? "0" + seconds : seconds;
-
-        display.textContent = minutes + ":" + seconds; 
-
-        if (diff <= 0) {
-            // add one second so that the count down starts at the full duration
-            // example 05:00 not 04:59
-            start = Date.now() + 1000;
-        }
-    };
-    // we don't want to wait a full second before the timer starts
-    timer();
-    clearInterval(gTimerID);
-    gTimerID = setInterval(timer, 1000);
-}
-
-function fnTest(pCorP){
-	let objSelSymb = document.getElementById("ddlSymbols");
-	let objStrikePrice = document.getElementById("txtStrikePrice");
-	let objExpiry = document.getElementById("txtExpDate");
-
-	let vSelDate = new Date(objExpiry.value);
-    let vDay = (vSelDate.getDate()).toString().padStart(2, "0");
-    let vMonth = (vSelDate.getMonth() + 1).toString().padStart(2, "0");
-    let vYear = vSelDate.getFullYear();
-    vYear = ((vYear).toString()).slice(2);
-    
-	let vExpValTB = vDay + vMonth + vYear;
-
-
-	console.log(pCorP + "-" + objSelSymb.value + "-" + objStrikePrice.value + "-" + vExpValTB);
 }
 
 function fnPositionStatus(){

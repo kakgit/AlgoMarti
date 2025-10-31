@@ -61,7 +61,7 @@
                                 <span class="badge rounded-pill text-bg-primary" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnSubscribe();" title="Subscribe to WebSocket">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
-                                <span class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnCloseWS();">&nbsp;</span>
+                                <span class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnForceCloseWS();">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divTraderClps" role="button" aria-expanded="true" aria-controls="divTraderClps">
@@ -134,41 +134,6 @@
                                         </div>
                                     </div>
                                     <div class="col-2"></div>
-
-                                    <div class="col-2">Best Buying Price</div>
-                                    <div class="col-2">Mark Price</div>
-                                    <div class="col-2">Best Selling Price</div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Best Buy Price" id="txtBestBuyPrice" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Spot Price" id="txtSpotPrice" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Best Sell Price" id="txtBestSellPrice" />
-                                    </div>
-                                    <div class="col-1">
-                                        <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success" onclick="fnManualSubStart();" style="display: block;"><b>START</b></button>
-                                        </div>
-                                    </div>
-                                    <div class="col-1">
-                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-danger" onclick="fnManualSubStop();" style="display: block;"><b>STOP</b></button>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-4">
-                                        <div class="input-group mb-3">
-                                            <input type="number" class="form-control" placeholder="Strike Price" id="txtStrikePrice" />
-                                            <button class="btn btn-success" type="button" onclick="fnStartStrikeSub();"><i class="fa fa-play" aria-hidden="true"></i></button>
-                                            <button class="btn btn-danger" type="button" onclick="fnStopStrikeSub();"><i class="fa fa-stop" aria-hidden="true"></i></button>
-                                        </div>
-                                    </div>
 
                                     <div style="display: none;">
                                         <div class="col-2">Open</div>
@@ -244,7 +209,7 @@
                                 <button class='nav-link' onclick="fnClearLocalStorageTemp();" role="tab" type="button">Clear All</button>
                             </div>
                             <div class="col-2" style="text-align: right;">
-                                <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px;" onclick="fnSaveUpdCurrPos();">&nbsp;</span>
+                                <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px;" onclick="fnCloseWS();">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divOpenPosClps" role="button" aria-expanded="true" aria-controls="divOpenPosClps">
@@ -282,16 +247,18 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-6"></div>
-                                <div class="col-2"></div>
-                                <div class="col-1">
-                                </div>
-                                <div class="col-3">
-                                </div>
-                                <div class="col-2">
-                                    <div class="d-grid gap-1">
-                                        <button id="btn50PerClose" class="btn btn-outline-warning" onclick="fnClosePrctTrade();"  disabled><b>EXIT 50% QTY</b></button>
-                                    </div>
+                                <div style="display: none;">
+                                    <div class="col-1"><input type="button" value="Add Sub" onclick="fnAdd2SubList();" /></div>
+                                    <div class="col-1"><input type="button" value="Remove Sub" onclick="fnRemoveFromSubList();" /></div>
+                                    <div class="col-2"><input type="text" id="txtRateTest" value="" /></div>
+                                    <div class="col-1"><input type="button" value="CONNECT" onclick="fnConnectOSD();" /></div>
+                                    <div class="col-1"><input type="button" value="SUB" onclick="fnSubscribeOSD();" /></div>
+                                    <div class="col-1"><input type="button" value="UN-SUB" onclick="fnUnSubscribeOSD();" /></div>
+                                    <div class="col-1"><input type="button" value="Restart Conn" onclick="fnRestartConnOSD();" /></div>
+                                    <div class="col-1"><input type="button" value="Force DC" onclick="fnForceDisconnectOSD();" /></div>
+                                    <div class="col-1"><input type="button" value="CHECK STATUS" onclick="fnCheckStatusOSD();" /></div>
+                                    <div class="col-1"></div>
+                                    <div class="col-1"></div>
                                 </div>
 
                                 <div style="display: none;">
