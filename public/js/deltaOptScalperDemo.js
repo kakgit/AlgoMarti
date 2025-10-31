@@ -305,7 +305,7 @@ function fnConnectOSD(){
 
 		switch (vTicData.type){
 			case "v2/ticker":
-				console.log("Msg Sub Received!!!!!");
+				// console.log("Msg Sub Received!!!!!");
 				// console.log(vTicData);
 				fnUpdateRates(vTicData);
 				break;
@@ -897,7 +897,7 @@ function fnExecClsTrdOnLossRec(pLastPL, pLastCharges){
 			fnClsAllOpenPos();
 		}
 		else{
-			console.log("Still Waiting for Total Loss Recovery....");
+			// console.log("Still Waiting for Total Loss Recovery....");
 		}
 	}
 	else if((parseFloat(pLastPL) > 0) && (parseFloat(pLastPL) > vMulCharges)){
@@ -905,7 +905,7 @@ function fnExecClsTrdOnLossRec(pLastPL, pLastCharges){
 		fnClsAllOpenPos();
 	}
 	else{
-		console.log("No Prev Losses!!!");
+		// console.log("No Prev Losses!!!");
 	}
 	// console.log("vTotalPL: " + vTotalPL);
 	// console.log("pLastCharges: " + pLastCharges);
