@@ -48,7 +48,7 @@ window.addEventListener("DOMContentLoaded", function(){
         }
         else{
         	// if(((vTradeSide === "true") && (pMsg.TransType === "buy")) || ((vTradeSide === "false") && (pMsg.TransType === "sell")) || (vTradeSide === "-1")){
-        		fnInitOpenOptTrade(objMsg.optionType, 'buy');
+        		fnInitOpenOptTrade(objMsg.optionType, 'sell');
         	// }
         	// else{
             //     fnGenMessage(pMsg.TransType +" Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
