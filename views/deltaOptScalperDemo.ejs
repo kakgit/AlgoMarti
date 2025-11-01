@@ -55,13 +55,13 @@
                             <div class="col-1"><input type="text" class="form-control" min="1" value="1" id="txtStartQty" onchange="fnChangeStartQty(this);" /></div>
                             <div class="col-1"> Qty</div>
                             <div class="col-1" style="text-align: right;">
-                                <span class="badge rounded-pill text-bg-success" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnConnectWS();">&nbsp;</span>
+                                <span class="badge rounded-pill text-bg-primary" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnConnectOSD();">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
-                                <span class="badge rounded-pill text-bg-primary" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnSubscribe();" title="Subscribe to WebSocket">&nbsp;</span>
+                                <span id="spnSub" class="badge rounded-pill text-bg-success" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnSubscribeOSD();" title="Subscribe to WebSocket">
                             </div>
                             <div class="col-1" style="text-align: right;">
-                                <span class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnForceCloseWS();">&nbsp;</span>
+                                <span class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnForceDisconnectOSD();">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divTraderClps" role="button" aria-expanded="true" aria-controls="divTraderClps">
@@ -126,7 +126,7 @@
                                         <input type="number" class="form-control" placeholder="Loss Recover %" id="txtLossRecvPerct" value="50" onchange="fnUpdateLossRecPrct(this);" />
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Multiplier X Times" id="txtMultiplierX" value="2.0" onchange="fnUpdateMultiplierX(this);" />
+                                        <input type="number" class="form-control" placeholder="Multiplier X Times" id="txtMultiplierX" value="1.2" onchange="fnUpdateMultiplierX(this);" />
                                     </div>
                                     <div class="col-2">
                                         <div class="d-grid gap-1">
@@ -164,22 +164,22 @@
                                     <hr/>
                                     <div class="col-3">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-warning" onclick="fnCloseManualFutures('C');"><b>EXIT CALL</b></button>
+                                            <button class="btn btn-outline-success" onclick="fnInitOpenOptTrade('C', 'buy');"><b>BUY CALL</b></button>
                                         </div>
                                     </div>
                                     <div class="col-3">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-danger" onclick="fnInitManualSellOpt('C');"><b>SELL CALL</b></button>
+                                            <button class="btn btn-outline-danger" onclick="fnInitOpenOptTrade('P', 'buy');"><b>BUY PUT</b></button>
                                         </div>
                                     </div>
                                     <div class="col-3">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-warning" onclick="fnCloseManualFutures('P');"><b>EXIT PUT</b></button>
+                                            <button class="btn btn-outline-danger" onclick="fnInitOpenOptTrade('C', 'sell');"><b>SELL CALL</b></button>
                                         </div>
                                     </div>
                                     <div class="col-3">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success" onclick="fnInitManualSellOpt('P');"><b>SELL PUT</b></button>
+                                            <button class="btn btn-outline-success" onclick="fnInitOpenOptTrade('P', 'sell');"><b>SELL PUT</b></button>
                                         </div>
                                     </div>
                                 </div>
@@ -209,7 +209,7 @@
                                 <button class='nav-link' onclick="fnClearLocalStorageTemp();" role="tab" type="button">Clear All</button>
                             </div>
                             <div class="col-2" style="text-align: right;">
-                                <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px;" onclick="fnCloseWS();">&nbsp;</span>
+                                <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px;" onclick="fnUpdateOpenPositions();">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divOpenPosClps" role="button" aria-expanded="true" aria-controls="divOpenPosClps">
