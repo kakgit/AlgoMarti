@@ -69,7 +69,7 @@ function fnGetAllStatus(){
         fnGetSetTraderLoginStatus();
 		fnGetSetAutoTraderStatus();
 		fnLoadDefSymbol();
-		fnLoadDefExpiry();
+		fnLoadDefExpiryMode();
 		fnLoadDefDelta();
 		fnLoadMarti();
 		fnLoadMultiLeg();
@@ -118,24 +118,6 @@ function fnSetSymbolData(pThisVal){
 	}
 }
 
-function fnLoadDefExpiry(){
-	let objExpiry = document.getElementById("txtExpDate");
-
-	let vCurrDate = new Date();
-	let vCurrHour = vCurrDate.getHours();
-
-	// if(vCurrHour > 12 && vCurrHour <= 23){
-	if(vCurrHour > 2){
-		vCurrDate.setDate(vCurrDate.getDate() + 1);		
-	}
-
-    let vDay = (vCurrDate.getDate()).toString().padStart(2, "0");
-    let vMonth = (vCurrDate.getMonth() + 1).toString().padStart(2, "0");
-	let vExpValTB = vCurrDate.getFullYear() + "-" + vMonth + "-" + vDay;
-
-	objExpiry.value = vExpValTB;
-}
-
 function fnLoadDefQty(){
 	let objStartQtyM = JSON.parse(localStorage.getItem("StartQtyNoDeltaOSD"));
 	let objQtyMul = JSON.parse(localStorage.getItem("QtyMultiplierOSD"));
@@ -158,6 +140,79 @@ function fnLoadDefQty(){
     	objQty.value = objQtyMul;
     	objStartQty.value = objStartQtyM;
     }
+}
+
+function fnLoadDefExpiryMode(){
+	let objExpiryMode = document.getElementById("ddlExpiryMode");
+	let vExpiryMode = JSON.parse(localStorage.getItem("ExpiryModeOSD"));
+
+	if(vExpiryMode === null){
+		objExpiryMode.value = 1;
+	}
+	else{
+		objExpiryMode.value = vExpiryMode;
+	}
+	fnLoadDefExpiryDate(objExpiryMode.value);
+}
+
+function fnUpdateExpiryMode(){
+	let objExpiryMode = document.getElementById("ddlExpiryMode");
+
+	fnLoadDefExpiryDate(objExpiryMode.value);
+	localStorage.setItem("ExpiryModeOSD", JSON.stringify(objExpiryMode.value));
+}
+
+function fnLoadDefExpiryDate(pExpiryMode){
+	let objExpiry = document.getElementById("txtExpDate");
+	let vCurrDate = new Date();
+	const vCurrFriday = new Date(vCurrDate);
+	const vYear = vCurrDate.getFullYear();
+	const vMonth = vCurrDate.getMonth();
+	let vLastDayOfMonth = new Date(vYear, vMonth + 1, 0);
+	let vLastDayOfNextMonth = new Date(vYear, vMonth + 2, 0);
+
+	if(pExpiryMode === "1"){
+		let vCurrHour = vCurrDate.getHours();
+
+		// if(vCurrHour > 12 && vCurrHour <= 23){
+		if(vCurrHour > 2){
+			vCurrDate.setDate(vCurrDate.getDate() + 1);		
+		}
+
+	    let vDay = (vCurrDate.getDate()).toString().padStart(2, "0");
+	    let vMonth = (vCurrDate.getMonth() + 1).toString().padStart(2, "0");
+		let vExpValTB = vCurrDate.getFullYear() + "-" + vMonth + "-" + vDay;
+
+		objExpiry.value = vExpValTB;
+	}
+	else if(pExpiryMode === "2"){
+	  	const vCurrDayOfWeek = vCurrDate.getDay();
+		let vDaysUntilFriday = 5 - vCurrDayOfWeek;
+		if(vCurrDayOfWeek > 3){
+			vCurrFriday.setDate(vCurrDate.getDate() + vDaysUntilFriday + 7);
+		}
+		else{
+			vCurrFriday.setDate(vCurrDate.getDate() + vDaysUntilFriday);
+		}
+	    let vDay = (vCurrFriday.getDate()).toString().padStart(2, "0");
+	    let vMonth = (vCurrFriday.getMonth() + 1).toString().padStart(2, "0");
+		let vExpValTB = vCurrFriday.getFullYear() + "-" + vMonth + "-" + vDay;
+
+		objExpiry.value = vExpValTB;
+	}
+	else if(pExpiryMode === "3"){
+		while (vLastDayOfMonth.getDay() !== 5) { 
+	    	vLastDayOfMonth.setDate(vLastDayOfMonth.getDate() - 1);
+	  	}
+		while (vLastDayOfNextMonth.getDay() !== 5) { 
+	    	vLastDayOfNextMonth.setDate(vLastDayOfNextMonth.getDate() - 1);
+	  	}
+	    let vDay = (vLastDayOfMonth.getDate()).toString().padStart(2, "0");
+	    let vMonth = (vLastDayOfMonth.getMonth() + 1).toString().padStart(2, "0");
+		let vExpValTB = vLastDayOfMonth.getFullYear() + "-" + vMonth + "-" + vDay;
+
+		objExpiry.value = vExpValTB;
+	}
 }
 
 function fnLoadDefDelta(){
@@ -917,14 +972,14 @@ function fnExecClsTrdOnLossRec(pNetPL, pLastCharges, pCapital, pLastPL){
 	// else{
 	// 	console.log("No Prev Losses!!!");
 	// }
-	if(parseFloat(vTotalPL) >= 0){
-		//*********** if Overall Total Profit is in profit then brokerage * Selected Multiplier Profit is targetted *******//
-		if(pLastPL > vMulCharges){
-			fnClsAllOpenPos();
-			console.log("############## Target Reached ######################");
-		}
-	}
-	else if((pNetPL > 0) && (pNetPL > vCap4Profit)){
+	// if(parseFloat(vTotalPL) >= 0){
+	// 	//*********** if Overall Total Profit is in profit then brokerage * Selected Multiplier Profit is targetted *******//
+	// 	if(pLastPL > vMulCharges){
+	// 		fnClsAllOpenPos();
+	// 		console.log("############## Target Reached ######################");
+	// 	}
+	// }
+	if((pNetPL > 0) && (pNetPL > vCap4Profit)){
 		//*********** if 30% of current Capital is reached then Profit is targetted *******//
 		fnClsAllOpenPos();
 		console.log("############## Target Reached ######################");
