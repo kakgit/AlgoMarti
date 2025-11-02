@@ -964,7 +964,7 @@ function fnUpdateOpenPositions(){
 			localStorage.setItem("CurrPLOSD", vLastPL);
 
 	        // if(gCurrPosOSD.TradeData.length > 1){
-	        	fnExecClsTrdOnLossRec(vNetPL, vLastCharges, vCap4Profit, vLastPL);
+	        	// fnExecClsTrdOnLossRec(vNetPL, vLastCharges, vCap4Profit, vLastPL);
 	        // }
 	    }
 	}
