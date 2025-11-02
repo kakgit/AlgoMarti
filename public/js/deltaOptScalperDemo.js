@@ -71,8 +71,9 @@ function fnGetAllStatus(){
 		fnLoadDefSymbol();
 		fnLoadDefExpiryMode();
 		fnLoadDefDelta();
-		fnLoadMarti();
 		fnLoadMultiLeg();
+		fnLoadReOnSL();
+		fnLoadMarti();
 		fnLoadDefQty();
 		fnLoadLossRecoveryMultiplier();
 		fnLoadCurrentTradePos();
@@ -271,18 +272,6 @@ function fnUpdateMultiplierX(pThisVal){
 	gMultiplierX = pThisVal.value;
 }
 
-function fnLoadMarti(){
-    let vMartiM = JSON.parse(localStorage.getItem("DeltaOptMartiOSD"));
-    let objSwtMarti = document.getElementById("swtMartingale");
-
-    if(vMartiM){
-    	objSwtMarti.checked = true;
-    }
-    else{
-    	objSwtMarti.checked = false;
-    }
-}
-
 function fnLoadMultiLeg(){
     let vMultiLegM = JSON.parse(localStorage.getItem("DeltaOptMultiLegOSD"));
     let objSwtMultiLeg = document.getElementById("swtMultiLeg");
@@ -292,6 +281,30 @@ function fnLoadMultiLeg(){
     }
     else{
     	objSwtMultiLeg.checked = false;
+    }
+}
+
+function fnLoadReOnSL(){
+    let vReOnSlM = JSON.parse(localStorage.getItem("OptReOnSlOSD"));
+    let objSwtReOnSL = document.getElementById("swtReOnSL");
+
+    if(vReOnSlM){
+    	objSwtReOnSL.checked = true;
+    }
+    else{
+    	objSwtReOnSL.checked = false;
+    }
+}
+
+function fnLoadMarti(){
+    let vMartiM = JSON.parse(localStorage.getItem("DeltaOptMartiOSD"));
+    let objSwtMarti = document.getElementById("swtMartingale");
+
+    if(vMartiM){
+    	objSwtMarti.checked = true;
+    }
+    else{
+    	objSwtMarti.checked = false;
     }
 }
 
@@ -496,6 +509,7 @@ function fnSaveUpdCurrPos(){
 	let vTransType = "";
 	let vOptionType = "";
 	let vSymbol = "";
+	let vReLeg = false;
 
     for(let i=0; i<gCurrPosOSD.TradeData.length; i++){
     	if(gCurrPosOSD.TradeData[i].Status === "OPEN"){
@@ -512,7 +526,15 @@ function fnSaveUpdCurrPos(){
     			// vCurrPrice = gCurrPosOSD.TradeData[i].BuyPrice;
     			// // ****************** Remove When Live *****************//
 
-				if((vCurrPrice >= vAmtSL) || (vCurrPrice <= vAmtTP)){
+				if(vCurrPrice >= vAmtSL){
+					vLegID = gCurrPosOSD.TradeData[i].OpenDTVal;
+					vTransType = gCurrPosOSD.TradeData[i].TransType;
+					vOptionType = gCurrPosOSD.TradeData[i].OptionType;
+					vSymbol = gCurrPosOSD.TradeData[i].Symbol;
+					vToPosClose = true;
+					vReLeg = true;
+				}
+				else if(vCurrPrice <= vAmtTP){
 					vLegID = gCurrPosOSD.TradeData[i].OpenDTVal;
 					vTransType = gCurrPosOSD.TradeData[i].TransType;
 					vOptionType = gCurrPosOSD.TradeData[i].OptionType;
@@ -538,12 +560,12 @@ function fnSaveUpdCurrPos(){
 	fnUpdateOpenPositions();
 
     if(vToPosClose){
-    	fnCloseOptPosition(vLegID, vTransType, vOptionType, vSymbol, "CLOSED");
+    	fnCloseOptPosition(vLegID, vTransType, vOptionType, vSymbol, "CLOSED", vReLeg);
     }
 }
 
 //************ Update Live Code Here **************//
-async function fnCloseOptPosition(pLegID, pTransType, pOptType, pSymbol, pStatus){
+async function fnCloseOptPosition(pLegID, pTransType, pOptType, pSymbol, pStatus, pReLeg){
     let objApiKey = document.getElementById("txtUserAPIKey");
     let objApiSecret = document.getElementById("txtAPISecret");
 
@@ -601,6 +623,10 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptType, pSymbol, pStatus
 	    gUpdPos = true;
 		fnSetSymbolTickerList();
 	    fnUpdateOpenPositions();
+
+	    if(pReLeg){
+	    	fnInitOpenOptTrade(pOptType, pTransType);
+	    }
 	}
 }
 
@@ -1095,18 +1121,25 @@ function fnGetExecutedTrdDtls(pOptType, pSymbol, pExpiry, pQty, pSellDelta, pCon
     return objPromise;
 }
 
+function fnChangeMultiLeg(){
+    let objSwtMultiLeg = document.getElementById("swtMultiLeg");
+
+    localStorage.setItem("DeltaOptMultiLegOSD", JSON.stringify(objSwtMultiLeg.checked));
+}
+
+function fnChangeReOnSL(){
+    let objSwtReOnSL = document.getElementById("swtReOnSL");
+
+    localStorage.setItem("OptReOnSlOSD", JSON.stringify(objSwtReOnSL.checked));
+
+}
+
 function fnChangeMartingale(){
     // let vMartiM = JSON.parse(localStorage.getItem("DeltaOptMartiOSD"));
     let objSwtMarti = document.getElementById("swtMartingale");
 
     localStorage.setItem("DeltaOptMartiOSD", JSON.stringify(objSwtMarti.checked));
     // alert(objSwtMarti.checked);
-}
-
-function fnChangeMultiLeg(){
-    let objSwtMultiLeg = document.getElementById("swtMultiLeg");
-
-    localStorage.setItem("DeltaOptMultiLegOSD", JSON.stringify(objSwtMultiLeg.checked));
 }
 
 //************ TradeBook ****************//
