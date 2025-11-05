@@ -47,11 +47,11 @@ window.addEventListener("DOMContentLoaded", function(){
             fnGenMessage("Trade Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
         }
         else{
-        	if(((vTradeSide === "true") && (pMsg.direction === "buy")) || ((vTradeSide === "false") && (pMsg.direction === "sell")) || (vTradeSide === "-1")){
+        	if(((vTradeSide === "true") && (objMsg.optionType === "P")) || ((vTradeSide === "false") && (objMsg.optionType === "C")) || (vTradeSide === "-1")){
         		fnInitOpenOptTrade(objMsg.optionType, 'sell');
         	}
         	else{
-                fnGenMessage(pMsg.direction +" Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
+                fnGenMessage(objMsg.direction + " - " + objMsg.optionType + " Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
         	}
         }
     });
