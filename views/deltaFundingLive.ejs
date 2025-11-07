@@ -1,0 +1,93 @@
+<div id="main" class="container-xxl">
+    <div class="page-heading">
+        <div class="row">
+            <div class="col-4">
+                <h3>Delta - Funding Live</h3>
+            </div>
+            <div class="col-4 text-center">
+                <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
+            </div>
+            <div class="col-4" style="text-align: right;">
+                
+            </div>
+        </div>
+    </div>
+    <div class="page-content">
+        <section class="row">
+            <div class="col-12 col-lg-12">
+                <div class="row" style="text-align: center;">
+                    <div class="col-6 col-lg-4 col-md-6">
+                        <button class="badge bg-danger" onclick="fnShowTraderLoginMdl(this);" id="btnTraderStatus">Trader - Invalid</button>
+                    </div>
+                    <div class="col-6 col-lg-4 col-md-6">
+                        <button class="badge bg-danger" onclick="fnToggleAutoTrader();" id="btnAutoTraderStatus">Auto Trader - OFF</button>
+                    </div>
+                    <div class="col-6 col-lg-4 col-md-6">
+                        <button class="badge bg-success" onclick="fnPositionStatus()" id="btnPositionStatus">No Open Position</button>
+                    </div>
+                    <div class="col-12">&nbsp;</div>
+                </div>
+            </div>
+        </section>
+        <section class="row">
+            <div class="col-12">
+                <div class="card" id="cardManualTrader">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-3">
+                                <h4>Manual Trader</h4>
+                            </div>
+                            <div class="col-1">
+                                <form name="frmSide">
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input id="txtBN1" type="radio" name="rdoTradeSide" value="false" onclick="fnTradeSide();" />
+                                        <label class="toggle toggle-yes" for="txtBN1"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtBN2" checked type="radio" name="rdoTradeSide" value="-1" onclick="fnTradeSide();" />
+                                        <label class="toggle toggle-yes" for="txtBN2"><i class="fa fa-minus"></i></label>
+                                        <input id="txtBN3" type="radio" name="rdoTradeSide" value="true" onclick="fnTradeSide();" />
+                                        <label class="toggle toggle-yes" for="txtBN3"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                        <label for="TradeSide">Side</label>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="col-2" style="text-align: right;">Start With </div>
+                            <div class="col-1"><input type="text" class="form-control" min="1" value="1" id="txtStartQty" onchange="fnChangeStartQty(this);" /></div>
+                            <div class="col-1"> Qty</div>
+                            <div class="col-1" style="text-align: right;">
+                                <span class="badge rounded-pill text-bg-primary" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnConnectOSD();">&nbsp;</span>
+                            </div>
+                            <div class="col-1" style="text-align: right;">
+                                <span id="spnSub" class="badge rounded-pill text-bg-success" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnSubscribeOSD();" title="Subscribe to WebSocket">
+                            </div>
+                            <div class="col-1" style="text-align: right;">
+                                <span class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnForceDisconnectOSD();">&nbsp;</span>
+                            </div>
+                            <div class="col-1" style="text-align: right;">
+                                <a data-bs-toggle="collapse" href="#divTraderClps" role="button" aria-expanded="true" aria-controls="divTraderClps">
+                                    <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                                </a>
+                            </div>                                    
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="collapse show" id="divTraderClps">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-2">
+                                        Symbols List
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<%- include('partials/deltaFundingSettings.ejs') %>
+
+<script src="/js/deltaFundingLive.js"></script>
+<script src="/js/deltaFundingSettings.js"></script>

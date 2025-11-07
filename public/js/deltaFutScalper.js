@@ -513,7 +513,6 @@ function fnCheckBuySLTP(pCurrPrice){
 	// console.log("gPL: " + gPL);
 
 	if(pCurrPrice <= gAmtSL){
-		// console.log("SL Hit");
 		fnCloseManualFutures(gByorSl);
 	}
 	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit)) && (parseInt(gQty) > 10)){
@@ -529,7 +528,7 @@ function fnCheckBuySLTP(pCurrPrice){
 			fnCloseManualFutures(gByorSl);
 		}
 	}
-	else if(pCurrPrice >= gAmtTP){
+	else if(parseFloat(pCurrPrice) >= parseFloat(gAmtTP)){
 		// console.log("TP Hit");
 		fnCloseManualFutures(gByorSl);
 	}
@@ -576,7 +575,7 @@ function fnCheckSellSLTP(pCurrPrice){
 			fnCloseManualFutures(gByorSl);
 		}
 	}
-	else if(pCurrPrice <= gAmtTP){
+	else if(parseFloat(pCurrPrice) <= parseFloat(gAmtTP)){
 		// console.log("TP Hit");
 		fnCloseManualFutures(gByorSl);
 	}

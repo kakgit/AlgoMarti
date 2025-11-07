@@ -20,6 +20,7 @@ const deltaFutLiveController = require("../controller/controllerDeltaFutLive.js"
 const deltaOptDemoController = require("../controller/controllerDeltaOptDemo.js");
 const deltaOptScalpDemoCtrler = require("../controller/controllerDeltaOptScalperDemo.js");
 const deltaCalDemoController = require("../controller/controllerDeltaCalDemo.js");
+const deltaFundingLiveCtrler = require("../controller/controllerDeltaFundingLive.js");
 
 //home Routes
 route.get("/", homeServices.defaultRoute);
@@ -62,6 +63,9 @@ route.get("/deltaOptions-Demo", deltaOptDemoController.defaultRoute);
 
 //Delta Options Scalper Demo Route
 route.get("/deltaExcOptSclprD", deltaOptScalpDemoCtrler.defaultRoute);
+
+//Delta Funding Demo Route
+route.get("/deltaFunding-Live", deltaFundingLiveCtrler.defaultRoute);
 
 //Samco Routes
 route.get("/samco", samcoServices.defaultRoute);
@@ -178,6 +182,9 @@ route.post("/deltaExcFutR/closeRealPosition", deltaFutLiveController.fnCloseReal
 //Delta Options Scalper Demo Routes
 route.post("/deltaExcOptSclprD/getSellOptOpenStatus", deltaOptScalpDemoCtrler.fnExecOptOpen);
 route.post("/deltaExcOptSclprD/getBestRatesBySymb", deltaOptScalpDemoCtrler.fnGetBestRatesBySymbol);
+
+//Delta Funding Live Routes
+route.post("/deltaExcFunding/validateLogin", deltaFundingLiveCtrler.fnValidateUserLogin);
 
 //Delta Futures Demo Routes
 route.post("/deltaExcFut/validateLogin", deltaFutDemoController.fnValidateUserLogin);
