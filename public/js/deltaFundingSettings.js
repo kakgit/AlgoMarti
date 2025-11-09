@@ -1,4 +1,34 @@
 
+function fnLoadLoginCred(){
+    // alert(localStorage.getItem("lsApiKeyDFL"));
+    let objApiKey = document.getElementById("txtUserAPIKey");
+    let objApiSecret = document.getElementById("txtAPISecret");
+    let objApiKey2 = document.getElementById("txtUserAPIKey2");
+    let objApiSecret2 = document.getElementById("txtAPISecret2");
+    let vApiKey = JSON.parse(localStorage.getItem("lsApiKeyDFL"));
+    let vApiSecret = JSON.parse(localStorage.getItem("lsApiSecretDFL"));
+    let vApiKey2 = JSON.parse(localStorage.getItem("lsApiKey2DFL"));
+    let vApiSecret2 = JSON.parse(localStorage.getItem("lsApiSecret2DFL"));
+
+    if(vApiKey === null || vApiKey === ""){
+        objApiKey.value = "";
+        objApiSecret.value = "";
+    }
+    else{
+        objApiKey.value = vApiKey;
+        objApiSecret.value = vApiSecret;        
+    }
+
+    if(vApiKey2 === null || vApiKey2 === ""){
+        objApiKey2.value = "";
+        objApiSecret2.value = "";
+    }
+    else{
+        objApiKey2.value = vApiKey2;
+        objApiSecret2.value = vApiSecret2;        
+    }
+}
+
 function fnGetSetTraderLoginStatus(){
     let vTraderStatus = localStorage.getItem("lsLoginValidDFL");
     let objTraderStatus = document.getElementById("btnTraderStatus");
@@ -29,6 +59,8 @@ function fnShowTraderLoginMdl(objThis){
 function fnValidateDeltaLogin(){
     let objApiKey = document.getElementById("txtUserAPIKey");
     let objApiSecret = document.getElementById("txtAPISecret");
+    let objApiKey2 = document.getElementById("txtUserAPIKey2");
+    let objApiSecret2 = document.getElementById("txtAPISecret2");
 
     if(objApiKey.value === ""){
         objApiKey.focus();
@@ -45,6 +77,8 @@ function fnValidateDeltaLogin(){
         let vAction = JSON.stringify({
             "ApiKey" : objApiKey.value,
             "ApiSecret" : objApiSecret.value,
+            "ApiKey2" : objApiKey2.value,
+            "ApiSecret2" : objApiSecret2.value
         });
 
         let requestOptions = {
@@ -59,17 +93,21 @@ function fnValidateDeltaLogin(){
         .then(objResult => {
             if(objResult.status === "success"){
                 console.log(objResult.data);
-                localStorage.setItem("lsApiKeyDFL", objApiKey.value);
-                localStorage.setItem("lsApiSecretDFL", objApiSecret.value);
+                localStorage.setItem("lsApiKeyDFL", JSON.stringify(objApiKey.value));
+                localStorage.setItem("lsApiSecretDFL", JSON.stringify(objApiSecret.value));
+                localStorage.setItem("lsApiKey2DFL", JSON.stringify(objApiKey2.value));
+                localStorage.setItem("lsApiSecret2DFL", JSON.stringify(objApiSecret2.value));
 
-                let objBalances = { BalanceINR: objResult.data.result[0].available_balance_inr, BalanceUSD: objResult.data.result[0].available_balance };
+                let objBalances = { Acc1BalINR: objResult.data[0].available_balance_inr, Acc1BalUSD: objResult.data[0].available_balance, Acc2BalINR: objResult.data[1].available_balance_inr, Acc2BalUSD: objResult.data[1].available_balance };
+                document.getElementById("spnBal1").innerText = (parseFloat(objBalances.Acc1BalUSD)).toFixed(2);
+                document.getElementById("spnBal2").innerText = (parseFloat(objBalances.Acc2BalUSD)).toFixed(2);
+
                 localStorage.setItem("DeltaNetLimit", JSON.stringify(objBalances));
                 console.log(localStorage.getItem("DeltaNetLimit"));
 
                 $('#mdlDeltaLogin').modal('hide');
                 localStorage.setItem("lsLoginValidDFL", "true");
                 fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-                fnGenMessage("Please Input Login Details", `badge bg-primary`, "spnDeltaLogin");
                 fnGetSetTraderLoginStatus();
             }
             else if(objResult.status === "danger"){
@@ -139,6 +177,8 @@ function fnGetSetAutoTraderStatus(){
 }
 
 function fnClearLoginStatus(){
+    // localStorage.removeItem("lsApiKeyDFL");
+    // localStorage.removeItem("lsApiSecretDFL");
     localStorage.removeItem("lsLoginValidDFL");
     localStorage.removeItem("isAutoTraderDFL");
 

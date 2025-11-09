@@ -37,7 +37,7 @@
                             <div class="col-3">
                                 <h4>Manual Trader</h4>
                             </div>
-                            <div class="col-1">
+                            <div class="col-2">
                                 <form name="frmSide">
                                     <div class="tw-toggle" style="white-space: nowrap;">
                                         <input id="txtBN1" type="radio" name="rdoTradeSide" value="false" onclick="fnTradeSide();" />
@@ -51,21 +51,22 @@
                                     </div>
                                 </form>
                             </div>
-                            <div class="col-2" style="text-align: right;">Start With </div>
-                            <div class="col-1"><input type="text" class="form-control" min="1" value="1" id="txtStartQty" onchange="fnChangeStartQty(this);" /></div>
-                            <div class="col-1"> Qty</div>
+                            <div class="col-2" style="text-align: right;">
+                                <button class='nav-link' onclick="fnClearLocalStorageTemp();" role="tab" type="button">Clear All</button>
+                            </div>
+                            <div class="col-1"></div>
                             <div class="col-1" style="text-align: right;">
-                                <span class="badge rounded-pill text-bg-primary" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnConnectOSD();">&nbsp;</span>
+                                <span class="badge rounded-pill text-bg-primary" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnConnectDFL();">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
-                                <span id="spnSub" class="badge rounded-pill text-bg-success" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnSubscribeOSD();" title="Subscribe to WebSocket">
+                                <span id="spnSub" class="badge rounded-pill text-bg-success" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnSubscribeDFL();" title="Subscribe to WebSocket">
                             </div>
                             <div class="col-1" style="text-align: right;">
-                                <span class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnForceDisconnectOSD();">&nbsp;</span>
+                                <span class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnForceDisconnectDFL();">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divTraderClps" role="button" aria-expanded="true" aria-controls="divTraderClps">
-                                    <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                                    <i class="fa fa-caret-square-o-down" style="color: orangered;"></i>
                                 </a>
                             </div>                                    
                         </div>
@@ -74,9 +75,141 @@
                         <div class="collapse show" id="divTraderClps">
                             <div class="container-fluid">
                                 <div class="row">
+                                    <div class="col-2">Symbols List</div>
+                                    <div class="col-2">Lot Size</div>
+                                    <div class="col-2">USD Margin Required</div>
+                                    <div class="col-2">Multiplier</div>
                                     <div class="col-2">
-                                        Symbols List
+                                        Acc-1 Balance <span class="badge text-bg-danger" id="spnCurrency1" style="cursor: pointer;" onclick="fnSwapCurrency('Acc1');">USD</span>
                                     </div>
+                                    <div class="col-2">
+                                        Acc-2 Balance <span class="badge text-bg-danger" id="spnCurrency2" style="cursor: pointer;" onclick="fnSwapCurrency('Acc2');">USD</span>
+                                    </div>
+
+                                    <div class="col-2">
+                                        <select id="ddlSymbols" class="form-select" onchange="fnSetSymbolData(this.value);" placeholder="Select Symbol" title="SYMBOL">
+                                            <option value=''>Select Symbol</option>
+                                            <option value='BTC' selected>BTCUSD</option>
+                                            <option value='ETH'>ETHUSD</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="text" value="0.001" id="txtLotSize" class="form-control" />
+                                    </div>
+                                    <div class="col-2">
+                                        <span id="spnMarginReq" style="color: green;">0.00</span>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" min="0" class="form-control" placeholder="Quantity" id="txtQtyMultiplier" value="0" onkeyup="fnChangeReqMargin(this);" />
+                                    </div>
+                                    <div class="col-2">
+                                        <span id="spnBal1">0.00</span>
+                                    </div>
+                                    <div class="col-2">
+                                        <span id="spnBal2">0.00</span>
+                                    </div>
+
+                                    <div class="col-2">
+                                        Short Expiry Type
+                                    </div>
+                                    <div class="col-2">
+                                        Select Short Expiry
+                                    </div>
+                                    <div class="col-2">
+                                        Select Long Expiry
+                                    </div>
+                                    <div class="col-2">Order Type</div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+
+                                    <div class="col-2">
+                                        <select id="ddlExpiryMode" class="form-select" onchange="fnUpdateExpiryMode();" placeholder="Select Expiry Mode" title="Expiry Mode">
+                                            <option value=1>DAILY</option>
+                                            <option value=2>WEEKLY</option>
+                                            <option value=3>MONTHLY</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="date" class="form-control" placeholder="Short Expiry" id="txtExpShort" value="" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="date" class="form-control" placeholder="Long Expiry" id="txtExpLong" value="" />
+                                    </div>
+                                    <div class="col-2">
+                                        <select id="ddlOrderType" class="form-select" placeholder="Select Order Type">
+                                            <option value='limit_order' selected>Limit Order</option>
+                                            <option value='market_order'>Market Order</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-danger" onclick="fnInitRealTrade('put_options');"><b>START ACC-1</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-success" onclick="fnInitRealTrade('call_options');"><b>START ACC-2</b></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-2">
+                                        <input type="date" class="form-control" placeholder="Daily Expiry" id="txtDayExpiry" value="" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="date" class="form-control" placeholder="Weekly Expiry" id="txtWeekExpiry" value="" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="date" class="form-control" placeholder="Monthly Expiry" id="txtMonthExpiry" value="" />
+                                    </div>
+                                    <div class="col-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-success" onclick="fnGetDelta();"><b>Get Deltas</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-success" onclick="fnDisplayDeltaDirec();"><b>Display Deltas</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-2"></div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" id="cardDeltaDirec">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-3">
+                                <h4>Delta Direction</h4>
+                            </div>
+                            <div class="col-8"></div>
+                            <div class="col-1" style="text-align: right;">
+                                <a data-bs-toggle="collapse" href="#divTraderClps" role="button" aria-expanded="true" aria-controls="divTraderClps">
+                                    <i class="fa fa-caret-square-o-down" style="color: orangered;"></i>
+                                </a>
+                            </div>                                    
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="collapse show" id="divTraderClps">
+                            <div class="container-fluid">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr style="text-align:center;">
+                                                <th scope="col" style="text-wrap: nowrap;">Dated</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Call Delta</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Put Delta</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Direction</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tBodyDeltas">
+
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>

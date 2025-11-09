@@ -185,6 +185,7 @@ route.post("/deltaExcOptSclprD/getBestRatesBySymb", deltaOptScalpDemoCtrler.fnGe
 
 //Delta Funding Live Routes
 route.post("/deltaExcFunding/validateLogin", deltaFundingLiveCtrler.fnValidateUserLogin);
+route.post("/deltaExcFunding/getOptChnSDKByAstOptTypExp", deltaFundingLiveCtrler.fnGetOptChnSDKByAstOptTypExp);
 
 //Delta Futures Demo Routes
 route.post("/deltaExcFut/validateLogin", deltaFutDemoController.fnValidateUserLogin);
