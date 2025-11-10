@@ -154,7 +154,7 @@ function fnLoadDefExpiryDate(pExpiryMode){
         let vCurrHour = vCurrDate.getHours();
 
         if(vCurrHour >= 1){
-            vCurrDate.setDate(vCurrDate.getDate() + 2);
+            vCurrDate.setDate(vCurrDate.getDate() + 1);
         }
 
         let vDay = (vCurrDate.getDate()).toString().padStart(2, "0");
@@ -463,7 +463,7 @@ function fnLoadAllExpiryDate(){
     let vCurrHour = vCurrDate.getHours();
 
     if(vCurrHour >= 1){
-        vCurrDate.setDate(vCurrDate.getDate() + 2);
+        vCurrDate.setDate(vCurrDate.getDate() + 1);
     }
 
     let vDayD = (vCurrDate.getDate()).toString().padStart(2, "0");
@@ -533,7 +533,7 @@ function fnGetDelta(){
     .then(objResult => {
 
         if(objResult.status === "success"){
-            console.log(objResult);
+            // console.log(objResult);
             const vDate = new Date();
             let vMonth = vDate.getMonth() + 1;
             let vNow = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
