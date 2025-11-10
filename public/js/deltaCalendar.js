@@ -1516,7 +1516,7 @@ function fnLoadClosedTrades(){
    	let objTradeBook = JSON.parse(localStorage.getItem("DeltaTrdBkCal"));
     let objHeadPL = document.getElementById("tdHeadPL");
 
-    if (objTradeBook == null) {
+    if (objTradeBook === null) {
         objTodayTradeList.innerHTML = '<tr><td colspan="10"><div class="col-sm-12" style="border:0px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 40px;">No Closed Trades Yet</div></td></tr>';
     }
     else{

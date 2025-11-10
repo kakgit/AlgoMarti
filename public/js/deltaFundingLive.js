@@ -41,7 +41,7 @@ function fnGetAllStatus(){
         fnLoadDefExpiryMode();
 
         fnLoadAllExpiryDate();
-        setInterval(fnGetDelta, 900000);
+        setInterval(fnGetDelta, 300000);
     }
 }
 
@@ -506,6 +506,7 @@ function fnLoadAllExpiryDate(){
 }
 
 function fnGetDelta(){
+    fnLoadAllExpiryDate();
     let objApiKey = document.getElementById("txtUserAPIKey");
     let objApiSecret = document.getElementById("txtAPISecret");
     let objDayExpiry = document.getElementById("txtDayExpiry");
@@ -532,23 +533,47 @@ function fnGetDelta(){
     .then(objResult => {
 
         if(objResult.status === "success"){
-            // console.log(objResult);
+            console.log(objResult);
             const vDate = new Date();
             let vMonth = vDate.getMonth() + 1;
             let vNow = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
 
             let vCallTotal = objResult.data.DayCall + objResult.data.WeekCall + objResult.data.MonthCall;
             let vPutTotal = objResult.data.DayPut + objResult.data.WeekPut + objResult.data.MonthPut;
-            let vDirection = "";
+            let vDayDirec = "";
+            let vWeekDirec = "";
+            let vMonthDirec = "";
+            let vTotalDirec = "";
 
-            if(vPutTotal > vCallTotal){
-                vDirection = "UP";
+            if(objResult.data.DayPut > objResult.data.DayCall){
+                vDayDirec = "UP";
             }
             else{
-                vDirection = "DOWN";
+                vDayDirec = "DOWN";
             }
 
-            gObjDeltaDirec.push({ Dated : vNow, CallTotal : vCallTotal, PutTotal : vPutTotal, Direction : vDirection });
+            if(objResult.data.WeekPut > objResult.data.WeekCall){
+                vWeekDirec = "UP";
+            }
+            else{
+                vWeekDirec = "DOWN";
+            }
+
+            if(objResult.data.MonthPut > objResult.data.MonthCall){
+                vMonthDirec = "UP";
+            }
+            else{
+                vMonthDirec = "DOWN";
+            }
+
+            if(vPutTotal > vCallTotal){
+                vTotalDirec = "UP";
+            }
+            else{
+                vTotalDirec = "DOWN";
+            }
+
+            gObjDeltaDirec.push({ Dated : vNow, DayCall : objResult.data.DayCall, DayPut : objResult.data.DayPut, DayDirec : vDayDirec, WeekCall : objResult.data.WeekCall, WeekPut : objResult.data.WeekPut, WeekDirec : vWeekDirec, MonthCall : objResult.data.MonthCall, MonthPut : objResult.data.MonthPut, MonthDirec : vMonthDirec, OADirec : vTotalDirec });
 
             let objDataStr = JSON.stringify(gObjDeltaDirec);
 
@@ -588,22 +613,36 @@ function fnDisplayDeltaDirec(){
     let objDeltas = JSON.parse(localStorage.getItem("IndDeltasDFL"));
 
     if (objDeltas === null){
-        objDispDeltas.innerHTML = '<tr><td colspan="4"><div class="col-sm-12" style="border:0px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 40px;">No Deltas Yet</div></td></tr>';
+        objDispDeltas.innerHTML = '<tr><td colspan="11"><div class="col-sm-12" style="border:0px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 40px;">No Deltas Yet</div></td></tr>';
     }
     else{
         let vTempHtml = "";
 
         for (let i = 0; i < objDeltas.length; i++){
             let vDated = objDeltas[i].Dated;
-            let vCallTotal = objDeltas[i].CallTotal;
-            let vPutTotal = objDeltas[i].PutTotal;
-            let vDirection = objDeltas[i].Direction;
+            let vDayCall = objDeltas[i].DayCall;
+            let vDayPut = objDeltas[i].DayPut;
+            let vDirecDay = objDeltas[i].DayDirec;
+            let vWeekCall = objDeltas[i].WeekCall;
+            let vWeekPut = objDeltas[i].WeekPut;
+            let vDirecWeek = objDeltas[i].WeekDirec;
+            let vMonthCall = objDeltas[i].MonthCall;
+            let vMonthPut = objDeltas[i].MonthPut;
+            let vDirecMonth = objDeltas[i].MonthDirec;
+            let vDirecOA = objDeltas[i].OADirec;
 
             vTempHtml += '<tr>';
             vTempHtml += '<td style="text-wrap: nowrap;">' + vDated + '</td>';
-            vTempHtml += '<td style="text-wrap: nowrap;">' + vCallTotal + '</td>';
-            vTempHtml += '<td style="text-wrap: nowrap;">' + vPutTotal + '</td>';
-            vTempHtml += '<td style="text-wrap: nowrap;">' + vDirection + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap;">' + (vDayCall).toFixed(2) + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap;">' + (vDayPut).toFixed(2) + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap;">' + vDirecDay + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap;">' + (vWeekCall).toFixed(2) + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap;">' + (vWeekPut).toFixed(2) + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap;">' + vDirecWeek + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap;">' + (vMonthCall).toFixed(2) + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap;">' + (vMonthPut).toFixed(2) + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap;">' + vDirecMonth + '</td>';
+            vTempHtml += '<td style="text-wrap: nowrap;">' + vDirecOA + '</td>';
             vTempHtml += '</tr>';
         }
         objDispDeltas.innerHTML = vTempHtml;
