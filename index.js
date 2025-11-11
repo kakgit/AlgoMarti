@@ -215,6 +215,23 @@ app.post("/tv-btcusd-exec", (req, res) => {
     res.send({ status: "success", message: "Open " + objMsg.TransType + " Trade Received!", data: objMsg });
 });
 
+app.post("/tv-AutoTrd", (req, res) => {
+    const vAutoTrade = req.body.AutoTrade;
+    let vMsgOnOff = "OFF";
+    let objMsg = {AutoTrade : vAutoTrade};
+
+    io.emit("tv-AutoTrade", objMsg);
+
+    if(objMsg.AutoTrade === "true"){
+        vMsgOnOff = "ON";
+    }
+    else{
+        vMsgOnOff = "OFF";
+    }
+
+    res.send({ status: "success", message: "Auto Trade is " + vMsgOnOff + " !", data: objMsg });
+});
+
 app.post("/tv-btcusd-close", (req, res) => {
     const vTransType = req.body.direc;
 
