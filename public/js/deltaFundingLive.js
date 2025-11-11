@@ -31,6 +31,7 @@ function fnGetAllStatus(){
 
     if(bAppStatus){
         fnLoadLoginCred();
+        fnLoadDefQty();
         fnGetSetTraderLoginStatus();
 		fnGetSetAutoTraderStatus();
 
@@ -41,8 +42,49 @@ function fnGetAllStatus(){
         fnLoadDefExpiryMode();
 
         fnLoadAllExpiryDate();
-        setInterval(fnGetDelta, 300000);
+        // setInterval(fnGetDelta, 300000);
     }
+}
+
+function fnLoadDefQty(){
+    let objStartQtyM = JSON.parse(localStorage.getItem("StartQtyDFL"));
+
+    let objQty = document.getElementById("txtQtyMultiplier");
+    let objStartQty = document.getElementById("txtStartQty");
+
+    if(objStartQtyM === null){
+        objStartQty.value = 1;
+        objQty.value = 1;
+        localStorage.setItem("StartQtyNoDeltaCal", objStartQty.value);
+    }
+    else{
+        objStartQty.value = objStartQtyM;
+        objQty.value = objStartQtyM;
+    }
+}
+
+function fnChangeStartQty(pThisVal){
+    let objQty = document.getElementById("txtQtyMultiplier");
+
+    if(pThisVal.value === "" || pThisVal.value === "0"){
+        fnGenMessage("Not a Valid Qty No to Start with, Please Check", `badge bg-danger`, "spnGenMsg");
+        pThisVal.value = 1;
+        localStorage.setItem("StartQtyDFL", 1);
+    }
+    else if(isNaN(parseInt(pThisVal.value))){
+        fnGenMessage("Not a Valid Qty No to Start with, Please Check", `badge bg-danger`, "spnGenMsg");
+        pThisVal.value = 1;
+        localStorage.setItem("StartQtyDFL", 1);
+    }
+    else{
+        fnGenMessage("No of Qty to Start With is Changed!", `badge bg-success`, "spnGenMsg");
+        localStorage.setItem("StartQtyDFL", pThisVal.value);
+
+        if(confirm("Are You Sure You want to change the Quantity?")){
+            objQty.value = pThisVal.value;
+        }
+    }
+    fnChangeReqMargin();
 }
 
 function fnChangeSymbol(pSymbVal){
@@ -85,8 +127,9 @@ function fnLoadNetLimits(){
     let objSpnBal1 = document.getElementById("spnBal1");
     let objSpnBal2 = document.getElementById("spnBal2");
     let objSpmReqMargin = document.getElementById('spnMarginReq');
+    let objStartQty = document.getElementById("txtStartQty");
 
-    gQtyMultiplierM = JSON.parse(localStorage.getItem("QtyMulDFL"));
+    gQtyMultiplierM = objStartQty.value;
     // console.log(localStorage.getItem("QtyMulDFL"));
     // console.log(objNetLimits);
 
@@ -153,7 +196,10 @@ function fnLoadDefExpiryDate(pExpiryMode){
     if(pExpiryMode === "1"){
         let vCurrHour = vCurrDate.getHours();
 
-        if(vCurrHour >= 1){
+        if(vCurrHour >= 16){
+            vCurrDate.setDate(vCurrDate.getDate() + 2);
+        }
+        else if(vCurrHour >= 1){
             vCurrDate.setDate(vCurrDate.getDate() + 1);
         }
 
@@ -224,10 +270,10 @@ function fnSwapCurrency(pAcc){
     }
 }
 
-function fnChangeReqMargin(objThis){
+function fnChangeReqMargin(){
     let objNetLimits = JSON.parse(localStorage.getItem("DeltaNetLimit"));
     let objSpmReqMargin = document.getElementById("spnMarginReq");
-
+    let objQty = document.getElementById("txtQtyMultiplier");
     let Acc1BalUSD = 0;
     let Acc2BalUSD = 0;
 
@@ -239,16 +285,14 @@ function fnChangeReqMargin(objThis){
         Acc2BalUSD = parseFloat((objNetLimits.Acc2BalUSD)).toFixed(2);
     }
 
-    if(isNaN(objThis.value) || objThis.value === ""){
+    if(isNaN(parseFloat(objQty.value)) || objQty.value === ""){
         objSpmReqMargin.innerText = (0.00).toFixed(2);
     }
     else{
-        let vTotalMarginReq = (gMinReqMargin * parseFloat(objThis.value)).toFixed(2);
-        // console.log(vTotalMarginReq);
-        // console.log(Acc1BalUSD);
+        let vTotalMarginReq = (gMinReqMargin * parseFloat(objQty.value)).toFixed(2);
         objSpmReqMargin.innerText = vTotalMarginReq;
 
-        localStorage.setItem("QtyMulDFL", objThis.value);
+        // localStorage.setItem("QtyMulDFL", objQty.value);
 
         if(parseFloat(vTotalMarginReq) > parseFloat(Acc1BalUSD)){
             objSpmReqMargin.style.color = "red";
@@ -260,7 +304,15 @@ function fnChangeReqMargin(objThis){
 }
 
 function fnInitRealTrade(pOptionType){
-
+    let objSymbol = document.getElementById("ddlSymbols");
+    let objLotSize = document.getElementById("txtLotSize");
+    let objQty = document.getElementById("txtQtyMultiplier");
+    let objExpiry = document.getElementById("txtExpShort");
+    let vDate = new Date();
+    let vOrdId = vDate.valueOf();
+    let vMonth = vDate.getMonth() + 1;
+    let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
+    let vExpiry = fnSetDDMMYYYY(objExpiry.value);
 }
 
 function fnSetDDMMYYYY(pDateToConv){
@@ -451,6 +503,7 @@ function fnLoadAllExpiryDate(){
     let objExpiryDay = document.getElementById("txtDayExpiry");
     let objExpiryWeek = document.getElementById("txtWeekExpiry");
     let objExpiryMonth = document.getElementById("txtMonthExpiry");
+    let objExpiryLong = document.getElementById("txtExpLong");
 
     let vCurrDate = new Date();
     const vCurrFriday = new Date(vCurrDate);
@@ -462,7 +515,10 @@ function fnLoadAllExpiryDate(){
     //************** Daily Expiry ***************//
     let vCurrHour = vCurrDate.getHours();
 
-    if(vCurrHour >= 1){
+    if(vCurrHour >= 16){
+        vCurrDate.setDate(vCurrDate.getDate() + 2);
+    }
+    else if(vCurrHour >= 1){
         vCurrDate.setDate(vCurrDate.getDate() + 1);
     }
 
@@ -502,6 +558,7 @@ function fnLoadAllExpiryDate(){
     let vExpValM = vLastDayOfMonth.getFullYear() + "-" + vMonthM + "-" + vDayM;
 
     objExpiryMonth.value = vExpValM;
+    objExpiryLong.value = vExpValM;
     //************** Monthly Expiry ***************//
 }
 
