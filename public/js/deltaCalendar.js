@@ -156,6 +156,9 @@ function fnSetSymbolData(pThisVal){
 	else if(pThisVal === "ETH"){
 		objLotSize.value = 0.01;
 	}
+	else if(pThisVal === "BCH"){
+		objLotSize.value = 0.01;
+	}
 	else{
 		objLotSize.value = 0;
 	}
@@ -1382,7 +1385,7 @@ function fnDelLeg(pLegID){
 			}
 		}
 
-		gCurrPos.TradeData.pop(vDelRec);
+		gCurrPos.TradeData.splice(vDelRec, 1);
 
 	    let objExcTradeDtls = JSON.stringify(gCurrPos);
 	    localStorage.setItem("DeltaCalPosiS", objExcTradeDtls);

@@ -78,7 +78,7 @@
                                     <div class="col-2">Symbols List</div>
                                     <div class="col-2">Lot Size</div>
                                     <div class="col-2">USD Margin Required</div>
-                                    <div class="col-2">Multiplier</div>
+                                    <div class="col-2">Quantity</div>
                                     <div class="col-2">
                                         Acc-1 Balance <span class="badge text-bg-danger" id="spnCurrency1" style="cursor: pointer;" onclick="fnSwapCurrency('Acc1');">USD</span>
                                     </div>
@@ -137,18 +137,18 @@
                                     </div>
                                     <div class="col-2">
                                         <select id="ddlOrderType" class="form-select" placeholder="Select Order Type">
-                                            <option value='limit_order' selected>Limit Order</option>
-                                            <option value='market_order'>Market Order</option>
+                                            <option value='limit_order'>Limit Order</option>
+                                            <option value='market_order' selected>Market Order</option>
                                         </select>
                                     </div>
                                     <div class="col-2">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-danger" onclick="fnInitRealTrade('put_options');"><b>START ACC-1</b></button>
+                                            <button class="btn btn-outline-danger" onclick="fnInitTrade('Acc1', 'P');"><b>SELL PE ACC-1</b></button>
                                         </div>
                                     </div>
                                     <div class="col-2">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success" onclick="fnInitRealTrade('call_options');"><b>START ACC-2</b></button>
+                                            <button class="btn btn-outline-success" onclick="fnInitTrade('Acc1', 'C');"><b>SELL CE ACC-1</b></button>
                                         </div>
                                     </div>
 
@@ -197,7 +197,7 @@
                                 <button class='nav-link' onclick="fnClearLocalStorageTemp();" role="tab" type="button">Clear All</button>
                             </div>
                             <div class="col-1" style="text-align: right;">
-                                <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px;" onclick="">&nbsp;</span>
+                                <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px;" onclick="fnTest();">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divOpenPosClps" role="button" aria-expanded="true" aria-controls="divOpenPosClps">
@@ -213,19 +213,23 @@
                                     <table class="table">
                                         <thead>
                                             <tr style="text-align:center;">
-                                                <th scope="col" style="text-wrap: nowrap;">Actions</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Status</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Delta</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Gamma</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Vega</th>
+                                                <th scope="col" style="text-wrap: nowrap;">IV</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Rho</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Theta</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Symbol</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Tr Type</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Lot Sz</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Qty</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Capital</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Charges</th>
                                                 <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Status</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tBodyCurrTrades">

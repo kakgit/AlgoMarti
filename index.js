@@ -215,6 +215,16 @@ app.post("/tv-btcusd-exec", (req, res) => {
     res.send({ status: "success", message: "Open " + objMsg.TransType + " Trade Received!", data: objMsg });
 });
 
+app.post("/tvMsgOptSellST", (req, res) => {
+    const vAccount = req.body.account;
+    const vOptionType = req.body.optionType;
+
+    let objMsg = { Account: vAccount, OptionType : vOptionType };
+
+    io.emit("tv-Msg-Opt-Sell-ST", objMsg);
+    res.send({ status: "success", message: "Open " + objMsg.OptionType + " Trade Received!", data: objMsg });
+});
+
 app.post("/tv-AutoTrd", (req, res) => {
     const vAutoTrade = req.body.AutoTrade;
     let vMsgOnOff = "OFF";

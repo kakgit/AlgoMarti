@@ -4,6 +4,21 @@ let gSubList = [];
 let gMinReqMargin = 5.00;
 let gQtyMultiplierM = 0;
 let gObjDeltaDirec = [];
+let gCurrPosDFL = { TradeData : []};
+let gTradeInst = 0;
+
+let gUpdPos = true;
+let gSymbBRateList = {};
+let gSymbSRateList = {};
+let gSymbDeltaList = {};
+let gSymbGammaList = {};
+let gSymbVegaList = {};
+let gSymbMarkIVList = {};
+let gSymbRhoList = {};
+let gSymbThetaList = {};
+
+let gForceCloseDFL = false;
+let gBrokerage = 0.015;
 
 window.addEventListener("DOMContentLoaded", function(){
     fnGetAllStatus();
@@ -24,25 +39,46 @@ window.addEventListener("DOMContentLoaded", function(){
         fnTradeSide();
     });
 
+    socket.on("tv-Msg-Opt-Sell-ST", (pMsg) => {
+        let isLsAutoTrader = localStorage.getItem("isAutoTraderDFL");
+        let vTradeSide = localStorage.getItem("TradeSideSwtDFL");
+        let objMsg = (pMsg);
+
+        // fnChangeSymbol(objMsg.symbolName);
+
+        if(isLsAutoTrader === "false"){
+            fnGenMessage("Trade Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
+        }
+        else{
+            if(((vTradeSide === "true") && (objMsg.OptionType === "P")) || ((vTradeSide === "false") && (objMsg.OptionType === "C")) || (vTradeSide === "-1")){
+                fnPreInitTrade(objMsg.Account, objMsg.OptionType);
+            }
+            else{
+                fnGenMessage(objMsg.OptionType + " Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
+            }
+        }
+    });
 });
 
 function fnGetAllStatus(){
 	let bAppStatus = JSON.parse(localStorage.getItem("AppMsgStatusS"));
 
     if(bAppStatus){
+        fnConnectDFL();
         fnLoadLoginCred();
         fnLoadDefQty();
         fnGetSetTraderLoginStatus();
 		fnGetSetAutoTraderStatus();
 
         fnLoadNetLimits();
-        // fnConnectDFL();
         fnLoadTradeSide();
         fnLoadDefSymbol();
         fnLoadDefExpiryMode();
 
         fnLoadAllExpiryDate();
+        fnLoadCurrentTradePos();
         // setInterval(fnGetDelta, 300000);
+        fnUpdateOpenPositions();
     }
 }
 
@@ -163,6 +199,115 @@ function fnLoadNetLimits(){
     }
 }
 
+function fnLoadCurrentTradePos(){
+    let objCurrPos = JSON.parse(localStorage.getItem("CurrPosDFL"));
+
+    gCurrPosDFL = objCurrPos;
+
+    if(gCurrPosDFL === null){
+        gCurrPosDFL = { TradeData : []};
+    }
+    else{
+        fnSetSymbolTickerList();
+    }
+}
+
+function fnSetSymbolTickerList(){
+    if(gCurrPosDFL.TradeData.length > 0){
+        const objSubListArray = [];
+        gSubList = [];
+
+        for(let i=0; i<gCurrPosDFL.TradeData.length; i++){
+            if(gCurrPosDFL.TradeData[i].Status === "OPEN"){
+                objSubListArray.push(gCurrPosDFL.TradeData[i].Symbol);
+            }
+        }
+        const setSubList = new Set(objSubListArray);
+        gSubList = [...setSubList];
+        fnUnSubscribeDFL();
+        fnSubscribeDFL();
+
+        clearInterval(gTradeInst);
+        gTradeInst = setInterval(fnSaveUpdCurrPos, 15000);
+    }
+}
+
+function fnSaveUpdCurrPos(){
+    let vToPosClose = false;
+    let vLegID = 0;
+    let vTransType = "";
+    let vOptionType = "";
+    let vSymbol = "";
+
+    for(let i=0; i<gCurrPosDFL.TradeData.length; i++){
+        if(gCurrPosDFL.TradeData[i].Status === "OPEN"){
+            let vCurrDelta = parseFloat(gSymbDeltaList[gCurrPosDFL.TradeData[i].Symbol]);
+            let vCurrGamma = parseFloat(gSymbGammaList[gCurrPosDFL.TradeData[i].Symbol]);
+            let vCurrVega = parseFloat(gSymbVegaList[gCurrPosDFL.TradeData[i].Symbol]);
+            let vCurrMarkIV = parseFloat(gSymbMarkIVList[gCurrPosDFL.TradeData[i].Symbol]);
+            let vCurrRho = parseFloat(gSymbRhoList[gCurrPosDFL.TradeData[i].Symbol]);
+            let vCurrTheta = parseFloat(gSymbThetaList[gCurrPosDFL.TradeData[i].Symbol]);
+
+            gCurrPosDFL.TradeData[i].DeltaC = vCurrDelta;
+            gCurrPosDFL.TradeData[i].GammaC = vCurrGamma;
+            gCurrPosDFL.TradeData[i].VegaC = vCurrVega;
+            gCurrPosDFL.TradeData[i].MarkIVC = vCurrMarkIV;
+            gCurrPosDFL.TradeData[i].RhoC = vCurrRho;
+            gCurrPosDFL.TradeData[i].ThetaC = vCurrTheta;
+
+            if(gCurrPosDFL.TradeData[i].TransType === "sell"){
+                // console.log(gCurrPosDFL.TradeData[i].Symbol);
+                // console.log(gSymbBRateList[gCurrPosDFL.TradeData[i].Symbol]);
+                // ****************** Uncomment When Live *****************//
+                let vCurrPrice = parseFloat(gSymbBRateList[gCurrPosDFL.TradeData[i].Symbol]);
+                gCurrPosDFL.TradeData[i].BuyPrice = vCurrPrice;
+                // ****************** Uncomment When Live *****************//
+
+                // // ****************** Remove When Live *****************//
+                // vCurrPrice = gCurrPosDFL.TradeData[i].BuyPrice;
+                // // ****************** Remove When Live *****************//
+
+                if((Math.abs(parseFloat(vCurrDelta)) > parseFloat(gCurrPosDFL.TradeData[i].DeltaSL)) || (Math.abs(parseFloat(vCurrDelta)) < parseFloat(gCurrPosDFL.TradeData[i].DeltaTP))){
+                    vLegID = gCurrPosDFL.TradeData[i].ClientOrderID;
+                    vTransType = gCurrPosDFL.TradeData[i].TransType;
+                    vOptionType = gCurrPosDFL.TradeData[i].OptionType;
+                    vSymbol = gCurrPosDFL.TradeData[i].Symbol;
+                    vToPosClose = true;
+                }
+            }
+            else if(gCurrPosDFL.TradeData[i].TransType === "buy"){
+                // ****************** Uncomment When Live *****************//
+                let vCurrPrice = parseFloat(gSymbSRateList[gCurrPosDFL.TradeData[i].Symbol]);
+                gCurrPosDFL.TradeData[i].SellPrice = vCurrPrice;
+                // ****************** Uncomment When Live *****************//
+
+                // // ****************** Remove When Live *****************//
+                // vCurrPrice = gCurrPosDFL.TradeData[i].SellPrice;
+                // // ****************** Remove When Live *****************//
+
+                if((Math.abs(parseFloat(vCurrDelta)) < parseFloat(gCurrPosDFL.TradeData[i].DeltaSL)) || (Math.abs(parseFloat(vCurrDelta)) > parseFloat(gCurrPosDFL.TradeData[i].DeltaTP))){
+                    vLegID = gCurrPosDFL.TradeData[i].ClientOrderID;
+                    vTransType = gCurrPosDFL.TradeData[i].TransType;
+                    vOptionType = gCurrPosDFL.TradeData[i].OptionType;
+                    vSymbol = gCurrPosDFL.TradeData[i].Symbol;
+                    vToPosClose = true;
+                }
+            }
+        }
+    }
+
+    fnUpdateOpenPositions();
+
+    if(vToPosClose){
+        fnCloseOptPosition(vLegID, vTransType, vOptionType, vSymbol, "CLOSED");
+    }
+}
+
+function fnTest(){
+    console.log(gCurrPosDFL);
+}
+
+//************ Update Live Code Here **************//
 function fnLoadDefExpiryMode(){
     let objExpiryMode = document.getElementById("ddlExpiryMode");
     let vExpiryMode = JSON.parse(localStorage.getItem("ExpiryModeDFL"));
@@ -241,6 +386,17 @@ function fnLoadDefExpiryDate(pExpiryMode){
     }
 }
 
+function fnSetDDMMYYYY(pDateToConv){
+    let vDate = new Date(pDateToConv);
+
+    let vDay = (vDate.getDate()).toString().padStart(2, "0");
+    let vMonth = (vDate.getMonth() + 1).toString().padStart(2, "0");
+    let vYear = vDate.getFullYear();
+    let vRetVal = vDay + "-" + vMonth + "-" + vYear;;
+
+    return vRetVal;
+}
+
 function fnSwapCurrency(pAcc){
     let objNetLimits = JSON.parse(localStorage.getItem("DeltaNetLimit"));
     let objDisplayCurr1 = document.getElementById("spnCurrency1");
@@ -303,33 +459,468 @@ function fnChangeReqMargin(){
     }
 }
 
-function fnInitRealTrade(pOptionType){
+function fnPreInitTrade(pAcc, pOptionType){
+    let vIsRecExists = false;
+
+    fnUpdateExpiryMode();
+
+    if(gCurrPosDFL.TradeData.length > 0){
+        for(let i=0; i<gCurrPosDFL.TradeData.length; i++){
+            if(gCurrPosDFL.TradeData[i].OptionType === pOptionType){
+                vIsRecExists = true;
+            }
+        }
+    }
+
+    if(vIsRecExists === false){
+        fnInitTrade(pAcc, pOptionType);
+    }
+    else{
+        fnGenMessage("Trade Message Received but Same Option Type is Already Open!", `badge bg-warning`, "spnGenMsg");
+    }
+}
+
+async function fnInitTrade(pAcc, pOptionType){
+    let objApiKey1 = document.getElementById("txtUserAPIKey");
+    let objApiSecret1 = document.getElementById("txtAPISecret");
+    let objApiKey2 = document.getElementById("txtUserAPIKey2");
+    let objApiSecret2 = document.getElementById("txtAPISecret2");
+
     let objSymbol = document.getElementById("ddlSymbols");
     let objLotSize = document.getElementById("txtLotSize");
     let objQty = document.getElementById("txtQtyMultiplier");
-    let objExpiry = document.getElementById("txtExpShort");
+    let objExpShort = document.getElementById("txtExpShort");
+    let objOrderType = document.getElementById("ddlOrderType");
+
     let vDate = new Date();
     let vOrdId = vDate.valueOf();
     let vMonth = vDate.getMonth() + 1;
     let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
-    let vExpiry = fnSetDDMMYYYY(objExpiry.value);
+
+    let vShortExpiry = fnSetDDMMYYYY(objExpShort.value);
+
+    let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ Account : "Acc1", UndrAsst : "BTCUSD", TransType : "sell", OptionType : "F", DeltaNew : 1.00, DeltaTP : 2.00, DeltaSL : 0.10 }, { Account : "Acc1", UndrAsst : "BTC", TransType : "sell", OptionType : "P", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { Account : "Acc1", UndrAsst : "BTC", TransType : "sell", OptionType : "C", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
+
+    // console.log(objStrategies.Strategies[0].StratModel.length);
+    gUpdPos = false;
+
+    for(let i=0; i<objStrategies.Strategies[0].StratModel.length; i++){
+        let vApiKey = "";
+        let vApiSecret = "";
+        let vUndrAsst = objStrategies.Strategies[0].StratModel[i].UndrAsst;
+        let vOptionType = objStrategies.Strategies[0].StratModel[i].OptionType;
+        let vTransType = objStrategies.Strategies[0].StratModel[i].TransType;
+        let vDeltaNPos = objStrategies.Strategies[0].StratModel[i].DeltaNew;
+        let vDeltaTP = objStrategies.Strategies[0].StratModel[i].DeltaTP;
+        let vDeltaSL = objStrategies.Strategies[0].StratModel[i].DeltaSL;
+        let vClientID = vOrdId + i;
+
+        if(objStrategies.Strategies[0].StratModel[i].Account === pAcc){
+            vApiKey = objApiKey1.value;
+            vApiSecret = objApiSecret1.value;
+            if(objStrategies.Strategies[0].StratModel[i].OptionType === pOptionType){
+                let objTradeDtls = await fnExecOption(vApiKey, vApiSecret, vUndrAsst, vShortExpiry, vOptionType, vTransType, vDeltaNPos, objOrderType.value, objQty.value, vClientID);
+                if(objTradeDtls.status === "success"){
+                    // console.log(objTradeDtls);
+
+                    let vProductID = objTradeDtls.data.ProductID;
+                    let vSymbol = objTradeDtls.data.Symbol;
+                    let vUndrAstSymb = objTradeDtls.data.UndrAsstSymb;
+                    let vCntrctType = objTradeDtls.data.ContType;
+                    let vStrPrice = parseInt(objTradeDtls.data.Strike);
+                    let vExpiry = objTradeDtls.data.Expiry;
+                    let vBestBuy = parseFloat(objTradeDtls.data.BestAsk);
+                    let vBestSell = parseFloat(objTradeDtls.data.BestBid);
+                    let vDelta = parseFloat(objTradeDtls.data.Delta);
+                    let vVega = parseFloat(objTradeDtls.data.Vega);
+                    let vGamma = parseFloat(objTradeDtls.data.Gamma);
+                    let vRho = parseFloat(objTradeDtls.data.Rho);
+                    let vMarkIV = parseFloat(objTradeDtls.data.MarkIV);
+                    let vTheta = parseFloat(objTradeDtls.data.Theta);
+                    
+                    let vDeltaC = parseFloat(objTradeDtls.data.Delta);
+                    let vVegaC = parseFloat(objTradeDtls.data.Vega);
+                    let vGammaC = parseFloat(objTradeDtls.data.Gamma);
+                    let vRhoC = parseFloat(objTradeDtls.data.Rho);
+                    let vMarkIVC = parseFloat(objTradeDtls.data.MarkIV);
+                    let vThetaC = parseFloat(objTradeDtls.data.Theta);
+
+                    let vExcTradeDtls = { ClientOrderID : vClientID, ProductID : vProductID, OpenDT : vToday, Symbol : vSymbol, UndrAsstSymb : vUndrAstSymb, ContrctType : vCntrctType, TransType : vTransType, OptionType : vOptionType, StrikePrice : vStrPrice, Expiry : vExpiry, LotSize : parseFloat(objLotSize.value), Qty : parseInt(objQty.value), BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, Vega : vVega, Gamma : vGamma, Rho : vRho, MarkIV : vMarkIV, Theta : vTheta, DeltaC : vDeltaC, VegaC : vVegaC, GammaC : vGammaC, RhoC : vRhoC, MarkIVC : vMarkIVC, ThetaC : vThetaC, OpenDTVal : vOrdId, DeltaTP : vDeltaTP, DeltaSL : vDeltaSL, DeltaNP : vDeltaNPos, Status : "OPEN" };
+                    
+                    gCurrPosDFL.TradeData.push(vExcTradeDtls);
+                    let objExcTradeDtls = JSON.stringify(gCurrPosDFL);
+
+                    localStorage.setItem("CurrPosDFL", objExcTradeDtls);
+
+                    gUpdPos = true;
+                    fnSetSymbolTickerList();
+                    fnUpdateOpenPositions();
+                }
+                else{
+
+                }
+            }
+            else if(objStrategies.Strategies[0].StratModel[i].OptionType === "F"){
+                // console.log("Comming Soon....");
+            }
+            else{
+                // console.log("No Option Type called " + pOptionType);
+            }
+        }
+        else{
+            console.log("No Account with " + pAcc);
+        }
+    }
 }
 
-function fnSetDDMMYYYY(pDateToConv){
-    let vDate = new Date(pDateToConv);
+function fnExecOption(pApiKey, pApiSecret, pUndAsst, pExpiry, pOptionType, pTransType, pDeltaNPos, pOrderType, pQty, pClientID){
+    const objPromise = new Promise((resolve, reject) => {
 
-    let vDay = (vDate.getDate()).toString().padStart(2, "0");
-    let vMonth = (vDate.getMonth() + 1).toString().padStart(2, "0");
-    let vYear = vDate.getFullYear();
-    let vRetVal = vDay + "-" + vMonth + "-" + vYear;;
+        let vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
 
-    return vRetVal;
+        let vAction = JSON.stringify({
+            "ApiKey" : pApiKey,
+            "ApiSecret" : pApiSecret,
+            "UndAssetSymbol" : pUndAsst,
+            "Expiry" : pExpiry,
+            "OptionType" : pOptionType,
+            "TransType" : pTransType,
+            "DeltaNPos" : pDeltaNPos,
+            "OrderType" : pOrderType,
+            "LotQty" : pQty,
+            "ClientID" : pClientID
+        });
+
+        let requestOptions = {
+            method: 'POST',
+            headers: vHeaders,
+            body: vAction,
+            redirect: 'follow'
+        };
+
+        // resolve({ "status": "success", "message": "Success", "data": "" });
+
+        fetch("/deltaExcFunding/execOption", requestOptions)
+        .then(response => response.json())
+        .then(objResult => {
+            if(objResult.status === "success"){
+
+                resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+            else if(objResult.status === "danger"){
+                if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+                    reject({ "status": objResult.status, "message": objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, "data": objResult.data });
+                }
+                else{
+                    reject({ "status": objResult.status, "message": objResult.data.response.body.error.code + " Contact Admin!", "data": objResult.data });
+                }
+            }
+            else if(objResult.status === "warning"){
+                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+            else{
+                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+        })
+        .catch(error => {
+            reject({ "status": "danger", "message": "Error At Option Chain. Catch!", "data": "" });
+        });
+    });
+    return objPromise;
 }
+
+function fnUpdateOpenPositions(){
+    if(gUpdPos){
+        let objCurrTradeList = document.getElementById("tBodyCurrTrades");
+        // console.log(gCurrPosDFL);
+        if(gCurrPosDFL.TradeData.length === 0){
+            objCurrTradeList.innerHTML = '<tr><td colspan="17"><div class="col-sm-12" style="border:0px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 40px;">No Running Trades Yet</div></td></tr>';
+        }
+        else{
+            let vTempHtml = "";
+            let vTotalTrades = 0;
+            let vNetPL = 0;
+            let vTotalCharges = 0;
+            let vTotalCapital = 0;
+
+            for(let i=0; i<gCurrPosDFL.TradeData.length; i++){
+                let vBuyPrice = gCurrPosDFL.TradeData[i].BuyPrice;
+                let vLegID = gCurrPosDFL.TradeData[i].ClientOrderID;
+                let vContractType = gCurrPosDFL.TradeData[i].ContrctType;
+                let vDelta = gCurrPosDFL.TradeData[i].Delta;
+                let vDeltaNPos = gCurrPosDFL.TradeData[i].DeltaNP;
+                let vDeltaSL = gCurrPosDFL.TradeData[i].DeltaSL;
+                let vDeltaTP = gCurrPosDFL.TradeData[i].DeltaTP;
+                let vExpiry = gCurrPosDFL.TradeData[i].Expiry;
+                let vGamma = gCurrPosDFL.TradeData[i].Gamma;
+                let vMarkIV = gCurrPosDFL.TradeData[i].MarkIV;
+                let vRho = gCurrPosDFL.TradeData[i].Rho;
+                let vTheta = gCurrPosDFL.TradeData[i].Theta;
+                let vVega = gCurrPosDFL.TradeData[i].Vega;
+
+                let vDeltaC = gCurrPosDFL.TradeData[i].DeltaC;
+                let vGammaC = gCurrPosDFL.TradeData[i].GammaC;
+                let vMarkIVC = gCurrPosDFL.TradeData[i].MarkIVC;
+                let vRhoC = gCurrPosDFL.TradeData[i].RhoC;
+                let vThetaC = gCurrPosDFL.TradeData[i].ThetaC;
+                let vVegaC = gCurrPosDFL.TradeData[i].VegaC;
+
+                let vLotSize = gCurrPosDFL.TradeData[i].LotSize;
+                let vOpenDT = gCurrPosDFL.TradeData[i].OpenDT;
+                let vOptionType = gCurrPosDFL.TradeData[i].OptionType;
+                let vProductID = gCurrPosDFL.TradeData[i].ProductID;
+                let vQty = gCurrPosDFL.TradeData[i].Qty;
+                let vSellPrice = gCurrPosDFL.TradeData[i].SellPrice;
+                let vStatus = gCurrPosDFL.TradeData[i].Status;
+                let vStrikePrice = parseFloat(gCurrPosDFL.TradeData[i].StrikePrice);
+                let vSymbol = gCurrPosDFL.TradeData[i].Symbol;
+                let vTransType = gCurrPosDFL.TradeData[i].TransType;
+                let vUndrAsstSymb = gCurrPosDFL.TradeData[i].UndrAsstSymb;
+
+                let vCharges = fnGetTradeCharges(vStrikePrice, vLotSize, vQty, vBuyPrice, vSellPrice);
+                let vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
+                vTotalTrades += 1;
+                vTotalCharges += parseFloat(vCharges);
+                vNetPL += parseFloat(vPL);
+
+                if(vStatus === "OPEN"){
+                    vTempHtml += '<tr>';
+                    vTempHtml += '<td style="text-wrap: nowrap; text-align:right;">' + vStatus + '</td>';
+                    vTempHtml += '<td><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:orange;">' + (vDeltaC).toFixed(2) + '</div><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vDelta).toFixed(2) + '</div></td>';
+                    vTempHtml += '<td><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:red;">' + (vGammaC).toFixed(5) + '</div><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vGamma).toFixed(5) + '</div></td>';
+                    vTempHtml += '<td><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:green;">' + (vVegaC).toFixed(2) + '</div><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vVega).toFixed(2) + '</div></td>';
+                    vTempHtml += '<td><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:white;">' + (vMarkIVC).toFixed(2) + '</div><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vMarkIV).toFixed(2) + '</div></td>';
+                    vTempHtml += '<td><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:white;">' + (vRhoC).toFixed(2) + '</div><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vRho).toFixed(2) + '</div></td>';
+                    vTempHtml += '<td><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:white;">' + (vThetaC).toFixed(2) + '</div><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vTheta).toFixed(2) + '</div></td>';
+                    vTempHtml += '<td style="text-wrap: nowrap; text-align:center;">' + vSymbol + '</td>';
+                    vTempHtml += '<td style="text-wrap: nowrap; text-align:center;">' + vTransType + '</td>';
+                    vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:#0078ff;">' + vLotSize + '</td>';
+                    vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:#e3ff00;">' + vQty + '</td>';
+                    if(vTransType === "sell"){
+                        vTempHtml += '<td id="'+ vSymbol +'" style="text-wrap: nowrap; color:white;text-align:right;"><span class="blink">' + (vBuyPrice).toFixed(2) + '</span></td>';
+                        vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (vSellPrice).toFixed(2) + '</td>';
+                    }
+                    else if(vTransType === "buy"){
+                        vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right;">' + (vBuyPrice).toFixed(2) + '</td>';
+                        vTempHtml += '<td id="'+ vSymbol +'" style="text-wrap: nowrap; color:white;text-align:right;"><span class="blink">' + (vSellPrice).toFixed(2) + '</span></td>';
+                    }
+                    vTempHtml += '<td style="text-wrap: nowrap; text-align:right;">' + (parseFloat(vCharges)).toFixed(2) + '</td>';
+                    vTempHtml += '<td style="text-wrap: nowrap; text-align:right;color:#ff9a00;">'+ (vPL).toFixed(2) +'</td>';
+                    vTempHtml += '<td style="text-wrap: nowrap; text-align:center;">' + vOpenDT + '</td>';
+                    vTempHtml += '<td style="text-wrap: nowrap;"><i class="fa fa-eye" aria-hidden="true" style="color:green;" title="Close This Leg!" onclick="fnCloseOptPosition('+ vLegID +', `'+ vTransType +'`, `'+ vOptionType +'`, `'+ vSymbol +'`, `CLOSED`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" aria-hidden="true" style="color:red;" onclick="fnDelLeg('+ vLegID +');"></i></td>';
+                    vTempHtml += '</tr>';
+                }
+                else{
+                    vTempHtml += '<tr>';
+                    vTempHtml += '<td style="text-wrap: nowrap; color:grey; text-align:right;">' + vStatus + '</td>';
+                    vTempHtml += '<td><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vDeltaC).toFixed(2) + '</div><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vDelta).toFixed(2) + '</div></td>';
+                    vTempHtml += '<td><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vGammaC).toFixed(5) + '</div><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vGamma).toFixed(5) + '</div></td>';
+                    vTempHtml += '<td><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vVegaC).toFixed(2) + '</div><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vVega).toFixed(2) + '</div></td>';
+                    vTempHtml += '<td><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vMarkIVC).toFixed(2) + '</div><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vMarkIV).toFixed(2) + '</div></td>';
+                    vTempHtml += '<td><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vRhoC).toFixed(2) + '</div><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vRho).toFixed(2) + '</div></td>';
+                    vTempHtml += '<td><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vThetaC).toFixed(2) + '</div><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vTheta).toFixed(2) + '</div></td>';
+                    vTempHtml += '<td style="text-wrap: nowrap; color:grey; text-align:center;">' + vSymbol + '</td>';
+                    vTempHtml += '<td style="text-wrap: nowrap; color:grey; text-align:center;">' + vTransType + '</td>';
+                    vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:grey;">' + vLotSize + '</td>';
+                    vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:grey;">' + vQty + '</td>';
+                    vTempHtml += '<td id="'+ vSymbol +'" style="text-wrap: nowrap;text-align:right; color:grey;">' + (vBuyPrice).toFixed(2) + '</td>';
+                    vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right; color:grey;">' + (vSellPrice).toFixed(2) + '</td>';
+                    vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:grey;">' + (parseFloat(vCharges)).toFixed(2) + '</td>';
+                    vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:grey;">'+ (vPL).toFixed(2) +'</td>';
+                    vTempHtml += '<td style="text-wrap: nowrap; color:grey; text-align:center;">' + vOpenDT + '</td>';
+                    vTempHtml += '<td style="text-wrap: nowrap;"><i class="fa fa-eye-slash" aria-hidden="true" style="color:red;" title="Re-open This Leg!" onclick="fnCloseOptPosition('+ vLegID +', `'+ vTransType +'`, `'+ vOptionType +'`, `'+ vSymbol +'`, `OPEN`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" aria-hidden="true" style="color:red;" onclick="fnDelLeg('+ vLegID +');"></i></td>';
+                    vTempHtml += '</tr>';
+                }
+            }
+            vTempHtml += '<tr><td></td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">Total Trades: </td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">'+ vTotalTrades +'</td><td></td><td></td><td></td><td></td><td></td><td></td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">User Margin: </td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;"></td><td></td><td></td><td style="text-wrap: nowrap; text-align:right; color: red; font-weight:bold;">'+ (vTotalCharges).toFixed(2) +'</td><td style="text-wrap: nowrap; text-align:right; color: white; font-weight:bold;">'+ (vNetPL).toFixed(2) +'</td><td style="text-wrap: nowrap; text-align:right; color: white; font-weight:bold;"></td><td></td></tr>';
+            objCurrTradeList.innerHTML = vTempHtml;
+        }
+    }
+}
+
+
+function fnGetTradeCharges(pIndexPrice, pLotSize, pQty, pBuyPrice, pSellPrice){
+    let vNotionalFees = (((pQty * 2) * pLotSize * pIndexPrice) * gBrokerage) / 100;
+
+    let vBuyBrokerage = ((pQty * pLotSize * pBuyPrice) * 5) / 100;
+    let vSellBrokerage = ((pQty * pLotSize * pSellPrice) * 5) / 100;
+    let vPremiumCapFees = vSellBrokerage + vBuyBrokerage;
+
+    let vEffectiveBrokerage = 0;
+
+    if(vPremiumCapFees < vNotionalFees){
+        vEffectiveBrokerage = vPremiumCapFees * 1.18;
+    }
+    else{
+        vEffectiveBrokerage = vNotionalFees * 1.18;
+    }
+
+    return vEffectiveBrokerage;
+}
+
+function fnGetTradePL(pBuyPrice, pSellPrice, pLotSize, pQty, pCharges){
+    let vPL = ((pSellPrice - pBuyPrice) * pLotSize * pQty) - pCharges;
+
+    return vPL;
+}
+
+async function fnCloseOptPosition(pLegID, pTransType, pOptType, pSymbol, pStatus){
+    let objApiKey = document.getElementById("txtUserAPIKey");
+    let objApiSecret = document.getElementById("txtAPISecret");
+
+    let objBestRates = await fnGetBestRatesBySymbId(objApiKey.value, objApiSecret.value, pSymbol);
+    
+    if(objBestRates.status === "success"){
+        let vDate = new Date();
+        let vMonth = vDate.getMonth() + 1;
+        let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
+    
+        let vBestBuyRate = parseFloat(objBestRates.data.result.quotes.best_ask);
+
+        let vIndexPrice = 0;
+        let vLotSize = 0;
+        let vQty = 0;
+        let vBuyPrice = 0;
+        let vSellPrice = 0;
+
+        gUpdPos = false;
+
+        gSymbBRateList = {};
+        gSymbSRateList = {};
+        gSymbDeltaList = {};
+        gSymbGammaList = {};
+        gSymbVegaList = {};
+        gSymbMarkIVList = {};
+        gSymbRhoList = {};
+        gSymbThetaList = {};
+
+        for(let i=0; i<gCurrPosDFL.TradeData.length; i++){
+            if(gCurrPosDFL.TradeData[i].ClientOrderID === pLegID){
+                gCurrPosDFL.TradeData[i].BuyPrice = vBestBuyRate;
+                gCurrPosDFL.TradeData[i].CloseDT = vToday;
+                gCurrPosDFL.TradeData[i].Status = pStatus;
+
+                vIndexPrice = gCurrPosDFL.TradeData[i].StrikePrice;
+                vLotSize = gCurrPosDFL.TradeData[i].LotSize;
+                vQty = gCurrPosDFL.TradeData[i].Qty;
+                vBuyPrice = gCurrPosDFL.TradeData[i].BuyPrice;
+                vSellPrice = gCurrPosDFL.TradeData[i].SellPrice;
+            }
+        }
+
+        // let vTotLossAmt = localStorage.getItem("TotLossAmtOSD");
+        // let vCharges = fnGetTradeCharges(vIndexPrice, vLotSize, vQty, vBuyPrice, vSellPrice);
+        // let vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
+
+        // vTotLossAmt = parseFloat(vTotLossAmt) + parseFloat(vPL);
+        // localStorage.setItem("TotLossAmtOSD", vTotLossAmt);
+
+        let objExcTradeDtls = JSON.stringify(gCurrPosDFL);
+        localStorage.setItem("CurrPosDFL", objExcTradeDtls);
+
+        console.log("Position Updated!");
+
+        gUpdPos = true;
+        fnSetSymbolTickerList();
+        fnUpdateOpenPositions();
+
+        // if(pReLeg){
+        //     fnInitOpenOptTrade(pOptType, pTransType);
+        // }
+    }
+}
+
+function fnGetBestRatesBySymbId(pApiKey, pApiSecret, pSymbol){
+    const objPromise = new Promise((resolve, reject) => {
+
+        let vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+
+        let vAction = JSON.stringify({ ApiKey : pApiKey, ApiSecret : pApiSecret, Symbol : pSymbol });
+
+        let requestOptions = {
+            method: 'POST',
+            headers: vHeaders,
+            body: vAction,
+            redirect: 'follow'
+        };
+
+        fetch("/deltaExcFunding/getBestRatesBySymb", requestOptions)
+        .then(response => response.json())
+        .then(objResult => {
+
+            if(objResult.status === "success"){
+                let vRes = JSON.parse(objResult.data);
+                // console.log(vRes);
+                // let objBestRates = { BestBuy : vRes.result.quotes.best_ask, BestSell : vRes.result.quotes.best_bid }
+
+                // resolve({ "status": objResult.status, "message": objResult.message, "data": objBestRates });
+                resolve({ "status": objResult.status, "message": objResult.message, "data": vRes });
+            }
+            else if(objResult.status === "danger"){
+                if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+
+                    // fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+                    reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+                }
+                else{
+                    // fnGenMessage(objResult.data.response.statusText + ": " + objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+                    reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+                }
+            }
+            else{
+                fnGenMessage("Error in Getting Best Rates Data, Contact Admin!", `badge bg-danger`, "spnGenMsg");
+                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+        })
+        .catch(error => {
+            // fnGenMessage(error.message, `badge bg-danger`, "spnGenMsg");
+            reject({ "status": "danger", "message": "Error in Getting Option Best Rates...", "data": "" });
+        });
+    });
+
+    return objPromise;
+}
+
+function fnDelLeg(pLegID){
+    if(confirm("Are You Sure, You Want to Delete This Leg!")){
+        gUpdPos = false;
+
+        gSymbBRateList = {};
+        gSymbSRateList = {};
+        gSymbDeltaList = {};
+        gSymbGammaList = {};
+        gSymbVegaList = {};
+        gSymbMarkIVList = {};
+        gSymbRhoList = {};
+        gSymbThetaList = {};
+
+        let vDelRec = null;
+
+        for(let i=0; i<gCurrPosDFL.TradeData.length; i++){
+            if(gCurrPosDFL.TradeData[i].ClientOrderID === pLegID){
+                vDelRec = i;
+            }
+        }
+
+        gCurrPosDFL.TradeData.splice(vDelRec, 1);
+
+        let objExcTradeDtls = JSON.stringify(gCurrPosDFL);
+        localStorage.setItem("CurrPosDFL", objExcTradeDtls);
+        gUpdPos = true;
+
+        fnSetSymbolTickerList();
+        fnUpdateOpenPositions();
+    }
+}
+
 
 
 
 
 function fnClearLocalStorageTemp(){
+    localStorage.removeItem("CurrPosDFL");
     localStorage.setItem("QtyMulDFL", 0);
     localStorage.removeItem("DeltaNetLimit");
 
@@ -354,8 +945,8 @@ function fnConnectDFL(){
         console.log("WS Error, Trying to Reconnect.....");
     }
     obj_WS_DFL.onclose = function (){
-        if(gForceCloseOSD){
-            gForceCloseOSD = false;
+        if(gForceCloseDFL){
+            gForceCloseDFL = false;
             // console.log("WS Disconnected & Closed!!!!!!");
             objSub.className = "badge rounded-pill text-bg-success";
             fnGenMessage("Streaming Stopped & Disconnected!", `badge bg-warning`, "spnGenMsg");
@@ -370,7 +961,7 @@ function fnConnectDFL(){
 
         switch (vTicData.type){
             case "v2/ticker":
-                // fnUpdateRates(vTicData);
+                fnUpdateRates(vTicData);
                 break;
             case "subscriptions":
 
@@ -386,6 +977,27 @@ function fnConnectDFL(){
                 break;
         }       
     }
+}
+
+function fnUpdateRates(pTicData){
+    // console.log(pTicData);
+    gSymbBRateList[pTicData.symbol] = pTicData.quotes.best_ask;
+    gSymbSRateList[pTicData.symbol] = pTicData.quotes.best_bid;
+
+    if(pTicData.contract_type !== "perpetual_futures"){
+        gSymbDeltaList[pTicData.symbol] = pTicData.greeks.delta;
+        gSymbGammaList[pTicData.symbol] = pTicData.greeks.gamma;
+        gSymbVegaList[pTicData.symbol] = pTicData.greeks.vega;
+        gSymbMarkIVList[pTicData.symbol] = pTicData.quotes.mark_iv;
+        gSymbRhoList[pTicData.symbol] = pTicData.greeks.rho;
+        gSymbThetaList[pTicData.symbol] = pTicData.greeks.theta;
+    }
+
+    // console.log(gSymbGammaList);
+    // console.log(gSymbVegaList);
+    // console.log(gSymbMarkIVList);
+    // console.log(gSymbRhoList);
+    // console.log(gSymbThetaList);
 }
 
 function fnSubscribeDFL(){
@@ -447,7 +1059,7 @@ function fnRestartConnDFL(){
 
 function fnForceDisconnectDFL(){
     if(obj_WS_DFL !== null){
-        gForceCloseOSD = true;
+        gForceCloseDFL = true;
         obj_WS_DFL.close();
     }
     else{
@@ -474,14 +1086,14 @@ function fnAdd2SubList(){
 function fnTradeSide(){
     let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
 
-    localStorage.setItem("TradeSideSwtS", objTradeSideVal.value);
+    localStorage.setItem("TradeSideSwtDFL", objTradeSideVal.value);
 }
 
 function fnLoadTradeSide(){
-    if(localStorage.getItem("TradeSideSwtS") === null){
-        localStorage.setItem("TradeSideSwtS", "-1");
+    if(localStorage.getItem("TradeSideSwtDFL") === null){
+        localStorage.setItem("TradeSideSwtDFL", "-1");
     }
-    let lsTradeSideSwitchS = localStorage.getItem("TradeSideSwtS");
+    let lsTradeSideSwitchS = localStorage.getItem("TradeSideSwtDFL");
     let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
 
     if(lsTradeSideSwitchS === "true"){

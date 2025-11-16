@@ -1311,7 +1311,7 @@ function fnDelLeg(pLegID){
 			}
 		}
 
-		gCurrPosOSD.TradeData.pop(vDelRec);
+        gCurrPosOSD.TradeData.splice(vDelRec, 1);
 
 	    let objExcTradeDtls = JSON.stringify(gCurrPosOSD);
 	    localStorage.setItem("DeltaCurrOptPosD", objExcTradeDtls);
