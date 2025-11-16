@@ -344,7 +344,7 @@ function fnLoadDefExpiryDate(pExpiryMode){
         if(vCurrHour >= 16){
             vCurrDate.setDate(vCurrDate.getDate() + 2);
         }
-        else if(vCurrHour >= 1){
+        else if(vCurrHour >= 0){
             vCurrDate.setDate(vCurrDate.getDate() + 1);
         }
 
@@ -1130,7 +1130,7 @@ function fnLoadAllExpiryDate(){
     if(vCurrHour >= 16){
         vCurrDate.setDate(vCurrDate.getDate() + 2);
     }
-    else if(vCurrHour >= 1){
+    else if(vCurrHour >= 0){
         vCurrDate.setDate(vCurrDate.getDate() + 1);
     }
 
