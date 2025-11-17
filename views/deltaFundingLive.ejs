@@ -100,7 +100,6 @@
                                         <span id="spnMarginReq" style="color: green;">0.00</span>
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" min="0" class="form-control" placeholder="Quantity" id="txtQtyMultiplier" value="0" onkeyup="fnChangeReqMargin();" />
                                     </div>
                                     <div class="col-2">
                                         <span id="spnBal1">0.00</span>
@@ -143,36 +142,56 @@
                                     </div>
                                     <div class="col-2">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-danger" onclick="fnInitTrade('Acc1', 'P');"><b>SELL PE ACC-1</b></button>
+                                            <button class="btn btn-outline-success" onclick="fnInitTrade('Acc1', 'P');"><b>SELL PE ACC-1</b></button>
                                         </div>
                                     </div>
                                     <div class="col-2">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success" onclick="fnInitTrade('Acc1', 'C');"><b>SELL CE ACC-1</b></button>
+                                            <button class="btn btn-outline-danger" onclick="fnInitTrade('Acc1', 'C');"><b>SELL CE ACC-1</b></button>
                                         </div>
                                     </div>
-
-                                    <div class="col-2">
-                                        <input type="date" class="form-control" placeholder="Daily Expiry" id="txtDayExpiry" value="" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="date" class="form-control" placeholder="Weekly Expiry" id="txtWeekExpiry" value="" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="date" class="form-control" placeholder="Monthly Expiry" id="txtMonthExpiry" value="" />
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success" onclick="fnGetDelta();"><b>Get Deltas</b></button>
-                                        </div>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success" onclick="fnDisplayDeltaDirec();"><b>Display Deltas</b></button>
-                                        </div>
-                                    </div>
+                                    <div class="col-2">CE Qty</div>
+                                    <div class="col-2">PE Qty</div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
                                     <div class="col-2"></div>
 
+                                    <div class="col-2">
+                                        <input type="number" min="0" class="form-control" placeholder="CE Qty" id="txtQtyCE" value="0" onkeyup="//fnChangeReqMargin();" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" min="0" class="form-control" placeholder="PE Qty" id="txtQtyPE" value="0" onkeyup="//fnChangeReqMargin();" />
+                                    </div>
+                                    <div class="col-2">
+                                    </div>
+                                    <div class="col-2">
+                                    </div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+
+                                    <div style="display: none;">
+                                        <div class="col-2">
+                                            <input type="date" class="form-control" placeholder="Daily Expiry" id="txtDayExpiry" value="" />
+                                        </div>
+                                        <div class="col-2">
+                                            <input type="date" class="form-control" placeholder="Weekly Expiry" id="txtWeekExpiry" value="" />
+                                        </div>
+                                        <div class="col-2">
+                                            <input type="date" class="form-control" placeholder="Monthly Expiry" id="txtMonthExpiry" value="" />
+                                        </div>
+                                        <div class="col-2">
+                                            <div class="d-grid gap-1">
+                                                <button class="btn btn-outline-success" onclick="fnGetDelta();"><b>Get Deltas</b></button>
+                                            </div>
+                                        </div>
+                                        <div class="col-2">
+                                            <div class="d-grid gap-1">
+                                                <button class="btn btn-outline-success" onclick="fnDisplayDeltaDirec();"><b>Display Deltas</b></button>
+                                            </div>
+                                        </div>
+                                        <div class="col-2"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

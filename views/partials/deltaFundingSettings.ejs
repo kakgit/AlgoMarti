@@ -67,3 +67,49 @@
         </div>
     </div>
 </div>
+
+<!--Disabled Backdrop Modal for Leg Editor-->
+<div class="modal fade text-left" id="mdlLegEditor" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4" data-bs-backdrop="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h4 class="modal-title" id="myModalLabel4">Update Option Leg</h4>
+                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-6">Lot Size</div>
+                        <div class="col-6">Quantity</div>
+                        <div class="col-6">
+                            <input type="text" value="" id="txtEdLotSize" class="form-control" />
+                            <input type="text" value="" id="hidLegID" class="form-control" />
+                        </div>
+                        <div class="col-6">
+                            <input type="text" value="" id="txtEdQty" class="form-control" />
+                        </div>
+
+                        <div class="col-6">Buy Price</div>
+                        <div class="col-6">Sell Price</div>
+                        <div class="col-6">
+                            <input type="text" value="" id="txtEdBuyPrice" class="form-control" />
+                        </div>
+                        <div class="col-6">
+                            <input type="text" value="" id="txtEdSellPrice" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                    <i class="bx bx-x d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">CLOSE</span>
+                </button>
+                <button type="button" class="btn btn-primary ms-1" onclick="fnUpdateOptionLeg();">
+                    <i class="bx bx-check d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">UPDATE</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
