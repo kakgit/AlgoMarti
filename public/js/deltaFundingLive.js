@@ -927,6 +927,7 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
                     document.getElementById("txtQtyCE").value = vNewQty;
                 }
                 else{
+                    document.getElementById("txtCallPL").value = 0;
                     document.getElementById("txtQtyCE").value = 1;
                     localStorage.setItem("QtyCallDFL", 1);
                 }
@@ -944,6 +945,7 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
                     document.getElementById("txtQtyPE").value = vNewQty;
                 }
                 else{
+                    document.getElementById("txtPutPL").value = 0;
                     document.getElementById("txtQtyPE").value = 1;
                     localStorage.setItem("QtyPutDFL", 1);
                 }
