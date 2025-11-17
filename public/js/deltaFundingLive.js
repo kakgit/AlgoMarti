@@ -39,6 +39,10 @@ window.addEventListener("DOMContentLoaded", function(){
         fnTradeSide();
     });
 
+    socket.on("refreshAllDFL", () => {
+        document.location.reload();
+    });
+
     socket.on("tv-Msg-Opt-Sell-ST", (pMsg) => {
         let isLsAutoTrader = localStorage.getItem("isAutoTraderDFL");
         let vTradeSide = localStorage.getItem("TradeSideSwtDFL");
@@ -390,6 +394,41 @@ function fnSaveUpdCurrPos(){
     if(vToPosClose){
         fnCloseOptPosition(vLegID, vTransType, vOptionType, vSymbol, "CLOSED");
     }
+}
+
+function fnRefreshAllOpenBrowser(){
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let objRequestOptions = {
+        method: 'POST',
+        headers: vHeaders,
+        body: '',
+        redirect: 'follow'
+    };
+
+    fetch("/refreshAllDFL", objRequestOptions)
+    .then(objResponse => objResponse.json())
+    .then(objResult => {
+        if(objResult.status === "success"){
+
+            console.log(objResult);
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "danger"){
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else if(objResult.status === "warning"){
+            fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+        }
+        else{
+            fnGenMessage("Error to Receive Trade Msg", `badge bg-danger`, "spnGenMsg");
+        }
+    })
+    .catch(error => {
+        console.log('error: ', error);
+        fnGenMessage("Error to Fetch Trade Msg.", `badge bg-danger`, "spnGenMsg");
+    });        
 }
 
 function fnTest(){

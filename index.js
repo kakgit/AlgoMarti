@@ -251,6 +251,12 @@ app.post("/tv-btcusd-close", (req, res) => {
     res.send({ status: "success", message: "Close " + objMsg.TransType + " Trade Received!", data: objMsg });
 });
 
+app.post("/refreshAllDFL", (req, res) => {
+
+    io.emit("refreshAllDFL");
+    res.send({ status: "success", message: "Refresh All Open DFL Browsers!", data: "" });
+});
+
 const storage = multer.diskStorage({
     destination: function(req, file, callback){
         callback(null, __dirname + "/public/uploads");
