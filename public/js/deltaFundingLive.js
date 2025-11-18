@@ -274,26 +274,39 @@ function fnLoadTotalLossAmtQty(){
     let vQtyPEM = localStorage.getItem("QtyPutDFL");
     let objQtyCE = document.getElementById("txtQtyCE");
     let objQtyPE = document.getElementById("txtQtyPE");
+    let objDefQty = document.getElementById("txtStartQty");
 
     let objCallPL = document.getElementById("txtCallPL");
     let objPutPL = document.getElementById("txtPutPL");
 
     if(vTotLossAmtCE === null || vTotLossAmtCE === "" || isNaN(vTotLossAmtCE)){
         localStorage.setItem("TotLossAmtCE", 0);
-        localStorage.setItem("QtyCallDFL", 1);
+        localStorage.setItem("QtyCallDFL", objDefQty.value);
     }
     else{
         objCallPL.value = vTotLossAmtCE;
-        objQtyCE.value = vQtyCEM;
+
+        if(parseInt(vQtyCEM) < parseInt(objDefQty.value)){
+            objQtyCE.value = objDefQty.value;
+        }
+        else{
+            objQtyCE.value = vQtyCEM;
+        }
     }
 
     if(vTotLossAmtPE === null || vTotLossAmtPE === "" || isNaN(vTotLossAmtPE)){
         localStorage.setItem("TotLossAmtPE", 0);
-        localStorage.setItem("QtyPutDFL", 1);
+        localStorage.setItem("QtyPutDFL", objDefQty.value);
     }
     else{
         objPutPL.value = vTotLossAmtPE;
-        objQtyPE.value = vQtyPEM;
+
+        if(parseInt(vQtyPEM) < parseInt(objDefQty.value)){
+            objQtyPE.value = objDefQty.value;
+        }
+        else{
+            objQtyPE.value = vQtyPEM;
+        }
     }
 }
 
@@ -397,6 +410,8 @@ function fnSaveUpdCurrPos(){
 }
 
 function fnRefreshAllOpenBrowser(){
+    fnClearLocalStorageTemp();
+    
     let vHeaders = new Headers();
     vHeaders.append("Content-Type", "application/json");
 
