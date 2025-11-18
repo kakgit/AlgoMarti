@@ -75,17 +75,22 @@
                         <div class="collapse show" id="divTraderClps">
                             <div class="container-fluid">
                                 <div class="row">
+                                    <div class="col-2">
+                                        Strategy
+                                    </div>
                                     <div class="col-2">Symbols List</div>
                                     <div class="col-2">Lot Size</div>
-                                    <div class="col-2">USD Margin Required</div>
-                                    <div class="col-2">Quantity</div>
-                                    <div class="col-2">
-                                        Acc-1 Balance <span class="badge text-bg-danger" id="spnCurrency1" style="cursor: pointer;" onclick="fnSwapCurrency('Acc1');">USD</span>
-                                    </div>
-                                    <div class="col-2">
-                                        Acc-2 Balance <span class="badge text-bg-danger" id="spnCurrency2" style="cursor: pointer;" onclick="fnSwapCurrency('Acc2');">USD</span>
-                                    </div>
+                                    <div class="col-2">CE Qty</div>
+                                    <div class="col-2">PE Qty</div>
+                                    <div class="col-2"></div>
 
+                                    <div class="col-2">
+                                        <div class="input-group mb-3">
+                                            <select id="ddlStrategy" class="form-select" onchange="fnSetStratDetails(this.value);" placeholder="Select Strategy" title="Select Strategy">
+                                            </select>
+                                            <button class="btn btn-success" type="button" onclick="fnOpenStrategyDialog();"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                        </div>
+                                    </div>
                                     <div class="col-2">
                                         <select id="ddlSymbols" class="form-select" onchange="fnSetSymbolData(this.value);" placeholder="Select Symbol" title="SYMBOL">
                                             <option value=''>Select Symbol</option>
@@ -97,16 +102,12 @@
                                         <input type="text" value="0.001" id="txtLotSize" class="form-control" />
                                     </div>
                                     <div class="col-2">
-                                        <span id="spnMarginReq" style="color: green;">0.00</span>
+                                        <input type="number" min="0" class="form-control" placeholder="CE Qty" id="txtQtyCE" value="0" onkeyup="//fnChangeReqMargin();" />
                                     </div>
                                     <div class="col-2">
+                                        <input type="number" min="0" class="form-control" placeholder="PE Qty" id="txtQtyPE" value="0" onkeyup="//fnChangeReqMargin();" />
                                     </div>
-                                    <div class="col-2">
-                                        <span id="spnBal1">0.00</span>
-                                    </div>
-                                    <div class="col-2">
-                                        <span id="spnBal2">0.00</span>
-                                    </div>
+                                    <div class="col-2"></div>
 
                                     <div class="col-2">
                                         Short Expiry Type
@@ -150,27 +151,34 @@
                                             <button class="btn btn-outline-danger" onclick="fnInitTrade('Acc1', 'C');"><b>SELL CE ACC-1</b></button>
                                         </div>
                                     </div>
-                                    <div class="col-2">CE Qty</div>
-                                    <div class="col-2">PE Qty</div>
                                     <div class="col-2">CE PL</div>
                                     <div class="col-2">PE PL</div>
                                     <div class="col-2"></div>
-                                    <div class="col-2"></div>
+                                    <div class="col-2">USD Margin Required</div>
+                                    <div class="col-2">
+                                        Acc-1 Balance <span class="badge text-bg-danger" id="spnCurrency1" style="cursor: pointer;" onclick="fnSwapCurrency('Acc1');">USD</span>
+                                    </div>
+                                    <div class="col-2">
+                                        Acc-2 Balance <span class="badge text-bg-danger" id="spnCurrency2" style="cursor: pointer;" onclick="fnSwapCurrency('Acc2');">USD</span>
+                                    </div>
 
-                                    <div class="col-2">
-                                        <input type="number" min="0" class="form-control" placeholder="CE Qty" id="txtQtyCE" value="0" onkeyup="//fnChangeReqMargin();" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="number" min="0" class="form-control" placeholder="PE Qty" id="txtQtyPE" value="0" onkeyup="//fnChangeReqMargin();" />
-                                    </div>
                                     <div class="col-2">
                                         <input type="number" class="form-control" placeholder="CE PL" id="txtCallPL" value="0" />
                                     </div>
                                     <div class="col-2">
                                         <input type="number" class="form-control" placeholder="PE PL" id="txtPutPL" value="0" />
                                     </div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
+                                    <div class="col-2">
+                                    </div>
+                                    <div class="col-2">
+                                        <span id="spnMarginReq" style="color: green;">0.00</span>
+                                    </div>
+                                    <div class="col-2">
+                                        <span id="spnBal1">0.00</span>
+                                    </div>
+                                    <div class="col-2">
+                                        <span id="spnBal2">0.00</span>
+                                    </div>
 
                                     <div style="display: none;">
                                         <div class="col-2">
