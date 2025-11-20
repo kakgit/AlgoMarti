@@ -433,7 +433,7 @@ function fnSaveUpdCurrPos(){
 
 function fnRefreshAllOpenBrowser(){
     if(localStorage.getItem("AppLoginEmail") === "kamarthi.anil@gmail.com"){
-        fnClearLocalStorageTemp();
+        // fnClearLocalStorageTemp();
 
         let vHeaders = new Headers();
         vHeaders.append("Content-Type", "application/json");
@@ -544,10 +544,17 @@ function fnLoadDefExpiryDate(pExpiryMode){
         while (vLastDayOfNextMonth.getDay() !== 5) { 
             vLastDayOfNextMonth.setDate(vLastDayOfNextMonth.getDate() - 1);
         }
+
+        const vCurrDay = vCurrDate.getDate();
         let vDay = (vLastDayOfMonth.getDate()).toString().padStart(2, "0");
         let vMonth = (vLastDayOfMonth.getMonth() + 1).toString().padStart(2, "0");
         let vExpValTB = vLastDayOfMonth.getFullYear() + "-" + vMonth + "-" + vDay;
 
+        if(vCurrDay > 17){
+            vDay = (vLastDayOfNextMonth.getDate()).toString().padStart(2, "0");
+            vMonth = (vLastDayOfNextMonth.getMonth() + 1).toString().padStart(2, "0");
+            vExpValTB = vLastDayOfNextMonth.getFullYear() + "-" + vMonth + "-" + vDay;
+        }
         objExpiryShort.value = vExpValTB;
         objExpiryLong.value = vExpValTB;
     }
@@ -667,7 +674,9 @@ async function fnInitTrade(pAcc, pOptionType){
 
     let vShortExpiry = fnSetDDMMYYYY(objExpShort.value);
 
-    let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ Account : "Acc1", UndrAsst : "BTCUSD", TransType : "sell", OptionType : "F", DeltaNew : 1.00, DeltaTP : 2.00, DeltaSL : 0.10 }, { Account : "Acc1", UndrAsst : "BTC", TransType : "sell", OptionType : "P", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { Account : "Acc1", UndrAsst : "BTC", TransType : "sell", OptionType : "C", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
+    //{ Account : "Acc1", UndrAsst : "BTCUSD", TransType : "sell", OptionType : "F", DeltaNew : 1.00, DeltaTP : 2.00, DeltaSL : 0.10 }, 
+    
+    let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ Account : "Acc1", UndrAsst : "BTC", TransType : "sell", OptionType : "P", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { Account : "Acc1", UndrAsst : "BTC", TransType : "sell", OptionType : "C", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
 
     // console.log(objStrategies.Strategies[0].StratModel.length);
     gUpdPos = false;
@@ -733,8 +742,8 @@ async function fnInitTrade(pAcc, pOptionType){
                     fnSetSymbolTickerList();
                     fnUpdateOpenPositions();
                 }
-                else{
-
+                else if(objTradeDtls.status === "danger"){
+                    fnGenMessage(objTradeDtls.message, `badge bg-${objTradeDtls.status}`, "spnGenMsg");
                 }
             }
             else if(objStrategies.Strategies[0].StratModel[i].OptionType === "F"){
@@ -786,22 +795,25 @@ function fnExecOption(pApiKey, pApiSecret, pUndAsst, pExpiry, pOptionType, pTran
                 resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
             }
             else if(objResult.status === "danger"){
-                if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-                    reject({ "status": objResult.status, "message": objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, "data": objResult.data });
+                if(objResult.data === ""){
+                    resolve({ "status": objResult.status, "message": objResult.message, "data": "" });
+                }
+                else if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+                    resolve({ "status": objResult.status, "message": objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, "data": objResult.data });
                 }
                 else{
-                    reject({ "status": objResult.status, "message": objResult.data.response.body.error.code + " Contact Admin!", "data": objResult.data });
+                    resolve({ "status": objResult.status, "message": objResult.data.response.body.error.code + " Contact Admin!", "data": objResult.data });
                 }
             }
             else if(objResult.status === "warning"){
-                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+                resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
             }
             else{
-                reject({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+                resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
             }
         })
         .catch(error => {
-            reject({ "status": "danger", "message": "Error At Option Chain. Catch!", "data": "" });
+            resolve({ "status": "danger", "message": "Error At Option Chain. Catch!", "data": "" });
         });
     });
     return objPromise;

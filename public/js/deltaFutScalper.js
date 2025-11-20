@@ -1,7 +1,7 @@
 let objDeltaWS = null;
 let gByorSl = "";
 let gCurrPos = null;
-let gBuyPrice, gSellPrice, gLotSize, gQty, gAmtSL, gAmtTP, gCharges, gCapital, gOrderDT = 0;
+let gBuyPrice, gSellPrice, gLotSize, gQty, gAmtSL, gAmtTP1, gAmtTP, gCharges, gCapital, gOrderDT = 0;
 let gBrokerage = 0.05;
 let gMaxTradeTime = 30;
 let gLeverage = 160;
@@ -15,6 +15,7 @@ let gPL = 0;
 let gHisCandleMins = 1; //Eg: 1, 3, 5, 15, 30
 let gSubInterval = 0;
 let gManualSubIntvl = 0;
+let gForceCloseDFL = false;
 
 window.addEventListener("DOMContentLoaded", function(){
 	fnGetAllStatus();
@@ -79,7 +80,7 @@ function fnGetAllStatus(){
 		// UNCOMMENT for LIVE TRADING in DEMO
 		fnSubscribe();
 		// fnGetHistoricalOHLC();
-		fnSubscribeInterval();
+		// fnSubscribeInterval();
 		// UNCOMMENT for LIVE TRADING in DEMO
 		fnSetInitFutTrdDtls();
 		fnLoadSlTp();
@@ -252,32 +253,37 @@ function fnCloseWS(){
 }
 
 function fnConnectWS(){
+    let objSub = document.getElementById("spnSub");
+
     let vUrl = "wss://socket.india.delta.exchange";
     objDeltaWS = new WebSocket(vUrl);
 
     objDeltaWS.onopen = function (){
-        // let vSendData = { "type": "subscribe", "payload": { "channels": [{ "name": "v2/ticker", "symbols": ["BTCUSD"] }]}};
-
-        // objDeltaWS.send(JSON.stringify(vSendData));
-        console.log("Conn Started......");
-
         fnGenMessage("Streaming Connection Started and Open!", `badge bg-success`, "spnGenMsg");
+        // console.log("WS is Open!");
+    }
+    objDeltaWS.onerror = function (){
+        setTimeout(fnSubscribe, 3000);
+        console.log("WS Error, Trying to Reconnect.....");
     }
     objDeltaWS.onclose = function (){
 		let objSpotPrice = document.getElementById("txtSpotPrice");
 		let objBestBuy = document.getElementById("txtBestBuyPrice");
 		let objBestSell = document.getElementById("txtBestSellPrice");
 
-		objDeltaWS = null;
-		objSpotPrice.value = "";
-		objBestBuy.value = "";
-		objBestSell.value = "";
-
-        console.log("Conn Closed....");
-        fnGenMessage("Streaming Connection Closed!", `badge bg-danger`, "spnGenMsg");
-    }
-    objDeltaWS.onerror = function (){
-        console.log("Conn Error");
+        if(gForceCloseDFL){
+            gForceCloseDFL = false;
+            // console.log("WS Disconnected & Closed!!!!!!");
+            objSub.className = "badge rounded-pill text-bg-success";
+			objSpotPrice.value = "";
+			objBestBuy.value = "";
+			objBestSell.value = "";
+            fnGenMessage("Streaming Stopped & Disconnected!", `badge bg-warning`, "spnGenMsg");
+        }
+        else{
+            fnSubscribe();
+            // console.log("Restarting WS....");
+        }
     }
 	objDeltaWS.onmessage = function (pMsg){
         let vTicData = JSON.parse(pMsg.data);
@@ -293,12 +299,13 @@ function fnConnectWS(){
 				console.log("#######################");
 				break;
 			case "subscriptions":
-
 	            fnGenMessage("Streaming Subscribed and Started!", `badge bg-success`, "spnGenMsg");
+	            objSub.className = "badge rounded-pill text-bg-success blink";
 				break;
 			case "unsubscribed":
 
 	            fnGenMessage("Streaming Unsubscribed!", `badge bg-warning`, "spnGenMsg");
+                objSub.className = "badge rounded-pill text-bg-success";
 				break;
 		}
 	}
@@ -320,9 +327,22 @@ function fnSubscribe(){
 		setTimeout(fnSubscribe, 3000);
 	}
 	else{
-	    let vSendData = { "type": "subscribe", "payload": { "channels": [{ "name": "v2/ticker", "symbols": [ objDdlSymbol.value ] }]}};
 		// console.log("Subscribing to Channel....");
-	    objDeltaWS.send(JSON.stringify(vSendData));
+
+        const vTimer = setInterval(() => {
+            if(objDeltaWS.readyState === 1){
+                clearInterval(vTimer);
+                //Write Subscription code here
+			    let vSendData = { "type": "subscribe", "payload": { "channels": [{ "name": "v2/ticker", "symbols": [ objDdlSymbol.value ] }]}};
+
+			    objDeltaWS.send(JSON.stringify(vSendData));
+                // console.log("Subscribing............");
+            }
+            else{
+                // console.log("Trying to Reconnect...");
+                fnConnectWS();
+            }
+        }, 3000);
 	}
 }
 
@@ -332,15 +352,24 @@ function fnUnsubscribe(){
 	let objBestSell = document.getElementById("txtBestSellPrice");
 
 	if(objDeltaWS === null){
-		// fnConnectWS();
-		// console.log("WS Not Connected and looping again...");
-		// setTimeout(fnUnsubscribe, 3000);
-	    fnGenMessage("Already Streaming is Unsubscribed & Disconnected!", `badge bg-warning`, "spnGenMsg");
+		fnConnectWS();
+		setTimeout(fnUnsubscribe, 3000);
+	    // fnGenMessage("Already Streaming is Unsubscribed & Disconnected!", `badge bg-warning`, "spnGenMsg");
 	}
 	else{
-	    let vSendData = { "type": "unsubscribe", "payload": { "channels": [{ "name": "v2/ticker" }]}};
+        const vTimer = setInterval(() => {
+            if(objDeltaWS.readyState === 1){
+                clearInterval(vTimer);
+			    let vSendData = { "type": "unsubscribe", "payload": { "channels": [{ "name": "v2/ticker" }]}};
 
-	    objDeltaWS.send(JSON.stringify(vSendData));
+			    objDeltaWS.send(JSON.stringify(vSendData));
+                // console.log("UnSubscribing........!!!!!");
+            }
+            else{
+                // console.log("Trying to Reconnect...");
+                fnConnectWS();
+            }
+        }, 3000);
 	}
 	objSpotPrice.value = "";
 	objBestBuy.value = "";
@@ -538,6 +567,10 @@ function fnCheckBuySLTP(pCurrPrice){
 		// console.log("TP Hit");
 		fnCloseManualFutures(gByorSl);
 	}
+	else if(parseFloat(pCurrPrice) >= parseFloat(gAmtTP1)){
+		// console.log("TP1 Hit");
+		fnCloseManualFutures(gByorSl);
+	}
 	else{
 		// console.log("Buy Trade is Still ON");
 	}
@@ -582,6 +615,10 @@ function fnCheckSellSLTP(pCurrPrice){
 		}
 	}
 	else if(parseFloat(pCurrPrice) <= parseFloat(gAmtTP)){
+		// console.log("TP Hit");
+		fnCloseManualFutures(gByorSl);
+	}
+	else if(parseFloat(pCurrPrice) <= parseFloat(gAmtTP1)){
 		// console.log("TP Hit");
 		fnCloseManualFutures(gByorSl);
 	}
@@ -647,25 +684,29 @@ function fnGetHistoricalOHLC(){
 function fnLoadSlTp(){
     let objCurrSlTp = JSON.parse(localStorage.getItem("DeltaCurrFutSlTp"));
     let objTxtSL = document.getElementById("txtPointsSL");
+    let objTxtTP1 = document.getElementById("txtPointsTP1");
     let objTxtTP = document.getElementById("txtPointsTP");
 
     if(objCurrSlTp === null){
-    	let objSlTp = { PointSL : 100, PointTP : 300 };
+    	let objSlTp = { PointSL : 200, PointTP1 : 300, PointTP : 1000 };
     	localStorage.setItem("DeltaCurrFutSlTp", JSON.stringify(objSlTp));
-    	objTxtSL.value = 100;
-    	objTxtTP.value = 300;
+    	objTxtSL.value = 200;
+    	objTxtTP1.value = 300;
+    	objTxtTP.value = 1000;
     }
     else{
     	objTxtSL.value = objCurrSlTp.PointSL;
+    	objTxtTP1.value = objCurrSlTp.PointTP1;
     	objTxtTP.value = objCurrSlTp.PointTP;
     }
 }
 
 function fnUpdateSlTp(){
     let objTxtSL = document.getElementById("txtPointsSL");
+    let objTxtTP1 = document.getElementById("txtPointsTP1");
     let objTxtTP = document.getElementById("txtPointsTP");
 
-    let objSlTp = { PointSL : objTxtSL.value, PointTP : objTxtTP.value };
+    let objSlTp = { PointSL : objTxtSL.value, PointTP1 : objTxtTP1.value, PointTP : objTxtTP.value };
     localStorage.setItem("DeltaCurrFutSlTp", JSON.stringify(objSlTp));
 
     fnGenMessage("Updated SL & TP!", `badge bg-success`, "spnGenMsg");    
@@ -690,6 +731,7 @@ async function fnInitiateManualFutures(pTransType){
 			    let objQty = document.getElementById("txtFuturesQty");
 			    let objLotSize = document.getElementById("txtLotSize");
 			    let vSLPoints = parseFloat(document.getElementById("txtPointsSL").value);
+			    let vTPPoints1 = parseFloat(document.getElementById("txtPointsTP1").value);
 			    let vTPPoints = parseFloat(document.getElementById("txtPointsTP").value);
 			    let vBestBuy = parseFloat(objBestRates.data.BestBuy);
 			    let vBestSell = parseFloat(objBestRates.data.BestSell);
@@ -698,18 +740,21 @@ async function fnInitiateManualFutures(pTransType){
 
 				if(gByorSl === "buy"){
 	                gAmtSL = (vBestBuy - vSLPoints).toFixed(2);
+	                gAmtTP1 = (vBestBuy + vTPPoints1).toFixed(2);
 	                gAmtTP = (vBestBuy + vTPPoints).toFixed(2);
 				}
 				else if(gByorSl === "sell"){
 	                gAmtSL = (vBestBuy + vSLPoints).toFixed(2);
+	                gAmtTP1 = (vBestBuy - vTPPoints1).toFixed(2);
 	                gAmtTP = (vBestBuy - vTPPoints).toFixed(2);
 				}
 				else{
 					gAmtSL = 0;
+					gAmtTP1 = 0;				
 					gAmtTP = 0;				
 				}
 
-	            let vExcTradeDtls = { TradeData: [{ OrderID : vOrdId, OpenDT : vToday, FutSymbol : objFutDDL.value, TransType : pTransType, LotSize : objLotSize.value, Qty : objQty.value, BuyPrice : vBestBuy, SellPrice : vBestSell, AmtSL : gAmtSL, AmtTP : gAmtTP, StopLossPts: vSLPoints, TakeProfitPts : vTPPoints, OpenDTVal : vOrdId }] };
+	            let vExcTradeDtls = { TradeData: [{ OrderID : vOrdId, OpenDT : vToday, FutSymbol : objFutDDL.value, TransType : pTransType, LotSize : objLotSize.value, Qty : objQty.value, BuyPrice : vBestBuy, SellPrice : vBestSell, AmtSL : gAmtSL, AmtTP1 : gAmtTP1, AmtTP : gAmtTP, StopLossPts: vSLPoints, TakeProfitPts : vTPPoints, OpenDTVal : vOrdId }] };
 	            let objExcTradeDtls = JSON.stringify(vExcTradeDtls);
 	            gCurrPos = vExcTradeDtls;
 
@@ -717,6 +762,7 @@ async function fnInitiateManualFutures(pTransType){
 				localStorage.setItem("QtyMulDelta", objQty.value);
 
 	            fnSetInitFutTrdDtls();
+	            fnSubscribe();
 
 	            fnGenMessage(objBestRates.message, `badge bg-${objBestRates.status}`, "spnGenMsg");
 	            document.getElementById("spnLossTrd").className = "badge rounded-pill text-bg-success";
@@ -767,6 +813,7 @@ function fnSetInitFutTrdDtls(){
 		gQty = parseFloat(gCurrPos.TradeData[0].Qty);
         gByorSl = gCurrPos.TradeData[0].TransType;
 		gAmtSL = gCurrPos.TradeData[0].AmtSL;
+		gAmtTP1 = gCurrPos.TradeData[0].AmtTP1;
 		gAmtTP = gCurrPos.TradeData[0].AmtTP;
 
 		objDateTime.innerText = gCurrPos.TradeData[0].OpenDT;
@@ -1258,6 +1305,7 @@ function fnClearLocalStorageTemp(){
 	localStorage.removeItem("DeltaFutMarti");
 	localStorage.setItem("QtyMulDelta", 0);
 	localStorage.setItem("TotLossAmtDelta", 0);
+	localStorage.removeItem("DeltaCurrFutSlTp");
     clearInterval(gTimerID);
 
 	fnGetAllStatus();

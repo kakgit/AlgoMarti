@@ -142,59 +142,63 @@ exports.fnExecOptionByOptTypeExpTransType = async (req, res) => {
         vContractType = "";
     }
 
-    let objOptChn = await fnGetSrtdOptChnByDelta(vApiKey, vApiSecret, vOptionType, vUAssetSymbol, vExpiry, vContractType, vDeltaNPos);
-    if(objOptChn.status === "success"){
-        let vLimitPrice = "0";
-        let vBestBuy = objOptChn.data.BestAsk;
-        let vBestSell = objOptChn.data.BestBid;
-        let vSymbol = objOptChn.data.Symbol;
+    try {
+        let objOptChn = await fnGetSrtdOptChnByDelta(vApiKey, vApiSecret, vOptionType, vUAssetSymbol, vExpiry, vContractType, vDeltaNPos);
+        if(objOptChn.status === "success"){
+            let vLimitPrice = "0";
+            let vBestBuy = objOptChn.data.BestAsk;
+            let vBestSell = objOptChn.data.BestBid;
+            let vSymbol = objOptChn.data.Symbol;
 
-        if(vOrderType === "market_order"){
-            vBestBuy = "0";
-            vBestSell = "0";
-            vPostOnly = false;
-        }
-        if(vTransType === "buy"){
-            vLimitPrice = vBestBuy;
-        }
-        else if(vTransType === "sell"){
-            vLimitPrice = vBestSell;
-        }
-        // //******************** Real Trade Code *******************//
-        // new DeltaRestClient(vApiKey, vApiSecret).then(client => {
-        //     client.apis.Orders.placeOrder({
-        //         order: {
-        //         product_symbol: vSymbol,
-        //         size: vLotQty,
-        //         side: vTransType,
-        //         limit_price: vLimitPrice,
-        //         order_type: vOrderType,
-        //         // post_only: vPostOnly,
-        //         client_order_id: (vClientID).toString()
-        //         }
-        //     }).then(function (response) {
-        //         let objResult = JSON.parse(response.data);
+            if(vOrderType === "market_order"){
+                vBestBuy = "0";
+                vBestSell = "0";
+                vPostOnly = false;
+            }
+            if(vTransType === "buy"){
+                vLimitPrice = vBestBuy;
+            }
+            else if(vTransType === "sell"){
+                vLimitPrice = vBestSell;
+            }
+            // //******************** Real Trade Code *******************//
+            // new DeltaRestClient(vApiKey, vApiSecret).then(client => {
+            //     client.apis.Orders.placeOrder({
+            //         order: {
+            //         product_symbol: vSymbol,
+            //         size: vLotQty,
+            //         side: vTransType,
+            //         limit_price: vLimitPrice,
+            //         order_type: vOrderType,
+            //         // post_only: vPostOnly,
+            //         client_order_id: (vClientID).toString()
+            //         }
+            //     }).then(function (response) {
+            //         let objResult = JSON.parse(response.data);
 
-        //         if(objResult.success){
-        //             res.send({ "status": "success", "message": "Order Placed Successfully!", "data": objResult });
-        //         }
-        //         else{
-        //             res.send({ "status": "warning", "message": "Error: Contact Admin!", "data": objResult });
-        //         }
-        //     })
-        //     .catch(function(objError) {
-        //         // console.log("*************** Error **************");
-        //         // console.log(objError);
-        //         res.send({ "status": "danger", "message": objError.response.text, "data": objError });
-        //     });
-        // });
-        // //******************** Real Trade Code *******************//
-        res.send({ "status": "success", "message": objOptChn.message, "data": objOptChn.data });
+            //         if(objResult.success){
+            //             res.send({ "status": "success", "message": "Order Placed Successfully!", "data": objResult });
+            //         }
+            //         else{
+            //             res.send({ "status": "warning", "message": "Error: Contact Admin!", "data": objResult });
+            //         }
+            //     })
+            //     .catch(function(objError) {
+            //         // console.log("*************** Error **************");
+            //         // console.log(objError);
+            //         res.send({ "status": "danger", "message": objError.response.text, "data": objError });
+            //     });
+            // });
+            // //******************** Real Trade Code *******************//
+            res.send({ "status": "success", "message": objOptChn.message, "data": objOptChn.data });
+        }
+        else{
+            res.send({ "status": "danger", "message": objOptChn.message, "data": "" });
+        }
     }
-    else{
-        res.send({ "status": "danger", "message": objOptChn.message, "data": "" });
+    catch (error) {
+            res.send({ "status": "danger", "message": error.message, "data": "" });
     }
-
     // res.send({ "status": "success", "message": "Option Chain Data Received Successfully!", "data": "" });
 }
 
