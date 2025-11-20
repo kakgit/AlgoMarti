@@ -1439,9 +1439,9 @@ function fnLoadAllExpiryDate(){
     let objExpiryLong = document.getElementById("txtExpLong");
 
     let vCurrDate = new Date();
-    const vCurrFriday = new Date(vCurrDate);
-    const vYear = vCurrDate.getFullYear();
-    const vMonth = vCurrDate.getMonth();
+    let vCurrFriday = new Date(vCurrDate);
+    let vYear = vCurrDate.getFullYear();
+    let vMonth = vCurrDate.getMonth();
     let vLastDayOfMonth = new Date(vYear, vMonth + 1, 0);
     let vLastDayOfNextMonth = new Date(vYear, vMonth + 2, 0);
 
@@ -1463,7 +1463,7 @@ function fnLoadAllExpiryDate(){
     //************** Daily Expiry ***************//
 
     //************** Weekly Expiry ***************//
-    const vCurrDayOfWeek = vCurrDate.getDay();
+    let vCurrDayOfWeek = vCurrDate.getDay();
     let vDaysUntilFriday = 5 - vCurrDayOfWeek;
 
     if(vCurrDayOfWeek > 3){
@@ -1486,9 +1486,17 @@ function fnLoadAllExpiryDate(){
     while (vLastDayOfNextMonth.getDay() !== 5) { 
         vLastDayOfNextMonth.setDate(vLastDayOfNextMonth.getDate() - 1);
     }
+
+    let vCurrDay = vCurrDate.getDate();
     let vDayM = (vLastDayOfMonth.getDate()).toString().padStart(2, "0");
     let vMonthM = (vLastDayOfMonth.getMonth() + 1).toString().padStart(2, "0");
     let vExpValM = vLastDayOfMonth.getFullYear() + "-" + vMonthM + "-" + vDayM;
+
+    if(vCurrDay > 17){
+        vDay = (vLastDayOfNextMonth.getDate()).toString().padStart(2, "0");
+        vMonth = (vLastDayOfNextMonth.getMonth() + 1).toString().padStart(2, "0");
+        vExpValM = vLastDayOfNextMonth.getFullYear() + "-" + vMonth + "-" + vDay;
+    }
 
     objExpiryMonth.value = vExpValM;
     objExpiryLong.value = vExpValM;

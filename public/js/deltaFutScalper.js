@@ -16,6 +16,7 @@ let gHisCandleMins = 1; //Eg: 1, 3, 5, 15, 30
 let gSubInterval = 0;
 let gManualSubIntvl = 0;
 let gForceCloseDFL = false;
+let g50Perc1Time = true;
 
 window.addEventListener("DOMContentLoaded", function(){
 	fnGetAllStatus();
@@ -569,7 +570,10 @@ function fnCheckBuySLTP(pCurrPrice){
 	}
 	else if(parseFloat(pCurrPrice) >= parseFloat(gAmtTP1)){
 		// console.log("TP1 Hit");
-		fnCloseManualFutures(gByorSl);
+		if(g50Perc1Time){
+			g50Perc1Time = false;
+			fnClosePrctTrade();
+		}
 	}
 	else{
 		// console.log("Buy Trade is Still ON");
@@ -620,7 +624,10 @@ function fnCheckSellSLTP(pCurrPrice){
 	}
 	else if(parseFloat(pCurrPrice) <= parseFloat(gAmtTP1)){
 		// console.log("TP Hit");
-		fnCloseManualFutures(gByorSl);
+		if(g50Perc1Time){
+			g50Perc1Time = false;
+			fnClosePrctTrade();
+		}
 	}
 	else{
 		// console.log("Sell Trade is Still ON");
@@ -760,6 +767,7 @@ async function fnInitiateManualFutures(pTransType){
 
 	            localStorage.setItem("DeltaCurrFutPosiS", objExcTradeDtls);
 				localStorage.setItem("QtyMulDelta", objQty.value);
+		    	g50Perc1Time = true;
 
 	            fnSetInitFutTrdDtls();
 	            fnSubscribe();

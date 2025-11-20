@@ -135,7 +135,6 @@ app.post("/tv-msg", (req, res) => {
     io.emit("ServerEmit", objMsg);
 
     res.send("success");
-    return;
 });
 
 app.post("/c3mh/:symb/:optTyp", (req, res) => {
@@ -179,7 +178,6 @@ app.post("/tv-msg-mahesh", (req, res) => {
     io.emit("MaheshEmit", objMsg);
 
     res.send("success");
-    return;
 });
 
 app.post("/tv-msg-trend", (req, res) => {
