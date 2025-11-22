@@ -152,9 +152,20 @@ function fnChangeStartQty(pThisVal){
         if(confirm("Are You Sure You want to change the Quantity?")){
             objQtyCE.value = pThisVal.value;
             objQtyPE.value = pThisVal.value;
+            localStorage.setItem("QtyCallDFL", pThisVal.value);
+            localStorage.setItem("QtyPutDFL", pThisVal.value);
         }
     }
     fnChangeReqMargin();
+    console.log(localStorage.getItem("StartQtyDFL"));
+}
+
+function fnChangeQtyCE(pThis){
+    localStorage.setItem("QtyCallDFL", pThis.value);
+}
+
+function fnChangeQtyPE(pThis){
+    localStorage.setItem("QtyPutDFL", pThis.value);
 }
 
 function fnChangeSymbol(pSymbVal){
@@ -1244,7 +1255,7 @@ function fnClearLocalStorageTemp(){
     localStorage.removeItem("TotLossAmtPE");
     localStorage.removeItem("QtyCallDFL");
     localStorage.removeItem("QtyPutDFL");
-
+    localStorage.removeItem("StartQtyDFL");
     fnGetAllStatus();
     console.log("Memory Cleared!!!");
 }
