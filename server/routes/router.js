@@ -21,18 +21,19 @@ const deltaOptDemoController = require("../controller/controllerDeltaOptDemo.js"
 const deltaOptScalpDemoCtrler = require("../controller/controllerDeltaOptScalperDemo.js");
 const deltaCalDemoController = require("../controller/controllerDeltaCalDemo.js");
 const deltaFundingLiveCtrler = require("../controller/controllerDeltaFundingLive.js");
+const ctrlCryptoFunding = require("../controller/controllerCryptoFunding.js");
 
 //home Routes
 route.get("/", homeServices.defaultRoute);
 
-//Paper Trade Routes
-route.get("/paperTrade", homeServices.paperTrade);
+// //Paper Trade Routes
+// route.get("/paperTrade", homeServices.paperTrade);
 
 //Tradingview Signals Routes
 route.get("/mahesh", homeServices.signalsTV);
 
-//Alice Live Route
-route.get("/aliceLive", aliceLiveServices.defaultRoute);
+// //Alice Live Route
+// route.get("/aliceLive", aliceLiveServices.defaultRoute);
 
 //Kotak Paper Route
 route.get("/kotakPaper", kotakPaperController.defaultRoute);
@@ -67,12 +68,15 @@ route.get("/deltaExcOptSclprD", deltaOptScalpDemoCtrler.defaultRoute);
 //Delta Funding Demo Route
 route.get("/deltaFunding-Live", deltaFundingLiveCtrler.defaultRoute);
 
-//Samco Routes
-route.get("/samco", samcoServices.defaultRoute);
+//Crypto Funding Route
+route.get("/cryptoFunding", ctrlCryptoFunding.defaultRoute);
 
-//Samco Routes
-route.get("/finvasia", finvasiaServices.defaultRoute);
-route.post("/finvasia/getSession", finvasiaServices.fnLoginFinvasia);
+// //Samco Routes
+// route.get("/samco", samcoServices.defaultRoute);
+
+// //Samco Routes
+// route.get("/finvasia", finvasiaServices.defaultRoute);
+// route.post("/finvasia/getSession", finvasiaServices.fnLoginFinvasia);
 
 //manageMsgsTV Routes
 //API
@@ -188,6 +192,9 @@ route.post("/deltaExcFunding/validateLogin", deltaFundingLiveCtrler.fnValidateUs
 route.post("/deltaExcFunding/getOptChnSDKByAstOptTypExp", deltaFundingLiveCtrler.fnGetOptChnSDKByAstOptTypExp);
 route.post("/deltaExcFunding/execOption", deltaFundingLiveCtrler.fnExecOptionByOptTypeExpTransType);
 route.post("/deltaExcFunding/getBestRatesBySymb", deltaFundingLiveCtrler.fnGetBestRatesBySymbol);
+
+//Crypto Funding Routes
+route.post("/execCryptoFunding/DeltaCredValidate", ctrlCryptoFunding.fnDeltaCredValidate);
 
 //Delta Futures Demo Routes
 route.post("/deltaExcFut/validateLogin", deltaFutDemoController.fnValidateUserLogin);

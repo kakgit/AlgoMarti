@@ -1,0 +1,100 @@
+<!--Disabled Backdrop Modal for Trader Login-->
+<div class="modal fade text-left" id="mdlDeltaLogin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
+    data-bs-backdrop="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h4 class="modal-title" id="myModalLabel4">Crypto Accounts Login Details</h4>
+                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
+            </div>
+            <div class="modal-body">
+                <!-- // Basic multiple Column Form section start -->
+                <section id="multiple-column-form">
+                    <div class="row match-height">
+                        <div class="col-12" style="text-align: center;">
+                            <span id="spnLoginMsgs" class="badge bg-primary">Please Input Login Details</span>
+                        </div>
+                        <div class="col-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    Delta Exchange
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-12 col-12">
+                                                <div class="form-group">
+                                                    <label for="txtDeltaAPIKey">API Key</label>
+                                                    <input type="text" id="txtDeltaAPIKey" class="form-control" value="PvrlQlAkpxPtT8GJipKt1B74IdmapB" placeholder="API Key" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12 col-12">
+                                                <div class="form-group">
+                                                    <label for="txtDeltaSecret">Secret Code</label>
+                                                    <input type="text" id="txtDeltaSecret" class="form-control" value="DCA5KOSoiws0PFdMp6m9A2tokfBlwyKjahyE3T1tRz9jt5MfAtH9BhAIuvxU" placeholder="Secret Code" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="row">
+                                        <div class="col-6"></div>
+                                        <div class="col-6" style="text-align: right;">
+                                            <button id="btnSubmit" type="button" class="btn btn-primary ms-1" onclick="fnCheckDeltaCred();">
+                                                <i class="bx bx-check d-block d-sm-none"></i>
+                                                <span class="d-none d-sm-block">CHECK</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    Coin DCX
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-12 col-12">
+                                                <div class="form-group">
+                                                    <label for="txtUserAPIKey2">API Key</label>
+                                                    <input type="text" id="txtUserAPIKey2" class="form-control" value="" placeholder="API Key" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12 col-12">
+                                                <div class="form-group">
+                                                    <label for="txtAPISecret2">Secret Code</label>
+                                                    <input type="text" id="txtAPISecret2" class="form-control" value="" placeholder="API Secret" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="row">
+                                        <div class="col-6"></div>
+                                        <div class="col-6" style="text-align: right;">
+                                            <button id="btnSubmit" type="button" class="btn btn-primary ms-1" onclick="fnCheckCoinDCXCred();">
+                                                <i class="bx bx-check d-block d-sm-none"></i>
+                                                <span class="d-none d-sm-block">CHECK</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                    <i class="bx bx-x d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">CLOSE</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

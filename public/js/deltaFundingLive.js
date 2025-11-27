@@ -56,12 +56,12 @@ window.addEventListener("DOMContentLoaded", function(){
             fnGenMessage("Trade Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
         }
         else{
-            if(((vTradeSide === "true") && (objMsg.OptionType === "P")) || ((vTradeSide === "false") && (objMsg.OptionType === "C")) || (vTradeSide === "-1")){
+            // if(((vTradeSide === "true") && (objMsg.OptionType === "P")) || ((vTradeSide === "false") && (objMsg.OptionType === "C")) || (vTradeSide === "-1")){
                 fnPreInitTrade(objMsg.Account, objMsg.OptionType);
-            }
-            else{
-                fnGenMessage(objMsg.OptionType + " Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
-            }
+            // }
+            // else{
+            //     fnGenMessage(objMsg.OptionType + " Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
+            // }
         }
     });
 });
@@ -316,6 +316,9 @@ function fnLoadTotalLossAmtQty(){
         localStorage.setItem("TotLossAmtCE", 0);
         localStorage.setItem("QtyCallDFL", objDefQty.value);
     }
+    else if(parseFloat(vTotLossAmtCE) > 0){
+        objCallPL.value = 0;
+    }
     else{
         objCallPL.value = vTotLossAmtCE;
 
@@ -330,6 +333,9 @@ function fnLoadTotalLossAmtQty(){
     if(vTotLossAmtPE === null || vTotLossAmtPE === "" || isNaN(vTotLossAmtPE)){
         localStorage.setItem("TotLossAmtPE", 0);
         localStorage.setItem("QtyPutDFL", objDefQty.value);
+    }
+    else if(parseFloat(vTotLossAmtPE) > 0){
+        objPutPL.value = 0;
     }
     else{
         objPutPL.value = vTotLossAmtPE;
