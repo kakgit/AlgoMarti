@@ -21,6 +21,7 @@ const deltaOptDemoController = require("../controller/controllerDeltaOptDemo.js"
 const deltaOptScalpDemoCtrler = require("../controller/controllerDeltaOptScalperDemo.js");
 const deltaCalDemoController = require("../controller/controllerDeltaCalDemo.js");
 const deltaFundingLiveCtrler = require("../controller/controllerDeltaFundingLive.js");
+const deltaSStraddleDemoCtrler = require("../controller/cntrDeltaSStraddleD.js");
 const ctrlCryptoFunding = require("../controller/controllerCryptoFunding.js");
 
 //home Routes
@@ -67,6 +68,9 @@ route.get("/deltaExcOptSclprD", deltaOptScalpDemoCtrler.defaultRoute);
 
 //Delta Funding Demo Route
 route.get("/deltaFunding-Live", deltaFundingLiveCtrler.defaultRoute);
+
+//Delta Funding Demo Route
+route.get("/deltaSStraddle-Demo", deltaSStraddleDemoCtrler.defaultRoute);
 
 //Crypto Funding Route
 route.get("/cryptoFunding", ctrlCryptoFunding.defaultRoute);
@@ -192,6 +196,12 @@ route.post("/deltaExcFunding/validateLogin", deltaFundingLiveCtrler.fnValidateUs
 route.post("/deltaExcFunding/getOptChnSDKByAstOptTypExp", deltaFundingLiveCtrler.fnGetOptChnSDKByAstOptTypExp);
 route.post("/deltaExcFunding/execOption", deltaFundingLiveCtrler.fnExecOptionByOptTypeExpTransType);
 route.post("/deltaExcFunding/getBestRatesBySymb", deltaFundingLiveCtrler.fnGetBestRatesBySymbol);
+
+//Delta Short Straddle Demo Routes
+route.post("/deltaSStraddleDemo/validateLogin", deltaSStraddleDemoCtrler.fnValidateUserLogin);
+route.post("/deltaSStraddleDemo/getOptChnSDKByAstOptTypExp", deltaSStraddleDemoCtrler.fnGetOptChnSDKByAstOptTypExp);
+route.post("/deltaSStraddleDemo/execOption", deltaSStraddleDemoCtrler.fnExecOptionByOptTypeExpTransType);
+route.post("/deltaSStraddleDemo/getBestRatesBySymb", deltaSStraddleDemoCtrler.fnGetBestRatesBySymbol);
 
 //Crypto Funding Routes
 route.post("/execCryptoFunding/DeltaCredValidate", ctrlCryptoFunding.fnDeltaCredValidate);

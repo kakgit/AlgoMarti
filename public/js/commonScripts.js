@@ -315,7 +315,7 @@ function fnLoginStatus(){
   {
     localStorage.setItem("AppMsgStatusS", false);
 
-    fnClearPrevLoginSession();
+    fnClearLoginStatus();
 
     window.location.reload();
   }

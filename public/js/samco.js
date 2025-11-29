@@ -67,22 +67,6 @@ function fnShowTraderLoginMdl(objThis)
     }
 }
 
-function fnClearPrevLoginSession()
-{
-    let objSession = document.getElementById("hidSession");
-
-    localStorage.removeItem("lsLoginDate");
-    localStorage.removeItem("lsSamcoSession");
-    localStorage.removeItem("isSamcoLogin");
-    localStorage.removeItem("isSamcoAutoTrader");
-    // localStorage.removeItem("UserDetS");
-
-    objSession.value = "";
-
-    fnGetSetTraderLoginStatus();
-    //fnSetUserProfileDets();
-}
-
 function fnGetSetTraderLoginStatus()
 {
     let lsPrevSessionDate = localStorage.getItem("lsLoginDate");
