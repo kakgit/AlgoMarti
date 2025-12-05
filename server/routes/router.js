@@ -22,6 +22,7 @@ const deltaOptScalpDemoCtrler = require("../controller/controllerDeltaOptScalper
 const deltaCalDemoController = require("../controller/controllerDeltaCalDemo.js");
 const deltaFundingLiveCtrler = require("../controller/controllerDeltaFundingLive.js");
 const deltaSStraddleDemoCtrler = require("../controller/cntrDeltaSStraddleD.js");
+const deltaSStraddleLiveCtrler = require("../controller/cntrDeltaSStraddleL.js");
 const ctrlCryptoFunding = require("../controller/controllerCryptoFunding.js");
 
 //home Routes
@@ -69,8 +70,11 @@ route.get("/deltaExcOptSclprD", deltaOptScalpDemoCtrler.defaultRoute);
 //Delta Funding Demo Route
 route.get("/deltaFunding-Live", deltaFundingLiveCtrler.defaultRoute);
 
-//Delta Funding Demo Route
+//Delta Short Straddle Demo Route
 route.get("/deltaSStraddle-Demo", deltaSStraddleDemoCtrler.defaultRoute);
+
+//Delta Short Straddle Live Route
+route.get("/deltaSStraddleLive", deltaSStraddleLiveCtrler.defaultRoute);
 
 //Crypto Funding Route
 route.get("/cryptoFunding", ctrlCryptoFunding.defaultRoute);
@@ -202,6 +206,15 @@ route.post("/deltaSStraddleDemo/validateLogin", deltaSStraddleDemoCtrler.fnValid
 route.post("/deltaSStraddleDemo/getOptChnSDKByAstOptTypExp", deltaSStraddleDemoCtrler.fnGetOptChnSDKByAstOptTypExp);
 route.post("/deltaSStraddleDemo/execOption", deltaSStraddleDemoCtrler.fnExecOptionByOptTypeExpTransType);
 route.post("/deltaSStraddleDemo/getBestRatesBySymb", deltaSStraddleDemoCtrler.fnGetBestRatesBySymbol);
+
+//Delta Short Straddle Live Routes
+route.post("/deltaSStraddleLive/validateLogin", deltaSStraddleLiveCtrler.fnValidateUserLogin);
+route.post("/deltaSStraddleLive/getOptChnSDKByAstOptTypExp", deltaSStraddleLiveCtrler.fnGetOptChnSDKByAstOptTypExp);
+route.post("/deltaSStraddleLive/execOption", deltaSStraddleLiveCtrler.fnExecOptionByOptTypeExpTransType);
+route.post("/deltaSStraddleLive/getBestRatesBySymb", deltaSStraddleLiveCtrler.fnGetBestRatesBySymbol);
+route.post("/deltaSStraddleLive/getRealClsdPos", deltaSStraddleLiveCtrler.fnGetRealClsdPositions);
+route.post("/deltaSStraddleLive/openRealPosition", deltaSStraddleLiveCtrler.fnOpenRealPoistion);
+route.post("/deltaSStraddleLive/closeRealPosition", deltaSStraddleLiveCtrler.fnCloseRealPoistion);
 
 //Crypto Funding Routes
 route.post("/execCryptoFunding/DeltaCredValidate", ctrlCryptoFunding.fnDeltaCredValidate);

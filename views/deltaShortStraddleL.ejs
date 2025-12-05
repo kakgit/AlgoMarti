@@ -2,7 +2,7 @@
     <div class="page-heading">
         <div class="row">
             <div class="col-4">
-                <h3>Delta - Short Straddle Demo</h3>
+                <h3>Delta - Short Straddle Live</h3>
             </div>
             <div class="col-4 text-center">
                 <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
@@ -225,7 +225,9 @@
                             <div class="col-1" style="text-align: right;">
                                 <button class='nav-link' onclick="fnClearLocalStorageTemp();" role="tab" type="button">Clear All</button>
                             </div>
-                            <div class="col-1"><i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnRefreshAllOpenBrowser();"></i></div>
+                            <div class="col-1">
+                                <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnRefreshAllOpenBrowser();"></i>
+                            </div>
                             <div class="col-1" style="text-align: right;">
                                 <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px;" onclick="fnTest();">&nbsp;</span>
                             </div>
@@ -272,7 +274,67 @@
                     </div>
                 </div>
 
-                <div class="card" id="cardDeltaDirec">
+                <div class="card" id="cardClsdPosition">
+                     <div class="card-header">
+                        <div class="row">
+                            <div class="col-2">
+                                <h4>Closed Position(s)</h4>
+                            </div>
+                            <div class="col-2">
+                                <input type="datetime-local" id="txtClsdPosStartDT" class="form-control" placeholder="Start Date" title="Start Date" onblur="fnChangeClsPosStartDT();" />
+                            </div>
+                            <div class="col-2">
+                                <input type="datetime-local" id="txtClsdPosEndDT" class="form-control" placeholder="End Date" title="End Date" onblur="fnChangeClsPosEndDT();" />
+                            </div>
+                            <div class="col-1">
+                                <span id="spnBuyNew" class="badge rounded-pill text-bg-success" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnInitPlaceRealOrder();" title="New Open Buy">&nbsp;</span>
+                            </div>
+                            <div class="col-1">
+                                <span id="spnClsBuy" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnInitExitRealOrder();" title="New Close Buy">&nbsp;</span>
+                            </div>
+                            <div class="col-2" style="text-align: right;">
+                            </div>
+                            <div class="col-1" style="text-align: right;">
+                                <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnInitClsdPositions();"></i>
+                            </div>
+                            <div class="col-1" style="text-align: right;">
+                                <a data-bs-toggle="collapse" href="#divClsdPosClps" role="button" aria-expanded="true" aria-controls="divClsdPosClps">
+                                    <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                                </a>
+                            </div>                       
+                        </div>
+                     </div>
+                     <div class="card-body">
+                        <div class="collapse show" id="divClsdPosClps">
+                            <div class="container-fluid">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr style="text-align:center;">
+                                                <th scope="col" style="text-wrap: nowrap;">Status</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Date Time</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Greeks</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Symbol</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Tr Type</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Lot Sz</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Qty</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Charges</th>
+                                                <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tBodyClsdTrades">
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                     </div>
+                </div>
+                <!-- <div class="card" id="cardDeltaDirec">
                     <div class="card-header">
                         <div class="row">
                             <div class="col-3">
@@ -316,7 +378,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
             </div>
         </section>
     </div>
@@ -324,5 +386,5 @@
 
 <%- include('partials/deltaShortStraddleSettingsD.ejs') %>
 
-<script src="/js/deltaShortStraddleD.js"></script>
+<script src="/js/deltaShortStraddleL.js"></script>
 <script src="/js/deltaStortStraddleSettingsD.js"></script>

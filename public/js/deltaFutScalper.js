@@ -1159,14 +1159,14 @@ function fnSetNextOptTradeSettings(){
     }
 
 	// console.log(gCharges);
-    // //************* for Brokerage and any loss as minimum target
-	// if(gPL > 0){
-	// 	let vBalLossAmt = localStorage.getItem("TotLossAmtDelta");
-	// 	let vNewTarget = parseFloat(vBalLossAmt) - parseFloat(gCharges);
-	// 	localStorage.setItem("TotLossAmtDelta", vNewTarget);
-	// 	// console.log("ADD Brokerage");
-	// }
-	// // console.log(localStorage.getItem("TotLossAmtDelta"))
+    //************* for Brokerage and any loss as minimum target
+	if(gPL > 0){
+		let vBalLossAmt = localStorage.getItem("TotLossAmtDelta");
+		let vNewTarget = parseFloat(vBalLossAmt) - parseFloat(gCharges);
+		localStorage.setItem("TotLossAmtDelta", vNewTarget);
+		// console.log("ADD Brokerage");
+	}
+	// console.log(localStorage.getItem("TotLossAmtDelta"))
 }
 
 function fnChangeMartingale(){
