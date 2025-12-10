@@ -154,35 +154,6 @@ exports.fnExecOptionByOptTypeExpTransType = async (req, res) => {
             else if(vTransType === "sell"){
                 vLimitPrice = vBestSell;
             }
-            // //******************** Real Trade Code *******************//
-            // new DeltaRestClient(vApiKey, vApiSecret).then(client => {
-            //     client.apis.Orders.placeOrder({
-            //         order: {
-            //         product_symbol: vSymbol,
-            //         size: vLotQty,
-            //         side: vTransType,
-            //         limit_price: vLimitPrice,
-            //         order_type: vOrderType,
-            //         // post_only: vPostOnly,
-            //         client_order_id: (vClientID).toString()
-            //         }
-            //     }).then(function (response) {
-            //         let objResult = JSON.parse(response.data);
-
-            //         if(objResult.success){
-            //             res.send({ "status": "success", "message": "Order Placed Successfully!", "data": objResult });
-            //         }
-            //         else{
-            //             res.send({ "status": "warning", "message": "Error: Contact Admin!", "data": objResult });
-            //         }
-            //     })
-            //     .catch(function(objError) {
-            //         // console.log("*************** Error **************");
-            //         // console.log(objError);
-            //         res.send({ "status": "danger", "message": objError.response.text, "data": objError });
-            //     });
-            // });
-            // //******************** Real Trade Code *******************//
             res.send({ "status": "success", "message": objOptChn.message, "data": objOptChn.data });
         }
         else{
@@ -360,6 +331,20 @@ exports.fnGetRealClsdPositions = async (req, res) => {
     // res.send({ "status": "success", "message": "Closed Trades Information Feched!", "data": "" });
 }
 
+exports.fnGetRealOpenPositions = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+
+    let objRetData = await fnGetOpenTrades(vApiKey, vApiSecret);
+
+    if(objRetData.status === "success"){
+        res.send({ "status": "success", "message": objRetData.message, "data": objRetData.data });
+    }
+    else{
+        res.send({ "status": objRetData.status, "message": objRetData.message, "data": objRetData.data });
+    }
+}
+
 const fnGetUserWallet = async (pApiKey, pApiSecret) => {
     const objPromise = new Promise((resolve, reject) => {
         new DeltaRestClient(pApiKey, pApiSecret).then(client => {
@@ -466,14 +451,37 @@ function fnGetSignature(pApiSecret, pMethod, pPath, pQueryStr, pTimeStamp, pBody
     .digest("hex");
 }
 
+const fnGetOpenTrades = async (pApiKey, pApiSecret) => {
+    const objPromise = new Promise((resolve, reject) => {
+        new DeltaRestClient(pApiKey, pApiSecret).then(client => {
+            client.apis.Positions.getMarginedPositions().then(function (response) {
+                let objResult = JSON.parse(response.data.toString());
 
+                if(objResult.success){
+                    // console.log("\wallet:\n----\n", JSON.stringify(objResult));
+                    // console.log("\wallet:\n----\n", objResult.success);
+                    resolve({ "status": "success", "message": "Details Fetched!", "data": objResult });
+                }
+                else{
+                    // console.log("Failed....");
+                    resolve({ "status": "warning", "message": "Error: Contact Admin!", "data": objResult });
+                }
+            })
+            .catch(function(objError) {
+                console.log(objError);
+                resolve({ "status": "danger", "message": "Error At GetOpenTrades! Catch.", "data": objError });
+            });
+        });
+    });
+    return objPromise;
+}
 
 
 const fnGetClsdTrades = async (pApiKey, pApiSecret, pStartDT, pEndDT, pClientID) => {
     const objPromise = new Promise((resolve, reject) => {
         new DeltaRestClient(pApiKey, pApiSecret).then(client => {
             //order_types : "limit", start_time : 1764527400000000, end_time : 1764527399000000000
-            client.apis.TradeHistory.getOrderHistory().then(function (response) {
+            client.apis.TradeHistory.getOrderHistory({start_time : pStartDT, end_time : pEndDT, page_size : 100}).then(function (response) {
                 let objResult = JSON.parse(response.data.toString());
 
                 if(objResult.success){

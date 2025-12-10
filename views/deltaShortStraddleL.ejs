@@ -144,12 +144,12 @@
                                     </div>
                                     <div class="col-2">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success" onclick="fnInitTrade('P');"><b>SELL PE</b></button>
+                                            <button class="btn btn-outline-success" onclick="fnPreInitTrade('P');"><b>SELL PE</b></button>
                                         </div>
                                     </div>
                                     <div class="col-2">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-danger" onclick="fnInitTrade('C');"><b>SELL CE</b></button>
+                                            <button class="btn btn-outline-danger" onclick="fnPreInitTrade('C');"><b>SELL CE</b></button>
                                         </div>
                                     </div>
                                     <div class="col-2">CE PL</div>
@@ -245,14 +245,9 @@
                                     <table class="table">
                                         <thead>
                                             <tr style="text-align:center;">
-                                                <th scope="col" style="text-wrap: nowrap;">Status</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Delta</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Gamma</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Vega</th>
-                                                <th scope="col" style="text-wrap: nowrap;">IV</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Rho</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Theta</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Date Time</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Symbol</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Delta</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Tr Type</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Lot Sz</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Qty</th>
@@ -260,7 +255,6 @@
                                                 <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Charges</th>
                                                 <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Actions</th>
                                             </tr>
                                         </thead>
@@ -311,7 +305,7 @@
                                     <table class="table">
                                         <thead>
                                             <tr style="text-align:center;">
-                                                <th scope="col" style="text-wrap: nowrap;">Status</th>
+                                                <!-- <th scope="col" style="text-wrap: nowrap;">Status</th> -->
                                                 <th scope="col" style="text-wrap: nowrap;">Date Time</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Greeks</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Symbol</th>
@@ -320,9 +314,9 @@
                                                 <th scope="col" style="text-wrap: nowrap;">Qty</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Cashflow</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Charges</th>
                                                 <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tBodyClsdTrades">

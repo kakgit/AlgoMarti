@@ -563,7 +563,7 @@ function fnLoadDefExpiryDate(pExpiryMode){
         let vMonth = (vLastDayOfMonth.getMonth() + 1).toString().padStart(2, "0");
         let vExpValTB = vLastDayOfMonth.getFullYear() + "-" + vMonth + "-" + vDay;
 
-        if(vCurrDay > 17){
+        if(vCurrDay > 15){
             vDay = (vLastDayOfNextMonth.getDate()).toString().padStart(2, "0");
             vMonth = (vLastDayOfNextMonth.getMonth() + 1).toString().padStart(2, "0");
             vExpValTB = vLastDayOfNextMonth.getFullYear() + "-" + vMonth + "-" + vDay;
@@ -669,9 +669,9 @@ async function fnInitTrade(pOptionType){
 
     let vShortExpiry = fnSetDDMMYYYY(objExpShort.value);
 
-    //{ Account : "Acc1", UndrAsst : "BTCUSD", TransType : "sell", OptionType : "F", DeltaNew : 1.00, DeltaTP : 2.00, DeltaSL : 0.10 }, 
+    //{ TransType : "sell", OptionType : "F", DeltaNew : 1.00, DeltaTP : 2.00, DeltaSL : 0.10 }, 
     
-    let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ Account : "Acc1", UndrAsst : "BTC", TransType : "sell", OptionType : "P", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { Account : "Acc1", UndrAsst : "BTC", TransType : "sell", OptionType : "C", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
+    let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { TransType : "sell", OptionType : "C", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
 
     // console.log(objStrategies.Strategies[0].StratModel.length);
     gUpdPos = false;
@@ -679,7 +679,7 @@ async function fnInitTrade(pOptionType){
     for(let i=0; i<objStrategies.Strategies[0].StratModel.length; i++){
         let vApiKey = "";
         let vApiSecret = "";
-        let vUndrAsst = objStrategies.Strategies[0].StratModel[i].UndrAsst;
+        let vUndrAsst = objSymbol.value;
         let vOptionType = objStrategies.Strategies[0].StratModel[i].OptionType;
         let vTransType = objStrategies.Strategies[0].StratModel[i].TransType;
         let vDeltaNPos = objStrategies.Strategies[0].StratModel[i].DeltaNew;
@@ -996,6 +996,9 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
 
             if(pOptionType === "C"){
                 let vTotLossAmtCE = localStorage.getItem("TotLossAmtCE");
+                if(parseFloat(vTotLossAmtCE) > 0){
+                    vTotLossAmtCE = 0;
+                }
                 let vQtyCE = localStorage.getItem("QtyCallDFL");
                 vTotLossAmtCE = parseFloat(vTotLossAmtCE) + parseFloat(vPL);
                 localStorage.setItem("TotLossAmtCE", vTotLossAmtCE);
@@ -1014,6 +1017,9 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
             }
             else if(pOptionType === "P"){
                 let vTotLossAmtPE = localStorage.getItem("TotLossAmtPE");
+                if(parseFloat(vTotLossAmtPE) > 0){
+                    vTotLossAmtPE = 0;
+                }
                 let vQtyPE = localStorage.getItem("QtyPutDFL");
                 vTotLossAmtPE = parseFloat(vTotLossAmtPE) + parseFloat(vPL);
                 localStorage.setItem("TotLossAmtPE", vTotLossAmtPE);

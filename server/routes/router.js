@@ -212,6 +212,7 @@ route.post("/deltaSStraddleLive/validateLogin", deltaSStraddleLiveCtrler.fnValid
 route.post("/deltaSStraddleLive/getOptChnSDKByAstOptTypExp", deltaSStraddleLiveCtrler.fnGetOptChnSDKByAstOptTypExp);
 route.post("/deltaSStraddleLive/execOption", deltaSStraddleLiveCtrler.fnExecOptionByOptTypeExpTransType);
 route.post("/deltaSStraddleLive/getBestRatesBySymb", deltaSStraddleLiveCtrler.fnGetBestRatesBySymbol);
+route.post("/deltaSStraddleLive/getRealOpenPos", deltaSStraddleLiveCtrler.fnGetRealOpenPositions);
 route.post("/deltaSStraddleLive/getRealClsdPos", deltaSStraddleLiveCtrler.fnGetRealClsdPositions);
 route.post("/deltaSStraddleLive/openRealPosition", deltaSStraddleLiveCtrler.fnOpenRealPoistion);
 route.post("/deltaSStraddleLive/closeRealPosition", deltaSStraddleLiveCtrler.fnCloseRealPoistion);
