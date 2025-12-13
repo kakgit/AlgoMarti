@@ -82,7 +82,7 @@ function fnGetAllStatus(){
         fnGetSetTraderLoginStatus();
 		fnGetSetAutoTraderStatus();
 
-        fnLoadNetLimits();
+        // fnLoadNetLimits();
         fnLoadTradeSide();
         fnLoadDefSymbol();
         fnLoadDefExpiryMode();
