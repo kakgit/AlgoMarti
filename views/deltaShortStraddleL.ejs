@@ -56,13 +56,13 @@
                             <div class="col-1"> Qty</div>
                             <div class="col-1"></div>
                             <div class="col-1" style="text-align: right;">
-                                <span class="badge rounded-pill text-bg-primary" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnConnectDFL();">&nbsp;</span>
+                                <span class="badge rounded-pill text-bg-primary" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnConnectSSL();">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
-                                <span id="spnSub" class="badge rounded-pill text-bg-success" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnSubscribeDFL();" title="Subscribe to WebSocket">&nbsp;</span>
+                                <span id="spnSub" class="badge rounded-pill text-bg-success" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnSubscribeSSL();" title="Subscribe to WebSocket">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
-                                <span class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnForceDisconnectDFL();">&nbsp;</span>
+                                <span class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnForceDisconnectSSL();">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divTraderClps" role="button" aria-expanded="true" aria-controls="divTraderClps">
@@ -108,7 +108,11 @@
                                     <div class="col-2">
                                         <input type="number" min="0" class="form-control" placeholder="PE Qty" id="txtQtyPE" value="0" onchange="fnChangeQtyPE(this);" />
                                     </div>
-                                    <div class="col-2"></div>
+                                    <div class="col-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-info" onclick="fnInItWalletBal();"><b>Get Margin</b></button>
+                                        </div>
+                                    </div>
 
                                     <div class="col-2">
                                         Short Expiry Type
@@ -154,13 +158,10 @@
                                     </div>
                                     <div class="col-2">CE PL</div>
                                     <div class="col-2">PE PL</div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2">USD Margin Required</div>
-                                    <div class="col-2">
-                                        Acc Bal <span class="badge text-bg-danger" id="spnCurrency1" style="cursor: pointer;" onclick="fnSwapCurrency();">USD</span>
-                                    </div>
-                                    <div class="col-2">
-                                    </div>
+                                    <div class="col-2" style="text-align: center;">Account Balance</div>
+                                    <div class="col-2" style="text-align: center;">Blocked Margin</div>
+                                    <div class="col-2" style="text-align: center;">Required Balance</div>
+                                    <div class="col-2" style="text-align: center;">Yet to Recover</div>
 
                                     <div class="col-2">
                                         <input type="number" class="form-control" placeholder="CE PL" id="txtCallPL" value="0" />
@@ -168,16 +169,17 @@
                                     <div class="col-2">
                                         <input type="number" class="form-control" placeholder="PE PL" id="txtPutPL" value="0" />
                                     </div>
-                                    <div class="col-2">
+                                    <div class="col-2" style="text-align: center;">
+                                        <span id="spnBal1" style="color: white;">0.00</span>
                                     </div>
-                                    <div class="col-2">
-                                        <span id="spnMarginReq" style="color: green;">0.00</span>
+                                    <div class="col-2" style="text-align: center;">
+                                        <span id="spnMarginBlocked" style="color: red;">0.00</span>
                                     </div>
-                                    <div class="col-2">
-                                        <span id="spnBal1">0.00</span>
+                                    <div class="col-2" style="text-align: center;">
+                                        <span id="spnReqBalance" style="color: green;">0.00</span>
                                     </div>
-                                    <div class="col-2">
-
+                                    <div class="col-2" style="text-align: center;">
+                                        <span id="spnYet2Recover" style="color: red;">0.00</span>
                                     </div>
 
                                     <div style="display: none;">
@@ -214,8 +216,10 @@
                             <div class="col-3">
                                 <h4>Open Position(s)</h4>
                             </div>
-                            <div class="col-2"></div>
                             <div class="col-1"></div>
+                            <div class="col-2">
+                                <button class='nav-link' onclick="fnGetOpenPositions();" role="tab" type="button">Update Open Positions</button>
+                            </div>
                             <div class="col-2">
                                 <div class="form-check form-switch fs-6" style="white-space: nowrap;">
                                     <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtStepDFL" name="swtStepDFL" onchange="fnChangeStep();" />
@@ -245,9 +249,10 @@
                                     <table class="table">
                                         <thead>
                                             <tr style="text-align:center;">
+                                                <th scope="col" style="text-wrap: nowrap;">State</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Date Time</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Symbol</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Delta</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Symbol</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Tr Type</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Lot Sz</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Qty</th>
@@ -281,10 +286,10 @@
                                 <input type="datetime-local" id="txtClsdPosEndDT" class="form-control" placeholder="End Date" title="End Date" onblur="fnChangeClsPosEndDT();" />
                             </div>
                             <div class="col-1">
-                                <span id="spnBuyNew" class="badge rounded-pill text-bg-success" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnInitPlaceRealOrder();" title="New Open Buy">&nbsp;</span>
+                                <!-- <span id="spnBuyNew" class="badge rounded-pill text-bg-success" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnInitPlaceRealOrder();" title="New Open Buy">&nbsp;</span> -->
                             </div>
                             <div class="col-1">
-                                <span id="spnClsBuy" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnInitExitRealOrder();" title="New Close Buy">&nbsp;</span>
+                                <!-- <span id="spnClsBuy" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnInitExitRealOrder();" title="New Close Buy">&nbsp;</span> -->
                             </div>
                             <div class="col-2" style="text-align: right;">
                             </div>

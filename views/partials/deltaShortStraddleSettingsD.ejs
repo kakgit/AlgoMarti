@@ -154,3 +154,32 @@
         </div>
     </div>
 </div>
+
+<!--Disabled Backdrop Modal for Open Positions List-->
+<div class="modal fade text-left" id="mdlOpenPosSel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4" data-bs-backdrop="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h4 class="modal-title" id="myModalLabel4">Select Open Positions</h4>
+                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="table-responsive">
+                        <textarea id="taOpenPos" cols="130" rows="10"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                    <i class="bx bx-x d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">CLOSE</span>
+                </button>
+                <button type="button" class="btn btn-primary ms-1" onclick="fnSaveOpenPositions();">
+                    <i class="bx bx-check d-block d-sm-none"></i>
+                    <span class="d-none d-sm-block">UPDATE</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

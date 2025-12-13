@@ -381,16 +381,8 @@ function fnSaveUpdCurrPos(){
             let vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
 
             if(gCurrPosDFL.TradeData[i].TransType === "sell"){
-                // console.log(gCurrPosDFL.TradeData[i].Symbol);
-                // console.log(gSymbBRateList[gCurrPosDFL.TradeData[i].Symbol]);
-                // ****************** Uncomment When Live *****************//
                 let vCurrPrice = parseFloat(gSymbBRateList[gCurrPosDFL.TradeData[i].Symbol]);
                 gCurrPosDFL.TradeData[i].BuyPrice = vCurrPrice;
-                // ****************** Uncomment When Live *****************//
-
-                // // ****************** Remove When Live *****************//
-                // vCurrPrice = gCurrPosDFL.TradeData[i].BuyPrice;
-                // // ****************** Remove When Live *****************//
 
                 if((Math.abs(parseFloat(vCurrDelta)) > parseFloat(gCurrPosDFL.TradeData[i].DeltaSL)) || (Math.abs(parseFloat(vCurrDelta)) < parseFloat(gCurrPosDFL.TradeData[i].DeltaTP))){
                     vLegID = gCurrPosDFL.TradeData[i].ClientOrderID;
@@ -400,14 +392,14 @@ function fnSaveUpdCurrPos(){
                     vToPosClose = true;
                 }
                 else if(vPL > 0){
-                    if((vOptionTypeZZ === "C") && (parseFloat(objCallPL.value) < 0) && (vPL > parseFloat(Math.abs(objCallPL.value)))){
+                    if((vOptionTypeZZ === "C") && (parseFloat(objCallPL.value) < 0) && (vPL > Math.abs(parseFloat(objCallPL.value)))){
                         vLegID = gCurrPosDFL.TradeData[i].ClientOrderID;
                         vTransType = gCurrPosDFL.TradeData[i].TransType;
                         vOptionType = gCurrPosDFL.TradeData[i].OptionType;
                         vSymbol = gCurrPosDFL.TradeData[i].Symbol;
                         vToPosClose = true;
                     }
-                    else if((vOptionTypeZZ === "P") && (parseFloat(objPutPL.value) < 0) && (vPL > parseFloat(Math.abs(objPutPL.value)))){
+                    else if((vOptionTypeZZ === "P") && (parseFloat(objPutPL.value) < 0) && (vPL > Math.abs(parseFloat(objPutPL.value)))){
                         vLegID = gCurrPosDFL.TradeData[i].ClientOrderID;
                         vTransType = gCurrPosDFL.TradeData[i].TransType;
                         vOptionType = gCurrPosDFL.TradeData[i].OptionType;
@@ -417,14 +409,8 @@ function fnSaveUpdCurrPos(){
                 }
             }
             else if(gCurrPosDFL.TradeData[i].TransType === "buy"){
-                // ****************** Uncomment When Live *****************//
                 let vCurrPrice = parseFloat(gSymbSRateList[gCurrPosDFL.TradeData[i].Symbol]);
                 gCurrPosDFL.TradeData[i].SellPrice = vCurrPrice;
-                // ****************** Uncomment When Live *****************//
-
-                // // ****************** Remove When Live *****************//
-                // vCurrPrice = gCurrPosDFL.TradeData[i].SellPrice;
-                // // ****************** Remove When Live *****************//
 
                 if((Math.abs(parseFloat(vCurrDelta)) < parseFloat(gCurrPosDFL.TradeData[i].DeltaSL)) || (Math.abs(parseFloat(vCurrDelta)) > parseFloat(gCurrPosDFL.TradeData[i].DeltaTP))){
                     vLegID = gCurrPosDFL.TradeData[i].ClientOrderID;
@@ -671,7 +657,8 @@ async function fnInitTrade(pOptionType){
 
     //{ TransType : "sell", OptionType : "F", DeltaNew : 1.00, DeltaTP : 2.00, DeltaSL : 0.10 }, 
     
-    let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { TransType : "sell", OptionType : "C", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
+    // let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { TransType : "sell", OptionType : "C", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
+    let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "buy", OptionType : "P", DeltaNew : 0.10, DeltaTP : 0.25, DeltaSL : 0.02 }, { TransType : "buy", OptionType : "C", DeltaNew : 0.10, DeltaTP : 0.25, DeltaSL : 0.02 }] }] }
 
     // console.log(objStrategies.Strategies[0].StratModel.length);
     gUpdPos = false;
@@ -956,7 +943,14 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
         let vMonth = vDate.getMonth() + 1;
         let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
     
-        let vBestBuyRate = parseFloat(objBestRates.data.result.quotes.best_ask);
+        let vBestRate = 0;
+
+        if(pTransType === "sell"){
+            let vBestRate = parseFloat(objBestRates.data.result.quotes.best_ask);
+        }
+        else if(pTransType === "buy"){
+            let vBestRate = parseFloat(objBestRates.data.result.quotes.best_bid);
+        }
 
         let vStrikePrice = 0;
         let vLotSize = 0;
@@ -977,7 +971,12 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
 
         for(let i=0; i<gCurrPosDFL.TradeData.length; i++){
             if(gCurrPosDFL.TradeData[i].ClientOrderID === pLegID){
-                gCurrPosDFL.TradeData[i].BuyPrice = vBestBuyRate;
+                if(pTransType === "sell"){
+                    gCurrPosDFL.TradeData[i].BuyPrice = vBestRate;
+                }
+                else if(pTransType === "buy"){
+                    gCurrPosDFL.TradeData[i].SellPrice = vBestRate;
+                }
                 gCurrPosDFL.TradeData[i].CloseDT = vToday;
                 gCurrPosDFL.TradeData[i].Status = pStatus;
 
@@ -1041,7 +1040,7 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
         let objExcTradeDtls = JSON.stringify(gCurrPosDFL);
         localStorage.setItem("CurrPosDFL", objExcTradeDtls);
 
-        console.log("Position Updated!");
+        console.log("Position Closed!");
 
         gUpdPos = true;
         fnSetSymbolTickerList();

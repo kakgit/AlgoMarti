@@ -33,6 +33,24 @@ exports.fnValidateUserLogin = async (req, res) => {
     // res.send({ "status": "success", "message": "Testing", "data": "" });
 }
 
+exports.fnWalletDetails = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+    let objWallet = [];
+
+    let objRetData1 = await fnGetUserWallet(vApiKey, vApiSecret);
+    if(objRetData1.status === "success"){
+        // console.log(objRetData1.data.result[0]);
+        // objWallet.push(objRetData1.data.result[0]);
+
+        res.send({ "status": "success", "message": objRetData1.message, "data": objRetData1.data });
+    }
+    else{
+        res.send({ "status": objRetData1.status, "message": objRetData1.message, "data": objRetData1.data });
+    }
+    // res.send({ "status": "success", "message": "Testing", "data": "" });
+}
+
 exports.fnGetOptChnSDKByAstOptTypExp = async (req, res) => {
     let vApiKey = req.body.ApiKey;
     let vApiSecret = req.body.ApiSecret;
@@ -123,7 +141,7 @@ exports.fnExecOptionByOptTypeExpTransType = async (req, res) => {
     let vLotQty = req.body.LotQty;
     let vClientID = req.body.ClientID;
     let vContractType = "";
-    let vPostOnly = true;
+    let vPostOnly = false;
 
     if(vOptionType === "C"){
         vContractType = "call_options";
@@ -143,18 +161,80 @@ exports.fnExecOptionByOptTypeExpTransType = async (req, res) => {
             let vBestSell = objOptChn.data.BestBid;
             let vSymbol = objOptChn.data.Symbol;
 
-            if(vOrderType === "market_order"){
-                vBestBuy = "0";
-                vBestSell = "0";
-                vPostOnly = false;
-            }
+            // if(vOrderType === "market_order"){
+            //     vBestBuy = "0";
+            //     vBestSell = "0";
+            //     vPostOnly = false;
+            // }
             if(vTransType === "buy"){
                 vLimitPrice = vBestBuy;
             }
             else if(vTransType === "sell"){
                 vLimitPrice = vBestSell;
             }
-            res.send({ "status": "success", "message": objOptChn.message, "data": objOptChn.data });
+
+            new DeltaRestClient(vApiKey, vApiSecret).then(client => {
+                client.apis.Orders.placeOrder({
+                    order: {
+                    product_symbol: vSymbol,
+                    size: vLotQty,
+                    side: vTransType,
+                    limit_price: 1,
+                    order_type: "market_order",
+                    client_order_id: (vClientID).toString(),
+                    reduce_only: false
+                    }
+                }).then(function (response) {
+                    let objResult = JSON.parse(response.data);
+                    // console.log(objResult);
+                    if((objResult.success) && (objResult.result.state === "closed")){
+                        if(vTransType === "sell"){
+                            objOptChn.data.BestBid = objResult.result.average_fill_price;
+                        }
+                        else if(vTransType === "buy"){
+                            objOptChn.data.BestAsk = objResult.result.average_fill_price;
+                        }
+                        objOptChn.data.ClientOrderID = objResult.result.client_order_id;
+                        objOptChn.data.TradeID = objResult.result.id;
+                        objOptChn.data.Commission = objResult.result.paid_commission;
+                        objOptChn.data.ProductID = objResult.result.product_id;
+                        objOptChn.data.Symbol = objResult.result.product_symbol;
+                        objOptChn.data.TransType = objResult.result.side;
+                        objOptChn.data.Qty = objResult.result.size;
+                        objOptChn.data.State = "OPEN";
+
+                        res.send({ "status": "success", "message": "Market Order Placed Successfully!", "data": objOptChn.data });
+                    }
+                    else if((objResult.success) && (objResult.result.state === "open")){
+                        if(vTransType === "sell"){
+                            objOptChn.data.BestBid = vLimitPrice;
+                        }
+                        else if(vTransType === "buy"){
+                            objOptChn.data.BestAsk = vLimitPrice;
+                        }
+                        objOptChn.data.ClientOrderID = objResult.result.client_order_id;
+                        objOptChn.data.TradeID = objResult.result.id;
+                        objOptChn.data.Commission = objResult.result.paid_commission;
+                        objOptChn.data.ProductID = objResult.result.product_id;
+                        objOptChn.data.Symbol = objResult.result.product_symbol;
+                        objOptChn.data.TransType = objResult.result.side;
+                        objOptChn.data.Qty = objResult.result.size;
+                        objOptChn.data.State = "PENDING";
+                        res.send({ "status": "success", "message": "Limit Order Placed Successfully!", "data": objOptChn.data });
+                    }
+                    else{
+                        res.send({ "status": "warning", "message": "Error to Place the Open Order!", "data": objResult });
+                    }
+                })
+                .catch(function(objError) {
+                    console.log("*************** Error **************");
+                    // console.log(objError);
+                    res.send({ "status": "danger", "message": objError.response.text, "data": objError });
+                });
+            });
+            // console.log(objOptChn.data);
+
+            // res.send({ "status": "success", "message": objOptChn.message, "data": objOptChn.data });
         }
         else{
             res.send({ "status": "danger", "message": objOptChn.message, "data": "" });
@@ -242,24 +322,25 @@ exports.fnOpenRealPoistion = async (req, res) => {
 exports.fnCloseRealPoistion = async (req, res) => {
     let vApiKey = req.body.ApiKey;
     let vApiSecret = req.body.ApiSecret;
-    let vClientID = req.body.ClientID;
+    let vSymbol = req.body.Symbol;
+    let vLotQty = req.body.LotQty;
+    let vTransType = req.body.TransType;
 
     new DeltaRestClient(vApiKey, vApiSecret).then(client => {
         client.apis.Orders.placeOrder({
             order: {
-            product_symbol: "GRIFFAINUSD",
-            size: 1,
-            side: "buy",
+            product_symbol: vSymbol,
+            size: vLotQty,
+            side: vTransType,
             limit_price: 0,
             order_type: "market_order",
-            client_order_id: (vClientID).toString(),
             reduce_only: true
             }
         }).then(function (response) {
             let objResult = JSON.parse(response.data);
 
             if(objResult.success){
-                res.send({ "status": "success", "message": "Order Placed Successfully!", "data": objResult });
+                res.send({ "status": "success", "message": "Close Order Executed Successfully!", "data": objResult });
             }
             else{
                 res.send({ "status": "warning", "message": "Error to Close the Open Order!", "data": objResult });
@@ -334,11 +415,34 @@ exports.fnGetRealClsdPositions = async (req, res) => {
 exports.fnGetRealOpenPositions = async (req, res) => {
     let vApiKey = req.body.ApiKey;
     let vApiSecret = req.body.ApiSecret;
+    let objProductIds = [];
+    let vProductIds = "";
 
     let objRetData = await fnGetOpenTrades(vApiKey, vApiSecret);
 
     if(objRetData.status === "success"){
-        res.send({ "status": "success", "message": objRetData.message, "data": objRetData.data });
+        // console.log(objRetData.data.result.length);
+        for(let i=0; i<objRetData.data.result.length; i++){
+            objProductIds.push(objRetData.data.result[i].product_id);
+        }
+        vProductIds = objProductIds.join(', ');
+
+        new DeltaRestClient(vApiKey, vApiSecret).then(client => {
+            client.apis.TradeHistory.getUserfills({ product_ids : vProductIds }).then(function (response) {
+                let objResult = JSON.parse(response.data);
+
+                if(objResult.success){
+                    // console.log(objResult);
+                    res.send({ "status": "success", "message": "Open Trades Fetched!", "data": objResult });
+                }
+            })
+            .catch(function(objError) {
+                // console.log("*************** Error **************");
+                // console.log(objError);
+                res.send({ "status": "danger", "message": objError.response.text, "data": objError });
+            });
+        });        
+        // res.send({ "status": "success", "message": objRetData.message, "data": objRetData.data });
     }
     else{
         res.send({ "status": objRetData.status, "message": objRetData.message, "data": objRetData.data });
@@ -412,7 +516,7 @@ const fnGetSrtdOptChnByDelta = async (pApiKey, pApiSecret, pOptType, pUAssetSymb
                         let vAbsDelta = Math.abs(parseFloat(objResult.result[i].greeks.delta));
                         if(vAbsDelta <= parseFloat(pDeltaNPos)){
                             // console.log(objResult.result[i]);
-                            let objOCLeg = { ProductID : objResult.result[i].product_id, UndrAsstSymb : objResult.result[i].underlying_asset_symbol, ContType : objResult.result[i].contract_type, OptionType : pOptType, Delta : vAbsDelta, Gamma : parseFloat(objResult.result[i].greeks.gamma), Rho : parseFloat(objResult.result[i].greeks.rho), Theta : parseFloat(objResult.result[i].greeks.theta), Vega : parseFloat(objResult.result[i].greeks.vega), MarkIV : parseFloat(objResult.result[i].quotes.mark_iv), BestAsk : parseFloat(objResult.result[i].quotes.best_ask), BestBid : parseFloat(objResult.result[i].quotes.best_bid), Strike : parseInt(objResult.result[i].strike_price), Symbol : objResult.result[i].symbol, Expiry : pExpiry };
+                            let objOCLeg = { ProductID : objResult.result[i].product_id, UndrAsstSymb : objResult.result[i].underlying_asset_symbol, ContType : objResult.result[i].contract_type, OptionType : pOptType, Delta : vAbsDelta, BestAsk : parseFloat(objResult.result[i].quotes.best_ask), BestBid : parseFloat(objResult.result[i].quotes.best_bid), Strike : parseInt(objResult.result[i].strike_price), Symbol : objResult.result[i].symbol, Expiry : pExpiry };
 
                             objOCData.push(objOCLeg);
                         }

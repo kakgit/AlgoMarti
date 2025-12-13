@@ -209,6 +209,7 @@ route.post("/deltaSStraddleDemo/getBestRatesBySymb", deltaSStraddleDemoCtrler.fn
 
 //Delta Short Straddle Live Routes
 route.post("/deltaSStraddleLive/validateLogin", deltaSStraddleLiveCtrler.fnValidateUserLogin);
+route.post("/deltaSStraddleLive/getWalletDetails", deltaSStraddleLiveCtrler.fnWalletDetails);
 route.post("/deltaSStraddleLive/getOptChnSDKByAstOptTypExp", deltaSStraddleLiveCtrler.fnGetOptChnSDKByAstOptTypExp);
 route.post("/deltaSStraddleLive/execOption", deltaSStraddleLiveCtrler.fnExecOptionByOptTypeExpTransType);
 route.post("/deltaSStraddleLive/getBestRatesBySymb", deltaSStraddleLiveCtrler.fnGetBestRatesBySymbol);
