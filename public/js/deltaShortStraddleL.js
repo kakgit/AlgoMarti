@@ -174,6 +174,14 @@ function fnChangeQtyPE(pThis){
     localStorage.setItem("QtyPutSSL", pThis.value);
 }
 
+function fnChangeCallPL(pThis){
+    localStorage.setItem("TotLossAmtCESSL", pThis.value);
+}
+
+function fnChangePutPL(pThis){
+    localStorage.setItem("TotLossAmtPESSL", pThis.value);
+}
+
 function fnChangeSymbol(pSymbVal){
     localStorage.setItem("DeltaSymbDFL", JSON.stringify(pSymbVal));
 
@@ -1458,6 +1466,9 @@ function fnSaveOpenPositions(){
     gSymbDeltaList = {};
 
     gCurrPosSSL.TradeData = JSON.parse(objOpenPosTA.value);
+
+    let objExcTradeDtls = JSON.stringify(gCurrPosSSL);
+    localStorage.setItem("CurrPosSSL", objExcTradeDtls);
     gUpdPos = true;
 
     fnSetSymbolTickerList();
