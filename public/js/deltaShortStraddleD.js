@@ -168,6 +168,14 @@ function fnChangeQtyPE(pThis){
     localStorage.setItem("QtyPutDFL", pThis.value);
 }
 
+function fnChangeCallPL(pThis){
+    localStorage.setItem("TotLossAmtCE", pThis.value);
+}
+
+function fnChangePutPL(pThis){
+    localStorage.setItem("TotLossAmtPE", pThis.value);
+}
+
 function fnChangeSymbol(pSymbVal){
     localStorage.setItem("DeltaSymbDFL", JSON.stringify(pSymbVal));
 
