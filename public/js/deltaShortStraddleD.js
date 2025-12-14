@@ -665,8 +665,8 @@ async function fnInitTrade(pOptionType){
 
     //{ TransType : "sell", OptionType : "F", DeltaNew : 1.00, DeltaTP : 2.00, DeltaSL : 0.10 }, 
     
-    // let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { TransType : "sell", OptionType : "C", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
-    let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "buy", OptionType : "P", DeltaNew : 0.10, DeltaTP : 0.25, DeltaSL : 0.02 }, { TransType : "buy", OptionType : "C", DeltaNew : 0.10, DeltaTP : 0.25, DeltaSL : 0.02 }] }] }
+    let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { TransType : "sell", OptionType : "C", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
+    // let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "buy", OptionType : "P", DeltaNew : 0.10, DeltaTP : 0.25, DeltaSL : 0.02 }, { TransType : "buy", OptionType : "C", DeltaNew : 0.10, DeltaTP : 0.25, DeltaSL : 0.02 }] }] }
 
     // console.log(objStrategies.Strategies[0].StratModel.length);
     gUpdPos = false;
