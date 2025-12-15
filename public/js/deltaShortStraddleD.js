@@ -954,10 +954,10 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
         let vBestRate = 0;
 
         if(pTransType === "sell"){
-            let vBestRate = parseFloat(objBestRates.data.result.quotes.best_ask);
+            vBestRate = parseFloat(objBestRates.data.result.quotes.best_ask);
         }
         else if(pTransType === "buy"){
-            let vBestRate = parseFloat(objBestRates.data.result.quotes.best_bid);
+            vBestRate = parseFloat(objBestRates.data.result.quotes.best_bid);
         }
 
         let vStrikePrice = 0;
@@ -978,7 +978,7 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
         gSymbThetaList = {};
 
         for(let i=0; i<gCurrPosDFL.TradeData.length; i++){
-            if(gCurrPosDFL.TradeData[i].ClientOrderID === pLegID){
+            if(gCurrPosDFL.TradeData[i].ClientOrderID === pLegID){                
                 if(pTransType === "sell"){
                     gCurrPosDFL.TradeData[i].BuyPrice = vBestRate;
                 }
