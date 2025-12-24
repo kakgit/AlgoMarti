@@ -45,7 +45,7 @@ window.addEventListener("DOMContentLoaded", function(){
         document.location.reload();
     });
 
-    socket.on("tv-Msg-Opt-Sell-ST", (pMsg) => {
+    socket.on("tv-Msg-SSDemo-Open", (pMsg) => {
         let isLsAutoTrader = localStorage.getItem("isAutoTraderDFL");
         let vTradeSide = localStorage.getItem("TradeSideSwtDFL");
         let objMsg = (pMsg);
@@ -63,6 +63,12 @@ window.addEventListener("DOMContentLoaded", function(){
             //     fnGenMessage(objMsg.OptionType + " Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
             // }
         }
+    });
+
+    socket.on("tv-Msg-SSDemo-Close", (pMsg) => {
+        let objMsg = (pMsg);
+
+        fnPreInitTradeClose(objMsg.OptionType);
     });
 });
 
@@ -642,6 +648,39 @@ function fnPreInitTrade(pOptionType){
     }
     else{
         fnGenMessage("Trade Message Received but Same Option Type is Already Open!", `badge bg-warning`, "spnGenMsg");
+    }
+}
+
+function fnPreInitTradeClose(pOptionType){
+    let vIsRecExists = false;
+    let vLegID = 0;
+    let vTransType = "";
+    let vSymbol = "";
+    let vState = "CLOSED";
+
+    if(gCurrPosDFL.TradeData.length > 0){
+        for(let i=0; i<gCurrPosDFL.TradeData.length; i++){
+            if((gCurrPosDFL.TradeData[i].OptionType === pOptionType) && (gCurrPosDFL.TradeData[i].Status === "OPEN")){
+                vLegID = gCurrPosDFL.TradeData[i].ClientOrderID;
+                vTransType = gCurrPosDFL.TradeData[i].TransType;
+                vSymbol = gCurrPosDFL.TradeData[i].Symbol;
+                
+                vIsRecExists = true;
+            }
+        }
+    }
+    //fnCloseOptPosition('+ vLegID +', `'+ vTransType +'`, `'+ vOptionType +'`, `'+ vSymbol +'`, `CLOSED`);
+
+    if(vIsRecExists === true){
+        // console.log(vLegID);
+        // console.log(vTransType);
+        // console.log(pOptionType);
+        // console.log(vSymbol);
+        // console.log(vState);
+        fnCloseOptPosition(vLegID, vTransType, pOptionType, vSymbol, vState);
+    }
+    else{
+        fnGenMessage("Trade Message Received but Option is not Open!", `badge bg-warning`, "spnGenMsg");
     }
 }
 

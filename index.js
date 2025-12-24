@@ -223,6 +223,24 @@ app.post("/tvMsgOptSellST", (req, res) => {
     res.send({ status: "success", message: "Open " + objMsg.OptionType + " Trade Received!", data: objMsg });
 });
 
+app.post("/tvMsgSSDemoOpen", (req, res) => {
+    const vOptionType = req.body.optionType;
+
+    let objMsg = { OptionType : vOptionType };
+
+    io.emit("tv-Msg-SSDemo-Open", objMsg);
+    res.send({ status: "success", message: "Open " + objMsg.OptionType + " Trade Received!", data: objMsg });
+});
+
+app.post("/tvMsgSSDemoClose", (req, res) => {
+    const vOptionType = req.body.optionType;
+
+    let objMsg = { OptionType : vOptionType };
+
+    io.emit("tv-Msg-SSDemo-Close", objMsg);
+    res.send({ status: "success", message: "Close " + objMsg.OptionType + " Trade Received!", data: objMsg });
+});
+
 app.post("/tv-AutoTrd", (req, res) => {
     const vAutoTrade = req.body.AutoTrade;
     let vMsgOnOff = "OFF";

@@ -183,13 +183,13 @@ function fnChangePutPL(pThis){
 }
 
 function fnChangeSymbol(pSymbVal){
-    localStorage.setItem("DeltaSymbDFL", JSON.stringify(pSymbVal));
+    localStorage.setItem("DeltaSymbSSL", JSON.stringify(pSymbVal));
 
     fnLoadDefSymbol();
 }
 
 function fnLoadDefSymbol(){
-    let objDefSymM = JSON.parse(localStorage.getItem("DeltaSymbDFL"));
+    let objDefSymM = JSON.parse(localStorage.getItem("DeltaSymbSSL"));
     let objSelSymb = document.getElementById("ddlSymbols");
 
     if(objDefSymM === null){
@@ -203,7 +203,7 @@ function fnLoadDefSymbol(){
 function fnSetSymbolData(pThisVal){
     let objLotSize = document.getElementById("txtLotSize");
 
-    localStorage.setItem("DeltaSymbDFL", JSON.stringify(pThisVal));
+    localStorage.setItem("DeltaSymbSSL", JSON.stringify(pThisVal));
 
     if(pThisVal === "BTC"){
         objLotSize.value = 0.001;
@@ -376,15 +376,15 @@ function fnSetSymbolTickerList(){
 }
 
 function fnChangeStep(){
-    // let vStepM = JSON.parse(localStorage.getItem("OptStepDFL"));
+    // let vStepM = JSON.parse(localStorage.getItem("OptStepSSL"));
     let objSwtStep = document.getElementById("swtStepDFL");
 
-    localStorage.setItem("OptStepDFL", JSON.stringify(objSwtStep.checked));
+    localStorage.setItem("OptStepSSL", JSON.stringify(objSwtStep.checked));
     // alert(objSwtStep.checked);
 }
 
 function fnLoadOptStep(){
-    let vStepM = JSON.parse(localStorage.getItem("OptStepDFL"));
+    let vStepM = JSON.parse(localStorage.getItem("OptStepSSL"));
     let objSwtStep = document.getElementById("swtStepDFL");
 
     if(vStepM){
@@ -594,7 +594,7 @@ function fnTest(){
 //************ Update Live Code Here **************//
 function fnLoadDefExpiryMode(){
     let objExpiryMode = document.getElementById("ddlExpiryMode");
-    let vExpiryMode = JSON.parse(localStorage.getItem("ExpiryModeDFL"));
+    let vExpiryMode = JSON.parse(localStorage.getItem("ExpiryModeSSL"));
 
     if(vExpiryMode === null){
         objExpiryMode.value = 1;
@@ -609,7 +609,7 @@ function fnUpdateExpiryMode(){
     let objExpiryMode = document.getElementById("ddlExpiryMode");
 
     fnLoadDefExpiryDate(objExpiryMode.value);
-    localStorage.setItem("ExpiryModeDFL", JSON.stringify(objExpiryMode.value));
+    localStorage.setItem("ExpiryModeSSL", JSON.stringify(objExpiryMode.value));
 }
 
 function fnLoadDefExpiryDate(pExpiryMode){
