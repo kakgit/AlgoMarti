@@ -53,8 +53,10 @@
                             </div>
                             <div class="col-1" style="text-align: right;">Start With </div>
                             <div class="col-1"><input type="text" class="form-control" min="1" value="1" id="txtStartQty" onchange="fnChangeStartQty(this);" /></div>
-                            <div class="col-1"> Qty</div>
-                            <div class="col-1"></div>
+                            <div class="col-1">Qty</div>
+                            <div class="col-1">
+                                <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnDisplayFunding();"></i>
+                            </div>
                             <div class="col-1" style="text-align: right;">
                                 <span class="badge rounded-pill text-bg-primary" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnConnectDFL();">&nbsp;</span>
                             </div>
@@ -74,8 +76,92 @@
                     <div class="card-body">
                         <div class="collapse show" id="divTraderClps">
                             <div class="container-fluid">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr style="text-align:center;">
+                                                <th scope="col" style="text-wrap: nowrap;">SNO</th>
+                                                <th scope="col" style="text-wrap: nowrap;">D Cls Only</th>
+                                                <th scope="col" style="text-wrap: nowrap;">D Symbol</th>
+                                                <th scope="col" style="text-wrap: nowrap;">C Symbol</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Max Limit</th>
+                                                <th scope="col" style="text-wrap: nowrap;">D Lev</th>
+                                                <th scope="col" style="text-wrap: nowrap;">D Size</th>
+                                                <th scope="col" style="text-wrap: nowrap;">D Hrly Feq</th>
+                                                <th scope="col" style="text-wrap: nowrap;">D Funding</th>
+                                                <th scope="col" style="text-wrap: nowrap;">C Funding</th>
+                                                <th scope="col" style="text-wrap: nowrap;">TB-Rate</th>
+                                                <th scope="col" style="text-wrap: nowrap;">D-Rate</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Delta BS</th>
+                                                <th scope="col" style="text-wrap: nowrap;">CDcx BS</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tBodyAvailFunding">
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="cardTestFns">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-2">
+                                <h4>Test Traders</h4>
+                            </div>
+                            <div class="col-2">
+
+                            </div>
+                            <div class="col-1" style="text-align: right;"></div>
+                            <div class="col-1">
+                            </div>
+                            <div class="col-1"></div>
+                            <div class="col-1">
+                                <i class="fa fa-refresh" aria-hidden="true" style="color: orange; cursor: pointer;" onclick="fnGetCurrentMinute();"></i>
+                            </div>
+                            <div class="col-1" style="text-align: right;">
+                            </div>
+                            <div class="col-1" style="text-align: right;">
+                            </div>
+                            <div class="col-1" style="text-align: right;">
+                            </div>
+                            <div class="col-1" style="text-align: right;">
+                                <a data-bs-toggle="collapse" href="#divTraderTest" role="button" aria-expanded="true" aria-controls="divTraderTest">
+                                    <i class="fa fa-caret-square-o-down" style="color: orangered;"></i>
+                                </a>
+                            </div>             
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="collapse show" id="divTraderTest">
+                            <div class="container-fluid">
                                 <div class="row">
-                                    asdasd
+                                    <div class="col-2">
+                                        <button class="btn btn-primary" type="button" onclick="fnGetCoinDcxDeltaCoinsList();">Update Delta-CoinDcx</button>
+                                    </div>
+                                    <div class="col-2">
+                                        <button class="btn btn-primary" type="button" onclick="fnGetCoinDcxDeltaData();">Delta-CoinDcx</button>
+                                    </div>
+                                    <div class="col-2">
+                                        <button class="btn btn-success" type="button" onclick="fnGetDeltaCoinList();">Delta Coins</button>
+                                    </div>
+                                    <div class="col-2">
+                                        <button class="btn btn-success" type="button" onclick="fnGetDeltaFundingList();">Delta Funding List</button>
+                                    </div>
+                                    <div class="col-2">
+                                        <button class="btn btn-success" type="button" onclick="fnGetCoinDCXCoinList();">C-DCX Coins</button>
+                                    </div>
+                                    <div class="col-2">
+                                        <button class="btn btn-success" type="button" onclick="fnGetCoinDCXCoinDetails();">C-DCX Coin Details</button>
+                                    </div>
+                                    <div class="col-2">
+                                        <button class="btn btn-success" type="button" onclick="fnSetDeltaLevTest();">Delta Lev</button>
+                                    </div>
+                                    <div class="col-2">
+                                        <button class="btn btn-success" type="button" onclick="fnCDcxBySlTest();">CoinDCX BySl</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

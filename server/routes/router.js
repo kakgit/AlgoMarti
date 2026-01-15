@@ -23,6 +23,7 @@ const deltaCalDemoController = require("../controller/controllerDeltaCalDemo.js"
 const deltaFundingLiveCtrler = require("../controller/controllerDeltaFundingLive.js");
 const deltaSStraddleDemoCtrler = require("../controller/cntrDeltaSStraddleD.js");
 const deltaSStraddleLiveCtrler = require("../controller/cntrDeltaSStraddleL.js");
+const deltaSStrangleDemoCtrler = require("../controller/cntrDeltaSStrangleD.js");
 const ctrlCryptoFunding = require("../controller/controllerCryptoFunding.js");
 
 //home Routes
@@ -75,6 +76,9 @@ route.get("/deltaSStraddle-Demo", deltaSStraddleDemoCtrler.defaultRoute);
 
 //Delta Short Straddle Live Route
 route.get("/deltaSStraddleLive", deltaSStraddleLiveCtrler.defaultRoute);
+
+//Delta Short strangle Demo Route
+route.get("/deltaSStrangle-Demo", deltaSStrangleDemoCtrler.defaultRoute);
 
 //Crypto Funding Route
 route.get("/cryptoFunding", ctrlCryptoFunding.defaultRoute);
@@ -218,8 +222,22 @@ route.post("/deltaSStraddleLive/getRealClsdPos", deltaSStraddleLiveCtrler.fnGetR
 route.post("/deltaSStraddleLive/openRealPosition", deltaSStraddleLiveCtrler.fnOpenRealPoistion);
 route.post("/deltaSStraddleLive/closeRealPosition", deltaSStraddleLiveCtrler.fnCloseRealPoistion);
 
+//Delta Short Strangle Demo Routes
+route.post("/deltaSStrangleDemo/validateLogin", deltaSStrangleDemoCtrler.fnValidateUserLogin);
+route.post("/deltaSStrangleDemo/getOptChnSDKByAstOptTypExp", deltaSStrangleDemoCtrler.fnGetOptChnSDKByAstOptTypExp);
+route.post("/deltaSStrangleDemo/execOption", deltaSStrangleDemoCtrler.fnExecOptionByOptTypeExpTransType);
+route.post("/deltaSStrangleDemo/getBestRatesBySymb", deltaSStrangleDemoCtrler.fnGetBestRatesBySymbol);
+
 //Crypto Funding Routes
 route.post("/execCryptoFunding/DeltaCredValidate", ctrlCryptoFunding.fnDeltaCredValidate);
+route.post("/execCryptoFunding/updCoinDcxDeltaData", ctrlCryptoFunding.fnUpdCoindcxDeltaCoinsList);
+route.post("/execCryptoFunding/getCoinDcxDeltaData", ctrlCryptoFunding.fnGetCoinDcxDeltaData);
+route.post("/execCryptoFunding/getDeltaCoinList", ctrlCryptoFunding.fnGetDeltaCoinsList);
+route.post("/execCryptoFunding/getCdcxCoinList", ctrlCryptoFunding.fnGetCdcxCoinsList);
+route.post("/execCryptoFunding/getCdcxCoinDetails", ctrlCryptoFunding.fnGetCdcxCoinsDetails);
+route.post("/execCryptoFunding/getDeltaFundingList", ctrlCryptoFunding.fnGetDeltaFundingList);
+route.post("/execCryptoFunding/updDeltaLeverage", ctrlCryptoFunding.fnUpdateDeltaLeverage);
+route.post("/execCryptoFunding/execOpenOrderCDcx", ctrlCryptoFunding.fnExecOpenOrderCDcx);
 
 //Delta Futures Demo Routes
 route.post("/deltaExcFut/validateLogin", deltaFutDemoController.fnValidateUserLogin);

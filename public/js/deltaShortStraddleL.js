@@ -6,6 +6,8 @@ let gQtyMultiplierM = 0;
 let gObjDeltaDirec = [];
 let gCurrPosSSL = { TradeData : []};
 let gMrgndPosSSL = { TradeData : []};
+
+let gOpnPosIds = [];
 let gTradeInst = 0;
 
 let gUpdPos = true;
@@ -1402,19 +1404,22 @@ function fnAddNewStrategy(){
 async function fnGetOpenPositions(){
     let objOpenPosTA = document.getElementById("taOpenPos");
     let objExpShort = document.getElementById("txtExpShort");
+    let objOpenTrdPos = document.getElementById("tBodyOpenTrades");
     let vShortExpiry = fnSetDDMMYYYY(objExpShort.value);
 
+    gOpnPosIds = [];
     gMrgndPosSSL = { TradeData : []};
 
     let objPromise = await fnGetOpenPositionsList();
 
     if(objPromise.status === "success"){
-        // console.log(objPromise);
+        console.log(objPromise);
         if(objPromise.data.result.length === 0){
-            objCurrTradeList.innerHTML = '<tr><td colspan="9"><div class="col-sm-12" style="border:0px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 40px;">No Open Trades</div></td></tr>';
+            objOpenTrdPos.innerHTML = '<tr><td colspan="5"><div class="col-sm-12" style="border:0px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 40px;">No Open Positions</div></td></tr>';
         }
         else{
             let vTempData = { TradeData : []};
+            let vTempHtml = "";
 
             for (let i = 0; i < objPromise.data.result.length; i++){
                 let vBuyPrice = parseFloat(objPromise.data.result[i].price);
@@ -1441,8 +1446,18 @@ async function fnGetOpenPositions(){
                 let vStrike = parseInt(objPromise.data.result[i].meta_data.spot);
                 let vUndrAsstSymb = objPromise.data.result[i].product.contract_unit_currency;
 
+                vTempHtml += "<tr>";
+                vTempHtml += '<td style="text-wrap: nowrap; text-align:center;"><input type="checkbox" id="' + vTradeID + '" onclick="fnSelectedPositions(this);" /></td>';
+                vTempHtml += '<td style="text-wrap: nowrap; text-align:center;">' + vSymbol + '</td>';
+                vTempHtml += '<td style="text-wrap: nowrap; text-align:center;">' + vSellPrice + '</td>';
+                vTempHtml += '<td style="text-wrap: nowrap; text-align:center;">' + vTransType + '</td>';
+                vTempHtml += '<td style="text-wrap: nowrap; text-align:center;">' + vQty + '</td>';
+                vTempHtml += "</tr>";
+
                 vTempData.TradeData.push({ BuyPrice : vBuyPrice, ClientOrderID : vClientOrderID, Commission : vCommission, ContrctType : vContractType, Delta : vDelta, DeltaC : vDeltaC, DeltaNP : vDeltaNP, DeltaSL : vDeltaSL, DeltaTP : vDeltaTP, Expiry : vShortExpiry, LotSize : vLotSize, OpenDT : vCreatedDT, OpenDTVal : vClientOrderID, OptionType : vOptionType, ProductID : vProductID, Qty : vQty, SellPrice : vSellPrice, State : vState, StrikePrice : vStrike, Symbol : vSymbol, TradeID : vTradeID, TransType : vTransType, UndrAsstSymb : vUndrAsstSymb })
             }
+
+            objOpenTrdPos.innerHTML = vTempHtml;
 
             // console.log(vTempData);
             objOpenPosTA.innerText = JSON.stringify(vTempData.TradeData);
@@ -1457,15 +1472,45 @@ async function fnGetOpenPositions(){
     }
 }
 
+function fnSelectedPositions(objThis){
+    let vDelRec = null;
+
+    if(objThis.checked){
+        gOpnPosIds.push(objThis.id);
+        // console.log("insert: " + objThis.id);
+    }
+    else{
+        for(let i=0; i<gOpnPosIds.length; i++){
+            if(gOpnPosIds[i] === objThis.id){
+                vDelRec = i;
+            }
+        }
+        // console.log(gOpnPosIds.length);
+        gOpnPosIds.splice(vDelRec, 1);
+    }
+}
+
 function fnSaveOpenPositions(){
     let objOpenPosTA = document.getElementById("taOpenPos");
+    let objOpnPos = JSON.parse(objOpenPosTA.value);
+    let objSelPosList = [];
     gUpdPos = false;
+
+    if(gOpnPosIds.length > 0){
+        for(let i=0; i<gOpnPosIds.length; i++){
+            for(let j=0; j<objOpnPos.length;j++){
+                if(parseInt(gOpnPosIds[i]) === parseInt(objOpnPos[j].TradeID)){
+                    objSelPosList.push(objOpnPos[j]);
+                }
+            }
+        }
+    }
 
     gSymbBRateList = {};
     gSymbSRateList = {};
     gSymbDeltaList = {};
 
-    gCurrPosSSL.TradeData = JSON.parse(objOpenPosTA.value);
+    gCurrPosSSL.TradeData = objSelPosList;
 
     let objExcTradeDtls = JSON.stringify(gCurrPosSSL);
     localStorage.setItem("CurrPosSSL", objExcTradeDtls);

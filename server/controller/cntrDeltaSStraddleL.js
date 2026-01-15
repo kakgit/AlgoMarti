@@ -419,29 +419,38 @@ exports.fnGetRealOpenPositions = async (req, res) => {
     let vProductIds = "";
 
     let objRetData = await fnGetOpenTrades(vApiKey, vApiSecret);
-
     if(objRetData.status === "success"){
-        // console.log(objRetData.data.result.length);
-        for(let i=0; i<objRetData.data.result.length; i++){
-            objProductIds.push(objRetData.data.result[i].product_id);
+        if(objRetData.data.result.length > 0){
+            for(let i=0; i<objRetData.data.result.length; i++){
+                objProductIds.push(objRetData.data.result[i].product_id);
+            }
+            vProductIds = objProductIds.join(', ');
+            // console.log(objProductIds);
+
+            new DeltaRestClient(vApiKey, vApiSecret).then(client => {
+                client.apis.TradeHistory.getUserfills({ product_ids : vProductIds }).then(function (response) {
+                    let objResult = JSON.parse(response.data);
+                    if(objResult.success){
+                        // for(let k=0; k<objRetData.data.result.length; k++){
+                        //     console.log(objRetData.data.result[k].product_id + " - " + parseInt(objRetData.data.result[k].entry_price) + " - " + objRetData.data.result[k].product_symbol);
+                        // }
+                        // console.log("Nxt loop");
+                        // for(let j=0; j<objResult.result.length; j++){
+                        //     console.log(objResult.result[j].product_id + " - " + parseInt(objResult.result[j].price) + " - " + objResult.result[j].product_symbol);
+                        // }
+                        res.send({ "status": "success", "message": "Open Trades Fetched!", "data": objResult });
+                    }
+                })
+                .catch(function(objError) {
+                    // console.log("*************** Error **************");
+                    // console.log(objError);
+                    res.send({ "status": "danger", "message": objError.response.text, "data": objError });
+                });
+            });        
         }
-        vProductIds = objProductIds.join(', ');
-
-        new DeltaRestClient(vApiKey, vApiSecret).then(client => {
-            client.apis.TradeHistory.getUserfills({ product_ids : vProductIds }).then(function (response) {
-                let objResult = JSON.parse(response.data);
-
-                if(objResult.success){
-                    // console.log(objResult);
-                    res.send({ "status": "success", "message": "Open Trades Fetched!", "data": objResult });
-                }
-            })
-            .catch(function(objError) {
-                // console.log("*************** Error **************");
-                // console.log(objError);
-                res.send({ "status": "danger", "message": objError.response.text, "data": objError });
-            });
-        });        
+        else{
+            res.send({ "status": "warning", "message": "No Open Positions!", "data": "" });
+        }
         // res.send({ "status": "success", "message": objRetData.message, "data": objRetData.data });
     }
     else{
@@ -560,6 +569,7 @@ const fnGetOpenTrades = async (pApiKey, pApiSecret) => {
         new DeltaRestClient(pApiKey, pApiSecret).then(client => {
             client.apis.Positions.getMarginedPositions().then(function (response) {
                 let objResult = JSON.parse(response.data.toString());
+                // console.log(objResult);
 
                 if(objResult.success){
                     // console.log("\wallet:\n----\n", JSON.stringify(objResult));
