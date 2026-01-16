@@ -258,7 +258,7 @@ const fnGetOptChnByCntrctTypeExp = async (pApiKey, pApiSecret, pUndrAsstSymb, pE
 const fnGetSrtdOptChnByDelta = async (pApiKey, pApiSecret, pOptType, pUAssetSymbol, pExpiry, pContractType, pDeltaNPos, pRateNPos) => {
     const objPromise = new Promise((resolve, reject) => {
 
-        console.log(pRateNPos);
+        // console.log(pRateNPos);
         new DeltaRestClient(pApiKey, pApiSecret).then(client => {
             client.apis.Products.getOptionChain({
                 contract_types: pContractType, underlying_asset_symbols: pUAssetSymbol, expiry_date: pExpiry
@@ -270,14 +270,16 @@ const fnGetSrtdOptChnByDelta = async (pApiKey, pApiSecret, pOptType, pUAssetSymb
                 if(objResult.success){
                     for(let i=0; i<objResult.result.length; i++){
                         let vAbsDelta = Math.abs(parseFloat(objResult.result[i].greeks.delta));
-                        if(vAbsDelta <= parseFloat(pDeltaNPos)){
+                        let vBestSellPrice = parseFloat(objResult.result[i].quotes.best_ask);
+                        let vBestBuyPrice = parseFloat(objResult.result[i].quotes.best_bid);
+                        if(vBestSellPrice >= parseFloat(pRateNPos)){
                             // console.log(objResult.result[i]);
-                            let objOCLeg = { ProductID : objResult.result[i].product_id, UndrAsstSymb : objResult.result[i].underlying_asset_symbol, ContType : objResult.result[i].contract_type, OptionType : pOptType, Delta : vAbsDelta, Gamma : parseFloat(objResult.result[i].greeks.gamma), Rho : parseFloat(objResult.result[i].greeks.rho), Theta : parseFloat(objResult.result[i].greeks.theta), Vega : parseFloat(objResult.result[i].greeks.vega), MarkIV : parseFloat(objResult.result[i].quotes.mark_iv), BestAsk : parseFloat(objResult.result[i].quotes.best_ask), BestBid : parseFloat(objResult.result[i].quotes.best_bid), Strike : parseInt(objResult.result[i].strike_price), Symbol : objResult.result[i].symbol, Expiry : pExpiry };
+                            let objOCLeg = { ProductID : objResult.result[i].product_id, UndrAsstSymb : objResult.result[i].underlying_asset_symbol, ContType : objResult.result[i].contract_type, OptionType : pOptType, Delta : vAbsDelta, Gamma : parseFloat(objResult.result[i].greeks.gamma), Rho : parseFloat(objResult.result[i].greeks.rho), Theta : parseFloat(objResult.result[i].greeks.theta), Vega : parseFloat(objResult.result[i].greeks.vega), MarkIV : parseFloat(objResult.result[i].quotes.mark_iv), BestAsk : vBestSellPrice, BestBid : vBestBuyPrice, Strike : parseInt(objResult.result[i].strike_price), Symbol : objResult.result[i].symbol, Expiry : pExpiry };
 
                             objOCData.push(objOCLeg);
                         }
                     }
-                    objOCSortData = objOCData.sort(fnSortRevByDelta);
+                    objOCSortData = objOCData.sort(fnSortByRate);
                     // console.log(objOCSortData[0]);
                     resolve({ "status": "success", "message": "Option Chain Data Feched!", "data": objOCSortData[0] });
                 }
@@ -298,6 +300,10 @@ const fnGetSrtdOptChnByDelta = async (pApiKey, pApiSecret, pOptType, pUAssetSymb
 
 function fnSortRevByDelta(a, b) {
     return (b.Delta) - (a.Delta);
+}
+
+function fnSortByRate(a, b) {
+    return (a.BestAsk) - (b.BestAsk);
 }
 
 function fnGetSignature(pApiSecret, pMethod, pPath, pQueryStr, pTimeStamp, pBody){

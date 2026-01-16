@@ -144,22 +144,29 @@
                                     </div>
                                     <div class="col-2">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success" onclick="fnInitTrade('P');"><b>SELL PE</b></button>
+                                            <button class="btn btn-outline-success" onclick="fnInitTrade('P', 'sell');"><b>SELL PE</b></button>
                                         </div>
                                     </div>
                                     <div class="col-2">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-danger" onclick="fnInitTrade('C');"><b>SELL CE</b></button>
+                                            <button class="btn btn-outline-danger" onclick="fnInitTrade('C', 'sell');"><b>SELL CE</b></button>
                                         </div>
                                     </div>
                                     <div class="col-2">CE PL</div>
                                     <div class="col-2">PE PL</div>
-                                    <div class="col-2"></div>
                                     <div class="col-2">USD Margin Required</div>
                                     <div class="col-2">
                                         Acc Bal <span class="badge text-bg-danger" id="spnCurrency1" style="cursor: pointer;" onclick="fnSwapCurrency();">USD</span>
                                     </div>
                                     <div class="col-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-success" onclick="fnInitTrade('C', 'buy');"><b>BUY CE</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-danger" onclick="fnInitTrade('P', 'buy');"><b>BUY PE</b></button>
+                                        </div>
                                     </div>
 
                                     <div class="col-2">
@@ -169,12 +176,12 @@
                                         <input type="number" class="form-control" placeholder="PE PL" id="txtPutPL" value="0" onchange="fnChangePutPL(this);" />
                                     </div>
                                     <div class="col-2">
-                                    </div>
-                                    <div class="col-2">
                                         <span id="spnMarginReq" style="color: green;">0.00</span>
                                     </div>
                                     <div class="col-2">
                                         <span id="spnBal1">0.00</span>
+                                    </div>
+                                    <div class="col-2">
                                     </div>
                                     <div class="col-2">
 
@@ -245,11 +252,11 @@
                                             <tr style="text-align:center;">
                                                 <th scope="col" style="text-wrap: nowrap;">Status</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Delta</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Gamma</th>
+                                                <!-- <th scope="col" style="text-wrap: nowrap;">Gamma</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Vega</th>
                                                 <th scope="col" style="text-wrap: nowrap;">IV</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Rho</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Theta</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Theta</th> -->
                                                 <th scope="col" style="text-wrap: nowrap;">Symbol</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Tr Type</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Lot Sz</th>
@@ -258,7 +265,8 @@
                                                 <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Charges</th>
                                                 <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Start DT</th>
+                                                <th scope="col" style="text-wrap: nowrap;">End DT</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Actions</th>
                                             </tr>
                                         </thead>
