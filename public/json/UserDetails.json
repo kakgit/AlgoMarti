@@ -1,5 +1,5 @@
 {
-    "UpdDt": "2025-08-19T13:42:47.997Z",
+    "UpdDt": 1768545205179,
     "UserDet": [
         {
             "UserId": 1740834367766,
@@ -22,6 +22,39 @@
             "IsAdmin": true,
             "CreatedAt": "2025-03-02T17:12:52.036Z",
             "UpdatedAt": "2025-08-19T13:45:03.093Z"
+        },
+        {
+            "UserId": 1768545140124,
+            "FullName": "Arun Palakoti",
+            "EmailId": "apalakoti@gmail.com",
+            "Password": "$2a$10$VYjbOAX8SAS9a8zWpMQTrOOP5vKE54yE2jjWSucFlQwrBO6idWj2G",
+            "PhoneNumber": "6301904398",
+            "IsActive": true,
+            "IsAdmin": false,
+            "CreatedAt": "2026-01-16T06:32:20.531Z",
+            "UpdatedAt": "2026-01-16T06:33:30.044Z"
+        },
+        {
+            "UserId": 1768545173416,
+            "FullName": "Mahesh Kumar K",
+            "EmailId": "maheshkamarthi@gmail.com",
+            "Password": "$2a$10$4Bj97vZQHmiOCqoqst40x.GtvK8wZQacs4//4sWc5NPwqUQ1uOtqq",
+            "PhoneNumber": "9866331123",
+            "IsActive": true,
+            "IsAdmin": false,
+            "CreatedAt": "2026-01-16T06:32:53.509Z",
+            "UpdatedAt": "2026-01-16T06:33:36.412Z"
+        },
+        {
+            "UserId": 1768545205179,
+            "FullName": "Prasanna Kamarthi",
+            "EmailId": "prasanna.kamarthi@gmail.com",
+            "Password": "$2a$10$qEuKCQeljwNbn6pthvAd6.VUGERSuT9v0ZpLIVWWLUatk9nmUeYcu",
+            "PhoneNumber": "9963529257",
+            "IsActive": true,
+            "IsAdmin": false,
+            "CreatedAt": "2026-01-16T06:33:25.273Z",
+            "UpdatedAt": "2026-01-16T06:33:40.186Z"
         }
     ]
 }

@@ -1209,6 +1209,32 @@
         "SymbolC": "B-WIF_USDT"
     },
     {
+        "AnualFundD": 43.8,
+        "LotSizeD": 0.1,
+        "LeverageD": 20,
+        "SymbIdD": 116938,
+        "PosLimitD": 27000,
+        "RateFeqMsD": 28800,
+        "RateFeqHrD": 8,
+        "SymbolD": "DASHUSD",
+        "UndrAsstSymbD": "DASH",
+        "AllowOnlyCloseD": false,
+        "SymbolC": "B-DASH_USDT"
+    },
+    {
+        "AnualFundD": 43.8,
+        "LotSizeD": 0.01,
+        "LeverageD": 20,
+        "SymbIdD": 116937,
+        "PosLimitD": 35000,
+        "RateFeqMsD": 28800,
+        "RateFeqHrD": 8,
+        "SymbolD": "XMRUSD",
+        "UndrAsstSymbD": "XMR",
+        "AllowOnlyCloseD": false,
+        "SymbolC": "B-XMR_USDT"
+    },
+    {
         "AnualFundD": 21.9,
         "LotSizeD": 100,
         "LeverageD": 20,

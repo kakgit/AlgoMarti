@@ -82,7 +82,7 @@
                                     <div class="col-2">Lot Size</div>
                                     <div class="col-2">CE Qty</div>
                                     <div class="col-2">PE Qty</div>
-                                    <div class="col-2"></div>
+                                    <div class="col-2">Order Type</div>
 
                                     <div class="col-2">
                                         <div class="input-group mb-3">
@@ -108,39 +108,47 @@
                                     <div class="col-2">
                                         <input type="number" min="0" class="form-control" placeholder="PE Qty" id="txtQtyPE" value="0" onchange="fnChangeQtyPE(this);" />
                                     </div>
+                                    <div class="col-2">
+                                        <select id="ddlOrderType" class="form-select" placeholder="Select Order Type">
+                                            <option value='limit_order'>Limit Order</option>
+                                            <option value='market_order' selected>Market Order</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-2">
+                                        Buy Expiry Type
+                                    </div>
+                                    <div class="col-2">
+                                        Select Buy Expiry
+                                    </div>
+                                    <div class="col-2">
+                                        Sell Expiry Type
+                                    </div>
+                                    <div class="col-2">
+                                        Select Sell Expiry
+                                    </div>
+                                    <div class="col-2"></div>
                                     <div class="col-2"></div>
 
                                     <div class="col-2">
-                                        Short Expiry Type
-                                    </div>
-                                    <div class="col-2">
-                                        Select Short Expiry
-                                    </div>
-                                    <div class="col-2">
-                                        Select Long Expiry
-                                    </div>
-                                    <div class="col-2">Order Type</div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-
-                                    <div class="col-2">
-                                        <select id="ddlExpiryMode" class="form-select" onchange="fnUpdateExpiryMode();" placeholder="Select Expiry Mode" title="Expiry Mode">
+                                        <select id="ddlBuyExpiryMode" class="form-select" onchange="fnUpdateBuyExpiryMode();" placeholder="Select Buy Expiry Mode" title="Buy Expiry Mode">
                                             <option value=1>DAILY</option>
                                             <option value=2>WEEKLY</option>
                                             <option value=3>MONTHLY</option>
                                         </select>
                                     </div>
                                     <div class="col-2">
-                                        <input type="date" class="form-control" placeholder="Short Expiry" id="txtExpShort" value="" />
+                                        <input type="date" class="form-control" placeholder="Buy Expiry" id="txtExpBuy" value="" />
                                     </div>
                                     <div class="col-2">
-                                        <input type="date" class="form-control" placeholder="Long Expiry" id="txtExpLong" value="" />
-                                    </div>
-                                    <div class="col-2">
-                                        <select id="ddlOrderType" class="form-select" placeholder="Select Order Type">
-                                            <option value='limit_order'>Limit Order</option>
-                                            <option value='market_order' selected>Market Order</option>
+                                        <select id="ddlSellExpiryMode" class="form-select" onchange="fnUpdateSellExpiryMode();" placeholder="Select Sell Expiry Mode" title="Sell Expiry Mode">
+                                            <option value=1>DAILY</option>
+                                            <option value=2>WEEKLY</option>
+                                            <option value=3>MONTHLY</option>
                                         </select>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="date" class="form-control" placeholder="Sell Expiry" id="txtExpSell" value="" />
                                     </div>
                                     <div class="col-2">
                                         <div class="d-grid gap-1">

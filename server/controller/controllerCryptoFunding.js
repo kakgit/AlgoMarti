@@ -48,7 +48,7 @@ exports.fnUpdCoindcxDeltaCoinsList = async (req, res) => {
                     console.error(err);
                     return;
                 };
-                console.log("File Created / Updated!");
+                // console.log("File Created / Updated!");
             });
 
             res.send({ "status": "success", "message": objDeltaCoinDCXCoins.message, "data": objDeltaCoinDCXCoins.data });

@@ -506,28 +506,47 @@ function fnTest(){
 
 //************ Update Live Code Here **************//
 function fnLoadDefExpiryMode(){
-    let objExpiryMode = document.getElementById("ddlExpiryMode");
-    let vExpiryMode = JSON.parse(localStorage.getItem("ExpiryModeDSSD"));
+    let objBuyExpiryMode = document.getElementById("ddlBuyExpiryMode");
+    let objSellExpiryMode = document.getElementById("ddlSellExpiryMode");
+    let vBuyExpiryMode = JSON.parse(localStorage.getItem("BuyExpiryModeDSSD"));
+    let vSellExpiryMode = JSON.parse(localStorage.getItem("SellExpiryModeDSSD"));
+    let objExpiryBuy = document.getElementById("txtExpBuy");
+    let objExpirySell = document.getElementById("txtExpSell");
 
-    if(vExpiryMode === null){
-        objExpiryMode.value = 1;
+    if(vBuyExpiryMode === null){
+        objBuyExpiryMode.value = 1;
     }
     else{
-        objExpiryMode.value = vExpiryMode;
+        objBuyExpiryMode.value = vBuyExpiryMode;
     }
-    fnLoadDefExpiryDate(objExpiryMode.value);
+    fnLoadExpiryDate(objBuyExpiryMode.value, objExpiryBuy);
+
+    if(vSellExpiryMode === null){
+        objSellExpiryMode.value = 1;
+    }
+    else{
+        objSellExpiryMode.value = vSellExpiryMode;
+    }
+    fnLoadExpiryDate(objSellExpiryMode.value, objExpirySell);
 }
 
-function fnUpdateExpiryMode(){
-    let objExpiryMode = document.getElementById("ddlExpiryMode");
+function fnUpdateBuyExpiryMode(){
+    let objBuyExpiryMode = document.getElementById("ddlBuyExpiryMode");
+    let objExpiryBuy = document.getElementById("txtExpBuy");
 
-    fnLoadDefExpiryDate(objExpiryMode.value);
-    localStorage.setItem("ExpiryModeDSSD", JSON.stringify(objExpiryMode.value));
+    fnLoadExpiryDate(objBuyExpiryMode.value, objExpiryBuy);
+    localStorage.setItem("BuyExpiryModeDSSD", JSON.stringify(objBuyExpiryMode.value));
 }
 
-function fnLoadDefExpiryDate(pExpiryMode){
-    let objExpiryShort = document.getElementById("txtExpShort");
-    let objExpiryLong = document.getElementById("txtExpLong");
+function fnUpdateSellExpiryMode(){
+    let objSellExpiryMode = document.getElementById("ddlSellExpiryMode");
+    let objExpirySell = document.getElementById("txtExpSell");
+
+    fnLoadExpiryDate(objSellExpiryMode.value, objExpirySell);
+    localStorage.setItem("SellExpiryModeDSSD", JSON.stringify(objSellExpiryMode.value));
+}
+
+function fnLoadExpiryDate(pExpiryMode, objExpiry){
     let vCurrDate = new Date();
     const vCurrFriday = new Date(vCurrDate);
     const vYear = vCurrDate.getFullYear();
@@ -549,7 +568,7 @@ function fnLoadDefExpiryDate(pExpiryMode){
         let vMonth = (vCurrDate.getMonth() + 1).toString().padStart(2, "0");
         let vExpValTB = vCurrDate.getFullYear() + "-" + vMonth + "-" + vDay;
 
-        objExpiryShort.value = vExpValTB;
+        objExpiry.value = vExpValTB;
     }
     else if(pExpiryMode === "2"){
         const vCurrDayOfWeek = vCurrDate.getDay();
@@ -565,7 +584,7 @@ function fnLoadDefExpiryDate(pExpiryMode){
         let vMonth = (vCurrFriday.getMonth() + 1).toString().padStart(2, "0");
         let vExpValTB = vCurrFriday.getFullYear() + "-" + vMonth + "-" + vDay;
 
-        objExpiryShort.value = vExpValTB;
+        objExpiry.value = vExpValTB;
     }
     else if(pExpiryMode === "3"){
         while (vLastDayOfMonth.getDay() !== 5) { 
@@ -585,8 +604,7 @@ function fnLoadDefExpiryDate(pExpiryMode){
             vMonth = (vLastDayOfNextMonth.getMonth() + 1).toString().padStart(2, "0");
             vExpValTB = vLastDayOfNextMonth.getFullYear() + "-" + vMonth + "-" + vDay;
         }
-        objExpiryShort.value = vExpValTB;
-        objExpiryLong.value = vExpValTB;
+        objExpiry.value = vExpValTB;
     }
 }
 
@@ -650,7 +668,8 @@ function fnChangeReqMargin(){
 function fnPreInitTrade(pOptionType, pTransType){
     let vIsRecExists = false;
 
-    fnUpdateExpiryMode();
+    fnUpdateBuyExpiryMode();
+    fnUpdateSellExpiryMode();
 
     if(gCurrPosDSSD.TradeData.length > 0){
         for(let i=0; i<gCurrPosDSSD.TradeData.length; i++){
@@ -709,7 +728,8 @@ async function fnInitTrade(pOptionType, pTransType){
     let objLotSize = document.getElementById("txtLotSize");
     let objQtyCE = document.getElementById("txtQtyCE");
     let objQtyPE = document.getElementById("txtQtyPE");
-    let objExpShort = document.getElementById("txtExpShort");
+    let objExpiryBuy = document.getElementById("txtExpBuy");
+    let objExpirySell = document.getElementById("txtExpSell");
     let objOrderType = document.getElementById("ddlOrderType");
 
     let objStrategies = [];
@@ -718,13 +738,22 @@ async function fnInitTrade(pOptionType, pTransType){
     let vOrdId = vDate.valueOf();
     let vMonth = vDate.getMonth() + 1;
     let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
+    let vExpiryNewPos = "";
 
-    let vShortExpiry = fnSetDDMMYYYY(objExpShort.value);
+    let vBuyExpiry = fnSetDDMMYYYY(objExpiryBuy.value);
+    let vSellExpiry = fnSetDDMMYYYY(objExpirySell.value);
+
+    if(pTransType === "sell"){
+        vExpiryNewPos = vSellExpiry;
+    }
+    else if(pTransType === "buy"){
+        vExpiryNewPos = vBuyExpiry;
+    }
 
     //{ TransType : "sell", OptionType : "F", DeltaNew : 1.00, DeltaTP : 2.00, DeltaSL : 0.10 }, 
     
     if(pTransType === "sell"){
-        objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", RateNew : 1500, RateTP : 1000, RateSL : 500, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { TransType : "sell", OptionType : "C", RateNew : 1500, RateTP : 1000, RateSL : 500, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
+        objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", RateNew : 1200, RateTP : 700, RateSL : 500, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { TransType : "sell", OptionType : "C", RateNew : 1200, RateTP : 700, RateSL : 500, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
     }
     else if(pTransType === "buy"){
         objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "buy", OptionType : "P", RateNew : 600, RateTP : 500, RateSL : 500, DeltaNew : 0.50, DeltaTP : 0.65, DeltaSL : 0.35 }, { TransType : "buy", OptionType : "C", RateNew : 600, RateTP : 500, RateSL : 500, DeltaNew : 0.50, DeltaTP : 0.65, DeltaSL : 0.35 }] }] }
@@ -760,7 +789,7 @@ async function fnInitTrade(pOptionType, pTransType){
         }
 
         if(objStrategies.Strategies[0].StratModel[i].OptionType === pOptionType){
-            let objTradeDtls = await fnExecOption(vApiKey, vApiSecret, vUndrAsst, vShortExpiry, vOptionType, vTransType, vRateNPos, vDeltaNPos, objOrderType.value, vQty, vClientID);
+            let objTradeDtls = await fnExecOption(vApiKey, vApiSecret, vUndrAsst, vExpiryNewPos, vOptionType, vTransType, vRateNPos, vDeltaNPos, objOrderType.value, vQty, vClientID);
             if(objTradeDtls.status === "success"){
                 // console.log(objTradeDtls);
 
@@ -1527,7 +1556,7 @@ function fnLoadAllExpiryDate(){
     let objExpiryDay = document.getElementById("txtDayExpiry");
     let objExpiryWeek = document.getElementById("txtWeekExpiry");
     let objExpiryMonth = document.getElementById("txtMonthExpiry");
-    let objExpiryLong = document.getElementById("txtExpLong");
+    let objExpirySell = document.getElementById("txtExpSell");
 
     let vCurrDate = new Date();
     let vCurrFriday = new Date(vCurrDate);
@@ -1590,7 +1619,7 @@ function fnLoadAllExpiryDate(){
     }
 
     objExpiryMonth.value = vExpValM;
-    objExpiryLong.value = vExpValM;
+    objExpirySell.value = vExpValM;
     //************** Monthly Expiry ***************//
 }
 
