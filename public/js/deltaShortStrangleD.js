@@ -2,7 +2,8 @@
 let obj_WS_DFL = null;
 let gSubList = [];
 let gMinReqMargin = 5.00;
-let gQtyMultiplierM = 0;
+let gQtyBuyMultiplierM = 0;
+let gQtySellMultiplierM = 0;
 let gObjDeltaDirec = [];
 let gCurrPosDSSD = { TradeData : []};
 let gTradeInst = 0;
@@ -89,7 +90,7 @@ function fnGetAllStatus(){
         fnLoadDefSymbol();
         fnLoadDefExpiryMode();
 
-        fnLoadAllExpiryDate();
+        // fnLoadAllExpiryDate();
         fnLoadCurrentTradePos();
         // setInterval(fnGetDelta, 300000);
         fnUpdateOpenPositions();
@@ -118,68 +119,114 @@ function fnLoadCurrStrategies(){
 }
 
 function fnLoadDefQty(){
-    let objStartQtyM = JSON.parse(localStorage.getItem("StartQtyDSSD"));
+    let objStartQtyBuyM = JSON.parse(localStorage.getItem("StartQtyBuyDSSD"));
+    let objStartQtySellM = JSON.parse(localStorage.getItem("StartQtySellDSSD"));
 
-    let objQtyCE = document.getElementById("txtQtyCE");
-    let objQtyPE = document.getElementById("txtQtyPE");
-    let objStartQty = document.getElementById("txtStartQty");
+    let objBQtyCE = document.getElementById("txtBQtyCE");
+    let objBQtyPE = document.getElementById("txtBQtyPE");
+    let objStartBuyQty = document.getElementById("txtStartBQty");
 
-    if(objStartQtyM === null){
-        objStartQty.value = 1;
-        objQtyCE.value = 1;
-        objQtyPE.value = 1;
-        localStorage.setItem("StartQtyDSSD", objStartQty.value);
+    let objSQtyCE = document.getElementById("txtSQtyCE");
+    let objSQtyPE = document.getElementById("txtSQtyPE");
+    let objStartSellQty = document.getElementById("txtStartSQty");
+
+    if(objStartQtyBuyM === null){
+        objStartBuyQty.value = 1;
+        objBQtyCE.value = 1;
+        objBQtyPE.value = 1;
+        localStorage.setItem("StartQtyBuyDSSD", objStartBuyQty.value);
     }
     else{
-        objStartQty.value = objStartQtyM;
-        objQtyCE.value = objStartQtyM;
-        objQtyPE.value = objStartQtyM;
+        objStartBuyQty.value = objStartQtyBuyM;
+        objBQtyCE.value = objStartQtyBuyM;
+        objBQtyPE.value = objStartQtyBuyM;
+    }
+
+    if(objStartQtySellM === null){
+        objStartSellQty.value = 1;
+        objSQtyCE.value = 1;
+        objSQtyPE.value = 1;
+        localStorage.setItem("StartQtySellDSSD", objStartSellQty.value);
+    }
+    else{
+        objStartSellQty.value = objStartQtySellM;
+        objSQtyCE.value = objStartQtySellM;
+        objSQtyPE.value = objStartQtySellM;
     }
 }
 
-function fnChangeStartQty(pThisVal){
-    let objQtyCE = document.getElementById("txtQtyCE");
-    let objQtyPE = document.getElementById("txtQtyPE");
+function fnChangeBuyStartQty(pThisVal){
+    let objBQtyCE = document.getElementById("txtBQtyCE");
+    let objBQtyPE = document.getElementById("txtBQtyPE");
 
     if(pThisVal.value === "" || pThisVal.value === "0"){
         fnGenMessage("Not a Valid Qty No to Start with, Please Check", `badge bg-danger`, "spnGenMsg");
         pThisVal.value = 1;
-        localStorage.setItem("StartQtyDSSD", 1);
+        localStorage.setItem("StartQtyBuyDSSD", 1);
     }
     else if(isNaN(parseInt(pThisVal.value))){
         fnGenMessage("Not a Valid Qty No to Start with, Please Check", `badge bg-danger`, "spnGenMsg");
         pThisVal.value = 1;
-        localStorage.setItem("StartQtyDSSD", 1);
+        localStorage.setItem("StartQtyBuyDSSD", 1);
     }
     else{
         fnGenMessage("No of Qty to Start With is Changed!", `badge bg-success`, "spnGenMsg");
-        localStorage.setItem("StartQtyDSSD", pThisVal.value);
+        localStorage.setItem("StartQtyBuyDSSD", pThisVal.value);
 
         if(confirm("Are You Sure You want to change the Quantity?")){
-            objQtyCE.value = pThisVal.value;
-            objQtyPE.value = pThisVal.value;
-            localStorage.setItem("QtyCallDSSD", pThisVal.value);
-            localStorage.setItem("QtyPutDSSD", pThisVal.value);
+            objBQtyCE.value = pThisVal.value;
+            objBQtyPE.value = pThisVal.value;
+            localStorage.setItem("QtyCallBuyDSSD", pThisVal.value);
+            localStorage.setItem("QtyPutBuyDSSD", pThisVal.value);
         }
     }
-    fnChangeReqMargin();
-    // console.log(localStorage.getItem("StartQtyDSSD"));
+    // fnChangeReqMargin();
+    // console.log(localStorage.getItem("StartQtyBuyDSSD"));
 }
 
-function fnChangeQtyCE(pThis){
-    localStorage.setItem("QtyCallDSSD", pThis.value);
+function fnChangeSellStartQty(pThisVal){
+    let objSQtyCE = document.getElementById("txtSQtyCE");
+    let objSQtyPE = document.getElementById("txtSQtyPE");
+
+    if(pThisVal.value === "" || pThisVal.value === "0"){
+        fnGenMessage("Not a Valid Qty No to Start with, Please Check", `badge bg-danger`, "spnGenMsg");
+        pThisVal.value = 1;
+        localStorage.setItem("StartQtySellDSSD", 1);
+    }
+    else if(isNaN(parseInt(pThisVal.value))){
+        fnGenMessage("Not a Valid Qty No to Start with, Please Check", `badge bg-danger`, "spnGenMsg");
+        pThisVal.value = 1;
+        localStorage.setItem("StartQtySellDSSD", 1);
+    }
+    else{
+        fnGenMessage("No of Qty to Start With is Changed!", `badge bg-success`, "spnGenMsg");
+        localStorage.setItem("StartQtySellDSSD", pThisVal.value);
+
+        if(confirm("Are You Sure You want to change the Quantity?")){
+            objSQtyCE.value = pThisVal.value;
+            objSQtyPE.value = pThisVal.value;
+            localStorage.setItem("QtyCallSellDSSD", pThisVal.value);
+            localStorage.setItem("QtyPutSellDSSD", pThisVal.value);
+        }
+    }
+    // fnChangeReqMargin();
+    // console.log(localStorage.getItem("StartQtySellDSSD"));
 }
 
-function fnChangeQtyPE(pThis){
-    localStorage.setItem("QtyPutDSSD", pThis.value);
+function fnChangeBuyQtyCE(pThis){
+    localStorage.setItem("QtyCallBuyDSSD", pThis.value);
 }
 
-function fnChangeCallPL(pThis){
-    localStorage.setItem("TLAmtCeDSSD", pThis.value);
+function fnChangeBuyQtyPE(pThis){
+    localStorage.setItem("QtyPutBuyDSSD", pThis.value);
 }
 
-function fnChangePutPL(pThis){
-    localStorage.setItem("TLAmtPeDSSD", pThis.value);
+function fnChangeBuyCallPL(pThis){
+    localStorage.setItem("TLAmtBuyCeDSSD", pThis.value);
+}
+
+function fnChangeBuyPutPL(pThis){
+    localStorage.setItem("TLAmtBuyPeDSSD", pThis.value);
 }
 
 function fnChangeSymbol(pSymbVal){
@@ -217,44 +264,57 @@ function fnSetSymbolData(pThisVal){
 }
 
 function fnLoadNetLimits(){
-    let objNetLimits = JSON.parse(localStorage.getItem("NetLimitDSSD"));
-    let objQtyCE = document.getElementById("txtQtyCE");
-    let objQtyPE = document.getElementById("txtQtyPE");
-    let objSpnBal1 = document.getElementById("spnBal1");
-    let objSpmReqMargin = document.getElementById('spnMarginReq');
-    let objStartQty = document.getElementById("txtStartQty");
+    // let objNetLimits = JSON.parse(localStorage.getItem("NetLimitDSSD"));
+    // let objSpnBal1 = document.getElementById("spnBal1");
+    // let objSpmReqMargin = document.getElementById('spnMarginReq');
+    let objBQtyCE = document.getElementById("txtBQtyCE");
+    let objBQtyPE = document.getElementById("txtBQtyPE");
+    let objStartBQty = document.getElementById("txtStartBQty");
 
-    gQtyMultiplierM = objStartQty.value;
-    // console.log(localStorage.getItem("QtyMulDSSD"));
-    // console.log(objNetLimits);
+    let objSQtyCE = document.getElementById("txtSQtyCE");
+    let objSQtyPE = document.getElementById("txtSQtyPE");
+    let objStartSQty = document.getElementById("txtStartSQty");
 
-    if(gQtyMultiplierM === null || gQtyMultiplierM === ""){
-        gQtyMultiplierM = 0;
-        objQtyCE.value = gQtyMultiplierM;
-        objQtyPE.value = gQtyMultiplierM;
+    gQtyBuyMultiplierM = objStartBQty.value;
+    gQtySellMultiplierM = objStartSQty.value;
+
+    if(gQtyBuyMultiplierM === null || gQtyBuyMultiplierM === ""){
+        gQtyBuyMultiplierM = 0;
+        objBQtyCE.value = gQtyBuyMultiplierM;
+        objBQtyPE.value = gQtyBuyMultiplierM;
     }
     else{
-        objQtyCE.value = gQtyMultiplierM;
-        objQtyPE.value = gQtyMultiplierM;
+        objBQtyCE.value = gQtyBuyMultiplierM;
+        objBQtyPE.value = gQtyBuyMultiplierM;
     }
 
-    if(objNetLimits === null || objNetLimits === ""){
-        // objSpnBal1.innerText = parseFloat((objNetLimits.Acc1BalUSD)).toFixed(2);
+    if(gQtySellMultiplierM === null || gQtySellMultiplierM === ""){
+        gQtySellMultiplierM = 0;
+        objSQtyCE.value = gQtySellMultiplierM;
+        objSQtyPE.value = gQtySellMultiplierM;
     }
     else{
-        let Acc1BalUSD = parseFloat((objNetLimits.Acc1BalUSD)).toFixed(2);
-        objSpnBal1.innerText = Acc1BalUSD;
-
-        let vTotalMarginReq = (gMinReqMargin * gQtyMultiplierM).toFixed(2);
-        objSpmReqMargin.innerText = vTotalMarginReq;
-
-        if(parseFloat(vTotalMarginReq) > parseFloat(Acc1BalUSD)){
-            objSpmReqMargin.style.color = "red";
-        }
-        else{
-            objSpmReqMargin.style.color = "green";
-        }
+        objSQtyCE.value = gQtySellMultiplierM;
+        objSQtyPE.value = gQtySellMultiplierM;
     }
+
+    // if(objNetLimits === null || objNetLimits === ""){
+    //     // objSpnBal1.innerText = parseFloat((objNetLimits.Acc1BalUSD)).toFixed(2);
+    // }
+    // else{
+    //     let Acc1BalUSD = parseFloat((objNetLimits.Acc1BalUSD)).toFixed(2);
+    //     objSpnBal1.innerText = Acc1BalUSD;
+
+    //     let vTotalMarginReq = (gMinReqMargin * gQtyMultiplierM).toFixed(2);
+    //     objSpmReqMargin.innerText = vTotalMarginReq;
+
+    //     if(parseFloat(vTotalMarginReq) > parseFloat(Acc1BalUSD)){
+    //         objSpmReqMargin.style.color = "red";
+    //     }
+    //     else{
+    //         objSpmReqMargin.style.color = "green";
+    //     }
+    // }
 }
 
 function fnLoadCurrentTradePos(){
@@ -311,50 +371,50 @@ function fnLoadOptStep(){
 }
 
 function fnLoadTotalLossAmtQty(){
-    let vTLAmtCeDSSD = localStorage.getItem("TLAmtCeDSSD");
-    let vTLAmtPeDSSD = localStorage.getItem("TLAmtPeDSSD");
-    let vQtyCEM = localStorage.getItem("QtyCallDSSD");
-    let vQtyPEM = localStorage.getItem("QtyPutDSSD");
-    let objQtyCE = document.getElementById("txtQtyCE");
-    let objQtyPE = document.getElementById("txtQtyPE");
-    let objDefQty = document.getElementById("txtStartQty");
+    let vTLAmtCeBuyDSSD = localStorage.getItem("TLAmtBuyCeDSSD");
+    let vTLAmtPeBuyDSSD = localStorage.getItem("TLAmtBuyPeDSSD");
+    let vQtyCEM = localStorage.getItem("QtyCallBuyDSSD");
+    let vQtyPEM = localStorage.getItem("QtyPutBuyDSSD");
+    let objBQtyCE = document.getElementById("txtBQtyCE");
+    let objBQtyPE = document.getElementById("txtBQtyPE");
+    let objDefQty = document.getElementById("txtStartBQty");
 
-    let objCallPL = document.getElementById("txtCallPL");
-    let objPutPL = document.getElementById("txtPutPL");
+    let objCallPL = document.getElementById("txtBCallPL");
+    let objPutPL = document.getElementById("txtBPutPL");
 
-    if(vTLAmtCeDSSD === null || vTLAmtCeDSSD === "" || isNaN(vTLAmtCeDSSD)){
-        localStorage.setItem("TLAmtCeDSSD", 0);
-        localStorage.setItem("QtyCallDSSD", objDefQty.value);
+    if(vTLAmtCeBuyDSSD === null || vTLAmtCeBuyDSSD === "" || isNaN(vTLAmtCeBuyDSSD)){
+        localStorage.setItem("TLAmtBuyCeDSSD", 0);
+        localStorage.setItem("QtyCallBuyDSSD", objDefQty.value);
     }
-    else if(parseFloat(vTLAmtCeDSSD) > 0){
+    else if(parseFloat(vTLAmtCeBuyDSSD) > 0){
         objCallPL.value = 0;
     }
     else{
-        objCallPL.value = vTLAmtCeDSSD;
+        objCallPL.value = vTLAmtCeBuyDSSD;
 
         if(parseInt(vQtyCEM) < parseInt(objDefQty.value)){
-            objQtyCE.value = objDefQty.value;
+            objBQtyCE.value = objDefQty.value;
         }
         else{
-            objQtyCE.value = vQtyCEM;
+            objBQtyCE.value = vQtyCEM;
         }
     }
 
-    if(vTLAmtPeDSSD === null || vTLAmtPeDSSD === "" || isNaN(vTLAmtPeDSSD)){
-        localStorage.setItem("TLAmtPeDSSD", 0);
-        localStorage.setItem("QtyPutDSSD", objDefQty.value);
+    if(vTLAmtPeBuyDSSD === null || vTLAmtPeBuyDSSD === "" || isNaN(vTLAmtPeBuyDSSD)){
+        localStorage.setItem("TLAmtBuyPeDSSD", 0);
+        localStorage.setItem("QtyPutBuyDSSD", objDefQty.value);
     }
-    else if(parseFloat(vTLAmtPeDSSD) > 0){
+    else if(parseFloat(vTLAmtPeBuyDSSD) > 0){
         objPutPL.value = 0;
     }
     else{
-        objPutPL.value = vTLAmtPeDSSD;
+        objPutPL.value = vTLAmtPeBuyDSSD;
 
         if(parseInt(vQtyPEM) < parseInt(objDefQty.value)){
-            objQtyPE.value = objDefQty.value;
+            objBQtyPE.value = objDefQty.value;
         }
         else{
-            objQtyPE.value = vQtyPEM;
+            objBQtyPE.value = vQtyPEM;
         }
     }
 }
@@ -366,8 +426,8 @@ function fnSaveUpdCurrPos(){
     let vTransType = "";
     let vOptionType = "";
     let vSymbol = "";
-    let objCallPL = document.getElementById("txtCallPL");
-    let objPutPL = document.getElementById("txtPutPL");
+    let objCallPL = document.getElementById("txtBCallPL");
+    let objPutPL = document.getElementById("txtBPutPL");
 
     for(let i=0; i<gCurrPosDSSD.TradeData.length; i++){
         if(gCurrPosDSSD.TradeData[i].Status === "OPEN"){
@@ -637,7 +697,7 @@ function fnSwapCurrency(){
 function fnChangeReqMargin(){
     let objNetLimits = JSON.parse(localStorage.getItem("NetLimitDSSD"));
     let objSpmReqMargin = document.getElementById("spnMarginReq");
-    let objQtyCE = document.getElementById("txtQtyCE");
+    let objBQtyCE = document.getElementById("txtBQtyCE");
     let Acc1BalUSD = 0;
 
     if(objNetLimits === null || objNetLimits === ""){
@@ -647,14 +707,14 @@ function fnChangeReqMargin(){
         Acc1BalUSD = parseFloat((objNetLimits.Acc1BalUSD)).toFixed(2);
     }
 
-    if(isNaN(parseFloat(objQtyCE.value)) || objQtyCE.value === ""){
+    if(isNaN(parseFloat(objBQtyCE.value)) || objBQtyCE.value === ""){
         objSpmReqMargin.innerText = (0.00).toFixed(2);
     }
     else{
-        let vTotalMarginReq = (gMinReqMargin * parseFloat(objQtyCE.value)).toFixed(2);
+        let vTotalMarginReq = (gMinReqMargin * parseFloat(objBQtyCE.value)).toFixed(2);
         objSpmReqMargin.innerText = vTotalMarginReq;
 
-        // localStorage.setItem("QtyMulDSSD", objQtyCE.value);
+        // localStorage.setItem("QtyMulDSSD", objBQtyCE.value);
 
         if(parseFloat(vTotalMarginReq) > parseFloat(Acc1BalUSD)){
             objSpmReqMargin.style.color = "red";
@@ -673,7 +733,7 @@ function fnPreInitTrade(pOptionType, pTransType){
 
     if(gCurrPosDSSD.TradeData.length > 0){
         for(let i=0; i<gCurrPosDSSD.TradeData.length; i++){
-            if((gCurrPosDSSD.TradeData[i].OptionType === pOptionType) && (gCurrPosDSSD.TradeData[i].Status === "OPEN")){
+            if((gCurrPosDSSD.TradeData[i].OptionType === pOptionType) && (gCurrPosDSSD.TradeData[i].TransType === pTransType) && (gCurrPosDSSD.TradeData[i].Status === "OPEN")){
                 vIsRecExists = true;
             }
         }
@@ -726,8 +786,8 @@ async function fnInitTrade(pOptionType, pTransType){
 
     let objSymbol = document.getElementById("ddlSymbols");
     let objLotSize = document.getElementById("txtLotSize");
-    let objQtyCE = document.getElementById("txtQtyCE");
-    let objQtyPE = document.getElementById("txtQtyPE");
+    let objBQtyCE = document.getElementById("txtBQtyCE");
+    let objBQtyPE = document.getElementById("txtBQtyPE");
     let objExpiryBuy = document.getElementById("txtExpBuy");
     let objExpirySell = document.getElementById("txtExpSell");
     let objOrderType = document.getElementById("ddlOrderType");
@@ -750,7 +810,7 @@ async function fnInitTrade(pOptionType, pTransType){
         vExpiryNewPos = vBuyExpiry;
     }
 
-    //{ TransType : "sell", OptionType : "F", DeltaNew : 1.00, DeltaTP : 2.00, DeltaSL : 0.10 }, 
+    //{ TransType : "sell", OptionType : "F", DeltaNew : 1.00, DeltaTP : 2.00, DeltaSL : 0.10 },
     
     if(pTransType === "sell"){
         objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", RateNew : 1200, RateTP : 700, RateSL : 500, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { TransType : "sell", OptionType : "C", RateNew : 1200, RateTP : 700, RateSL : 500, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
@@ -782,10 +842,10 @@ async function fnInitTrade(pOptionType, pTransType){
         let vQty = 0;
 
         if(pOptionType === "C"){
-            vQty = objQtyCE.value;
+            vQty = objBQtyCE.value;
         }
         else if(pOptionType === "P"){
-            vQty = objQtyPE.value;
+            vQty = objBQtyPE.value;
         }
 
         if(objStrategies.Strategies[0].StratModel[i].OptionType === pOptionType){
@@ -1114,50 +1174,50 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
         if(objStepSwt.checked){
             let vCharges = fnGetTradeCharges(vStrikePrice, vLotSize, vQty, vBuyPrice, vSellPrice);
             let vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
-            let objStartQty = document.getElementById("txtStartQty");
+            let objStartQty = document.getElementById("txtStartBQty");
 
             if(pOptionType === "C"){
-                let vTLAmtCeDSSD = localStorage.getItem("TLAmtCeDSSD");
-                if(parseFloat(vTLAmtCeDSSD) > 0){
-                    vTLAmtCeDSSD = 0;
+                let vTLAmtCeBuyDSSD = localStorage.getItem("TLAmtBuyCeDSSD");
+                if(parseFloat(vTLAmtCeBuyDSSD) > 0){
+                    vTLAmtCeBuyDSSD = 0;
                 }
-                let vQtyCE = localStorage.getItem("QtyCallDSSD");
-                vTLAmtCeDSSD = parseFloat(vTLAmtCeDSSD) + parseFloat(vPL);
-                localStorage.setItem("TLAmtCeDSSD", vTLAmtCeDSSD);
-                document.getElementById("txtCallPL").value = vTLAmtCeDSSD;
+                let vQtyCE = localStorage.getItem("QtyCallBuyDSSD");
+                vTLAmtCeBuyDSSD = parseFloat(vTLAmtCeBuyDSSD) + parseFloat(vPL);
+                localStorage.setItem("TLAmtBuyCeDSSD", vTLAmtCeBuyDSSD);
+                document.getElementById("txtBCallPL").value = vTLAmtCeBuyDSSD;
 
-                if(parseFloat(vTLAmtCeDSSD) < 0){
+                if(parseFloat(vTLAmtCeBuyDSSD) < 0){
                     // let vNewQty = parseInt(vQtyCE) + parseInt(objStartQty.value);
                     let vNewQty = parseInt(vQtyCE) * 2;
-                    localStorage.setItem("QtyCallDSSD", vNewQty);
-                    document.getElementById("txtQtyCE").value = vNewQty;
+                    localStorage.setItem("QtyCallBuyDSSD", vNewQty);
+                    document.getElementById("txtBQtyCE").value = vNewQty;
                 }
                 else{
-                    document.getElementById("txtCallPL").value = 0;
-                    document.getElementById("txtQtyCE").value = objStartQty.value;
-                    localStorage.setItem("QtyCallDSSD", objStartQty.value);
+                    document.getElementById("txtBCallPL").value = 0;
+                    document.getElementById("txtBQtyCE").value = objStartQty.value;
+                    localStorage.setItem("QtyCallBuyDSSD", objStartQty.value);
                 }
             }
             else if(pOptionType === "P"){
-                let vTLAmtPeDSSD = localStorage.getItem("TLAmtPeDSSD");
-                if(parseFloat(vTLAmtPeDSSD) > 0){
-                    vTLAmtPeDSSD = 0;
+                let vTLAmtPeBuyDSSD = localStorage.getItem("TLAmtBuyPeDSSD");
+                if(parseFloat(vTLAmtPeBuyDSSD) > 0){
+                    vTLAmtPeBuyDSSD = 0;
                 }
-                let vQtyPE = localStorage.getItem("QtyPutDSSD");
-                vTLAmtPeDSSD = parseFloat(vTLAmtPeDSSD) + parseFloat(vPL);
-                localStorage.setItem("TLAmtPeDSSD", vTLAmtPeDSSD);
-                document.getElementById("txtPutPL").value = vTLAmtPeDSSD;
+                let vQtyPE = localStorage.getItem("QtyPutBuyDSSD");
+                vTLAmtPeBuyDSSD = parseFloat(vTLAmtPeBuyDSSD) + parseFloat(vPL);
+                localStorage.setItem("TLAmtBuyPeDSSD", vTLAmtPeBuyDSSD);
+                document.getElementById("txtBPutPL").value = vTLAmtPeBuyDSSD;
 
-                if(parseFloat(vTLAmtPeDSSD) < 0){
+                if(parseFloat(vTLAmtPeBuyDSSD) < 0){
                     // let vNewQty = parseInt(vQtyPE) + parseInt(objStartQty.value);
                     let vNewQty = parseInt(vQtyPE) * 2;
-                    localStorage.setItem("QtyPutDSSD", vNewQty);
-                    document.getElementById("txtQtyPE").value = vNewQty;
+                    localStorage.setItem("QtyPutBuyDSSD", vNewQty);
+                    document.getElementById("txtBQtyPE").value = vNewQty;
                 }
                 else{
-                    document.getElementById("txtPutPL").value = 0;
-                    document.getElementById("txtQtyPE").value = objStartQty.value;
-                    localStorage.setItem("QtyPutDSSD", objStartQty.value);
+                    document.getElementById("txtBPutPL").value = 0;
+                    document.getElementById("txtBQtyPE").value = objStartQty.value;
+                    localStorage.setItem("QtyPutBuyDSSD", objStartQty.value);
                 }
             }
         }
@@ -1360,11 +1420,11 @@ function fnClearLocalStorageTemp(){
     localStorage.setItem("QtyMulDSSD", 0);
     localStorage.removeItem("NetLimitDSSD");
 
-    localStorage.removeItem("TLAmtCeDSSD");
-    localStorage.removeItem("TLAmtPeDSSD");
-    localStorage.removeItem("QtyCallDSSD");
-    localStorage.removeItem("QtyPutDSSD");
-    localStorage.removeItem("StartQtyDSSD");
+    localStorage.removeItem("TLAmtBuyCeDSSD");
+    localStorage.removeItem("TLAmtBuyPeDSSD");
+    localStorage.removeItem("QtyCallBuyDSSD");
+    localStorage.removeItem("QtyPutBuyDSSD");
+    localStorage.removeItem("StartQtyBuyDSSD");
     fnGetAllStatus();
     console.log("Memory Cleared!!!");
 }

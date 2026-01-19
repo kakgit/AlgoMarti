@@ -2,8 +2,8 @@
 function fnLoadLoginCred(){
     let objApiKey = document.getElementById("txtUserAPIKey");
     let objApiSecret = document.getElementById("txtAPISecret");
-    let vApiKey = JSON.parse(localStorage.getItem("lsApiKeyDSSD"));
-    let vApiSecret = JSON.parse(localStorage.getItem("lsApiSecretDSSD"));
+    let vApiKey = JSON.parse(localStorage.getItem("lsApiKeyDSTGL"));
+    let vApiSecret = JSON.parse(localStorage.getItem("lsApiSecretDSTGL"));
 
     if(vApiKey === null || vApiKey === ""){
         objApiKey.value = "";
@@ -16,7 +16,7 @@ function fnLoadLoginCred(){
 }
 
 function fnGetSetTraderLoginStatus(){
-    let vTraderStatus = localStorage.getItem("lsLoginValidDSSD");
+    let vTraderStatus = localStorage.getItem("lsLoginValidDSTGL");
     let objTraderStatus = document.getElementById("btnTraderStatus");
 
     if(vTraderStatus === "true"){
@@ -70,22 +70,22 @@ function fnValidateDeltaLogin(){
             redirect: 'follow'
         };
 
-        fetch("/deltaSStraddleDemo/validateLogin", requestOptions)
+        fetch("/deltaSStrangleLive/validateLogin", requestOptions)
         .then(response => response.json())
         .then(objResult => {
             if(objResult.status === "success"){
                 // console.log(objResult.data);
-                localStorage.setItem("lsApiKeyDSSD", JSON.stringify(objApiKey.value));
-                localStorage.setItem("lsApiSecretDSSD", JSON.stringify(objApiSecret.value));
+                localStorage.setItem("lsApiKeyDSTGL", JSON.stringify(objApiKey.value));
+                localStorage.setItem("lsApiSecretDSTGL", JSON.stringify(objApiSecret.value));
 
                 let objBalances = { Acc1BalINR: objResult.data[0].available_balance_inr, Acc1BalUSD: objResult.data[0].available_balance };
                 document.getElementById("spnBal1").innerText = (parseFloat(objBalances.Acc1BalUSD)).toFixed(2);
 
-                localStorage.setItem("NetLimitDSSD", JSON.stringify(objBalances));
-                console.log(localStorage.getItem("NetLimitDSSD"));
+                localStorage.setItem("DeltaNetLimitDSTGL", JSON.stringify(objBalances));
+                console.log(localStorage.getItem("DeltaNetLimitDSTGL"));
 
                 $('#mdlDeltaLogin').modal('hide');
-                localStorage.setItem("lsLoginValidDSSD", "true");
+                localStorage.setItem("lsLoginValidDSTGL", "true");
                 fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
                 fnGetSetTraderLoginStatus();
             }
@@ -119,7 +119,7 @@ function fnValidateDeltaLogin(){
 
 function fnToggleAutoTrader(){
     let bAppStatus = JSON.parse(localStorage.getItem("AppMsgStatusS"));
-    let isLsAutoTrader = localStorage.getItem("isAutoTraderDSSD");
+    let isLsAutoTrader = localStorage.getItem("isAutoTraderDSTGL");
     
     let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
 
@@ -127,12 +127,12 @@ function fnToggleAutoTrader(){
         if(isLsAutoTrader === null || isLsAutoTrader === "false"){
             fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-success", "Auto Trader - ON");
             fnGenMessage("Auto Trading Mode is ON!", `badge bg-success`, "spnGenMsg");
-            localStorage.setItem("isAutoTraderDSSD", "true");
+            localStorage.setItem("isAutoTraderDSTGL", "true");
         }
         else{
             fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
             fnGenMessage("Auto Trading Mode is OFF!", `badge bg-danger`, "spnGenMsg");
-            localStorage.setItem("isAutoTraderDSSD", "false");
+            localStorage.setItem("isAutoTraderDSTGL", "false");
         }
     }
     else{
@@ -141,7 +141,7 @@ function fnToggleAutoTrader(){
 }
 
 function fnGetSetAutoTraderStatus(){
-    let isLsAutoTrader = localStorage.getItem("isAutoTraderDSSD");
+    let isLsAutoTrader = localStorage.getItem("isAutoTraderDSTGL");
     let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
 
     if(isLsAutoTrader === "true")
@@ -151,19 +151,19 @@ function fnGetSetAutoTraderStatus(){
     else
     {
         fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
-        localStorage.setItem("isAutoTraderDSSD", "false");
+        localStorage.setItem("isAutoTraderDSTGL", "false");
     }
 }
 
 function fnClearLoginStatus(){
-    localStorage.removeItem("lsLoginValidDSSD");
-    localStorage.removeItem("isAutoTraderDSSD");
+    localStorage.removeItem("lsLoginValidDSTGL");
+    localStorage.removeItem("isAutoTraderDSTGL");
 
     fnGetSetTraderLoginStatus();
 }
 
 function fnGetSetAutoTraderStatus(){
-    let isLsAutoTrader = localStorage.getItem("isAutoTraderDSSD");
+    let isLsAutoTrader = localStorage.getItem("isAutoTraderDSTGL");
     let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
 
     if(isLsAutoTrader === "true")
@@ -173,6 +173,6 @@ function fnGetSetAutoTraderStatus(){
     else
     {
         fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
-        localStorage.setItem("isAutoTraderDSSD", "false");
+        localStorage.setItem("isAutoTraderDSTGL", "false");
     }
 }
