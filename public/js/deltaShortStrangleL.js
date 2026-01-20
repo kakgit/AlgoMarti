@@ -497,7 +497,7 @@ function fnSaveUpdCurrPos(){
                 if(vTradeTP === undefined){
                     gCurrPosDSTGL.TradeData[i].TradeTP = vSellPrice - vPointTP;
                     gCurrPosDSTGL.TradeData[i].TradeSL = vSellPrice + vPointSL;
-                    console.log("aaaaaa");
+                    // console.log("aaaaaa");
                 }
                 // ****************** Uncomment When Live *****************//
 
@@ -505,12 +505,12 @@ function fnSaveUpdCurrPos(){
                 // vCurrPrice = gCurrPosDSTGL.TradeData[i].BuyPrice;
                 // // ****************** Remove When Live *****************//
 
-                console.log("vCurrPrice: " + vCurrPrice);
-                console.log("SL: " + gCurrPosDSTGL.TradeData[i].TradeSL);
-                console.log("TP: " + gCurrPosDSTGL.TradeData[i].TradeTP);
-                console.log("vPointSL: " + vPointSL);
-                console.log("vPointTP: " + vPointTP);
-                console.log(gCurrPosDSTGL);
+                // console.log("vCurrPrice: " + vCurrPrice);
+                // console.log("SL: " + gCurrPosDSTGL.TradeData[i].TradeSL);
+                // console.log("TP: " + gCurrPosDSTGL.TradeData[i].TradeTP);
+                // console.log("vPointSL: " + vPointSL);
+                // console.log("vPointTP: " + vPointTP);
+                // console.log(gCurrPosDSTGL);
 
                 if((vCurrPrice > gCurrPosDSTGL.TradeData[i].TradeSL) || (vCurrPrice < gCurrPosDSTGL.TradeData[i].TradeTP)){
                     vLegID = gCurrPosDSTGL.TradeData[i].TradeID;
