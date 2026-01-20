@@ -252,12 +252,14 @@ function fnInItWalletBal(){
                 let objCallPL = document.getElementById("txtCallPL");
                 let objPutPL = document.getElementById("txtPutPL");
                 let vNetEquity = parseFloat(objResult.data.meta.net_equity);
-                let vNetAvailAmt = parseFloat(objResult.data.result[0].available_balance);
+                let vNetAvailAmt = parseFloat(objResult.data.result[2].available_balance);
                 let vMarginBlocked = vNetEquity - vNetAvailAmt;
                 let vReqBalance = vMarginBlocked * 3;
                 let vYet2Req = parseFloat(objCallPL.value) + parseFloat(objPutPL.value);
 
                 // console.log(objResult);
+                // console.log(vNetAvailAmt);
+                // console.log(vNetEquity);
                 // console.log(objResult.data.meta.net_equity);
                 // console.log(objResult.data.result[0].available_balance);
                 document.getElementById("spnBal1").innerText = (vNetAvailAmt).toFixed(3);
@@ -444,6 +446,7 @@ function fnLoadTotalLossAmtQty(){
     }
 }
 
+//Check here for current position status
 function fnSaveUpdCurrPos(){
     let vToPosClose = false;
     let vLegID = 0;
@@ -476,7 +479,8 @@ function fnSaveUpdCurrPos(){
             let vBuyPrice = gCurrPosDSTGL.TradeData[i].BuyPrice;
             let vSellPrice = gCurrPosDSTGL.TradeData[i].SellPrice;
             let vOptionTypeZZ = gCurrPosDSTGL.TradeData[i].OptionType;
-
+            let vPointSL = gCurrPosDSTGL.TradeData[i].PointsSL;
+            let vPointTP = gCurrPosDSTGL.TradeData[i].PointsTP;
             let vCharges = fnGetTradeCharges(vStrikePrice, vLotSize, vQty, vBuyPrice, vSellPrice);
             let vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
 
@@ -485,15 +489,31 @@ function fnSaveUpdCurrPos(){
                 // console.log(gSymbBRateList[gCurrPosDSTGL.TradeData[i].Symbol]);
                 // ****************** Uncomment When Live *****************//
                 let vCurrPrice = parseFloat(gSymbBRateList[gCurrPosDSTGL.TradeData[i].Symbol]);
+                let vTradeTP = gCurrPosDSTGL.TradeData[i].TradeTP;
+                let vTradeSL = gCurrPosDSTGL.TradeData[i].TradeSL;
+
                 gCurrPosDSTGL.TradeData[i].BuyPrice = vCurrPrice;
+
+                if(vTradeTP === undefined){
+                    gCurrPosDSTGL.TradeData[i].TradeTP = vSellPrice - vPointTP;
+                    gCurrPosDSTGL.TradeData[i].TradeSL = vSellPrice + vPointSL;
+                    console.log("aaaaaa");
+                }
                 // ****************** Uncomment When Live *****************//
 
                 // // ****************** Remove When Live *****************//
                 // vCurrPrice = gCurrPosDSTGL.TradeData[i].BuyPrice;
                 // // ****************** Remove When Live *****************//
 
+                console.log("vCurrPrice: " + vCurrPrice);
+                console.log("SL: " + gCurrPosDSTGL.TradeData[i].TradeSL);
+                console.log("TP: " + gCurrPosDSTGL.TradeData[i].TradeTP);
+                console.log("vPointSL: " + vPointSL);
+                console.log("vPointTP: " + vPointTP);
+                console.log(gCurrPosDSTGL);
+
                 if((vCurrPrice > gCurrPosDSTGL.TradeData[i].TradeSL) || (vCurrPrice < gCurrPosDSTGL.TradeData[i].TradeTP)){
-                    vLegID = gCurrPosDSTGL.TradeData[i].ClientOrderID;
+                    vLegID = gCurrPosDSTGL.TradeData[i].TradeID;
                     vLotQty = gCurrPosDSTGL.TradeData[i].Qty;
                     vTransType = gCurrPosDSTGL.TradeData[i].TransType;
                     vOptionType = gCurrPosDSTGL.TradeData[i].OptionType;
@@ -502,7 +522,7 @@ function fnSaveUpdCurrPos(){
                 }
                 else if(vPL > 0){
                     if((vOptionTypeZZ === "C") && (parseFloat(objCallPL.value) < 0) && (vPL > parseFloat(Math.abs(objCallPL.value)))){
-                        vLegID = gCurrPosDSTGL.TradeData[i].ClientOrderID;
+                        vLegID = gCurrPosDSTGL.TradeData[i].TradeID;
                         vLotQty = gCurrPosDSTGL.TradeData[i].Qty;
                         vTransType = gCurrPosDSTGL.TradeData[i].TransType;
                         vOptionType = gCurrPosDSTGL.TradeData[i].OptionType;
@@ -510,7 +530,7 @@ function fnSaveUpdCurrPos(){
                         vToPosClose = true;
                     }
                     else if((vOptionTypeZZ === "P") && (parseFloat(objPutPL.value) < 0) && (vPL > parseFloat(Math.abs(objPutPL.value)))){
-                        vLegID = gCurrPosDSTGL.TradeData[i].ClientOrderID;
+                        vLegID = gCurrPosDSTGL.TradeData[i].TradeID;
                         vLotQty = gCurrPosDSTGL.TradeData[i].Qty;
                         vTransType = gCurrPosDSTGL.TradeData[i].TransType;
                         vOptionType = gCurrPosDSTGL.TradeData[i].OptionType;
@@ -530,7 +550,7 @@ function fnSaveUpdCurrPos(){
                 // // ****************** Remove When Live *****************//
 
                 if((Math.abs(parseFloat(vCurrDelta)) < parseFloat(gCurrPosDSTGL.TradeData[i].DeltaSL)) || (Math.abs(parseFloat(vCurrDelta)) > parseFloat(gCurrPosDSTGL.TradeData[i].DeltaTP))){
-                    vLegID = gCurrPosDSTGL.TradeData[i].ClientOrderID;
+                    vLegID = gCurrPosDSTGL.TradeData[i].TradeID;
                     vLotQty = gCurrPosDSTGL.TradeData[i].Qty;
                     vTransType = gCurrPosDSTGL.TradeData[i].TransType;
                     vOptionType = gCurrPosDSTGL.TradeData[i].OptionType;
@@ -538,7 +558,7 @@ function fnSaveUpdCurrPos(){
                     vToPosClose = true;
                 }
                 if((vCurrPrice < gCurrPosDSTGL.TradeData[i].TradeSL) || (vCurrPrice > gCurrPosDSTGL.TradeData[i].TradeTP)){
-                    vLegID = gCurrPosDSTGL.TradeData[i].ClientOrderID;
+                    vLegID = gCurrPosDSTGL.TradeData[i].TradeID;
                     vLotQty = gCurrPosDSTGL.TradeData[i].Qty;
                     vTransType = gCurrPosDSTGL.TradeData[i].TransType;
                     vOptionType = gCurrPosDSTGL.TradeData[i].OptionType;
@@ -547,7 +567,7 @@ function fnSaveUpdCurrPos(){
                 }
                 else if(vPL > 0){
                     if((vOptionTypeZZ === "C") && (parseFloat(objCallPL.value) < 0) && (vPL > Math.abs(parseFloat(objCallPL.value)))){
-                        vLegID = gCurrPosDSTGL.TradeData[i].ClientOrderID;
+                        vLegID = gCurrPosDSTGL.TradeData[i].TradeID;
                         vLotQty = gCurrPosDSTGL.TradeData[i].Qty;
                         vTransType = gCurrPosDSTGL.TradeData[i].TransType;
                         vOptionType = gCurrPosDSTGL.TradeData[i].OptionType;
@@ -555,7 +575,7 @@ function fnSaveUpdCurrPos(){
                         vToPosClose = true;
                     }
                     else if((vOptionTypeZZ === "P") && (parseFloat(objPutPL.value) < 0) && (vPL > Math.abs(parseFloat(objPutPL.value)))){
-                        vLegID = gCurrPosDSTGL.TradeData[i].ClientOrderID;
+                        vLegID = gCurrPosDSTGL.TradeData[i].TradeID;
                         vLotQty = gCurrPosDSTGL.TradeData[i].Qty;
                         vTransType = gCurrPosDSTGL.TradeData[i].TransType;
                         vOptionType = gCurrPosDSTGL.TradeData[i].OptionType;
@@ -873,12 +893,13 @@ async function fnInitTrade(pOptionType){
     let vOrdId = vDate.valueOf();
     let vMonth = vDate.getMonth() + 1;
     let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
-
+    let vPointsSL = 500;
+    let vPointsTP = 700;
     let vShortExpiry = fnSetDDMMYYYY(objExpShort.value);
 
     //{ TransType : "sell", OptionType : "F", DeltaNew : 1.00, DeltaTP : 2.00, DeltaSL : 0.10 }, 
     
-    let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", RateNew : 1200, RateTP : 700, RateSL : 500, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { TransType : "sell", OptionType : "C", RateNew : 1200, RateTP : 700, RateSL : 500, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
+    let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", RateNew : 1200, RateTP : vPointsTP, RateSL : vPointsSL, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { TransType : "sell", OptionType : "C", RateNew : 1200, RateTP : vPointsTP, RateSL : vPointsSL, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
     // let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", DeltaNew : 0.15, DeltaTP : 0.05, DeltaSL : 0.20 }, { TransType : "sell", OptionType : "C", DeltaNew : 0.15, DeltaTP : 0.05, DeltaSL : 0.20 }] }] }
 
     // console.log(objStrategies.Strategies[0].StratModel.length);
@@ -942,7 +963,7 @@ async function fnInitTrade(pOptionType){
                     vTradeTP = vBestBuy + vRateTP;
                 }
 
-                let vExcTradeDtls = { ClientOrderID : vClientOrderID, ProductID : vProductID, OpenDT : vToday, Symbol : vSymbol, UndrAsstSymb : vUndrAstSymb, ContrctType : vCntrctType, TransType : vTransType, OptionType : vOptionType, StrikePrice : vStrPrice, Expiry : vExpiry, LotSize : parseFloat(objLotSize.value), Qty : parseInt(vExecQty), BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, DeltaC : vDeltaC, OpenDTVal : vOrdId, DeltaTP : vDeltaTP, DeltaSL : vDeltaSL, DeltaNP : vDeltaNPos, TradeSL : vTradeSL, TradeTP : vTradeTP, Commission : vCommission, TradeID : vTradeID, State : vState };
+                let vExcTradeDtls = { ClientOrderID : vClientOrderID, ProductID : vProductID, OpenDT : vToday, Symbol : vSymbol, UndrAsstSymb : vUndrAstSymb, ContrctType : vCntrctType, TransType : vTransType, OptionType : vOptionType, StrikePrice : vStrPrice, Expiry : vExpiry, LotSize : parseFloat(objLotSize.value), Qty : parseInt(vExecQty), BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, DeltaC : vDeltaC, OpenDTVal : vOrdId, DeltaTP : vDeltaTP, DeltaSL : vDeltaSL, DeltaNP : vDeltaNPos, PointsSL : vPointsSL, PointsTP : vPointsTP, TradeSL : vTradeSL, TradeTP : vTradeTP, Commission : vCommission, TradeID : vTradeID, State : vState };
                 
                 gCurrPosDSTGL.TradeData.push(vExcTradeDtls);
                 let objExcTradeDtls = JSON.stringify(gCurrPosDSTGL);
@@ -1064,6 +1085,7 @@ function fnUpdateOpenPositions(){
                 let vSymbol = gCurrPosDSTGL.TradeData[i].Symbol;
                 let vTransType = gCurrPosDSTGL.TradeData[i].TransType;
                 let vUndrAsstSymb = gCurrPosDSTGL.TradeData[i].UndrAsstSymb;
+                let vTradeID = gCurrPosDSTGL.TradeData[i].TradeID;
 
                 let vCharges = fnGetTradeCharges(vStrikePrice, vLotSize, vQty, vBuyPrice, vSellPrice);
                 let vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
@@ -1090,7 +1112,7 @@ function fnUpdateOpenPositions(){
                     }
                     vTempHtml += '<td style="text-wrap: nowrap; text-align:right;">' + (parseFloat(vCharges)).toFixed(2) + '</td>';
                     vTempHtml += '<td style="text-wrap: nowrap; text-align:right;color:#ff9a00;">'+ (vPL).toFixed(2) +'</td>';
-                    vTempHtml += '<td style="text-wrap: nowrap;"><i class="fa fa-eye" aria-hidden="true" style="color:green;" title="Close This Leg!" onclick="fnCloseOptPosition('+ vLegID +', '+ vQty +', `'+ vTransType +'`, `'+ vOptionType +'`, `'+ vSymbol +'`, `CLOSED`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-wrench" aria-hidden="true" style="color:#01ff1f;" onclick="fnOpenEditModel('+ vLegID +', '+ vLotSize +', '+ vQty +', `'+ vBuyPrice +'`, `'+ vSellPrice +'`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" aria-hidden="true" style="color:red; display:none" onclick="fnDelLeg('+ vLegID +');"></i></td>';
+                    vTempHtml += '<td style="text-wrap: nowrap;"><i class="fa fa-eye" aria-hidden="true" style="color:green;" title="Close This Leg!" onclick="fnCloseOptPosition('+ vTradeID +', '+ vQty +', `'+ vTransType +'`, `'+ vOptionType +'`, `'+ vSymbol +'`, `CLOSED`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-wrench" aria-hidden="true" style="color:#01ff1f;" onclick="fnOpenEditModel('+ vTradeID +', '+ vLotSize +', '+ vQty +', `'+ vBuyPrice +'`, `'+ vSellPrice +'`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" aria-hidden="true" style="color:red; display:none" onclick="fnDelLeg('+ vTradeID +');"></i></td>';
                     vTempHtml += '</tr>';
                 }
                 // else{
@@ -1106,7 +1128,7 @@ function fnUpdateOpenPositions(){
                 //     vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right; color:grey;">' + (vSellPrice).toFixed(2) + '</td>';
                 //     vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:grey;">' + (parseFloat(vCharges)).toFixed(2) + '</td>';
                 //     vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:grey;">'+ (vPL).toFixed(2) +'</td>';
-                //     vTempHtml += '<td style="text-wrap: nowrap;"><i class="fa fa-eye-slash" aria-hidden="true" style="color:red;" title="Re-open This Leg!" onclick="fnCloseOptPosition('+ vLegID +', '+ vQty +', `'+ vTransType +'`, `'+ vOptionType +'`, `'+ vSymbol +'`, `OPEN`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-wrench" aria-hidden="true" style="color:#01ff1f;" onclick="fnOpenEditModel('+ vLegID +', '+ vLotSize +', '+ vQty +', `'+ vBuyPrice +'`, `'+ vSellPrice +'`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" aria-hidden="true" style="color:red;" onclick="fnDelLeg('+ vLegID +');"></i></td>';
+                //     vTempHtml += '<td style="text-wrap: nowrap;"><i class="fa fa-eye-slash" aria-hidden="true" style="color:red;" title="Re-open This Leg!" onclick="fnCloseOptPosition('+ vTradeID +', '+ vQty +', `'+ vTransType +'`, `'+ vOptionType +'`, `'+ vSymbol +'`, `OPEN`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-wrench" aria-hidden="true" style="color:#01ff1f;" onclick="fnOpenEditModel('+ vTradeID +', '+ vLotSize +', '+ vQty +', `'+ vBuyPrice +'`, `'+ vSellPrice +'`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" aria-hidden="true" style="color:red;" onclick="fnDelLeg('+ vTradeID +');"></i></td>';
                 //     vTempHtml += '</tr>';
                 // }
             }
@@ -1141,7 +1163,8 @@ function fnGetTradePL(pBuyPrice, pSellPrice, pLotSize, pQty, pCharges){
     return vPL;
 }
 
-async function fnCloseOptPosition(pClientOrderID, pLotQty, pTransType, pOptionType, pSymbol, pState){
+//Check here closing position, lot step or martingale multiplier settings
+async function fnCloseOptPosition(pTradeID, pLotQty, pTransType, pOptionType, pSymbol, pState){
     let objStepSwt = document.getElementById("swtStepDFL");
 
     if(pTransType === "buy"){
@@ -1168,7 +1191,7 @@ async function fnCloseOptPosition(pClientOrderID, pLotQty, pTransType, pOptionTy
         gSymbDeltaList = {};
 
         for(let i=0; i<gCurrPosDSTGL.TradeData.length; i++){
-            if(gCurrPosDSTGL.TradeData[i].ClientOrderID === pClientOrderID){
+            if(gCurrPosDSTGL.TradeData[i].TradeID === pTradeID){
                 if(pTransType === "sell"){
                     gCurrPosDSTGL.TradeData[i].SellPrice = vBestClsRate;
                 }
@@ -1236,7 +1259,7 @@ async function fnCloseOptPosition(pClientOrderID, pLotQty, pTransType, pOptionTy
         let vDelRec = null;
 
         for(let i=0; i<gCurrPosDSTGL.TradeData.length; i++){
-            if(gCurrPosDSTGL.TradeData[i].ClientOrderID === pClientOrderID){
+            if(gCurrPosDSTGL.TradeData[i].TradeID === pTradeID){
                 vDelRec = i;
             }
         }
@@ -1313,14 +1336,14 @@ function fnGetBestRatesBySymbId(pApiKey, pApiSecret, pSymbol){
     return objPromise;
 }
 
-function fnOpenEditModel(pLegID, pLotSize, pQty, pBuyPrice, pSellPrice){
+function fnOpenEditModel(pTradeID, pLotSize, pQty, pBuyPrice, pSellPrice){
     let objLegID = document.getElementById("hidLegID");
     let objLotSize = document.getElementById("txtEdLotSize");
     let objQty = document.getElementById("txtEdQty");
     let objBuyPrice = document.getElementById("txtEdBuyPrice");
     let objSellPrice = document.getElementById("txtEdSellPrice");
 
-    objLegID.value = pLegID;
+    objLegID.value = pTradeID;
     objLotSize.value = pLotSize;
     objQty.value = pQty;
     objBuyPrice.value = pBuyPrice;
@@ -1351,7 +1374,7 @@ function fnUpdateOptionLeg(){
     }
     else{
         for(let i=0; i<gCurrPosDSTGL.TradeData.length; i++){
-            if(gCurrPosDSTGL.TradeData[i].ClientOrderID === objLegID.value){
+            if(gCurrPosDSTGL.TradeData[i].TradeID === parseInt(objLegID.value)){
                 gCurrPosDSTGL.TradeData[i].LotSize = parseFloat(objLotSize.value);
                 gCurrPosDSTGL.TradeData[i].Qty = parseInt(objQty.value);
                 gCurrPosDSTGL.TradeData[i].BuyPrice = parseFloat(objBuyPrice.value);
@@ -1369,7 +1392,7 @@ function fnUpdateOptionLeg(){
     gUpdPos = true;
 }
 
-function fnDelLeg(pLegID){
+function fnDelLeg(pTradeID){
     if(confirm("Are You Sure, You Want to Delete This Leg!")){
         gUpdPos = false;
 
@@ -1385,7 +1408,7 @@ function fnDelLeg(pLegID){
         let vDelRec = null;
 
         for(let i=0; i<gCurrPosDSTGL.TradeData.length; i++){
-            if(gCurrPosDSTGL.TradeData[i].ClientOrderID === pLegID){
+            if(gCurrPosDSTGL.TradeData[i].TradeID === pTradeID){
                 vDelRec = i;
             }
         }
@@ -1494,7 +1517,7 @@ async function fnGetOpenPositions(){
                 vTempHtml += '<td style="text-wrap: nowrap; text-align:center;">' + vQty + '</td>';
                 vTempHtml += "</tr>";
 
-                vTempData.TradeData.push({ BuyPrice : vBuyPrice, ClientOrderID : vClientOrderID, Commission : vCommission, ContrctType : vContractType, Delta : vDelta, DeltaC : vDeltaC, DeltaNP : vDeltaNP, DeltaSL : vDeltaSL, DeltaTP : vDeltaTP, Expiry : vShortExpiry, LotSize : vLotSize, OpenDT : vCreatedDT, OpenDTVal : vClientOrderID, OptionType : vOptionType, ProductID : vProductID, Qty : vQty, SellPrice : vSellPrice, State : vState, StrikePrice : vStrike, Symbol : vSymbol, TradeID : vTradeID, TransType : vTransType, UndrAsstSymb : vUndrAsstSymb })
+                vTempData.TradeData.push({ BuyPrice : vBuyPrice, ClientOrderID : vClientOrderID, Commission : vCommission, ContrctType : vContractType, Delta : vDelta, DeltaC : vDeltaC, DeltaNP : vDeltaNP, DeltaSL : vDeltaSL, DeltaTP : vDeltaTP, Expiry : vShortExpiry, LotSize : vLotSize, OpenDT : vCreatedDT, OpenDTVal : vClientOrderID, OptionType : vOptionType, ProductID : vProductID, Qty : vQty, SellPrice : vSellPrice, State : vState, StrikePrice : vStrike, Symbol : vSymbol, PointsSL : 500, PointsTP : 700, TradeID : vTradeID, TransType : vTransType, UndrAsstSymb : vUndrAsstSymb })
             }
 
             objOpenTrdPos.innerHTML = vTempHtml;
