@@ -252,7 +252,7 @@ function fnInItWalletBal(){
                 let objCallPL = document.getElementById("txtCallPL");
                 let objPutPL = document.getElementById("txtPutPL");
                 let vNetEquity = parseFloat(objResult.data.meta.net_equity);
-                let vNetAvailAmt = parseFloat(objResult.data.result[0].available_balance);
+                let vNetAvailAmt = parseFloat(objResult.data.result[2].available_balance);
                 let vMarginBlocked = vNetEquity - vNetAvailAmt;
                 let vReqBalance = vMarginBlocked * 3;
                 let vYet2Req = parseFloat(objCallPL.value) + parseFloat(objPutPL.value);
@@ -1413,7 +1413,7 @@ async function fnGetOpenPositions(){
     let objPromise = await fnGetOpenPositionsList();
 
     if(objPromise.status === "success"){
-        console.log(objPromise);
+        // console.log(objPromise);
         if(objPromise.data.result.length === 0){
             objOpenTrdPos.innerHTML = '<tr><td colspan="5"><div class="col-sm-12" style="border:0px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 40px;">No Open Positions</div></td></tr>';
         }

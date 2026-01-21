@@ -334,8 +334,8 @@ const fnGetCoinDcxStrList = async () => {
 
         axios.request(config)
         .then((objResult) => {
+            // console.log(objResult);
             const objRes = (objResult.data).join(", ");
-            // console.log(objRes);
             resolve({ "status": "success", "message": "Coin DCX String List Fetched!", "data": objRes });
         })
         .catch((objError) => {

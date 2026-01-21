@@ -1,5 +1,5 @@
 {
-    "UpdDt": 1768545205179,
+    "UpdDt": 1768997692404,
     "UserDet": [
         {
             "UserId": 1740834367766,
@@ -55,6 +55,17 @@
             "IsAdmin": false,
             "CreatedAt": "2026-01-16T06:33:25.273Z",
             "UpdatedAt": "2026-01-16T06:33:40.186Z"
+        },
+        {
+            "UserId": 1768997692404,
+            "FullName": "G Sudheer",
+            "EmailId": "gnsreddy8032@gmail.com",
+            "Password": "$2a$10$muI5z1ZhrRe1j5eMN5bY.uPnCaXz540gkCER.e1n9o9m37R2r.2de",
+            "PhoneNumber": "8106602308",
+            "IsActive": true,
+            "IsAdmin": false,
+            "CreatedAt": "2026-01-21T12:14:52.493Z",
+            "UpdatedAt": "2026-01-21T12:15:01.251Z"
         }
     ]
 }

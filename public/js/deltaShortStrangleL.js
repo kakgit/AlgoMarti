@@ -152,7 +152,7 @@ function fnLoadDefSlTp(){
     if(objPointsSL === null || objPointsSL === ""){
         txtPointsSL.value = gPointsSL;
         txtPointsTP.value = gPointsTP;
-        console.log("No Sl Tp");
+        // console.log("No Sl Tp");
     }
     else{
         txtPointsSL.value = objPointsSL;
@@ -312,8 +312,6 @@ function fnInItWalletBal(){
                 let vYet2Req = parseFloat(objCallPL.value) + parseFloat(objPutPL.value);
 
                 // console.log(objResult);
-                // console.log(vNetAvailAmt);
-                // console.log(vNetEquity);
                 // console.log(objResult.data.meta.net_equity);
                 // console.log(objResult.data.result[0].available_balance);
                 document.getElementById("spnBal1").innerText = (vNetAvailAmt).toFixed(3);
@@ -1273,7 +1271,8 @@ async function fnCloseOptPosition(pTradeID, pLotQty, pTransType, pOptionType, pS
                 document.getElementById("txtCallPL").value = vTotLossAmtCE;
 
                 if(parseFloat(vTotLossAmtCE) < 0){
-                    let vNewQty = parseInt(vQtyCE) + parseInt(objStartQty.value);
+                    // let vNewQty = parseInt(vQtyCE) + parseInt(objStartQty.value);
+                    let vNewQty = parseInt(vQtyCE) * 2;
                     localStorage.setItem("QtyCallDSTGL", vNewQty);
                     document.getElementById("txtQtyCE").value = vNewQty;
                 }
@@ -1294,7 +1293,8 @@ async function fnCloseOptPosition(pTradeID, pLotQty, pTransType, pOptionType, pS
                 document.getElementById("txtPutPL").value = vTotLossAmtPE;
 
                 if(parseFloat(vTotLossAmtPE) < 0){
-                    let vNewQty = parseInt(vQtyPE) + parseInt(objStartQty.value);
+                    // let vNewQty = parseInt(vQtyPE) + parseInt(objStartQty.value);
+                    let vNewQty = parseInt(vQtyPE) * 2;
                     localStorage.setItem("QtyPutDSTGL", vNewQty);
                     document.getElementById("txtQtyPE").value = vNewQty;
                 }

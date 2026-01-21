@@ -1,6 +1,32 @@
 [
     {
         "AnualFundD": 175.2,
+        "LotSizeD": 10,
+        "LeverageD": 20,
+        "SymbIdD": 117629,
+        "PosLimitD": 12000,
+        "RateFeqMsD": 3600,
+        "RateFeqHrD": 1,
+        "SymbolD": "AXSUSD",
+        "UndrAsstSymbD": "AXS",
+        "AllowOnlyCloseD": false,
+        "SymbolC": "B-AXS_USDT"
+    },
+    {
+        "AnualFundD": 175.2,
+        "LotSizeD": 100,
+        "LeverageD": 20,
+        "SymbIdD": 117628,
+        "PosLimitD": 13000,
+        "RateFeqMsD": 3600,
+        "RateFeqHrD": 1,
+        "SymbolD": "DUSKUSD",
+        "UndrAsstSymbD": "DUSK",
+        "AllowOnlyCloseD": false,
+        "SymbolC": "B-DUSK_USDT"
+    },
+    {
+        "AnualFundD": 175.2,
         "LotSizeD": 100,
         "LeverageD": 20,
         "SymbIdD": 110376,
