@@ -22,6 +22,8 @@ let gSymbDeltaList = {};
 
 let gForceCloseDFL = false;
 let gBrokerage = 0.010;
+let gPointsSL = 500;
+let gPointsTP = 700;
 
 let gCurrStrats = { StratsData : []};
 let gClientID = "SS506525";
@@ -81,6 +83,7 @@ function fnGetAllStatus(){
         fnLoadCurrStrategies();
         fnLoadDefQty();
         fnLoadOptStep();
+        fnLoadDefSlTp();
         fnGetSetTraderLoginStatus();
 		fnGetSetAutoTraderStatus();
 
@@ -137,6 +140,57 @@ function fnLoadDefQty(){
         objQtyCE.value = objStartQtyM;
         objQtyPE.value = objStartQtyM;
     }
+}
+
+function fnLoadDefSlTp(){
+    let txtPointsSL = document.getElementById("txtPointSL");
+    let txtPointsTP = document.getElementById("txtPointsTP");
+
+    let objPointsSL = JSON.parse(localStorage.getItem("SlPointsDSTGL"));
+    let objPointsTP = JSON.parse(localStorage.getItem("TpPointsDSTGL"));
+
+    if(objPointsSL === null || objPointsSL === ""){
+        txtPointsSL.value = gPointsSL;
+        txtPointsTP.value = gPointsTP;
+        console.log("No Sl Tp");
+    }
+    else{
+        txtPointsSL.value = objPointsSL;
+        txtPointsTP.value = objPointsTP;
+        gPointsSL = objPointsSL;
+        gPointsTP = objPointsTP;
+    }
+
+}
+
+function fnChangePointsSL(pThis){
+    gUpdPos = false;
+
+    localStorage.setItem("SlPointsDSTGL", pThis.value);
+
+    for(let i=0; i<gCurrPosDSTGL.TradeData.length; i++){
+        gCurrPosDSTGL.TradeData[i].PointsSL = pThis.value;
+        gCurrPosDSTGL.TradeData[i].TradeSL = 0;
+    }    
+
+    let objExcTradeDtls = JSON.stringify(gCurrPosDSTGL);
+    localStorage.setItem("CurrPosDSTGL", objExcTradeDtls);
+    gUpdPos = true;
+}
+
+function fnChangePointsTP(pThis){
+    gUpdPos = false;
+
+    localStorage.setItem("TpPointsDSTGL", pThis.value);
+
+    for(let i=0; i<gCurrPosDSTGL.TradeData.length; i++){
+        gCurrPosDSTGL.TradeData[i].PointsTP = pThis.value;
+        gCurrPosDSTGL.TradeData[i].TradeTP = 0;
+    }    
+
+    let objExcTradeDtls = JSON.stringify(gCurrPosDSTGL);
+    localStorage.setItem("CurrPosDSTGL", objExcTradeDtls);
+    gUpdPos = true;
 }
 
 function fnChangeStartQty(pThisVal){
@@ -494,10 +548,9 @@ function fnSaveUpdCurrPos(){
 
                 gCurrPosDSTGL.TradeData[i].BuyPrice = vCurrPrice;
 
-                if(vTradeTP === undefined){
-                    gCurrPosDSTGL.TradeData[i].TradeTP = vSellPrice - vPointTP;
-                    gCurrPosDSTGL.TradeData[i].TradeSL = vSellPrice + vPointSL;
-                    // console.log("aaaaaa");
+                if((vTradeSL === undefined || vTradeSL === 0) || (vTradeTP === undefined || vTradeTP === 0)){
+                    gCurrPosDSTGL.TradeData[i].TradeTP = vSellPrice - parseInt(vPointTP);
+                    gCurrPosDSTGL.TradeData[i].TradeSL = vSellPrice + parseInt(vPointSL);
                 }
                 // ****************** Uncomment When Live *****************//
 
@@ -505,7 +558,6 @@ function fnSaveUpdCurrPos(){
                 // vCurrPrice = gCurrPosDSTGL.TradeData[i].BuyPrice;
                 // // ****************** Remove When Live *****************//
 
-                // console.log("vCurrPrice: " + vCurrPrice);
                 // console.log("SL: " + gCurrPosDSTGL.TradeData[i].TradeSL);
                 // console.log("TP: " + gCurrPosDSTGL.TradeData[i].TradeTP);
                 // console.log("vPointSL: " + vPointSL);
@@ -893,13 +945,11 @@ async function fnInitTrade(pOptionType){
     let vOrdId = vDate.valueOf();
     let vMonth = vDate.getMonth() + 1;
     let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
-    let vPointsSL = 500;
-    let vPointsTP = 700;
     let vShortExpiry = fnSetDDMMYYYY(objExpShort.value);
 
     //{ TransType : "sell", OptionType : "F", DeltaNew : 1.00, DeltaTP : 2.00, DeltaSL : 0.10 }, 
     
-    let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", RateNew : 1200, RateTP : vPointsTP, RateSL : vPointsSL, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { TransType : "sell", OptionType : "C", RateNew : 1200, RateTP : vPointsTP, RateSL : vPointsSL, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
+    let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", RateNew : 1200, RateTP : gPointsTP, RateSL : gPointsSL, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { TransType : "sell", OptionType : "C", RateNew : 1200, RateTP : gPointsTP, RateSL : gPointsSL, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
     // let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", DeltaNew : 0.15, DeltaTP : 0.05, DeltaSL : 0.20 }, { TransType : "sell", OptionType : "C", DeltaNew : 0.15, DeltaTP : 0.05, DeltaSL : 0.20 }] }] }
 
     // console.log(objStrategies.Strategies[0].StratModel.length);
@@ -963,7 +1013,7 @@ async function fnInitTrade(pOptionType){
                     vTradeTP = vBestBuy + vRateTP;
                 }
 
-                let vExcTradeDtls = { ClientOrderID : vClientOrderID, ProductID : vProductID, OpenDT : vToday, Symbol : vSymbol, UndrAsstSymb : vUndrAstSymb, ContrctType : vCntrctType, TransType : vTransType, OptionType : vOptionType, StrikePrice : vStrPrice, Expiry : vExpiry, LotSize : parseFloat(objLotSize.value), Qty : parseInt(vExecQty), BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, DeltaC : vDeltaC, OpenDTVal : vOrdId, DeltaTP : vDeltaTP, DeltaSL : vDeltaSL, DeltaNP : vDeltaNPos, PointsSL : vPointsSL, PointsTP : vPointsTP, TradeSL : vTradeSL, TradeTP : vTradeTP, Commission : vCommission, TradeID : vTradeID, State : vState };
+                let vExcTradeDtls = { ClientOrderID : vClientOrderID, ProductID : vProductID, OpenDT : vToday, Symbol : vSymbol, UndrAsstSymb : vUndrAstSymb, ContrctType : vCntrctType, TransType : vTransType, OptionType : vOptionType, StrikePrice : vStrPrice, Expiry : vExpiry, LotSize : parseFloat(objLotSize.value), Qty : parseInt(vExecQty), BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, DeltaC : vDeltaC, OpenDTVal : vOrdId, DeltaTP : vDeltaTP, DeltaSL : vDeltaSL, DeltaNP : vDeltaNPos, PointsSL : gPointsSL, PointsTP : gPointsTP, TradeSL : vTradeSL, TradeTP : vTradeTP, Commission : vCommission, TradeID : vTradeID, State : vState };
                 
                 gCurrPosDSTGL.TradeData.push(vExcTradeDtls);
                 let objExcTradeDtls = JSON.stringify(gCurrPosDSTGL);
@@ -1476,7 +1526,7 @@ async function fnGetOpenPositions(){
     let objPromise = await fnGetOpenPositionsList();
 
     if(objPromise.status === "success"){
-        console.log(objPromise);
+        // console.log(objPromise);
         if(objPromise.data.result.length === 0){
             objOpenTrdPos.innerHTML = '<tr><td colspan="5"><div class="col-sm-12" style="border:0px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 40px;">No Open Positions</div></td></tr>';
         }
@@ -1517,7 +1567,7 @@ async function fnGetOpenPositions(){
                 vTempHtml += '<td style="text-wrap: nowrap; text-align:center;">' + vQty + '</td>';
                 vTempHtml += "</tr>";
 
-                vTempData.TradeData.push({ BuyPrice : vBuyPrice, ClientOrderID : vClientOrderID, Commission : vCommission, ContrctType : vContractType, Delta : vDelta, DeltaC : vDeltaC, DeltaNP : vDeltaNP, DeltaSL : vDeltaSL, DeltaTP : vDeltaTP, Expiry : vShortExpiry, LotSize : vLotSize, OpenDT : vCreatedDT, OpenDTVal : vClientOrderID, OptionType : vOptionType, ProductID : vProductID, Qty : vQty, SellPrice : vSellPrice, State : vState, StrikePrice : vStrike, Symbol : vSymbol, PointsSL : 500, PointsTP : 700, TradeID : vTradeID, TransType : vTransType, UndrAsstSymb : vUndrAsstSymb })
+                vTempData.TradeData.push({ BuyPrice : vBuyPrice, ClientOrderID : vClientOrderID, Commission : vCommission, ContrctType : vContractType, Delta : vDelta, DeltaC : vDeltaC, DeltaNP : vDeltaNP, DeltaSL : vDeltaSL, DeltaTP : vDeltaTP, Expiry : vShortExpiry, LotSize : vLotSize, OpenDT : vCreatedDT, OpenDTVal : vClientOrderID, OptionType : vOptionType, ProductID : vProductID, Qty : vQty, SellPrice : vSellPrice, State : vState, StrikePrice : vStrike, Symbol : vSymbol, PointsSL : gPointsSL, PointsTP : gPointsTP, TradeID : vTradeID, TransType : vTransType, UndrAsstSymb : vUndrAsstSymb })
             }
 
             objOpenTrdPos.innerHTML = vTempHtml;
@@ -1915,6 +1965,8 @@ function fnClearLocalStorageTemp(){
     localStorage.removeItem("QtyCallDSTGL");
     localStorage.removeItem("QtyPutDSTGL");
     localStorage.removeItem("StartQtyDSTGL");
+    localStorage.removeItem("SlPointsDSTGL");
+    localStorage.removeItem("TpPointsDSTGL");
 
     localStorage.removeItem("StartDT-DSTGL");
     fnGetAllStatus();
