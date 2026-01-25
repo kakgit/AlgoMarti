@@ -27,6 +27,19 @@
     },
     {
         "AnualFundD": 175.2,
+        "LotSizeD": 1,
+        "LeverageD": 20,
+        "SymbIdD": 115664,
+        "PosLimitD": 16000,
+        "RateFeqMsD": 3600,
+        "RateFeqHrD": 1,
+        "SymbolD": "RIVERUSD",
+        "UndrAsstSymbD": "RIVER",
+        "AllowOnlyCloseD": false,
+        "SymbolC": "B-RIVER_USDT"
+    },
+    {
+        "AnualFundD": 175.2,
         "LotSizeD": 100,
         "LeverageD": 20,
         "SymbIdD": 110376,

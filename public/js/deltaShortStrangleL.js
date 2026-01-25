@@ -160,7 +160,6 @@ function fnLoadDefSlTp(){
         gPointsSL = objPointsSL;
         gPointsTP = objPointsTP;
     }
-
 }
 
 function fnChangePointsSL(pThis){
@@ -1424,7 +1423,7 @@ function fnUpdateOptionLeg(){
     }
     else{
         for(let i=0; i<gCurrPosDSTGL.TradeData.length; i++){
-            if(gCurrPosDSTGL.TradeData[i].TradeID === parseInt(objLegID.value)){
+            if(parseInt(gCurrPosDSTGL.TradeData[i].TradeID) === parseInt(objLegID.value)){
                 gCurrPosDSTGL.TradeData[i].LotSize = parseFloat(objLotSize.value);
                 gCurrPosDSTGL.TradeData[i].Qty = parseInt(objQty.value);
                 gCurrPosDSTGL.TradeData[i].BuyPrice = parseFloat(objBuyPrice.value);
@@ -1458,7 +1457,7 @@ function fnDelLeg(pTradeID){
         let vDelRec = null;
 
         for(let i=0; i<gCurrPosDSTGL.TradeData.length; i++){
-            if(gCurrPosDSTGL.TradeData[i].TradeID === pTradeID){
+            if(parseInt(gCurrPosDSTGL.TradeData[i].TradeID) === parseInt(pTradeID)){
                 vDelRec = i;
             }
         }

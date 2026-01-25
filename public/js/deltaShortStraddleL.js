@@ -446,6 +446,7 @@ function fnLoadTotalLossAmtQty(){
     }
 }
 
+//Check here for current position status
 function fnSaveUpdCurrPos(){
     let vToPosClose = false;
     let vLegID = 0;
@@ -495,7 +496,7 @@ function fnSaveUpdCurrPos(){
                 // // ****************** Remove When Live *****************//
 
                 if((Math.abs(parseFloat(vCurrDelta)) > parseFloat(gCurrPosSSL.TradeData[i].DeltaSL)) || (Math.abs(parseFloat(vCurrDelta)) < parseFloat(gCurrPosSSL.TradeData[i].DeltaTP))){
-                    vLegID = gCurrPosSSL.TradeData[i].ClientOrderID;
+                    vLegID = gCurrPosSSL.TradeData[i].TradeID;
                     vLotQty = gCurrPosSSL.TradeData[i].Qty;
                     vTransType = gCurrPosSSL.TradeData[i].TransType;
                     vOptionType = gCurrPosSSL.TradeData[i].OptionType;
@@ -504,7 +505,7 @@ function fnSaveUpdCurrPos(){
                 }
                 else if(vPL > 0){
                     if((vOptionTypeZZ === "C") && (parseFloat(objCallPL.value) < 0) && (vPL > parseFloat(Math.abs(objCallPL.value)))){
-                        vLegID = gCurrPosSSL.TradeData[i].ClientOrderID;
+                        vLegID = gCurrPosSSL.TradeData[i].TradeID;
                         vLotQty = gCurrPosSSL.TradeData[i].Qty;
                         vTransType = gCurrPosSSL.TradeData[i].TransType;
                         vOptionType = gCurrPosSSL.TradeData[i].OptionType;
@@ -512,7 +513,7 @@ function fnSaveUpdCurrPos(){
                         vToPosClose = true;
                     }
                     else if((vOptionTypeZZ === "P") && (parseFloat(objPutPL.value) < 0) && (vPL > parseFloat(Math.abs(objPutPL.value)))){
-                        vLegID = gCurrPosSSL.TradeData[i].ClientOrderID;
+                        vLegID = gCurrPosSSL.TradeData[i].TradeID;
                         vLotQty = gCurrPosSSL.TradeData[i].Qty;
                         vTransType = gCurrPosSSL.TradeData[i].TransType;
                         vOptionType = gCurrPosSSL.TradeData[i].OptionType;
@@ -532,7 +533,7 @@ function fnSaveUpdCurrPos(){
                 // // ****************** Remove When Live *****************//
 
                 if((Math.abs(parseFloat(vCurrDelta)) < parseFloat(gCurrPosSSL.TradeData[i].DeltaSL)) || (Math.abs(parseFloat(vCurrDelta)) > parseFloat(gCurrPosSSL.TradeData[i].DeltaTP))){
-                    vLegID = gCurrPosSSL.TradeData[i].ClientOrderID;
+                    vLegID = gCurrPosSSL.TradeData[i].TradeID;
                     vLotQty = gCurrPosSSL.TradeData[i].Qty;
                     vTransType = gCurrPosSSL.TradeData[i].TransType;
                     vOptionType = gCurrPosSSL.TradeData[i].OptionType;
@@ -1024,6 +1025,7 @@ function fnUpdateOpenPositions(){
                 let vSymbol = gCurrPosSSL.TradeData[i].Symbol;
                 let vTransType = gCurrPosSSL.TradeData[i].TransType;
                 let vUndrAsstSymb = gCurrPosSSL.TradeData[i].UndrAsstSymb;
+                let vTradeID = gCurrPosSSL.TradeData[i].TradeID;
 
                 let vCharges = fnGetTradeCharges(vStrikePrice, vLotSize, vQty, vBuyPrice, vSellPrice);
                 let vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
@@ -1050,7 +1052,7 @@ function fnUpdateOpenPositions(){
                     }
                     vTempHtml += '<td style="text-wrap: nowrap; text-align:right;">' + (parseFloat(vCharges)).toFixed(2) + '</td>';
                     vTempHtml += '<td style="text-wrap: nowrap; text-align:right;color:#ff9a00;">'+ (vPL).toFixed(2) +'</td>';
-                    vTempHtml += '<td style="text-wrap: nowrap;"><i class="fa fa-eye" aria-hidden="true" style="color:green;" title="Close This Leg!" onclick="fnCloseOptPosition('+ vLegID +', '+ vQty +', `'+ vTransType +'`, `'+ vOptionType +'`, `'+ vSymbol +'`, `CLOSED`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-wrench" aria-hidden="true" style="color:#01ff1f;" onclick="fnOpenEditModel('+ vLegID +', '+ vLotSize +', '+ vQty +', `'+ vBuyPrice +'`, `'+ vSellPrice +'`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" aria-hidden="true" style="color:red; display:none" onclick="fnDelLeg('+ vLegID +');"></i></td>';
+                    vTempHtml += '<td style="text-wrap: nowrap;"><i class="fa fa-eye" aria-hidden="true" style="color:green;" title="Close This Leg!" onclick="fnCloseOptPosition('+ vTradeID +', '+ vQty +', `'+ vTransType +'`, `'+ vOptionType +'`, `'+ vSymbol +'`, `CLOSED`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-wrench" aria-hidden="true" style="color:#01ff1f;" onclick="fnOpenEditModel('+ vTradeID +', '+ vLotSize +', '+ vQty +', `'+ vBuyPrice +'`, `'+ vSellPrice +'`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" aria-hidden="true" style="color:red; display:none" onclick="fnDelLeg('+ vTradeID +');"></i></td>';
                     vTempHtml += '</tr>';
                 }
                 // else{
@@ -1066,7 +1068,7 @@ function fnUpdateOpenPositions(){
                 //     vTempHtml += '<td style="text-wrap: nowrap; color:red;text-align:right; color:grey;">' + (vSellPrice).toFixed(2) + '</td>';
                 //     vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:grey;">' + (parseFloat(vCharges)).toFixed(2) + '</td>';
                 //     vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:grey;">'+ (vPL).toFixed(2) +'</td>';
-                //     vTempHtml += '<td style="text-wrap: nowrap;"><i class="fa fa-eye-slash" aria-hidden="true" style="color:red;" title="Re-open This Leg!" onclick="fnCloseOptPosition('+ vLegID +', '+ vQty +', `'+ vTransType +'`, `'+ vOptionType +'`, `'+ vSymbol +'`, `OPEN`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-wrench" aria-hidden="true" style="color:#01ff1f;" onclick="fnOpenEditModel('+ vLegID +', '+ vLotSize +', '+ vQty +', `'+ vBuyPrice +'`, `'+ vSellPrice +'`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" aria-hidden="true" style="color:red;" onclick="fnDelLeg('+ vLegID +');"></i></td>';
+                //     vTempHtml += '<td style="text-wrap: nowrap;"><i class="fa fa-eye-slash" aria-hidden="true" style="color:red;" title="Re-open This Leg!" onclick="fnCloseOptPosition('+ vTradeID +', '+ vQty +', `'+ vTransType +'`, `'+ vOptionType +'`, `'+ vSymbol +'`, `OPEN`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-wrench" aria-hidden="true" style="color:#01ff1f;" onclick="fnOpenEditModel('+ vTradeID +', '+ vLotSize +', '+ vQty +', `'+ vBuyPrice +'`, `'+ vSellPrice +'`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" aria-hidden="true" style="color:red;" onclick="fnDelLeg('+ vTradeID +');"></i></td>';
                 //     vTempHtml += '</tr>';
                 // }
             }
@@ -1101,7 +1103,8 @@ function fnGetTradePL(pBuyPrice, pSellPrice, pLotSize, pQty, pCharges){
     return vPL;
 }
 
-async function fnCloseOptPosition(pClientOrderID, pLotQty, pTransType, pOptionType, pSymbol, pState){
+//Check here closing position, lot step or martingale multiplier settings
+async function fnCloseOptPosition(pTradeID, pLotQty, pTransType, pOptionType, pSymbol, pState){
     let objStepSwt = document.getElementById("swtStepDFL");
 
     if(pTransType === "buy"){
@@ -1128,7 +1131,7 @@ async function fnCloseOptPosition(pClientOrderID, pLotQty, pTransType, pOptionTy
         gSymbDeltaList = {};
 
         for(let i=0; i<gCurrPosSSL.TradeData.length; i++){
-            if(gCurrPosSSL.TradeData[i].ClientOrderID === pClientOrderID){
+            if(parseInt(gCurrPosSSL.TradeData[i].TradeID) === parseInt(pTradeID)){
                 if(pTransType === "sell"){
                     gCurrPosSSL.TradeData[i].SellPrice = vBestClsRate;
                 }
@@ -1196,7 +1199,7 @@ async function fnCloseOptPosition(pClientOrderID, pLotQty, pTransType, pOptionTy
         let vDelRec = null;
 
         for(let i=0; i<gCurrPosSSL.TradeData.length; i++){
-            if(gCurrPosSSL.TradeData[i].ClientOrderID === pClientOrderID){
+            if(parseInt(gCurrPosSSL.TradeData[i].TradeID) === parseInt(pTradeID)){
                 vDelRec = i;
             }
         }
@@ -1273,14 +1276,14 @@ function fnGetBestRatesBySymbId(pApiKey, pApiSecret, pSymbol){
     return objPromise;
 }
 
-function fnOpenEditModel(pLegID, pLotSize, pQty, pBuyPrice, pSellPrice){
+function fnOpenEditModel(pTradeID, pLotSize, pQty, pBuyPrice, pSellPrice){
     let objLegID = document.getElementById("hidLegID");
     let objLotSize = document.getElementById("txtEdLotSize");
     let objQty = document.getElementById("txtEdQty");
     let objBuyPrice = document.getElementById("txtEdBuyPrice");
     let objSellPrice = document.getElementById("txtEdSellPrice");
 
-    objLegID.value = pLegID;
+    objLegID.value = pTradeID;
     objLotSize.value = pLotSize;
     objQty.value = pQty;
     objBuyPrice.value = pBuyPrice;
@@ -1311,7 +1314,7 @@ function fnUpdateOptionLeg(){
     }
     else{
         for(let i=0; i<gCurrPosSSL.TradeData.length; i++){
-            if(gCurrPosSSL.TradeData[i].ClientOrderID === objLegID.value){
+            if(parseInt(gCurrPosSSL.TradeData[i].TradeID) === parseInt(objLegID.value)){
                 gCurrPosSSL.TradeData[i].LotSize = parseFloat(objLotSize.value);
                 gCurrPosSSL.TradeData[i].Qty = parseInt(objQty.value);
                 gCurrPosSSL.TradeData[i].BuyPrice = parseFloat(objBuyPrice.value);
@@ -1329,7 +1332,7 @@ function fnUpdateOptionLeg(){
     gUpdPos = true;
 }
 
-function fnDelLeg(pLegID){
+function fnDelLeg(pTradeID){
     if(confirm("Are You Sure, You Want to Delete This Leg!")){
         gUpdPos = false;
 
@@ -1345,7 +1348,7 @@ function fnDelLeg(pLegID){
         let vDelRec = null;
 
         for(let i=0; i<gCurrPosSSL.TradeData.length; i++){
-            if(gCurrPosSSL.TradeData[i].ClientOrderID === pLegID){
+            if(parseInt(gCurrPosSSL.TradeData[i].TradeID) === parseInt(pTradeID)){
                 vDelRec = i;
             }
         }
