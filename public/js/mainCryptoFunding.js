@@ -707,4 +707,8 @@ function fnCDcxBySlTest(){
         fnGenMessage("Error to Fetch Details.", `badge bg-danger`, "spnGenMsg");
     });
 }
+
+function fnGetCDcxBalances(){
+    alert();
+}
 //************* Sample Code for Testing *************//

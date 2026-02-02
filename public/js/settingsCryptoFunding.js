@@ -160,7 +160,85 @@ function fnCheckDeltaCred(){
 }
 
 function fnCheckCoinDCXCred(){
+    let objApiKey = document.getElementById("txtCDcxAPIKey");
+    let objSecretCode = document.getElementById("txtCDcxSecret");
 
+    if(objApiKey.value === ""){
+        objApiKey.focus();
+        fnGenMessage("Please input API Key", `badge bg-warning`, "spnLoginMsgs");
+    }
+    else if(objSecretCode.value === ""){
+        objSecretCode.focus();
+        fnGenMessage("Please input Secret Code", `badge bg-warning`, "spnLoginMsgs");
+    }
+    else{
+        // console.log(objApiKey.value);
+        // console.log(objSecretCode.value);
+        let vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+
+        let vAction = JSON.stringify({
+            "ApiKey" : objApiKey.value,
+            "SecretCode" : objSecretCode.value
+        });
+
+        let requestOptions = {
+            method: 'POST',
+            headers: vHeaders,
+            body: vAction,
+            redirect: 'follow'
+        };
+
+        fetch("/execCryptoFunding/CDcxCredValidate", requestOptions)
+        .then(response => response.json())
+        .then(objResult => {
+            if(objResult.status === "success"){
+                console.log(objResult);
+                // localStorage.setItem("lsApiKeyCF", JSON.stringify(objApiKey.value));
+                // localStorage.setItem("lsSecretCF", JSON.stringify(objSecretCode.value));
+
+                // let objBalances = { Acc1BalINR: objResult.data[0].available_balance_inr, Acc1BalUSD: objResult.data[0].available_balance };
+                // // document.getElementById("spnBal1").innerText = (parseFloat(objBalances.Acc1BalUSD)).toFixed(2);
+
+                // localStorage.setItem("DeltaNetLimit", JSON.stringify(objBalances));
+                // console.log(localStorage.getItem("DeltaNetLimit"));
+
+                // $('#mdlDeltaLogin').modal('hide');
+                // localStorage.setItem("lsLoginValidCF", "true");
+                // fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+                // fnGetSetTraderLoginStatus();
+                // fnGetSetAutoTraderStatus();
+            }
+            else if(objResult.status === "danger"){
+                console.log("At Danger");
+                console.log(objResult);
+                // fnClearLoginStatus();
+                if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+                    fnGenMessage(objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, `badge bg-${objResult.status}`, "spnLoginMsgs");
+                }
+                else{
+                    fnGenMessage(objResult.data.response.body.error.code + " Contact Admin!", `badge bg-${objResult.status}`, "spnLoginMsgs");
+                }
+            }
+            else if(objResult.status === "warning"){
+                console.log("At Warning");
+                console.log(objResult);
+                // fnClearLoginStatus();
+                fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnLoginMsgs");
+            }
+            else{
+                // fnClearLoginStatus();
+                fnGenMessage("Error in Login, Contact Admin.", `badge bg-danger`, "spnLoginMsgs");
+            }
+        })
+        .catch(error => {
+                console.log("At Catch");
+                console.log(error);
+            // fnClearLoginStatus();
+            //console.log('error: ', error);
+            fnGenMessage("Error to Fetch with Login Details.", `badge bg-danger`, "spnLoginMsgs");
+        });
+    }
 }
 
 

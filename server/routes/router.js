@@ -245,6 +245,7 @@ route.post("/deltaSStrangleLive/getOptChnSDKByAstOptTypExp", deltaSStrangleLiveC
 
 //Crypto Funding Routes
 route.post("/execCryptoFunding/DeltaCredValidate", ctrlCryptoFunding.fnDeltaCredValidate);
+route.post("/execCryptoFunding/CDcxCredValidate", ctrlCryptoFunding.fnCDcxCredValidate);
 route.post("/execCryptoFunding/updCoinDcxDeltaData", ctrlCryptoFunding.fnUpdCoindcxDeltaCoinsList);
 route.post("/execCryptoFunding/getCoinDcxDeltaData", ctrlCryptoFunding.fnGetCoinDcxDeltaData);
 route.post("/execCryptoFunding/getDeltaCoinList", ctrlCryptoFunding.fnGetDeltaCoinsList);

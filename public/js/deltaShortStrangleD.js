@@ -75,7 +75,6 @@ window.addEventListener("DOMContentLoaded", function(){
 
 function fnGetAllStatus(){
 	let bAppStatus = JSON.parse(localStorage.getItem("AppMsgStatusS"));
-
     if(bAppStatus){
         fnConnectDFL();
         fnLoadLoginCred();
@@ -494,22 +493,22 @@ function fnSaveUpdCurrPos(){
                     vSymbol = gCurrPosDSSD.TradeData[i].Symbol;
                     vToPosClose = true;
                 }
-                else if(vPL > 0){
-                    if((vOptionTypeZZ === "C") && (parseFloat(objCallPL.value) < 0) && (vPL > Math.abs(parseFloat(objCallPL.value)))){
-                        vLegID = gCurrPosDSSD.TradeData[i].ClientOrderID;
-                        vTransType = gCurrPosDSSD.TradeData[i].TransType;
-                        vOptionType = gCurrPosDSSD.TradeData[i].OptionType;
-                        vSymbol = gCurrPosDSSD.TradeData[i].Symbol;
-                        vToPosClose = true;
-                    }
-                    else if((vOptionTypeZZ === "P") && (parseFloat(objPutPL.value) < 0) && (vPL > Math.abs(parseFloat(objPutPL.value)))){
-                        vLegID = gCurrPosDSSD.TradeData[i].ClientOrderID;
-                        vTransType = gCurrPosDSSD.TradeData[i].TransType;
-                        vOptionType = gCurrPosDSSD.TradeData[i].OptionType;
-                        vSymbol = gCurrPosDSSD.TradeData[i].Symbol;
-                        vToPosClose = true;
-                    }
-                }
+                // else if(vPL > 0){
+                //     if((vOptionTypeZZ === "C") && (parseFloat(objCallPL.value) < 0) && (vPL > Math.abs(parseFloat(objCallPL.value)))){
+                //         vLegID = gCurrPosDSSD.TradeData[i].ClientOrderID;
+                //         vTransType = gCurrPosDSSD.TradeData[i].TransType;
+                //         vOptionType = gCurrPosDSSD.TradeData[i].OptionType;
+                //         vSymbol = gCurrPosDSSD.TradeData[i].Symbol;
+                //         vToPosClose = true;
+                //     }
+                //     else if((vOptionTypeZZ === "P") && (parseFloat(objPutPL.value) < 0) && (vPL > Math.abs(parseFloat(objPutPL.value)))){
+                //         vLegID = gCurrPosDSSD.TradeData[i].ClientOrderID;
+                //         vTransType = gCurrPosDSSD.TradeData[i].TransType;
+                //         vOptionType = gCurrPosDSSD.TradeData[i].OptionType;
+                //         vSymbol = gCurrPosDSSD.TradeData[i].Symbol;
+                //         vToPosClose = true;
+                //     }
+                // }
             }
         }
     }
@@ -517,7 +516,32 @@ function fnSaveUpdCurrPos(){
     fnUpdateOpenPositions();
 
     if(vToPosClose){
+        // let objTrdCountCE = JSON.parse(localStorage.getItem("CETrdCntDSSD"));
+        // let objTrdCountPE = JSON.parse(localStorage.getItem("PETrdCntDSSD"));
+
+        // if((objTrdCountCE > 1 || objTrdCountPE > 1) && vTransType === "sell"){
+
+        //     fnGetBuyOpenPosAndClose(vTransType, vOptionType);
+        // }
         fnCloseOptPosition(vLegID, vTransType, vOptionType, vSymbol, "CLOSED");
+    }
+}
+
+function fnGetBuyOpenPosAndClose(pTransType, pOptionType){
+    let vToPosClose = false;
+    let vLegID = 0;
+    let vSymbol = "";
+
+    for(let i=0; i<gCurrPosDSSD.TradeData.length; i++){
+        if((gCurrPosDSSD.TradeData[i].Status === "OPEN") && (gCurrPosDSSD.TradeData[i].OptionType === pOptionType) && (gCurrPosDSSD.TradeData[i].TransType === "buy")){
+            vLegID = gCurrPosDSSD.TradeData[i].ClientOrderID;
+            vSymbol = gCurrPosDSSD.TradeData[i].Symbol;
+            vToPosClose = true;
+        }
+    }
+
+    if(vToPosClose){
+        fnCloseOptPosition(vLegID, "buy", vOptionType, vSymbol, "CLOSED");
     }
 }
 
@@ -781,6 +805,9 @@ function fnPreInitTradeClose(pOptionType){
 }
 
 async function fnInitTrade(pOptionType, pTransType){
+    // let objTrdCountCE = JSON.parse(localStorage.getItem("CETrdCntDSSD"));
+    // let objTrdCountPE = JSON.parse(localStorage.getItem("PETrdCntDSSD"));
+
     let objApiKey1 = document.getElementById("txtUserAPIKey");
     let objApiSecret1 = document.getElementById("txtAPISecret");
 
@@ -813,14 +840,12 @@ async function fnInitTrade(pOptionType, pTransType){
     //{ TransType : "sell", OptionType : "F", DeltaNew : 1.00, DeltaTP : 2.00, DeltaSL : 0.10 },
     
     if(pTransType === "sell"){
-        objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", RateNew : 1200, RateTP : 700, RateSL : 500, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { TransType : "sell", OptionType : "C", RateNew : 1200, RateTP : 700, RateSL : 500, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
+        objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", RateNew : 600, RateTP : 600, RateSL : 600, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { TransType : "sell", OptionType : "C", RateNew : 600, RateTP : 600, RateSL : 600, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
     }
     else if(pTransType === "buy"){
-        objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "buy", OptionType : "P", RateNew : 600, RateTP : 500, RateSL : 500, DeltaNew : 0.50, DeltaTP : 0.65, DeltaSL : 0.35 }, { TransType : "buy", OptionType : "C", RateNew : 600, RateTP : 500, RateSL : 500, DeltaNew : 0.50, DeltaTP : 0.65, DeltaSL : 0.35 }] }] }
+        objStrategies = { Strategies : [{ StratID : 1234325, StratName : "S-1", StratModel : [{ TransType : "buy", OptionType : "P", RateNew : 900, RateTP : 10000, RateSL : 900, DeltaNew : 0.50, DeltaTP : 0.65, DeltaSL : 0.35 }, { TransType : "buy", OptionType : "C", RateNew : 900, RateTP : 10000, RateSL : 900, DeltaNew : 0.50, DeltaTP : 0.65, DeltaSL : 0.35 }] }] }
     }
-    // let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "buy", OptionType : "P", DeltaNew : 0.10, DeltaTP : 0.25, DeltaSL : 0.02 }, { TransType : "buy", OptionType : "C", DeltaNew : 0.10, DeltaTP : 0.25, DeltaSL : 0.02 }] }] }
 
-    // console.log(objStrategies.Strategies[0].StratModel.length);
     gUpdPos = false;
 
     for(let i=0; i<objStrategies.Strategies[0].StratModel.length; i++){
@@ -843,9 +868,17 @@ async function fnInitTrade(pOptionType, pTransType){
 
         if(pOptionType === "C"){
             vQty = objBQtyCE.value;
+
+            // if(objTrdCountCE === null || objTrdCountCE === ""){
+            //     objTrdCountCE = 0;
+            // }
         }
         else if(pOptionType === "P"){
             vQty = objBQtyPE.value;
+
+            // if(objTrdCountPE === null || objTrdCountPE === ""){
+            //     objTrdCountPE = 0;
+            // }
         }
 
         if(objStrategies.Strategies[0].StratModel[i].OptionType === pOptionType){
@@ -880,6 +913,15 @@ async function fnInitTrade(pOptionType, pTransType){
                 if(vTransType === "sell"){
                     vTradeSL = vBestSell + vRateSL;
                     vTradeTP = vBestSell - vRateTP;
+
+                    // if(pOptionType === "C"){
+                    //     objTrdCountCE = objTrdCountCE + 1;
+                    //     localStorage.setItem("CETrdCntDSSD", objTrdCountCE);
+                    // }
+                    // else if(pOptionType === "P"){
+                    //     objTrdCountPE = objTrdCountPE + 1;
+                    //     localStorage.setItem("PETrdCntDSSD", objTrdCountPE);
+                    // }
                 }
                 else if(vTransType === "buy"){
                     vTradeSL = vBestBuy - vRateSL;
@@ -897,6 +939,19 @@ async function fnInitTrade(pOptionType, pTransType){
                 gUpdPos = true;
                 fnSetSymbolTickerList();
                 fnUpdateOpenPositions();
+
+                // if(vTransType === "sell"){
+                //     if(objTrdCountCE > 1 && pOptionType === "C"){
+                //         fnInitTrade(pOptionType, "buy");
+                //         // console.log("Exec CE Buy Trade");
+                //     }
+                //     else if(objTrdCountPE > 1 && pOptionType === "P"){
+                //         fnInitTrade(pOptionType, "buy");
+                //         // console.log("Exec PE Buy Trade");
+                //     }
+                //     // console.log(objTrdCountCE);
+                //     // console.log(objTrdCountPE);
+                // }
             }
             else if(objTradeDtls.status === "danger"){
                 fnGenMessage(objTradeDtls.message, `badge bg-${objTradeDtls.status}`, "spnGenMsg");
@@ -1187,10 +1242,12 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
                 document.getElementById("txtBCallPL").value = vTLAmtCeBuyDSSD;
 
                 if(parseFloat(vTLAmtCeBuyDSSD) < 0){
-                    // let vNewQty = parseInt(vQtyCE) + parseInt(objStartQty.value);
-                    let vNewQty = parseInt(vQtyCE) * 2;
-                    localStorage.setItem("QtyCallBuyDSSD", vNewQty);
-                    document.getElementById("txtBQtyCE").value = vNewQty;
+                    if(pTransType === "sell"){
+                        // let vNewQty = parseInt(vQtyCE) + parseInt(objStartQty.value);
+                        let vNewQty = parseInt(vQtyCE) * 2;
+                        localStorage.setItem("QtyCallBuyDSSD", vNewQty);
+                        document.getElementById("txtBQtyCE").value = vNewQty;
+                    }
                 }
                 else{
                     document.getElementById("txtBCallPL").value = 0;
@@ -1209,10 +1266,66 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
                 document.getElementById("txtBPutPL").value = vTLAmtPeBuyDSSD;
 
                 if(parseFloat(vTLAmtPeBuyDSSD) < 0){
-                    // let vNewQty = parseInt(vQtyPE) + parseInt(objStartQty.value);
-                    let vNewQty = parseInt(vQtyPE) * 2;
-                    localStorage.setItem("QtyPutBuyDSSD", vNewQty);
-                    document.getElementById("txtBQtyPE").value = vNewQty;
+                    if(pTransType === "sell"){
+                        // let vNewQty = parseInt(vQtyPE) + parseInt(objStartQty.value);
+                        let vNewQty = parseInt(vQtyPE) * 2;
+                        localStorage.setItem("QtyPutBuyDSSD", vNewQty);
+                        document.getElementById("txtBQtyPE").value = vNewQty;
+                    }
+                }
+                else{
+                    document.getElementById("txtBPutPL").value = 0;
+                    document.getElementById("txtBQtyPE").value = objStartQty.value;
+                    localStorage.setItem("QtyPutBuyDSSD", objStartQty.value);
+                }
+            }
+        }
+        else{
+            let vCharges = fnGetTradeCharges(vStrikePrice, vLotSize, vQty, vBuyPrice, vSellPrice);
+            let vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
+            let objStartQty = document.getElementById("txtStartBQty");
+
+            if(pOptionType === "C"){
+                let vTLAmtCeBuyDSSD = localStorage.getItem("TLAmtBuyCeDSSD");
+                if(parseFloat(vTLAmtCeBuyDSSD) > 0){
+                    vTLAmtCeBuyDSSD = 0;
+                }
+                let vQtyCE = localStorage.getItem("QtyCallBuyDSSD");
+                vTLAmtCeBuyDSSD = parseFloat(vTLAmtCeBuyDSSD) + parseFloat(vPL);
+                localStorage.setItem("TLAmtBuyCeDSSD", vTLAmtCeBuyDSSD);
+                document.getElementById("txtBCallPL").value = vTLAmtCeBuyDSSD;
+
+                if(parseFloat(vTLAmtCeBuyDSSD) < 0){
+                    // if(pTransType === "sell"){
+                    //     // let vNewQty = parseInt(vQtyCE) + parseInt(objStartQty.value);
+                    //     let vNewQty = parseInt(vQtyCE) * 2;
+                    //     localStorage.setItem("QtyCallBuyDSSD", vNewQty);
+                    //     document.getElementById("txtBQtyCE").value = vNewQty;
+                    // }
+                }
+                else{
+                    document.getElementById("txtBCallPL").value = 0;
+                    document.getElementById("txtBQtyCE").value = objStartQty.value;
+                    localStorage.setItem("QtyCallBuyDSSD", objStartQty.value);
+                }
+            }
+            else if(pOptionType === "P"){
+                let vTLAmtPeBuyDSSD = localStorage.getItem("TLAmtBuyPeDSSD");
+                if(parseFloat(vTLAmtPeBuyDSSD) > 0){
+                    vTLAmtPeBuyDSSD = 0;
+                }
+                let vQtyPE = localStorage.getItem("QtyPutBuyDSSD");
+                vTLAmtPeBuyDSSD = parseFloat(vTLAmtPeBuyDSSD) + parseFloat(vPL);
+                localStorage.setItem("TLAmtBuyPeDSSD", vTLAmtPeBuyDSSD);
+                document.getElementById("txtBPutPL").value = vTLAmtPeBuyDSSD;
+
+                if(parseFloat(vTLAmtPeBuyDSSD) < 0){
+                    // if(pTransType === "sell"){
+                    //     // let vNewQty = parseInt(vQtyPE) + parseInt(objStartQty.value);
+                    //     let vNewQty = parseInt(vQtyPE) * 2;
+                    //     localStorage.setItem("QtyPutBuyDSSD", vNewQty);
+                    //     document.getElementById("txtBQtyPE").value = vNewQty;
+                    // }
                 }
                 else{
                     document.getElementById("txtBPutPL").value = 0;
@@ -1424,7 +1537,11 @@ function fnClearLocalStorageTemp(){
     localStorage.removeItem("TLAmtBuyPeDSSD");
     localStorage.removeItem("QtyCallBuyDSSD");
     localStorage.removeItem("QtyPutBuyDSSD");
-    localStorage.removeItem("StartQtyBuyDSSD");
+    // localStorage.removeItem("StartQtyBuyDSSD");
+
+    localStorage.removeItem("CETrdCntDSSD");
+    localStorage.removeItem("PETrdCntDSSD");
+
     fnGetAllStatus();
     console.log("Memory Cleared!!!");
 }

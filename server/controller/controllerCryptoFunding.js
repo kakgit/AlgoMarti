@@ -1,4 +1,5 @@
 const axios = require("axios");
+const request = require('request');
 const path = require('path');
 const qs = require('qs');
 const fs = require('fs');
@@ -8,7 +9,7 @@ const DeltaRestClient = require("delta-rest-client");
 
 //Live Account
 const gBaseUrlDelta = 'https://api.india.delta.exchange';
-const gBaseUrlCDcx = 'https://api.coindcx.com';
+const gUrlCDcxAPI = 'https://api.coindcx.com';
 
 exports.defaultRoute = (req, res) => {
     //res.send("Crud Application");
@@ -26,6 +27,24 @@ exports.fnDeltaCredValidate = async (req, res) => {
         objWallet.push(objRetData.data.result[0]);
 
         res.send({ "status": "success", "message": objRetData.message, "data": objWallet });
+    }
+    else{
+        res.send({ "status": objRetData.status, "message": objRetData.message, "data": objRetData.data });
+    }
+    // res.send({ "status": "success", "message": "Testing", "data": "" });
+}
+
+exports.fnCDcxCredValidate = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vSecretCode = req.body.SecretCode;
+    let objWallet = [];
+
+    let objRetData = await fnGetCDcxWallet(vApiKey, vSecretCode);
+    if(objRetData.status === "success"){
+        console.log(objRetData);
+        // objWallet.push(objRetData.data.result[0]);
+
+        res.send({ "status": "success", "message": objRetData.message, "data": "objWallet" });
     }
     else{
         res.send({ "status": objRetData.status, "message": objRetData.message, "data": objRetData.data });
@@ -414,6 +433,51 @@ const fnGetUserWallet = async (pApiKey, pSecretCode) => {
                 resolve({ "status": "danger", "message": "Error At User Login! Catch.", "data": objError });
             });
         });
+    });
+    return objPromise;
+}
+
+const fnGetCDcxWallet = async (pApiKey, pSecretCode) => {
+    const objPromise = new Promise((resolve, reject) => {
+        // General Wallet Details
+        // const vUrl = gUrlCDcxAPI + "/exchange/v1/users/balances";
+
+        // Futures Wallet Details
+        const vUrl = gUrlCDcxAPI + "/exchange/v1/derivatives/futures/wallets";
+        const vMethod = "GET";
+        const vTimeStamp = Math.floor(Date.now());
+        const vBody = { "timestamp": vTimeStamp };
+        const vPayload = Buffer.from(JSON.stringify(vBody)).toString();
+        const vSignature = crypto.createHmac('sha256', pSecretCode).update(vPayload).digest('hex');
+
+        const objOptions = {
+            method: vMethod,
+            maxBodyLength: Infinity,
+            url: vUrl,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-AUTH-APIKEY': pApiKey,
+                'X-AUTH-SIGNATURE': vSignature
+                },
+            data: vBody
+        }
+        // console.log(pApiKey);
+        // console.log(pSecretCode);
+        // console.log(vUrl);
+        axios.request(objOptions)
+        .then((objResult) => {
+            // console.log(objResult);
+            resolve({ "status": "success", "message": "Coin DCX String List Fetched!", "data": objResult });
+        })
+        .catch((objError) => {
+            console.log(objError);
+            resolve({ "status": "danger", "message": "Error At User Login! Catch.", "data": objError });
+        });
+
+        // request.get(objOptions, function(error, response, body) {
+        //     console.log(body);
+        //     resolve({ "status": "success", "message": "Coin DCX Wallet Fetched!", "data": "" });
+        // })
     });
     return objPromise;
 }
