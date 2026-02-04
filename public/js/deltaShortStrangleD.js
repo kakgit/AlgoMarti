@@ -840,10 +840,10 @@ async function fnInitTrade(pOptionType, pTransType){
     //{ TransType : "sell", OptionType : "F", DeltaNew : 1.00, DeltaTP : 2.00, DeltaSL : 0.10 },
     
     if(pTransType === "sell"){
-        objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", RateNew : 600, RateTP : 600, RateSL : 600, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { TransType : "sell", OptionType : "C", RateNew : 600, RateTP : 600, RateSL : 600, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
+        objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ TransType : "sell", OptionType : "P", RateNew : 600, RateTP : 550, RateSL : 600, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { TransType : "sell", OptionType : "C", RateNew : 600, RateTP : 550, RateSL : 600, DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
     }
     else if(pTransType === "buy"){
-        objStrategies = { Strategies : [{ StratID : 1234325, StratName : "S-1", StratModel : [{ TransType : "buy", OptionType : "P", RateNew : 900, RateTP : 10000, RateSL : 900, DeltaNew : 0.50, DeltaTP : 0.65, DeltaSL : 0.35 }, { TransType : "buy", OptionType : "C", RateNew : 900, RateTP : 10000, RateSL : 900, DeltaNew : 0.50, DeltaTP : 0.65, DeltaSL : 0.35 }] }] }
+        objStrategies = { Strategies : [{ StratID : 1234325, StratName : "S-1", StratModel : [{ TransType : "buy", OptionType : "P", RateNew : 900, RateTP : 3600, RateSL : 800, DeltaNew : 0.50, DeltaTP : 0.65, DeltaSL : 0.35 }, { TransType : "buy", OptionType : "C", RateNew : 900, RateTP : 3600, RateSL : 800, DeltaNew : 0.50, DeltaTP : 0.65, DeltaSL : 0.35 }] }] }
     }
 
     gUpdPos = false;
@@ -1696,6 +1696,15 @@ function fnAdd2SubList(){
     console.log(gSubList);
     fnUnSubscribeDFL();
     fnSubscribeDFL();
+}
+
+function checkTimeForAlert() {
+  const now = new Date();
+  const currentHour = now.getHours();
+
+  if (currentHour >= 17) {
+    alert("It is after 5 PM!");
+  }
 }
 //******************* WS Connection and Subscription Fully Updated Version ****************//
 
