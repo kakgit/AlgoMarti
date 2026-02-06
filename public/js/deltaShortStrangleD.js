@@ -438,7 +438,6 @@ function fnSaveUpdCurrPos(){
             let vCurrRho = parseFloat(gSymbRhoList[gCurrPosDSSD.TradeData[i].Symbol]);
             let vCurrTheta = parseFloat(gSymbThetaList[gCurrPosDSSD.TradeData[i].Symbol]);
 
-            console.log("vCurrDelta: " + vCurrDelta);
             gCurrPosDSSD.TradeData[i].DeltaC = vCurrDelta;
             gCurrPosDSSD.TradeData[i].GammaC = vCurrGamma;
             gCurrPosDSSD.TradeData[i].VegaC = vCurrVega;
