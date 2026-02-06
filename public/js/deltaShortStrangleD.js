@@ -21,6 +21,7 @@ let gSymbThetaList = {};
 let gForceCloseDFL = false;
 let gBrokerage = 0.010;
 let gReLeg = false;
+let gClsBuyLeg = false;
 let gCurrStrats = { StratsData : []};
 
 window.addEventListener("DOMContentLoaded", function(){
@@ -459,7 +460,16 @@ function fnSaveUpdCurrPos(){
                 let vCurrPrice = parseFloat(gSymbBRateList[gCurrPosDSSD.TradeData[i].Symbol]);
                 gCurrPosDSSD.TradeData[i].BuyPrice = vCurrPrice;
 
-                if((vCurrPrice > gCurrPosDSSD.TradeData[i].TradeSL) || (Math.abs(parseFloat(vCurrDelta)) >= 0.50) || (vCurrPrice < gCurrPosDSSD.TradeData[i].TradeTP)){
+                if((vCurrPrice > gCurrPosDSSD.TradeData[i].TradeSL) || (Math.abs(parseFloat(vCurrDelta)) >= 0.50)){
+                    vLegID = gCurrPosDSSD.TradeData[i].ClientOrderID;
+                    vTransType = gCurrPosDSSD.TradeData[i].TransType;
+                    vOptionType = gCurrPosDSSD.TradeData[i].OptionType;
+                    vSymbol = gCurrPosDSSD.TradeData[i].Symbol;
+                    vToPosClose = true;
+                    gReLeg = true;
+                    gClsBuyLeg = true;
+                }
+                else if(vCurrPrice < gCurrPosDSSD.TradeData[i].TradeTP) {
                     vLegID = gCurrPosDSSD.TradeData[i].ClientOrderID;
                     vTransType = gCurrPosDSSD.TradeData[i].TransType;
                     vOptionType = gCurrPosDSSD.TradeData[i].OptionType;
@@ -518,6 +528,10 @@ function fnSaveUpdCurrPos(){
     fnUpdateOpenPositions();
 
     if(vToPosClose){
+        if(gClsBuyLeg && vTransType === "sell"){
+            gClsBuyLeg = false;
+            fnCloseBuyLeg(vTransType, vOptionType);
+        }
         // let objTrdCountCE = JSON.parse(localStorage.getItem("CETrdCntDSSD"));
         // let objTrdCountPE = JSON.parse(localStorage.getItem("PETrdCntDSSD"));
 
@@ -526,6 +540,32 @@ function fnSaveUpdCurrPos(){
         //     fnGetBuyOpenPosAndClose(vTransType, vOptionType);
         // }
         fnCloseOptPosition(vLegID, vTransType, vOptionType, vSymbol, "CLOSED");
+    }
+}
+
+function fnCloseBuyLeg(pTransType, pOptionType){
+    let vOptionType = "";
+    let vRecExists = false;
+    let vLegID = 0;
+    let vSymbol = "";
+
+    if(pOptionType === "C"){
+        vOptionType = "P";
+    }
+    else if(pOptionType === "P"){
+        vOptionType = "C";
+    }
+
+    for(let i=0; i<gCurrPosDSSD.TradeData.length; i++){
+        if((gCurrPosDSSD.TradeData[i].TransType === "buy") && gCurrPosDSSD.TradeData[i].OptionType === vOptionType){
+            vRecExists = true;
+            vLegID = gCurrPosDSSD.TradeData[i].ClientOrderID;
+            vSymbol = gCurrPosDSSD.TradeData[i].Symbol;
+        }
+    }
+
+    if(vRecExists){
+        fnCloseOptPosition(vLegID, "buy", vOptionType, vSymbol, "CLOSED");
     }
 }
 
