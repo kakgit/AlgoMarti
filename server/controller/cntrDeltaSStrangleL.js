@@ -596,7 +596,6 @@ const fnGetOpenTrades = async (pApiKey, pApiSecret) => {
     return objPromise;
 }
 
-
 const fnGetClsdTrades = async (pApiKey, pApiSecret, pStartDT, pEndDT, pClientID) => {
     const objPromise = new Promise((resolve, reject) => {
         new DeltaRestClient(pApiKey, pApiSecret).then(client => {

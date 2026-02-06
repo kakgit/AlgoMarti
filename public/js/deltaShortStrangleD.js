@@ -20,7 +20,7 @@ let gSymbThetaList = {};
 
 let gForceCloseDFL = false;
 let gBrokerage = 0.010;
-
+let gReLeg = false;
 let gCurrStrats = { StratsData : []};
 
 window.addEventListener("DOMContentLoaded", function(){
@@ -438,6 +438,7 @@ function fnSaveUpdCurrPos(){
             let vCurrRho = parseFloat(gSymbRhoList[gCurrPosDSSD.TradeData[i].Symbol]);
             let vCurrTheta = parseFloat(gSymbThetaList[gCurrPosDSSD.TradeData[i].Symbol]);
 
+            console.log("vCurrDelta: " + vCurrDelta);
             gCurrPosDSSD.TradeData[i].DeltaC = vCurrDelta;
             gCurrPosDSSD.TradeData[i].GammaC = vCurrGamma;
             gCurrPosDSSD.TradeData[i].VegaC = vCurrVega;
@@ -459,12 +460,13 @@ function fnSaveUpdCurrPos(){
                 let vCurrPrice = parseFloat(gSymbBRateList[gCurrPosDSSD.TradeData[i].Symbol]);
                 gCurrPosDSSD.TradeData[i].BuyPrice = vCurrPrice;
 
-                if((vCurrPrice > gCurrPosDSSD.TradeData[i].TradeSL) || (vCurrPrice < gCurrPosDSSD.TradeData[i].TradeTP)){
+                if((vCurrPrice > gCurrPosDSSD.TradeData[i].TradeSL) || (Math.abs(parseFloat(vCurrDelta)) >= 0.50) || (vCurrPrice < gCurrPosDSSD.TradeData[i].TradeTP)){
                     vLegID = gCurrPosDSSD.TradeData[i].ClientOrderID;
                     vTransType = gCurrPosDSSD.TradeData[i].TransType;
                     vOptionType = gCurrPosDSSD.TradeData[i].OptionType;
                     vSymbol = gCurrPosDSSD.TradeData[i].Symbol;
                     vToPosClose = true;
+                    gReLeg = true;
                 }
                 else if(vPL > 0){
                     if((vOptionTypeZZ === "C") && (parseFloat(objCallPL.value) < 0) && (vPL > Math.abs(parseFloat(objCallPL.value)))){
@@ -1363,6 +1365,10 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
         fnSetSymbolTickerList();
         fnUpdateOpenPositions();
 
+        if(pTransType === "sell" && gReLeg){
+            gReLeg = false;
+            fnPreInitTrade(pOptionType, pTransType);
+        }
         // if(pReLeg){
         //     fnInitOpenOptTrade(pOptionType, pTransType);
         // }

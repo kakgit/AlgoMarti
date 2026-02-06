@@ -306,12 +306,14 @@ function fnInItWalletBal(){
                 let objPutPL = document.getElementById("txtPutPL");
                 let vNetEquity = parseFloat(objResult.data.meta.net_equity);
                 let vNetAvailAmt = parseFloat(objResult.data.result[2].available_balance);
-                let vMarginBlocked = vNetEquity - vNetAvailAmt;
-                let vReqBalance = vMarginBlocked * 3;
+                // let vMarginBlocked = vNetEquity - vNetAvailAmt;
+                let vMarginBlocked = parseFloat(objResult.data.result[2].blocked_margin);
+                let vReqBalance = vMarginBlocked * 2;
                 let vYet2Req = parseFloat(objCallPL.value) + parseFloat(objPutPL.value);
 
-                // console.log(objResult);
-                // console.log(objResult.data.meta.net_equity);
+                console.log("vNetEquity: " + vNetEquity);
+                console.log("vNetAvailAmt: " + vNetAvailAmt);
+                console.log(objResult);
                 // console.log(objResult.data.result[0].available_balance);
                 document.getElementById("spnBal1").innerText = (vNetAvailAmt).toFixed(3);
                 document.getElementById("spnMarginBlocked").innerText = (vMarginBlocked).toFixed(3);
