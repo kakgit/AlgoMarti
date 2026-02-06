@@ -941,18 +941,9 @@ async function fnInitTrade(pOptionType, pTransType){
                 fnSetSymbolTickerList();
                 fnUpdateOpenPositions();
 
-                // if(vTransType === "sell"){
-                //     if(objTrdCountCE > 1 && pOptionType === "C"){
-                //         fnInitTrade(pOptionType, "buy");
-                //         // console.log("Exec CE Buy Trade");
-                //     }
-                //     else if(objTrdCountPE > 1 && pOptionType === "P"){
-                //         fnInitTrade(pOptionType, "buy");
-                //         // console.log("Exec PE Buy Trade");
-                //     }
-                //     // console.log(objTrdCountCE);
-                //     // console.log(objTrdCountPE);
-                // }
+                if(vTransType === "sell"){
+                    fnChkOpenBuyPos(vOptionType);
+                }
             }
             else if(objTradeDtls.status === "danger"){
                 fnGenMessage(objTradeDtls.message, `badge bg-${objTradeDtls.status}`, "spnGenMsg");
@@ -1026,6 +1017,32 @@ function fnExecOption(pApiKey, pApiSecret, pUndAsst, pExpiry, pOptionType, pTran
         });
     });
     return objPromise;
+}
+
+function fnChkOpenBuyPos(pOptionType){
+    let vRecExists = false;
+    let vOptionType = "";
+
+    if(pOptionType === "C"){
+        vOptionType = "P";
+    }
+    else if(pOptionType === "P"){
+        vOptionType = "C";
+    }
+
+    for(let i=0; i<gCurrPosDSSD.TradeData.length; i++){
+        let vStatus = gCurrPosDSSD.TradeData[i].Status;
+        let vTransType = gCurrPosDSSD.TradeData[i].TransType;
+        let vExOptionType = gCurrPosDSSD.TradeData[i].OptionType;
+
+        if(vStatus === "OPEN" && vTransType === "buy" && vExOptionType === vOptionType){
+            vRecExists = true;
+        }
+    }
+
+    if(vRecExists === false){        
+        fnInitTrade(vOptionType, "buy");
+    }
 }
 
 //******** Display's Updated Open Positions *********//
