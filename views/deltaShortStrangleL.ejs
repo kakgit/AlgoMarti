@@ -78,8 +78,8 @@
                                     <div class="col-2">Symbols List</div>
                                     <div class="col-2">Lot Size</div>
                                     <div class="col-2">Qty</div>
-                                    <div class="col-2">CE Qty</div>
-                                    <div class="col-2">PE Qty</div>
+                                    <div class="col-2">Order Type</div>
+                                    <div class="col-2"></div>
                                     <div class="col-2"></div>
 
                                     <div class="col-2">
@@ -96,10 +96,12 @@
                                         <input type="text" class="form-control" min="1" value="1" id="txtStartQty" onchange="fnChangeStartQty(this);" />
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" min="0" class="form-control" placeholder="CE Qty" id="txtQtyCE" value="0" onchange="fnChangeQtyCE(this);" />
+                                        <select id="ddlOrderType" class="form-select" placeholder="Select Order Type">
+                                            <option value='limit_order'>Limit Order</option>
+                                            <option value='market_order' selected>Market Order</option>
+                                        </select>
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" min="0" class="form-control" placeholder="PE Qty" id="txtQtyPE" value="0" onchange="fnChangeQtyPE(this);" />
                                     </div>
                                     <div class="col-2">
                                         <div class="d-grid gap-1">
@@ -116,7 +118,7 @@
                                     <div class="col-2">
                                         Select Long Expiry
                                     </div>
-                                    <div class="col-2">Order Type</div>
+                                    <div class="col-2"></div>
                                     <div class="col-2"></div>
                                     <div class="col-2"></div>
 
@@ -134,10 +136,6 @@
                                         <input type="date" class="form-control" placeholder="Long Expiry" id="txtExpLong" value="" />
                                     </div>
                                     <div class="col-2">
-                                        <select id="ddlOrderType" class="form-select" placeholder="Select Order Type">
-                                            <option value='limit_order'>Limit Order</option>
-                                            <option value='market_order' selected>Market Order</option>
-                                        </select>
                                     </div>
                                     <div class="col-2">
                                         <div class="d-grid gap-1">

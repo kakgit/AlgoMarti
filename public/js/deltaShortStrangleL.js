@@ -104,21 +104,14 @@ function fnGetAllStatus(){
 
 function fnLoadDefQty(){
     let objStartQtyM = JSON.parse(localStorage.getItem("StartQtyDSTGL"));
-
-    let objQtyCE = document.getElementById("txtQtyCE");
-    let objQtyPE = document.getElementById("txtQtyPE");
     let objStartQty = document.getElementById("txtStartQty");
 
     if(objStartQtyM === null){
         objStartQty.value = 1;
-        objQtyCE.value = 1;
-        objQtyPE.value = 1;
         localStorage.setItem("StartQtyDSTGL", objStartQty.value);
     }
     else{
         objStartQty.value = objStartQtyM;
-        objQtyCE.value = objStartQtyM;
-        objQtyPE.value = objStartQtyM;
     }
 }
 
@@ -173,10 +166,6 @@ function fnChangePointsTP(pThis){
 }
 
 function fnChangeStartQty(pThisVal){
-    //txtStartQty
-    let objQtyCE = document.getElementById("txtQtyCE");
-    let objQtyPE = document.getElementById("txtQtyPE");
-
     if(pThisVal.value === "" || pThisVal.value === "0"){
         fnGenMessage("Not a Valid Qty No to Start with, Please Check", `badge bg-danger`, "spnGenMsg");
         pThisVal.value = 1;
@@ -188,26 +177,12 @@ function fnChangeStartQty(pThisVal){
         localStorage.setItem("StartQtyDSTGL", 1);
     }
     else{
-        fnGenMessage("No of Qty to Start With is Changed!", `badge bg-success`, "spnGenMsg");
-        localStorage.setItem("StartQtyDSTGL", pThisVal.value);
 
         if(confirm("Are You Sure You want to change the Quantity?")){
-            objQtyCE.value = pThisVal.value;
-            objQtyPE.value = pThisVal.value;
-            localStorage.setItem("QtyCallDSTGL", pThisVal.value);
-            localStorage.setItem("QtyPutDSTGL", pThisVal.value);
+            fnGenMessage("No of Qty to Start With is Changed!", `badge bg-success`, "spnGenMsg");
+            localStorage.setItem("StartQtyDSTGL", pThisVal.value);
         }
     }
-    // fnChangeReqMargin();
-    // console.log(localStorage.getItem("StartQtyDSTGL"));
-}
-
-function fnChangeQtyCE(pThis){
-    localStorage.setItem("QtyCallDSTGL", pThis.value);
-}
-
-function fnChangeQtyPE(pThis){
-    localStorage.setItem("QtyPutDSTGL", pThis.value);
 }
 
 function fnChangeCallPL(pThis){
@@ -339,8 +314,6 @@ function fnInItWalletBal(){
 
 function fnLoadNetLimits(){
     let objNetLimits = JSON.parse(localStorage.getItem("DeltaNetLimitDSTGL"));
-    let objQtyCE = document.getElementById("txtQtyCE");
-    let objQtyPE = document.getElementById("txtQtyPE");
     let objSpnBal1 = document.getElementById("spnBal1");
     let objSpmReqMargin = document.getElementById('spnMarginReq');
     let objStartQty = document.getElementById("txtStartQty");
@@ -349,12 +322,6 @@ function fnLoadNetLimits(){
 
     if(gQtyMultiplierM === null || gQtyMultiplierM === ""){
         gQtyMultiplierM = 0;
-        objQtyCE.value = gQtyMultiplierM;
-        objQtyPE.value = gQtyMultiplierM;
-    }
-    else{
-        objQtyCE.value = gQtyMultiplierM;
-        objQtyPE.value = gQtyMultiplierM;
     }
 
     if(objNetLimits === null || objNetLimits === ""){
@@ -434,49 +401,28 @@ function fnLoadOptStep(){
 function fnLoadTotalLossAmtQty(){
     let vTotLossAmtCE = localStorage.getItem("TotLossAmtCeDSTGL");
     let vTotLossAmtPE = localStorage.getItem("TotLossAmtPeDSTGL");
-    let vQtyCEM = localStorage.getItem("QtyCallDSTGL");
-    let vQtyPEM = localStorage.getItem("QtyPutDSTGL");
-    let objQtyCE = document.getElementById("txtQtyCE");
-    let objQtyPE = document.getElementById("txtQtyPE");
-    let objDefQty = document.getElementById("txtStartQty");
 
     let objCallPL = document.getElementById("txtCallPL");
     let objPutPL = document.getElementById("txtPutPL");
 
     if(vTotLossAmtCE === null || vTotLossAmtCE === "" || isNaN(vTotLossAmtCE)){
         localStorage.setItem("TotLossAmtCeDSTGL", 0);
-        localStorage.setItem("QtyCallDSTGL", objDefQty.value);
     }
     else if(parseFloat(vTotLossAmtCE) > 0){
         objCallPL.value = 0;
     }
     else{
         objCallPL.value = vTotLossAmtCE;
-
-        if(parseInt(vQtyCEM) < parseInt(objDefQty.value)){
-            objQtyCE.value = objDefQty.value;
-        }
-        else{
-            objQtyCE.value = vQtyCEM;
-        }
     }
 
     if(vTotLossAmtPE === null || vTotLossAmtPE === "" || isNaN(vTotLossAmtPE)){
         localStorage.setItem("TotLossAmtPeDSTGL", 0);
-        localStorage.setItem("QtyPutDSTGL", objDefQty.value);
     }
     else if(parseFloat(vTotLossAmtPE) > 0){
         objPutPL.value = 0;
     }
     else{
         objPutPL.value = vTotLossAmtPE;
-
-        if(parseInt(vQtyPEM) < parseInt(objDefQty.value)){
-            objQtyPE.value = objDefQty.value;
-        }
-        else{
-            objQtyPE.value = vQtyPEM;
-        }
     }
 }
 
@@ -863,7 +809,8 @@ function fnChangeClsPosEndDT(){
 function fnChangeReqMargin(){
     let objNetLimits = JSON.parse(localStorage.getItem("DeltaNetLimitDSTGL"));
     let objSpmReqMargin = document.getElementById("spnMarginReq");
-    let objQtyCE = document.getElementById("txtQtyCE");
+    let objStartQty = document.getElementById("txtStartQty");
+
     let Acc1BalUSD = 0;
 
     if(objNetLimits === null || objNetLimits === ""){
@@ -873,11 +820,11 @@ function fnChangeReqMargin(){
         Acc1BalUSD = parseFloat((objNetLimits.Acc1BalUSD)).toFixed(2);
     }
 
-    if(isNaN(parseFloat(objQtyCE.value)) || objQtyCE.value === ""){
+    if(isNaN(parseFloat(objStartQty.value)) || objStartQty.value === ""){
         objSpmReqMargin.innerText = (0.00).toFixed(2);
     }
     else{
-        let vTotalMarginReq = (gMinReqMargin * parseFloat(objQtyCE.value)).toFixed(2);
+        let vTotalMarginReq = (gMinReqMargin * parseFloat(objStartQty.value)).toFixed(2);
         objSpmReqMargin.innerText = vTotalMarginReq;
 
         if(parseFloat(vTotalMarginReq) > parseFloat(Acc1BalUSD)){
@@ -916,8 +863,7 @@ async function fnInitTrade(pOptionType){
 
     let objSymbol = document.getElementById("ddlSymbols");
     let objLotSize = document.getElementById("txtLotSize");
-    let objQtyCE = document.getElementById("txtQtyCE");
-    let objQtyPE = document.getElementById("txtQtyPE");
+    let objStartQty = document.getElementById("txtStartQty");
     let objExpShort = document.getElementById("txtExpShort");
     let objOrderType = document.getElementById("ddlOrderType");
 
@@ -951,14 +897,7 @@ async function fnInitTrade(pOptionType){
 
         vApiKey = objApiKey1.value;
         vApiSecret = objApiSecret1.value;
-        let vQty = 0;
-
-        if(pOptionType === "C"){
-            vQty = objQtyCE.value;
-        }
-        else if(pOptionType === "P"){
-            vQty = objQtyPE.value;
-        }
+        let vQty = objStartQty.value;
 
         if(objStrategies.Strategies[0].StratModel[i].OptionType === pOptionType){
             let objTradeDtls = await fnExecOption(vApiKey, vApiSecret, vUndrAsst, vShortExpiry, vOptionType, vTransType, vRateNPos, vDeltaNPos, objOrderType.value, vQty, vClientID);
@@ -1234,57 +1173,6 @@ async function fnCloseOptPosition(pTradeID, pLotQty, pTransType, pOptionType, pS
                 vQty = objClsTrd.data.result.size;
                 vBuyPrice = gCurrPosDSTGL.TradeData[i].BuyPrice;
                 vSellPrice = gCurrPosDSTGL.TradeData[i].SellPrice;
-            }
-        }
-
-        if(objStepSwt.checked){
-            let vCharges = objClsTrd.data.result.paid_commission; //fnGetTradeCharges(vStrikePrice, vLotSize, vQty, vBuyPrice, vSellPrice);
-            let vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
-            let objStartQty = document.getElementById("txtStartQty");
-
-            if(pOptionType === "C"){
-                let vTotLossAmtCE = localStorage.getItem("TotLossAmtCeDSTGL");
-                if(parseFloat(vTotLossAmtCE) > 0){
-                    vTotLossAmtCE = 0;
-                }
-                let vQtyCE = localStorage.getItem("QtyCallDSTGL");
-                vTotLossAmtCE = parseFloat(vTotLossAmtCE) + parseFloat(vPL);
-                localStorage.setItem("TotLossAmtCeDSTGL", vTotLossAmtCE);
-                document.getElementById("txtCallPL").value = vTotLossAmtCE;
-
-                if(parseFloat(vTotLossAmtCE) < 0){
-                    // let vNewQty = parseInt(vQtyCE) + parseInt(objStartQty.value);
-                    let vNewQty = parseInt(vQtyCE) * 2;
-                    localStorage.setItem("QtyCallDSTGL", vNewQty);
-                    document.getElementById("txtQtyCE").value = vNewQty;
-                }
-                else{
-                    document.getElementById("txtCallPL").value = 0;
-                    document.getElementById("txtQtyCE").value = objStartQty.value;
-                    localStorage.setItem("QtyCallDSTGL", objStartQty.value);
-                }
-            }
-            else if(pOptionType === "P"){
-                let vTotLossAmtPE = localStorage.getItem("TotLossAmtPeDSTGL");
-                if(parseFloat(vTotLossAmtPE) > 0){
-                    vTotLossAmtPE = 0;
-                }
-                let vQtyPE = localStorage.getItem("QtyPutDSTGL");
-                vTotLossAmtPE = parseFloat(vTotLossAmtPE) + parseFloat(vPL);
-                localStorage.setItem("TotLossAmtPeDSTGL", vTotLossAmtPE);
-                document.getElementById("txtPutPL").value = vTotLossAmtPE;
-
-                if(parseFloat(vTotLossAmtPE) < 0){
-                    // let vNewQty = parseInt(vQtyPE) + parseInt(objStartQty.value);
-                    let vNewQty = parseInt(vQtyPE) * 2;
-                    localStorage.setItem("QtyPutDSTGL", vNewQty);
-                    document.getElementById("txtQtyPE").value = vNewQty;
-                }
-                else{
-                    document.getElementById("txtPutPL").value = 0;
-                    document.getElementById("txtQtyPE").value = objStartQty.value;
-                    localStorage.setItem("QtyPutDSTGL", objStartQty.value);
-                }
             }
         }
 
@@ -1906,8 +1794,6 @@ function fnClearLocalStorageTemp(){
 
     localStorage.removeItem("TotLossAmtCeDSTGL");
     localStorage.removeItem("TotLossAmtPeDSTGL");
-    localStorage.removeItem("QtyCallDSTGL");
-    localStorage.removeItem("QtyPutDSTGL");
     localStorage.removeItem("StartQtyDSTGL");
     localStorage.removeItem("SlPointsDSTGL");
     localStorage.removeItem("TpPointsDSTGL");
