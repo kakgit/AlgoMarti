@@ -855,8 +855,8 @@ async function fnInitTrade(pOptionType, pTransType){
 
     let objSymbol = document.getElementById("ddlSymbols");
     let objLotSize = document.getElementById("txtLotSize");
-    let objBQtyCE = document.getElementById("txtBQtyCE");
-    let objBQtyPE = document.getElementById("txtBQtyPE");
+    let objBQty = document.getElementById("txtStartBQty");
+    let objSQty = document.getElementById("txtStartSQty");
     let objExpiryBuy = document.getElementById("txtExpBuy");
     let objExpirySell = document.getElementById("txtExpSell");
     let objOrderType = document.getElementById("ddlOrderType");
@@ -908,19 +908,11 @@ async function fnInitTrade(pOptionType, pTransType){
         vApiSecret = objApiSecret1.value;
         let vQty = 0;
 
-        if(pOptionType === "C"){
-            vQty = objBQtyCE.value;
-
-            // if(objTrdCountCE === null || objTrdCountCE === ""){
-            //     objTrdCountCE = 0;
-            // }
+        if(pTransType === "buy"){
+            vQty = objBQty.value;
         }
-        else if(pOptionType === "P"){
-            vQty = objBQtyPE.value;
-
-            // if(objTrdCountPE === null || objTrdCountPE === ""){
-            //     objTrdCountPE = 0;
-            // }
+        else if(pTransType === "sell"){
+            vQty = objSQty.value;
         }
 
         if(objStrategies.Strategies[0].StratModel[i].OptionType === pOptionType){

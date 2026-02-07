@@ -110,20 +110,38 @@
                                     </div>
 
                                     <div class="col-2">
-                                        Short Expiry Type
+                                        Buy Expiry Type
                                     </div>
                                     <div class="col-2">
-                                        Select Short Expiry
+                                        Select Buy Expiry
                                     </div>
                                     <div class="col-2">
-                                        Select Long Expiry
+                                        Sell Expiry Type
                                     </div>
-                                    <div class="col-2"></div>
+                                    <div class="col-2">
+                                        Select Sell Expiry
+                                    </div>
                                     <div class="col-2"></div>
                                     <div class="col-2"></div>
 
                                     <div class="col-2">
+                                        <select id="ddlBuyExpiryMode" class="form-select" onchange="fnUpdateBuyExpiryMode();" placeholder="Select Buy Expiry Mode" title="Buy Expiry Mode">
+                                            <option value=1>DAILY</option>
+                                            <option value=2>WEEKLY</option>
+                                            <option value=3>MONTHLY</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="date" class="form-control" placeholder="Buy Expiry" id="txtExpBuy" value="" />
+                                        <input type="date" class="form-control" placeholder="Long Expiry" id="txtExpLong" value="" />
+                                    </div>
+                                    <div class="col-2">
                                         <select id="ddlExpiryMode" class="form-select" onchange="fnUpdateExpiryMode();" placeholder="Select Expiry Mode" title="Expiry Mode">
+                                            <option value=1>DAILY</option>
+                                            <option value=2>WEEKLY</option>
+                                            <option value=3>MONTHLY</option>
+                                        </select>
+                                        <select id="ddlSellExpiryMode" class="form-select" onchange="fnUpdateSellExpiryMode();" placeholder="Select Sell Expiry Mode" title="Sell Expiry Mode">
                                             <option value=1>DAILY</option>
                                             <option value=2>WEEKLY</option>
                                             <option value=3>MONTHLY</option>
@@ -131,11 +149,6 @@
                                     </div>
                                     <div class="col-2">
                                         <input type="date" class="form-control" placeholder="Short Expiry" id="txtExpShort" value="" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="date" class="form-control" placeholder="Long Expiry" id="txtExpLong" value="" />
-                                    </div>
-                                    <div class="col-2">
                                     </div>
                                     <div class="col-2">
                                         <div class="d-grid gap-1">

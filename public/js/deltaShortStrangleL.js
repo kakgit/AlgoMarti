@@ -617,23 +617,44 @@ function fnTest(){
 
 //************ Update Live Code Here **************//
 function fnLoadDefExpiryMode(){
-    let objExpiryMode = document.getElementById("ddlExpiryMode");
-    let vExpiryMode = JSON.parse(localStorage.getItem("ExpiryModeDSTGL"));
+    let objBuyExpiryMode = document.getElementById("ddlBuyExpiryMode");
+    let objSellExpiryMode = document.getElementById("ddlSellExpiryMode");
+    let vBuyExpiryMode = JSON.parse(localStorage.getItem("BuyExpiryModeDSSD"));
+    let vSellExpiryMode = JSON.parse(localStorage.getItem("SellExpiryModeDSSD"));
+    let objExpiryBuy = document.getElementById("txtExpBuy");
+    let objExpirySell = document.getElementById("txtExpSell");
 
-    if(vExpiryMode === null){
-        objExpiryMode.value = 1;
+    if(vBuyExpiryMode === null){
+        objBuyExpiryMode.value = 1;
     }
     else{
-        objExpiryMode.value = vExpiryMode;
+        objBuyExpiryMode.value = vBuyExpiryMode;
     }
-    fnLoadDefExpiryDate(objExpiryMode.value);
+    fnLoadExpiryDate(objBuyExpiryMode.value, objExpiryBuy);
+
+    if(vSellExpiryMode === null){
+        objSellExpiryMode.value = 1;
+    }
+    else{
+        objSellExpiryMode.value = vSellExpiryMode;
+    }
+    fnLoadExpiryDate(objSellExpiryMode.value, objExpirySell);
 }
 
-function fnUpdateExpiryMode(){
-    let objExpiryMode = document.getElementById("ddlExpiryMode");
+function fnUpdateBuyExpiryMode(){
+    let objBuyExpiryMode = document.getElementById("ddlBuyExpiryMode");
+    let objExpiryBuy = document.getElementById("txtExpBuy");
 
-    fnLoadDefExpiryDate(objExpiryMode.value);
-    localStorage.setItem("ExpiryModeDSTGL", JSON.stringify(objExpiryMode.value));
+    fnLoadExpiryDate(objBuyExpiryMode.value, objExpiryBuy);
+    localStorage.setItem("BuyExpiryModeDSSD", JSON.stringify(objBuyExpiryMode.value));
+}
+
+function fnUpdateSellExpiryMode(){
+    let objSellExpiryMode = document.getElementById("ddlSellExpiryMode");
+    let objExpirySell = document.getElementById("txtExpSell");
+
+    fnLoadExpiryDate(objSellExpiryMode.value, objExpirySell);
+    localStorage.setItem("SellExpiryModeDSSD", JSON.stringify(objSellExpiryMode.value));
 }
 
 function fnLoadDefExpiryDate(pExpiryMode){
@@ -839,7 +860,8 @@ function fnChangeReqMargin(){
 function fnPreInitTrade(pOptionType){
     let vIsRecExists = false;
 
-    fnUpdateExpiryMode();
+    fnUpdateBuyExpiryMode();
+    fnUpdateSellExpiryMode();
 
     if(gCurrPosDSTGL.TradeData.length > 0){
         for(let i=0; i<gCurrPosDSTGL.TradeData.length; i++){
@@ -864,6 +886,8 @@ async function fnInitTrade(pOptionType){
     let objSymbol = document.getElementById("ddlSymbols");
     let objLotSize = document.getElementById("txtLotSize");
     let objStartQty = document.getElementById("txtStartQty");
+    let objExpiryBuy = document.getElementById("txtExpBuy");
+    let objExpirySell = document.getElementById("txtExpSell");
     let objExpShort = document.getElementById("txtExpShort");
     let objOrderType = document.getElementById("ddlOrderType");
 
@@ -871,7 +895,6 @@ async function fnInitTrade(pOptionType){
     let vOrdId = vDate.valueOf();
     let vMonth = vDate.getMonth() + 1;
     let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
-    let vShortExpiry = fnSetDDMMYYYY(objExpShort.value);
 
     //{ TransType : "sell", OptionType : "F", DeltaNew : 1.00, DeltaTP : 2.00, DeltaSL : 0.10 }, 
     
@@ -900,7 +923,7 @@ async function fnInitTrade(pOptionType){
         let vQty = objStartQty.value;
 
         if(objStrategies.Strategies[0].StratModel[i].OptionType === pOptionType){
-            let objTradeDtls = await fnExecOption(vApiKey, vApiSecret, vUndrAsst, vShortExpiry, vOptionType, vTransType, vRateNPos, vDeltaNPos, objOrderType.value, vQty, vClientID);
+            let objTradeDtls = await fnExecOption(vApiKey, vApiSecret, vUndrAsst, vExpiryNewPos, vOptionType, vTransType, vRateNPos, vDeltaNPos, objOrderType.value, vQty, vClientID);
             // console.log(objTradeDtls);
             if(objTradeDtls.status === "success"){
 
@@ -1350,7 +1373,10 @@ async function fnGetOpenPositions(){
     let objOpenPosTA = document.getElementById("taOpenPos");
     let objExpShort = document.getElementById("txtExpShort");
     let objOpenTrdPos = document.getElementById("tBodyOpenTrades");
-    let vShortExpiry = fnSetDDMMYYYY(objExpShort.value);
+    let vExpiryNewPos = "";
+
+    let vBuyExpiry = fnSetDDMMYYYY(objExpiryBuy.value);
+    let vSellExpiry = fnSetDDMMYYYY(objExpirySell.value);
 
     gOpnPosIds = [];
     gMrgndPosSSL = { TradeData : []};
@@ -1391,6 +1417,13 @@ async function fnGetOpenPositions(){
                 let vStrike = parseInt(objPromise.data.result[i].meta_data.spot);
                 let vUndrAsstSymb = objPromise.data.result[i].product.contract_unit_currency;
 
+                if(vTransType === "sell"){
+                    vExpiryNewPos = vSellExpiry;
+                }
+                else if(vTransType === "buy"){
+                    vExpiryNewPos = vBuyExpiry;
+                }
+
                 vTempHtml += "<tr>";
                 vTempHtml += '<td style="text-wrap: nowrap; text-align:center;"><input type="checkbox" id="' + vTradeID + '" onclick="fnSelectedPositions(this);" /></td>';
                 vTempHtml += '<td style="text-wrap: nowrap; text-align:center;">' + vSymbol + '</td>';
@@ -1399,7 +1432,7 @@ async function fnGetOpenPositions(){
                 vTempHtml += '<td style="text-wrap: nowrap; text-align:center;">' + vQty + '</td>';
                 vTempHtml += "</tr>";
 
-                vTempData.TradeData.push({ BuyPrice : vBuyPrice, ClientOrderID : vClientOrderID, Commission : vCommission, ContrctType : vContractType, Delta : vDelta, DeltaC : vDeltaC, DeltaNP : vDeltaNP, DeltaSL : vDeltaSL, DeltaTP : vDeltaTP, Expiry : vShortExpiry, LotSize : vLotSize, OpenDT : vCreatedDT, OpenDTVal : vClientOrderID, OptionType : vOptionType, ProductID : vProductID, Qty : vQty, SellPrice : vSellPrice, State : vState, StrikePrice : vStrike, Symbol : vSymbol, PointsSL : gPointsSL, PointsTP : gPointsTP, TradeID : vTradeID, TransType : vTransType, UndrAsstSymb : vUndrAsstSymb })
+                vTempData.TradeData.push({ BuyPrice : vBuyPrice, ClientOrderID : vClientOrderID, Commission : vCommission, ContrctType : vContractType, Delta : vDelta, DeltaC : vDeltaC, DeltaNP : vDeltaNP, DeltaSL : vDeltaSL, DeltaTP : vDeltaTP, Expiry : vExpiryNewPos, LotSize : vLotSize, OpenDT : vCreatedDT, OpenDTVal : vClientOrderID, OptionType : vOptionType, ProductID : vProductID, Qty : vQty, SellPrice : vSellPrice, State : vState, StrikePrice : vStrike, Symbol : vSymbol, PointsSL : gPointsSL, PointsTP : gPointsTP, TradeID : vTradeID, TransType : vTransType, UndrAsstSymb : vUndrAsstSymb })
             }
 
             objOpenTrdPos.innerHTML = vTempHtml;
