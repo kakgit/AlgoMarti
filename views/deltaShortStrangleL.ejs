@@ -51,9 +51,9 @@
                                     </div>
                                 </form>
                             </div>
-                            <div class="col-1" style="text-align: right;">Start With </div>
-                            <div class="col-1"><input type="text" class="form-control" min="1" value="1" id="txtStartQty" onchange="fnChangeStartQty(this);" /></div>
-                            <div class="col-1"> Qty</div>
+                            <div class="col-1"></div>
+                            <div class="col-1"></div>
+                            <div class="col-1"></div>
                             <div class="col-1"></div>
                             <div class="col-1" style="text-align: right;">
                                 <span class="badge rounded-pill text-bg-primary" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnConnectSSL();">&nbsp;</span>
@@ -75,23 +75,13 @@
                         <div class="collapse show" id="divTraderClps">
                             <div class="container-fluid">
                                 <div class="row">
-                                    <div class="col-2">
-                                        Strategy
-                                    </div>
                                     <div class="col-2">Symbols List</div>
                                     <div class="col-2">Lot Size</div>
+                                    <div class="col-2">Qty</div>
                                     <div class="col-2">CE Qty</div>
                                     <div class="col-2">PE Qty</div>
                                     <div class="col-2"></div>
 
-                                    <div class="col-2">
-                                        <div class="input-group mb-3">
-                                            <select id="ddlStrategy" class="form-select" onchange="fnSetStratDetails(this.value);" placeholder="Select Strategy" title="Select Strategy">
-                                            </select>
-                                            <button class="btn btn-success" type="button" onclick="fnOpenStrategyDialog();"><i class="fa fa-plus" aria-hidden="true"></i></button>
-                                            <button class="btn btn-primary" type="button" onclick="fnOpenStrategyDialog();"><i class="fa fa-sitemap" aria-hidden="true"></i></button>
-                                        </div>
-                                    </div>
                                     <div class="col-2">
                                         <select id="ddlSymbols" class="form-select" onchange="fnSetSymbolData(this.value);" placeholder="Select Symbol" title="SYMBOL">
                                             <option value=''>Select Symbol</option>
@@ -101,6 +91,9 @@
                                     </div>
                                     <div class="col-2">
                                         <input type="text" value="0.001" id="txtLotSize" class="form-control" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="text" class="form-control" min="1" value="1" id="txtStartQty" onchange="fnChangeStartQty(this);" />
                                     </div>
                                     <div class="col-2">
                                         <input type="number" min="0" class="form-control" placeholder="CE Qty" id="txtQtyCE" value="0" onchange="fnChangeQtyCE(this);" />

@@ -80,7 +80,6 @@ function fnGetAllStatus(){
     if(bAppStatus){
         fnConnectSSL();
         fnLoadLoginCred();
-        fnLoadCurrStrategies();
         fnLoadDefQty();
         fnLoadOptStep();
         fnLoadDefSlTp();
@@ -100,25 +99,6 @@ function fnGetAllStatus(){
         fnInitClsdPositions();
 
         fnLoadTotalLossAmtQty();
-    }
-}
-
-function fnLoadCurrStrategies(){
-    let objStrats = JSON.parse(localStorage.getItem("DeltaStratsDSTGL"));
-    let objStratsDDL = document.getElementById("ddlStrategy");
-
-    gCurrStrats = objStrats;
-
-    if(gCurrStrats === null){
-        gCurrStrats = { StratsData : []};
-    }
-    else{
-        objStratsDDL.innerHTML = "<option value=''>Select Strategy</option>";
-
-        for(let i=0; i<gCurrStrats.StratsData.length; i++){
-            objStratsDDL.innerHTML += "<option value="+ gCurrStrats.StratsData[i].StratID +">"+ gCurrStrats.StratsData[i].StratName +"</option>";
-        }
-
     }
 }
 
@@ -193,6 +173,7 @@ function fnChangePointsTP(pThis){
 }
 
 function fnChangeStartQty(pThisVal){
+    //txtStartQty
     let objQtyCE = document.getElementById("txtQtyCE");
     let objQtyPE = document.getElementById("txtQtyPE");
 
@@ -1474,44 +1455,6 @@ function fnDelLeg(pTradeID){
         fnUpdateOpenPositions();
     }
 }
-
-function fnOpenStrategyDialog(){
-    let objStrategyName = document.getElementById("txtStrategyName");
-    let objStrategyDesc = document.getElementById("taDescription");
-
-    objStrategyName.value = "";
-    objStrategyDesc.value = "";
-
-    $('#mdlDeltaNewStrategy').modal('show');
-}
-
-function fnAddNewStrategy(){
-    let objStrategyName = document.getElementById("txtStrategyName");
-    let objStrategyDesc = document.getElementById("taDescription");
-    // let objStrats = JSON.parse(localStorage.getItem("DeltaStratsDSTGL"));
-
-    if(objStrategyName.value === ""){
-        fnGenMessage("Please Input Valid Strategy Name!", `badge bg-danger`, "spnStratMsgs");
-    }
-    else{
-        const vToday = new Date();
-
-        // let objStrategies = { Strategies : [{ StratID : 1234324, StratName : "S-1", StratModel : [{ Account : "Acc1", UndrAsst : "BTCUSD", TransType : "sell", OptionType : "F", DeltaNew : 1.00, DeltaTP : 2.00, DeltaSL : 0.10 }, { Account : "Acc1", UndrAsst : "BTC", TransType : "sell", OptionType : "P", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }, { Account : "Acc1", UndrAsst : "BTC", TransType : "sell", OptionType : "C", DeltaNew : 0.50, DeltaTP : 0.25, DeltaSL : 0.65 }] }] }
-
-        gCurrStrats.StratsData.push({ StratID : vToday.valueOf(), StratName : objStrategyName.value, StratDesc : objStrategyDesc.value, StratModel : [{}] });
-
-        //, SellDeltaMinOC : 0.20, SellDeltaMaxOC : 0.60, SellStartQty : 1000, SellMultiplier : 1, SellAdjDeltaTP : 0.20, SellAdjDeltaSL : 0.80, SellNewPosDelta : 0.53, BuyDeltaMinOC : 0.20, BuyDeltaMaxOC : 0.60, BuyStartQty : 1000, BuyMultiplier : 1, BuyAdjDeltaTP : 0.80, BuyAdjDeltaSL : 0.20, BuyNewPosDelta : 0.53
-
-        localStorage.setItem("DeltaStratsDSTGL", JSON.stringify(gCurrStrats));
-
-        fnLoadCurrStrategies();
-        // fnLoadDefStrategy();
-        $('#mdlDeltaNewStrategy').modal('hide');
-        fnGenMessage("New Strategy Created!", `badge bg-success`, "spnGenMsg");
-    }
-    console.log(gCurrStrats);
-}
-
 
 //***************** Live Open, Close, list real Positions ***************//
 

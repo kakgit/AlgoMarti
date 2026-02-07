@@ -1062,19 +1062,27 @@ function fnExecOption(pApiKey, pApiSecret, pUndAsst, pExpiry, pOptionType, pTran
 
 function fnChkOpenBuyPos(pOptionType){
     let vRecExists = false;
+    let vOptionType = "";
+
+    if(pOptionType === "C"){
+        vOptionType = "P";
+    }
+    else if(pOptionType === "P"){
+        vOptionType = "C";
+    }
 
     for(let i=0; i<gCurrPosDSSD.TradeData.length; i++){
         let vStatus = gCurrPosDSSD.TradeData[i].Status;
         let vTransType = gCurrPosDSSD.TradeData[i].TransType;
         let vExOptionType = gCurrPosDSSD.TradeData[i].OptionType;
 
-        if(vStatus === "OPEN" && vTransType === "buy" && vExOptionType === pOptionType){
+        if(vStatus === "OPEN" && vTransType === "buy" && vExOptionType === vOptionType){
             vRecExists = true;
         }
     }
 
     if(vRecExists === false){        
-        fnInitTrade(pOptionType, "buy");
+        fnInitTrade(vOptionType, "buy");
     }
 }
 
