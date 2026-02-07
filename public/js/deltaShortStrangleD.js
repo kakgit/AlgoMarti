@@ -460,7 +460,7 @@ function fnSaveUpdCurrPos(){
                 let vCurrPrice = parseFloat(gSymbBRateList[gCurrPosDSSD.TradeData[i].Symbol]);
                 gCurrPosDSSD.TradeData[i].BuyPrice = vCurrPrice;
 
-                if((vCurrPrice > gCurrPosDSSD.TradeData[i].TradeSL) || (Math.abs(parseFloat(vCurrDelta)) >= 0.50)){
+                if(vCurrPrice > gCurrPosDSSD.TradeData[i].TradeSL){
                     vLegID = gCurrPosDSSD.TradeData[i].ClientOrderID;
                     vTransType = gCurrPosDSSD.TradeData[i].TransType;
                     vOptionType = gCurrPosDSSD.TradeData[i].OptionType;
