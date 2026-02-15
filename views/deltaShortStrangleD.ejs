@@ -51,15 +51,15 @@
                                     </div>
                                 </form>
                             </div>
-                            <div class="col-1" style="text-align: right;">Start With </div>
+                            <div class="col-1"></div>
                             <div class="col-1">
-                                <input type="text" class="form-control" min="1" value="1" id="txtStartBQty" onchange="fnChangeBuyStartQty(this);" />
+                                
                             </div>
-                            <div class="col-1"> B-Qty</div>
+                            <div class="col-1"></div>
                             <div class="col-1">
-                                <input type="text" class="form-control" min="1" value="1" id="txtStartSQty" onchange="fnChangeSellStartQty(this);" />
+                                
                             </div>
-                            <div class="col-1"> S-Qty</div>
+                            <div class="col-1"></div>
                             <div class="col-1" style="text-align: right;">
                                 <span class="badge rounded-pill text-bg-primary" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnConnectDFL();">&nbsp;</span>
                             </div>
@@ -80,25 +80,13 @@
                         <div class="collapse show" id="divTraderClps">
                             <div class="container-fluid">
                                 <div class="row">
-                                    <div class="col-2">
-                                        Strategy
-                                    </div>
                                     <div class="col-2">Symbols List</div>
                                     <div class="col-2">Lot Size</div>
-                                    <div class="col-1">CE B-Qty</div>
-                                    <div class="col-1">PE B-Qty</div>
-                                    <div class="col-1">CE B-PL</div>
-                                    <div class="col-1">PE B-PL</div>
                                     <div class="col-2">Order Type</div>
+                                    <div class="col-2">USD Margin Required</div>
+                                    <div class="col-2">Acc Bal <span class="badge text-bg-danger" id="spnCurrency1" style="cursor: pointer;" onclick="fnSwapCurrency();">USD</span></div>
+                                    <div class="col-2"></div>
 
-                                    <div class="col-2">
-                                        <div class="input-group mb-3">
-                                            <select id="ddlStrategy" class="form-select" onchange="fnSetStratDetails(this.value);" placeholder="Select Strategy" title="Select Strategy">
-                                            </select>
-                                            <button class="btn btn-success" type="button" onclick="fnOpenStrategyDialog();"><i class="fa fa-plus" aria-hidden="true"></i></button>
-                                            <button class="btn btn-primary" type="button" onclick="fnOpenStrategyDialog();"><i class="fa fa-sitemap" aria-hidden="true"></i></button>
-                                        </div>
-                                    </div>
                                     <div class="col-2">
                                         <select id="ddlSymbols" class="form-select" onchange="fnSetSymbolData(this.value);" placeholder="Select Symbol" title="SYMBOL">
                                             <option value=''>Select Symbol</option>
@@ -109,113 +97,140 @@
                                     <div class="col-2">
                                         <input type="text" value="0.001" id="txtLotSize" class="form-control" />
                                     </div>
-                                    <div class="col-1">
-                                        <input type="number" min="0" class="form-control" placeholder="CE B-Qty" id="txtBQtyCE" value="0" onchange="fnChangeBuyQtyCE(this);" />
-                                    </div>
-                                    <div class="col-1">
-                                        <input type="number" min="0" class="form-control" placeholder="PE B-Qty" id="txtBQtyPE" value="0" onchange="fnChangeBuyQtyPE(this);" />
-                                    </div>
-                                    <div class="col-1">
-                                        <input type="number" class="form-control" placeholder="CE B-PL" id="txtBCallPL" value="0" onchange="fnChangeBuyCallPL(this);" />
-                                    </div>
-                                    <div class="col-1">
-                                        <input type="number" class="form-control" placeholder="PE B-PL" id="txtBPutPL" value="0" onchange="fnChangeBuyPutPL(this);" />
-                                    </div>
                                     <div class="col-2">
                                         <select id="ddlOrderType" class="form-select" placeholder="Select Order Type">
                                             <option value='limit_order'>Limit Order</option>
                                             <option value='market_order' selected>Market Order</option>
                                         </select>
                                     </div>
-
-                                    <div class="col-2">
-                                        Buy Expiry Type
-                                    </div>
-                                    <div class="col-2">
-                                        Select Buy Expiry
-                                    </div>
-                                    <div class="col-2">
-                                        Sell Expiry Type
-                                    </div>
-                                    <div class="col-2">
-                                        Select Sell Expiry
-                                    </div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-
-                                    <div class="col-2">
-                                        <select id="ddlBuyExpiryMode" class="form-select" onchange="fnUpdateBuyExpiryMode();" placeholder="Select Buy Expiry Mode" title="Buy Expiry Mode">
-                                            <option value=1>DAILY</option>
-                                            <option value=2>WEEKLY</option>
-                                            <option value=3>MONTHLY</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="date" class="form-control" placeholder="Buy Expiry" id="txtExpBuy" value="" />
-                                    </div>
-                                    <div class="col-2">
-                                        <select id="ddlSellExpiryMode" class="form-select" onchange="fnUpdateSellExpiryMode();" placeholder="Select Sell Expiry Mode" title="Sell Expiry Mode">
-                                            <option value=1>DAILY</option>
-                                            <option value=2>WEEKLY</option>
-                                            <option value=3>MONTHLY</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="date" class="form-control" placeholder="Sell Expiry" id="txtExpSell" value="" />
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success" onclick="fnPreInitTrade('P', 'sell');"><b>SELL PE</b></button>
-                                        </div>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-danger" onclick="fnPreInitTrade('C', 'sell');"><b>SELL CE</b></button>
-                                        </div>
-                                    </div>
-                                    <div class="col-1">CE S-Qty</div>
-                                    <div class="col-1">PE S-Qty</div>
-                                    <div class="col-1">CE S-PL</div>
-                                    <div class="col-1">PE S-PL</div>
-                                    <div class="col-2">USD Margin Required</div>
-                                    <div class="col-2">
-                                        Acc Bal <span class="badge text-bg-danger" id="spnCurrency1" style="cursor: pointer;" onclick="fnSwapCurrency();">USD</span>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success" onclick="fnPreInitTrade('C', 'buy');"><b>BUY CE</b></button>
-                                        </div>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-danger" onclick="fnPreInitTrade('P', 'buy');"><b>BUY PE</b></button>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-1">
-                                        <input type="number" min="0" class="form-control" placeholder="CE S-Qty" id="txtSQtyCE" value="0" onchange="fnChangeBuyQtyCE(this);" />
-                                    </div>
-                                    <div class="col-1">
-                                        <input type="number" min="0" class="form-control" placeholder="PE S-Qty" id="txtSQtyPE" value="0" onchange="fnChangeBuyQtyPE(this);" />
-                                    </div>
-                                    <div class="col-1">
-                                        <input type="number" class="form-control" placeholder="CE S-PL" id="txtSCallPL" value="0" onchange="fnChangeBuyCallPL(this);" />
-                                    </div>
-                                    <div class="col-1">
-                                        <input type="number" class="form-control" placeholder="PE S-PL" id="txtSPutPL" value="0" onchange="fnChangeBuyPutPL(this);" />
-                                    </div>
-
                                     <div class="col-2">
                                         <span id="spnMarginReq" style="color: green;">0.00</span>
                                     </div>
                                     <div class="col-2">
                                         <span id="spnBal1">0.00</span>
                                     </div>
-                                    <div class="col-2">
-                                    </div>
-                                    <div class="col-2">
+                                    <div class="col-2"></div>
 
+                                    <div class="col-1" style="text-align: center;">Sell CE</div>
+                                    <div class="col-1" style="text-align: center;">Sell PE</div>
+                                    <div class="col-2">Sell Expiry Type</div>
+                                    <div class="col-2">Select Sell Expiry</div>
+                                    <div class="col-1">Qty</div>
+                                    <div class="col-1">N-Sl D</div>
+                                    <div class="col-1">R-Sl D</div>
+                                    <div class="col-1">TP D</div>
+                                    <div class="col-1">SL D</div>
+                                    <div class="col-1"></div>
+
+                                    <div class="col-1" style="text-align: center;">
+                                        <input type="checkbox" class="form-check-input" id="chkSellCE" onchange="fnUpdatedStratSettings(this, this.checked, 'NewSellCE', 'Sell CE!', false, 'sell', '');" title="Select to Sell New Call" />
                                     </div>
+                                    <div class="col-1" style="text-align: center;">
+                                        <input type="checkbox" class="form-check-input" id="chkSellPE" onchange="fnUpdatedStratSettings(this, this.checked, 'NewSellPE', 'Sell PE!', false, 'sell', '');" title="Select to Sell New Put" />
+                                    </div>
+                                    <div class="col-2">
+                                        <select id="ddlSellExpiryMode" class="form-select" onchange="fnUpdateSellExpiryMode();" placeholder="Select Sell Expiry Mode" title="Select Sell Leg Expiry Mode">
+                                            <option value=1>DAILY</option>
+                                            <option value=4>WEEKLY</option>
+                                            <option value=5>BI-WEEKLY</option>
+                                            <option value=6>MONTHLY</option>
+                                            <option value=7>BI-MONTHLY</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="date" class="form-control" placeholder="Sell Expiry" id="txtExpSell" value="" title="Select / Input Sell Leg Expiry Date" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="1" value="1" id="txtStartSQty" onchange="fnUpdatedStratSettings(this, this.value, 'StartSellQty', 'Sell Qty!', true, 'sell', 'LotQty');" title="Sell Leg Qty in Lots" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="New Sell Delta" id="txtNewSellDelta" value="" onchange="fnUpdatedStratSettings(this, this.value, 'NewSellDelta', 'New Sell Delta!', true, 'sell', 'DeltaNP');" title="New Sell Leg Delta" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="Re-Entry Sell Delta" id="txtReSellDelta" value="" onchange="fnUpdatedStratSettings(this, this.value, 'ReSellDelta', 'Re-Sell Delta!', true, 'sell', 'DeltaNP');" title="Re-Entry Sell Leg Delta" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="TP Delta" id="txtDeltaSellTP" value="" onchange="fnUpdatedStratSettings(this, this.value, 'SellDeltaTP', 'Sell Delta Take Profit!', true, 'sell', 'DeltaTP');" title="Sell Leg Take Profit Delta" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="SL Delta" id="txtDeltaSellSL" value="" onchange="fnUpdatedStratSettings(this, this.value, 'SellDeltaSL', 'Sell Delta Stop Loss!', true, 'sell', 'DeltaSL');" title="Sell Leg Stop Loss Delta" />
+                                    </div>
+                                    <div class="col-1"></div>
+
+
+                                    <div class="col-1" style="text-align: center;">Buy CE</div>
+                                    <div class="col-1" style="text-align: center;">Buy PE</div>
+                                    <div class="col-2">Buy Expiry Type</div>
+                                    <div class="col-2">Select Buy Expiry</div>
+                                    <div class="col-1">Qty</div>
+                                    <div class="col-1">N-By D</div>
+                                    <div class="col-1">R-By D</div>
+                                    <div class="col-1">TP D</div>
+                                    <div class="col-1">SL D</div>
+                                    <div class="col-1"></div>
+
+                                    <div class="col-1" style="text-align: center;">
+                                        <input type="checkbox" class="form-check-input" id="chkBuyCE" onchange="fnUpdatedStratSettings(this, this.checked, 'NewBuyCE', 'New Buy CE!', false, 'buy', '');" title="Select to Buy New Call" />
+                                    </div>
+                                    <div class="col-1" style="text-align: center;">
+                                        <input type="checkbox" class="form-check-input" id="chkBuyPE" onchange="fnUpdatedStratSettings(this, this.checked, 'NewBuyPE', 'New Buy PE!', false, 'buy', '');" title="Select to Buy New Put" />
+                                    </div>
+                                    <div class="col-2">
+                                        <select id="ddlBuyExpiryMode" class="form-select" onchange="fnUpdateBuyExpiryMode();" placeholder="Select Buy Expiry Mode" title="Select Buy Leg Expiry Mode">
+                                            <option value=1>DAILY</option>
+                                            <option value=4>WEEKLY</option>
+                                            <option value=5>BI-WEEKLY</option>
+                                            <option value=6>MONTHLY</option>
+                                            <option value=7>BI-MONTHLY</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="date" class="form-control" placeholder="Buy Expiry" id="txtExpBuy" value="" title="Select / Input Buy Leg Expiry Date" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="1" value="1" id="txtStartBQty" onchange="fnUpdatedStratSettings(this, this.value, 'StartBuyQty', 'Buy Qty!', true, 'buy', 'LotQty');" title="Buy Leg Qty in LOTS" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="New Buy Delta" id="txtNewBuyDelta" value="" onchange="fnUpdatedStratSettings(this, this.value, 'NewBuyDelta', 'New Buy Leg Delta!', true, 'buy', 'DeltaNP');" title="New Buy Leg Delta" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="Re-Entry Buy Delta" id="txtReBuyDelta" value="" onchange="fnUpdatedStratSettings(this, this.value, 'ReBuyDelta', 'Re-Buy Leg Delta!', true, 'buy', 'DeltaNP');" title="Re-Entry Buy Leg Delta" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="TP Delta" id="txtDeltaBuyTP" value="" onchange="fnUpdatedStratSettings(this, this.value, 'BuyDeltaTP', 'Buy Delta Take Profit!', true, 'buy', 'DeltaTP');" title="Buy Leg Take Proft Delta" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="SL Delta" id="txtDeltaBuySL" value="" onchange="fnUpdatedStratSettings(this, this.value, 'BuyDeltaSL', 'Buy Delta Stop Loss!', true, 'buy', 'DeltaSL');" title="Buy Leg Stop Loss Delta" />
+                                    </div>
+                                    <div class="col-1"></div>
+
+                                    <div class="col-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-warning" onclick="fnExecAllLegs();"><b>Exec All Legs</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-success" onclick="fnPreInitAutoTrade('P', 'sell');"><b>SELL PE</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-danger" onclick="fnPreInitAutoTrade('C', 'sell');"><b>SELL CE</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-success" onclick="fnPreInitAutoTrade('C', 'buy');"><b>BUY CE</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-danger" onclick="fnPreInitAutoTrade('P', 'buy');"><b>BUY PE</b></button>
+                                        </div>
+                                    </div>
+
 
                                     <div style="display: none;">
                                         <div class="col-2">

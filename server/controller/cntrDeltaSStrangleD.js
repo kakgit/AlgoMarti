@@ -110,6 +110,64 @@ exports.fnGetOptChnSDKByAstOptTypExp = async (req, res) => {
     }
 }
 
+exports.fnExecOptByOTypExpTType = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+    let vUAssetSymbol = req.body.UndAssetSymbol;
+    let vExpiry = req.body.Expiry;
+    let vOptionType = req.body.OptionType;
+    let vTransType = req.body.TransType;
+    let vOrderType = req.body.OrderType;
+    let vDeltaPos = req.body.DeltaPos;
+    let vDeltaRePos = req.body.DeltaRePos;
+    let vDeltaTP = req.body.DeltaTP;
+    let vDeltaSL = req.body.DeltaSL;
+    let vLotSize = req.body.LotSize;
+    let vLotQty = req.body.LotQty;
+    let vContractType = "";
+    let vPostOnly = true;
+    
+    if(vOptionType === "C"){
+        vContractType = "call_options";
+    }
+    else if(vOptionType === "P"){
+        vContractType = "put_options";
+    }
+    else{
+        vContractType = "";
+    }
+
+    try {
+        let objOptChn = await fnGetSrtdOptChnByDelta(vApiKey, vApiSecret, vTransType, vOptionType, vUAssetSymbol, vLotSize, vExpiry, vLotQty, vContractType, vDeltaPos, vDeltaRePos, vDeltaTP, vDeltaSL);
+        if(objOptChn.status === "success"){
+            let vLimitPrice = "0";
+            let vBestBuy = objOptChn.data.BestAsk;
+            let vBestSell = objOptChn.data.BestBid;
+            let vSymbol = objOptChn.data.Symbol;
+
+            if(vOrderType === "market_order"){
+                vBestBuy = "0";
+                vBestSell = "0";
+                vPostOnly = false;
+            }
+            if(vTransType === "buy"){
+                vLimitPrice = vBestBuy;
+            }
+            else if(vTransType === "sell"){
+                vLimitPrice = vBestSell;
+            }
+            res.send({ "status": "success", "message": objOptChn.message, "data": objOptChn.data });
+        }
+        else{
+            res.send({ "status": "danger", "message": objOptChn.message, "data": "" });
+        }
+    }
+    catch (error) {
+            res.send({ "status": "danger", "message": error.message, "data": "" });
+    }
+    // res.send({ "status": "success", "message": "Option Chain Data Received Successfully!", "data": "" });
+}
+
 exports.fnExecOptionByOptTypeExpTransType = async (req, res) => {
     let vApiKey = req.body.ApiKey;
     let vApiSecret = req.body.ApiSecret;
@@ -136,7 +194,7 @@ exports.fnExecOptionByOptTypeExpTransType = async (req, res) => {
     }
 
     try {
-        let objOptChn = await fnGetSrtdOptChnByDelta(vApiKey, vApiSecret, vOptionType, vUAssetSymbol, vExpiry, vContractType, vDeltaNPos, vRateNPos);
+        let objOptChn = await fnGetSrtdOptChnByRate(vApiKey, vApiSecret, vOptionType, vUAssetSymbol, vExpiry, vContractType, vDeltaNPos, vRateNPos);
         if(objOptChn.status === "success"){
             let vLimitPrice = "0";
             let vBestBuy = objOptChn.data.BestAsk;
@@ -255,7 +313,7 @@ const fnGetOptChnByCntrctTypeExp = async (pApiKey, pApiSecret, pUndrAsstSymb, pE
     return objPromise;
 }
 
-const fnGetSrtdOptChnByDelta = async (pApiKey, pApiSecret, pOptType, pUAssetSymbol, pExpiry, pContractType, pDeltaNPos, pRateNPos) => {
+const fnGetSrtdOptChnByRate = async (pApiKey, pApiSecret, pOptType, pUAssetSymbol, pExpiry, pContractType, pDeltaNPos, pRateNPos) => {
     const objPromise = new Promise((resolve, reject) => {
 
         // console.log(pRateNPos);
@@ -298,6 +356,52 @@ const fnGetSrtdOptChnByDelta = async (pApiKey, pApiSecret, pOptType, pUAssetSymb
     return objPromise;
 }
 
+const fnGetSrtdOptChnByDelta = async (pApiKey, pApiSecret,pTransType, pOptType, pUAssetSymbol, pLotSize, pExpiry, pLotQty, pContractType, pDeltaPos, vDeltaRePos, vDeltaTP, vDeltaSL) => {
+    const objPromise = new Promise((resolve, reject) => {
+        let vDate = new Date();
+        const vRandNumb = getRandomIntInclusive(1, 1000);
+        let vTradeId = vDate.valueOf() + vRandNumb;
+    
+        new DeltaRestClient(pApiKey, pApiSecret).then(client => {
+            client.apis.Products.getOptionChain({
+                contract_types: pContractType, underlying_asset_symbols: pUAssetSymbol, expiry_date: pExpiry
+            }).then(function (response) {
+                let objResult = JSON.parse(response.data);
+            	let objOCData = [];
+            	let objOCSortData = [];
+
+                if(objResult.success){
+                    for(let i=0; i<objResult.result.length; i++){
+                        let vAbsDelta = Math.abs(parseFloat(objResult.result[i].greeks.delta));
+
+                        if(vAbsDelta <= parseFloat(pDeltaPos)){
+                            // console.log(objResult.result[i]);
+                            //, Gamma : parseFloat(objResult.result[i].greeks.gamma), Rho : parseFloat(objResult.result[i].greeks.rho), Theta : parseFloat(objResult.result[i].greeks.theta), Vega : parseFloat(objResult.result[i].greeks.vega), MarkIV : parseFloat(objResult.result[i].quotes.mark_iv)
+
+                            let objOCLeg = { TradeID : vTradeId, ProductID : objResult.result[i].product_id, UndrAsstSymb : objResult.result[i].underlying_asset_symbol, ContType : objResult.result[i].contract_type, TransType: pTransType, OptionType : pOptType, Delta : vAbsDelta, DeltaC : vAbsDelta, BestAsk : parseFloat(objResult.result[i].quotes.best_ask), BestBid : parseFloat(objResult.result[i].quotes.best_bid), Strike : parseInt(objResult.result[i].strike_price), Symbol : objResult.result[i].symbol, Expiry : pExpiry, LotSize : pLotSize, LotQty : parseFloat(pLotQty), DeltaRePos : parseFloat(vDeltaRePos), DeltaTP : parseFloat(vDeltaTP), DeltaSL : parseFloat(vDeltaSL) };
+
+                            objOCData.push(objOCLeg);
+                        }
+                    }
+                    objOCSortData = objOCData.sort(fnSortRevByDelta);
+                    // console.log(objOCSortData[0]);
+                    resolve({ "status": "success", "message": "Option Chain Data Feched!", "data": objOCSortData[0] });
+                }
+                else{
+                    resolve({ "status": "warning", "message": "Option Chain Failed!", "data": objResult });
+                }
+            })
+            .catch(function(objError) {
+                console.log(objError);
+                resolve({ "status": "danger", "message": "Error in getting Option Chain!", "data": objError });
+            });
+        });
+        // resolve({ "status": "success", "message": "Option Chain Data Fetched!", "data": "" });
+    });
+
+    return objPromise;
+}
+
 function fnSortRevByDelta(a, b) {
     return (b.Delta) - (a.Delta);
 }
@@ -315,4 +419,11 @@ function fnGetSignature(pApiSecret, pMethod, pPath, pQueryStr, pTimeStamp, pBody
     .createHmac("sha256", pApiSecret)
     .update(vMessage)
     .digest("hex");
+}
+
+function getRandomIntInclusive(min, max) {
+  const minCeiled = Math.ceil(min);
+  const maxFloored = Math.floor(max);
+  // The maximum is inclusive and the minimum is inclusive
+  return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
 }
