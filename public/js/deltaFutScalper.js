@@ -75,6 +75,7 @@ function fnGetAllStatus(){
 		fnGetSetAutoTraderStatus();
 		fnLoadDefSymbol();
 		fnLoadMarti();
+		fnLoadYetToRec();
 		fnLoadDefQty();
 		fnLoadLossRecoveryMultiplier();
 		fnLoadCurrentTradePos();
@@ -200,6 +201,29 @@ function fnLoadMarti(){
     else{
     	objSwtMarti.checked = false;
     }
+}
+
+function fnLoadYetToRec(){
+    let vYet2RecM = JSON.parse(localStorage.getItem("Yet2RecFutScrD"));
+    let objSwtYet2Rec = document.getElementById("swtYetToRec");
+
+    if(vYet2RecM){
+    	objSwtYet2Rec.checked = true;
+    }
+    else{
+    	objSwtYet2Rec.checked = false;
+    }
+}
+
+function fnUpdateYet2RecSwt(){
+	let objSwtYet2Rec = document.getElementById("swtYetToRec");
+
+	if(objSwtYet2Rec.checked){
+		localStorage.setItem("Yet2RecFutScrD", true);
+	}
+	else{
+		localStorage.setItem("Yet2RecFutScrD", false);
+	}
 }
 
 function fnUpdateTrdSwtCounter(){
@@ -528,6 +552,7 @@ function fnGetCurrentRateTesting(){
 }
 
 function fnCheckBuySLTP(pCurrPrice){
+	let objSwtYet2Rec = document.getElementById("swtYetToRec");
     let vTotLossAmt = JSON.parse(localStorage.getItem("TotLossAmtDelta"));
     let vNewProfit = Math.abs(parseFloat(localStorage.getItem("TotLossAmtDelta")) * parseFloat(gMultiplierX));
 	let objCounterSwt = document.getElementById("swtTradeCounter");
@@ -553,7 +578,9 @@ function fnCheckBuySLTP(pCurrPrice){
 	}
 	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit)) && (parseInt(gQty) > 10)){
 		// console.log("50 Profit Taken.............");
-		fnClosePrctTrade();
+		if(objSwtYet2Rec){
+			fnClosePrctTrade();
+		}
 	}
 	// else if(parseFloat(gPL) >= vBrokTotLossRec){
 	// 	fnCloseManualFutures(gByorSl);
@@ -581,6 +608,7 @@ function fnCheckBuySLTP(pCurrPrice){
 }
 
 function fnCheckSellSLTP(pCurrPrice){
+	let objSwtYet2Rec = document.getElementById("swtYetToRec");
     let vTotLossAmt = JSON.parse(localStorage.getItem("TotLossAmtDelta"));
     let vNewProfit = Math.abs(parseFloat(localStorage.getItem("TotLossAmtDelta")) * parseFloat(gMultiplierX));
 	let objCounterSwt = document.getElementById("swtTradeCounter");
@@ -607,7 +635,9 @@ function fnCheckSellSLTP(pCurrPrice){
 	}
 	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit)) && (parseInt(gQty) > 10)){
 		// console.log("50 Profit Taken.............");
-		fnClosePrctTrade();
+		if(objSwtYet2Rec){
+			fnClosePrctTrade();
+		}
 	}
 	// else if(parseFloat(gPL) >= vBrokTotLossRec){
 	// 	fnCloseManualFutures(gByorSl);
