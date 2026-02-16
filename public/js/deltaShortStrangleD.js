@@ -72,7 +72,7 @@ window.addEventListener("DOMContentLoaded", function(){
     socket.on("tv-Msg-SSDemo-Close", (pMsg) => {
         let objMsg = (pMsg);
 
-        fnPreInitTradeClose(objMsg.OptionType);
+        fnPreInitTradeClose(objMsg.OptionType, objMsg.TransType);
     });
 });
 
@@ -1052,7 +1052,7 @@ async function fnPreInitAutoTrade(pOptionType, pTransType){
     }
 }
 
-function fnPreInitTradeClose(pOptionType){
+function fnPreInitTradeClose(pOptionType, pTransType){
     let vIsRecExists = false;
     let vLegID = 0;
     let vTransType = "";
@@ -1061,8 +1061,8 @@ function fnPreInitTradeClose(pOptionType){
 
     if(gCurrPosDSSD.TradeData.length > 0){
         for(let i=0; i<gCurrPosDSSD.TradeData.length; i++){
-            if((gCurrPosDSSD.TradeData[i].OptionType === pOptionType) && (gCurrPosDSSD.TradeData[i].Status === "OPEN")){
-                vLegID = gCurrPosDSSD.TradeData[i].ClientOrderID;
+            if((gCurrPosDSSD.TradeData[i].OptionType === pOptionType) && (gCurrPosDSSD.TradeData[i].TransType === pTransType) && (gCurrPosDSSD.TradeData[i].Status === "OPEN")){
+                vLegID = gCurrPosDSSD.TradeData[i].TradeID;
                 vTransType = gCurrPosDSSD.TradeData[i].TransType;
                 vSymbol = gCurrPosDSSD.TradeData[i].Symbol;
                 

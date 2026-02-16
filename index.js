@@ -235,8 +235,9 @@ app.post("/tvMsgSSDemoOpen", (req, res) => {
 
 app.post("/tvMsgSSDemoClose", (req, res) => {
     const vOptionType = req.body.optionType;
+    const vTransType = req.body.transType;
 
-    let objMsg = { OptionType : vOptionType };
+    let objMsg = { OptionType : vOptionType, TransType : vTransType };
 
     io.emit("tv-Msg-SSDemo-Close", objMsg);
     res.send({ status: "success", message: "Close " + objMsg.OptionType + " Trade Received!", data: objMsg });
