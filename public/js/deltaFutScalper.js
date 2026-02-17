@@ -578,7 +578,7 @@ function fnCheckBuySLTP(pCurrPrice){
 	}
 	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit)) && (parseInt(gQty) > 10)){
 		// console.log("50 Profit Taken.............");
-		if(objSwtYet2Rec){
+		if(objSwtYet2Rec.checked){
 			fnClosePrctTrade();
 		}
 	}
@@ -635,7 +635,7 @@ function fnCheckSellSLTP(pCurrPrice){
 	}
 	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit)) && (parseInt(gQty) > 10)){
 		// console.log("50 Profit Taken.............");
-		if(objSwtYet2Rec){
+		if(objSwtYet2Rec.checked){
 			fnClosePrctTrade();
 		}
 	}
@@ -1148,6 +1148,7 @@ async function fnInnitiateClsFutTrade(pQty){
 
 //************* Yet To Recover Adjustment **************//
 function fnSetNextOptTradeSettings(){
+	let objSwtYet2Rec = document.getElementById("swtYetToRec");
     let objQty = document.getElementById("txtFuturesQty");
     let vOldLossAmt = localStorage.getItem("OldPLAmtDelta");
 	let vNewLossAmt = localStorage.getItem("NewPLAmtDelta");
@@ -1190,7 +1191,7 @@ function fnSetNextOptTradeSettings(){
 
 	// console.log(gCharges);
     //************* for Brokerage and any loss as minimum target
-	if(gPL > 0){
+	if((gPL > 0) && (objSwtYet2Rec.checked)){
 		let vBalLossAmt = localStorage.getItem("TotLossAmtDelta");
 		let vNewTarget = parseFloat(vBalLossAmt) - parseFloat(gCharges);
 		localStorage.setItem("TotLossAmtDelta", vNewTarget);

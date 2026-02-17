@@ -25,6 +25,7 @@ let gBrokerage = 0.010;
 let gReLeg = false;
 let gClsBuyLeg = false;
 let gCurrStrats = { StratsData : [{StratID : 1, NewSellCE : true, NewSellPE : true, StartSellQty : 1, NewSellDelta : 0.33, ReSellDelta : 0.33, SellDeltaTP : 0.10, SellDeltaSL : 0.53, NewBuyCE : false, NewBuyPE : false, StartBuyQty : 1, NewBuyDelta : 0.33, ReBuyDelta : 0.33, BuyDeltaTP : 2.0, BuyDeltaSL : 0.0 }]};
+let gCurrFutStrats = { StratsData : [{StratID : 11, StartFutQty : 1, FutPointsSL : 100, FutPointsTP : 200 }]};
 
 window.addEventListener("DOMContentLoaded", function(){
     fnGetAllStatus();
@@ -82,6 +83,7 @@ function fnGetAllStatus(){
         fnConnectDFL();
         fnLoadLoginCred();
         // fnLoadDefQty();
+        fnLoadDefFutStrategy();
         fnLoadDefStrategy();
         fnLoadOptStep();
         fnGetSetTraderLoginStatus();
@@ -121,6 +123,42 @@ function fnLoadDefQty(){
     }
     else{
         objStartSellQty.value = objStartQtySellM;
+    }
+}
+
+function fnLoadDefFutStrategy(){
+    let objFutStrat = JSON.parse(localStorage.getItem("FutStratDSSD"));
+
+    let objFutSL = document.getElementById("txtFutSL");
+    let objFutTP = document.getElementById("txtFutTP");
+    let objFutQty = document.getElementById("txtFutQty");
+
+    if(objFutStrat === null || objFutStrat === ""){
+        objFutStrat = gCurrFutStrats;
+
+        objFutSL.value = objFutStrat.StratsData[0]["FutPointsSL"];
+        objFutTP.value = objFutStrat.StratsData[0]["FutPointsTP"];
+        objFutQty.value = objFutStrat.StratsData[0]["StartFutQty"];
+    }
+    else{
+        gCurrFutStrats = objFutStrat;
+
+        objFutSL.value = objFutStrat.StratsData[0]["FutPointsSL"];
+        objFutTP.value = objFutStrat.StratsData[0]["FutPointsTP"];
+        objFutQty.value = objFutStrat.StratsData[0]["StartFutQty"];
+    }
+}
+
+function fnUpdFutStratSettings(pThisVal, pStratParam, pFieldMsg){
+    if(pThisVal === ""){
+        fnGenMessage("Please Input Valid Value!", `badge bg-warning`, "spnGenMsg");
+    }
+    else{
+        gCurrFutStrats.StratsData[0][pStratParam] = pThisVal;
+
+        localStorage.setItem("FutStratDSSD", JSON.stringify(gCurrFutStrats));
+
+        fnGenMessage("Value Changed Successfully for " + pFieldMsg, `badge bg-success`, "spnGenMsg");
     }
 }
 
@@ -223,28 +261,28 @@ function fnChangeSellStartQty(pThisVal){
     }
 }
 
-function fnUpdatedStratSettings(pThis, pThisVal, pStratParam, pFieldMsg, pIfUpdCP, pIfBorS, pCurrPosParam){
+function fnUpdatedStratSettings(pThis, pThisVal, pStratParam, pFieldMsg, pIfUpdCP, pIfBorS, pOptionType, pCurrPosParam){
     if(pThisVal === ""){
         fnGenMessage("Please Input / Select Valid Value!", `badge bg-warning`, "spnGenMsg");
     }
     else{
-    gCurrStrats.StratsData[0][pStratParam] = pThisVal;
+        gCurrStrats.StratsData[0][pStratParam] = pThisVal;
 
-    localStorage.setItem("StrategyDSSD", JSON.stringify(gCurrStrats));
+        localStorage.setItem("StrategyDSSD", JSON.stringify(gCurrStrats));
     
-    if(pIfUpdCP){
-        fnUpdateCurrPosParams(pThisVal, pIfBorS, pCurrPosParam);
-    }
+        if(pIfUpdCP){
+            fnUpdateCurrPosParams(pThisVal, pIfBorS, pOptionType, pCurrPosParam);
+        }
 
-    fnGenMessage("Value Changed Successfully for " + pFieldMsg, `badge bg-success`, "spnGenMsg");
+        fnGenMessage("Value Changed Successfully for " + pFieldMsg, `badge bg-success`, "spnGenMsg");
     }
 }
 
-function fnUpdateCurrPosParams(pThisVal, pIfBorS, pCurrPosParam){
+function fnUpdateCurrPosParams(pThisVal, pIfBorS, pOptionType, pCurrPosParam){
     gUpdPos = false;
 
     for(let i=0; i<gCurrPosDSSD.TradeData.length; i++){
-        if((gCurrPosDSSD.TradeData[i].Status === "OPEN") && (gCurrPosDSSD.TradeData[i].TransType === pIfBorS)){
+        if((gCurrPosDSSD.TradeData[i].Status === "OPEN") && (gCurrPosDSSD.TradeData[i].TransType === pIfBorS) && (pOptionType === "")){
             gCurrPosDSSD.TradeData[i][pCurrPosParam] = parseFloat(pThisVal);
             console.log("Params Updated");
         }
@@ -675,21 +713,6 @@ function fnSetDDMMYYYY(pDateToConv){
     let vRetVal = vDay + "-" + vMonth + "-" + vYear;;
 
     return vRetVal;
-}
-
-function fnSwapCurrency(){
-    let objNetLimits = JSON.parse(localStorage.getItem("NetLimitDSSD"));
-    let objDisplayCurr1 = document.getElementById("spnCurrency1");
-    let objDisplayBal1 = document.getElementById("spnBal1");
-
-    if(objDisplayCurr1.innerText === "USD"){
-        objDisplayCurr1.innerText = "INR";
-        objDisplayBal1.innerText = (parseFloat(objNetLimits.Acc1BalINR)).toFixed(2);
-    }
-    else if(objDisplayCurr1.innerText === "INR"){
-        objDisplayCurr1.innerText = "USD";
-        objDisplayBal1.innerText = (parseFloat(objNetLimits.Acc1BalUSD)).toFixed(2);
-    }        
 }
 
 function fnExecAllLegs(){
