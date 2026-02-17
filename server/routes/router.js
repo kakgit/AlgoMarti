@@ -231,6 +231,7 @@ route.post("/deltaSStrangleDemo/validateLogin", deltaSStrangleDemoCtrler.fnValid
 route.post("/deltaSStrangleDemo/getOptChnSDKByAstOptTypExp", deltaSStrangleDemoCtrler.fnGetOptChnSDKByAstOptTypExp);
 route.post("/deltaSStrangleDemo/execOption", deltaSStrangleDemoCtrler.fnExecOptionByOptTypeExpTransType);
 route.post("/deltaSStrangleDemo/execOptionLeg", deltaSStrangleDemoCtrler.fnExecOptByOTypExpTType);
+route.post("/deltaSStrangleDemo/execFutureLeg", deltaSStrangleDemoCtrler.fnExecFutByTType);
 route.post("/deltaSStrangleDemo/getBestRatesBySymb", deltaSStrangleDemoCtrler.fnGetBestRatesBySymbol);
 
 //Delta Short Strangle Live Routes

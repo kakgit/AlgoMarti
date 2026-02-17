@@ -25,7 +25,7 @@ let gBrokerage = 0.010;
 let gReLeg = false;
 let gClsBuyLeg = false;
 let gCurrStrats = { StratsData : [{StratID : 1, NewSellCE : true, NewSellPE : true, StartSellQty : 1, NewSellDelta : 0.33, ReSellDelta : 0.33, SellDeltaTP : 0.10, SellDeltaSL : 0.53, NewBuyCE : false, NewBuyPE : false, StartBuyQty : 1, NewBuyDelta : 0.33, ReBuyDelta : 0.33, BuyDeltaTP : 2.0, BuyDeltaSL : 0.0 }]};
-let gCurrFutStrats = { StratsData : [{StratID : 11, StartFutQty : 1, FutPointsSL : 100, FutPointsTP : 200 }]};
+let gCurrFutStrats = { StratsData : [{StratID : 11, StartFutQty : 1, PointsSL : 100, PointsTP : 200 }]};
 
 window.addEventListener("DOMContentLoaded", function(){
     fnGetAllStatus();
@@ -149,7 +149,7 @@ function fnLoadDefFutStrategy(){
     }
 }
 
-function fnUpdFutStratSettings(pThisVal, pStratParam, pFieldMsg){
+function fnUpdFutStratSettings(pThisVal, pStratParam, pFieldMsg, pIfUpdFut, pOptionType, pCurrPosParam){
     if(pThisVal === ""){
         fnGenMessage("Please Input Valid Value!", `badge bg-warning`, "spnGenMsg");
     }
@@ -158,8 +158,28 @@ function fnUpdFutStratSettings(pThisVal, pStratParam, pFieldMsg){
 
         localStorage.setItem("FutStratDSSD", JSON.stringify(gCurrFutStrats));
 
+        if(pIfUpdFut){
+            fnUpdCurrPosFutParams(pThisVal, pOptionType, pCurrPosParam);
+        }
         fnGenMessage("Value Changed Successfully for " + pFieldMsg, `badge bg-success`, "spnGenMsg");
     }
+}
+
+function fnUpdCurrPosFutParams(pThisVal, pOptionType, pCurrPosParam){
+    gUpdPos = false;
+
+    for(let i=0; i<gCurrPosDSSD.TradeData.length; i++){
+        if((gCurrPosDSSD.TradeData[i].Status === "OPEN") && (pOptionType === "F")){
+            gCurrPosDSSD.TradeData[i][pCurrPosParam] = parseFloat(pThisVal);
+            console.log("Params Updated");
+        }
+    }
+
+    let objExcTradeDtls = JSON.stringify(gCurrPosDSSD);
+    localStorage.setItem("CurrPosDSSD", objExcTradeDtls);
+    fnLoadCurrentTradePos();
+
+    gUpdPos = true;
 }
 
 function fnLoadDefStrategy(){
@@ -261,7 +281,7 @@ function fnChangeSellStartQty(pThisVal){
     }
 }
 
-function fnUpdatedStratSettings(pThis, pThisVal, pStratParam, pFieldMsg, pIfUpdCP, pIfBorS, pOptionType, pCurrPosParam){
+function fnUpdOptStratSettings(pThis, pThisVal, pStratParam, pFieldMsg, pIfUpdCP, pIfBorS, pOptionType, pCurrPosParam){
     if(pThisVal === ""){
         fnGenMessage("Please Input / Select Valid Value!", `badge bg-warning`, "spnGenMsg");
     }
@@ -271,14 +291,14 @@ function fnUpdatedStratSettings(pThis, pThisVal, pStratParam, pFieldMsg, pIfUpdC
         localStorage.setItem("StrategyDSSD", JSON.stringify(gCurrStrats));
     
         if(pIfUpdCP){
-            fnUpdateCurrPosParams(pThisVal, pIfBorS, pOptionType, pCurrPosParam);
+            fnUpdCurrPosOptParams(pThisVal, pIfBorS, pOptionType, pCurrPosParam);
         }
 
         fnGenMessage("Value Changed Successfully for " + pFieldMsg, `badge bg-success`, "spnGenMsg");
     }
 }
 
-function fnUpdateCurrPosParams(pThisVal, pIfBorS, pOptionType, pCurrPosParam){
+function fnUpdCurrPosOptParams(pThisVal, pIfBorS, pOptionType, pCurrPosParam){
     gUpdPos = false;
 
     for(let i=0; i<gCurrPosDSSD.TradeData.length; i++){
@@ -1073,6 +1093,129 @@ async function fnPreInitAutoTrade(pOptionType, pTransType){
             fnUpdateOpenPositions();
         }
     }
+}
+
+async function fnPreInitAutoFutTrade(pOptionType, pTransType){
+    let vIsRecExists = false;
+
+    if(gCurrPosDSSD.TradeData.length > 0){
+        for(let i=0; i<gCurrPosDSSD.TradeData.length; i++){
+            if((gCurrPosDSSD.TradeData[i].OptionType === pOptionType) && (gCurrPosDSSD.TradeData[i].TransType === pTransType) && (gCurrPosDSSD.TradeData[i].Status === "OPEN")){
+                vIsRecExists = true;
+            }
+        }
+    }
+
+    if(vIsRecExists === false){
+        let objApiKey = document.getElementById("txtUserAPIKey");
+        let objApiSecret = document.getElementById("txtAPISecret");
+        let objOrderType = document.getElementById("ddlOrderType");
+        let objSymbol = document.getElementById("ddlSymbols");
+        let objLotSize = document.getElementById("txtLotSize");
+        let objLotQty = document.getElementById("txtFutQty");
+
+        let objPointsTP = document.getElementById("txtFutTP");
+        let objPointsSL = document.getElementById("txtFutSL");
+
+        let vUndrAsst = objSymbol.value + "USD";
+
+        let objTradeDtls = await fnExecFuturesLeg(objApiKey.value, objApiSecret.value, objOrderType.value, vUndrAsst, pOptionType, pTransType, objLotSize.value, objLotQty.value, objPointsTP.value, objPointsSL.value);
+
+        if(objTradeDtls.status === "success"){
+            // let vDate = new Date();
+            // let vMonth = vDate.getMonth() + 1;
+            // let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
+
+            // let vTradeID = objTradeDtls.data.TradeID;
+            // let vProductID = objTradeDtls.data.ProductID;
+            // let vSymbol = objTradeDtls.data.Symbol;
+            // let vUndrAstSymb = objTradeDtls.data.UndrAsstSymb;
+            // let vCntrctType = objTradeDtls.data.ContType;
+            // let vBuyOrSell = objTradeDtls.data.TransType;
+            // let vCorP = objTradeDtls.data.OptionType;
+            // let vStrPrice = parseInt(objTradeDtls.data.Strike);
+            // let vExpiry = objTradeDtls.data.Expiry;
+            // let vLotSize = objTradeDtls.data.LotSize;
+            // let vLotQty = objTradeDtls.data.LotQty;
+            // let vBestBuy = parseFloat(objTradeDtls.data.BestAsk);
+            // let vBestSell = parseFloat(objTradeDtls.data.BestBid);
+            // let vDelta = objTradeDtls.data.Delta;
+            // let vDeltaC = parseFloat(objTradeDtls.data.DeltaC);
+            // let vDeltaRePos = objTradeDtls.data.DeltaRePos;
+            // let vDeltaTP = objTradeDtls.data.DeltaTP;
+            // let vDeltaSL = objTradeDtls.data.DeltaSL;
+            // let vOpenDTVal = vDate.valueOf();
+            // gUpdPos = false;
+
+            // let vExcTradeDtls = { TradeID : vTradeID, ProductID : vProductID, OpenDT : vToday, Symbol : vSymbol, UndrAsstSymb : vUndrAstSymb, ContrctType : vCntrctType, TransType : vBuyOrSell, OptionType : vCorP, StrikePrice : vStrPrice, Expiry : vExpiry, LotSize : vLotSize, LotQty : vLotQty, BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, DeltaC : vDeltaC, DeltaNP : vDeltaRePos, DeltaTP : vDeltaTP, DeltaSL : vDeltaSL, OpenDTVal : vOpenDTVal, Status : "OPEN" };
+
+            // gCurrPosDSSD.TradeData.push(vExcTradeDtls);
+            // let objExcTradeDtls = JSON.stringify(gCurrPosDSSD);
+
+            // localStorage.setItem("CurrPosDSSD", objExcTradeDtls);
+
+            console.log("Trade Executed");
+            // gUpdPos = true;
+            // fnSetSymbolTickerList();
+            // fnUpdateOpenPositions();
+        }
+    }
+}
+
+function fnExecFuturesLeg(pApiKey, pSecret, pOrderType, pUndrAsst, pOptionType, pTransType, pLotSize, pLotQty, pPointsTP, pPointsSL){
+    const objPromise = new Promise((resolve, reject) => {
+        let vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+
+        let vAction = JSON.stringify({
+            "ApiKey" : pApiKey,
+            "ApiSecret" : pSecret,
+            "UndAssetSymbol" : pUndrAsst,
+            "OptionType" : pOptionType,
+            "TransType" : pTransType,
+            "LotSize" : parseFloat(pLotSize),
+            "LotQty" : parseFloat(pLotQty),
+            "OrderType" : pOrderType,
+            "PointsTP" : pPointsTP,
+            "PointsSL" : pPointsSL
+        });
+
+        let requestOptions = {
+            method: 'POST',
+            headers: vHeaders,
+            body: vAction,
+            redirect: 'follow'
+        };
+        fetch("/deltaSStrangleDemo/execFutureLeg", requestOptions)
+        .then(response => response.json())
+        .then(objResult => {
+            if(objResult.status === "success"){
+
+                resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+            else if(objResult.status === "danger"){
+                if(objResult.data === ""){
+                    resolve({ "status": objResult.status, "message": objResult.message, "data": "" });
+                }
+                else if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+                    resolve({ "status": objResult.status, "message": objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, "data": objResult.data });
+                }
+                else{
+                    resolve({ "status": objResult.status, "message": objResult.data.response.body.error.code + " Contact Admin!", "data": objResult.data });
+                }
+            }
+            else if(objResult.status === "warning"){
+                resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+            else{
+                resolve({ "status": objResult.status, "message": objResult.message, "data": objResult.data });
+            }
+        })
+        .catch(error => {
+            resolve({ "status": "danger", "message": "Error At Option Chain. Catch!", "data": "" });
+        });
+    });
+    return objPromise;
 }
 
 function fnPreInitTradeClose(pOptionType, pTransType){

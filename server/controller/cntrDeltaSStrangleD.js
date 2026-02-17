@@ -168,6 +168,61 @@ exports.fnExecOptByOTypExpTType = async (req, res) => {
     // res.send({ "status": "success", "message": "Option Chain Data Received Successfully!", "data": "" });
 }
 
+exports.fnExecFutByTType = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+    let vUAssetSymbol = req.body.UndAssetSymbol;
+    let vOptionType = req.body.OptionType;
+    let vTransType = req.body.TransType;
+    let vLotSize = req.body.LotSize;
+    let vLotQty = req.body.LotQty;
+    let vOrderType = req.body.OrderType;
+    let vPointsTP = req.body.PointsTP;
+    let vPointsSL = req.body.PointsSL;
+    let vContractType = "";
+    let vPostOnly = true;
+    
+    if(vOptionType === "C"){
+        vContractType = "call_options";
+    }
+    else if(vOptionType === "P"){
+        vContractType = "put_options";
+    }
+    else{
+        vContractType = "";
+    }
+
+    try {
+        let objOptChn = await fnGetSrtdOptChnByDelta(vApiKey, vApiSecret, vTransType, vOptionType, vUAssetSymbol, vLotSize, vExpiry, vLotQty, vContractType, vDeltaPos, vDeltaRePos, vPointsTP, vPointsSL);
+        if(objOptChn.status === "success"){
+            let vLimitPrice = "0";
+            let vBestBuy = objOptChn.data.BestAsk;
+            let vBestSell = objOptChn.data.BestBid;
+            let vSymbol = objOptChn.data.Symbol;
+
+            if(vOrderType === "market_order"){
+                vBestBuy = "0";
+                vBestSell = "0";
+                vPostOnly = false;
+            }
+            if(vTransType === "buy"){
+                vLimitPrice = vBestBuy;
+            }
+            else if(vTransType === "sell"){
+                vLimitPrice = vBestSell;
+            }
+            res.send({ "status": "success", "message": objOptChn.message, "data": objOptChn.data });
+        }
+        else{
+            res.send({ "status": "danger", "message": objOptChn.message, "data": "" });
+        }
+    }
+    catch (error) {
+            res.send({ "status": "danger", "message": error.message, "data": "" });
+    }
+    // res.send({ "status": "success", "message": "Option Chain Data Received Successfully!", "data": "" });
+}
+
 exports.fnExecOptionByOptTypeExpTransType = async (req, res) => {
     let vApiKey = req.body.ApiKey;
     let vApiSecret = req.body.ApiSecret;

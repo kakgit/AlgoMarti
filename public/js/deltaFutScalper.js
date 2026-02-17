@@ -1232,6 +1232,35 @@ function fnSetLotsByQtyMulLossAmt(){
     }
 }
 
+// function fnTest(){
+// 	console.log("Total Loss in Momory: " + localStorage.getItem("TotLossAmtDelta"));
+// 	console.log("gPL: " + gPL);
+// }
+
+function fnTest(){
+	console.log(localStorage.getItem("TrdBkFut"));
+}
+
+function fnDeleteThisTrade(pOrderID){
+   	let objTradeBook = JSON.parse(localStorage.getItem("TrdBkFut"));
+    let vDelRec = null;
+
+   	if(confirm("Are You Sure, You Want to Delete This Leg!")){
+        for(let i=0; i<objTradeBook.TradeData.length; i++){
+            if(objTradeBook.TradeData[i].OrderID === pOrderID){
+                vDelRec = i;
+            }
+        }
+
+
+        objTradeBook.TradeData.splice(vDelRec, 1);
+
+        let objExcTradeDtls = JSON.stringify(objTradeBook);
+        localStorage.setItem("TrdBkFut", objExcTradeDtls);
+        fnLoadTodayTrades();
+   	}
+}
+
 function fnLoadTodayTrades(){
     let objTodayTradeList = document.getElementById("tBodyTodayPaperTrades");
    	let objTradeBook = JSON.parse(localStorage.getItem("TrdBkFut"));
@@ -1385,11 +1414,6 @@ function fnStartTimer(duration, display) {
     timer();
     clearInterval(gTimerID);
     gTimerID = setInterval(timer, 1000);
-}
-
-function fnTest(){
-	console.log("Total Loss in Momory: " + localStorage.getItem("TotLossAmtDelta"));
-	console.log("gPL: " + gPL);
 }
 
 function fnPositionStatus(){

@@ -104,16 +104,16 @@
                                         </select>
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" class="form-control" min="1" value="100" id="txtFutSL" onchange="fnUpdFutStratSettings(this.value, 'FutPointsSL', 'Futures Stop Loss Points!');" title="Futures SL Points" />
+                                        <input type="number" class="form-control" min="1" value="100" id="txtFutSL" onchange="fnUpdFutStratSettings(this.value, 'PointsSL', 'Futures Stop Loss Points!', true, 'F');" title="Futures SL Points" />
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" class="form-control" min="1" value="1000" id="txtFutTP" onchange="fnUpdFutStratSettings(this.value, 'FutPointsTP', 'Futures Take Profit Points!');" title="Futures TP Points" />
+                                        <input type="number" class="form-control" min="1" value="1000" id="txtFutTP" onchange="fnUpdFutStratSettings(this.value, 'PointsTP', 'Futures Take Profit Points!', true, 'F');" title="Futures TP Points" />
                                     </div>
                                     <div class="col-2">
                                         <div class="input-group mb-3">
-                                            <button class="btn btn-danger" type="button" onclick="fnInitiateManualFutures('SELL');"><b>S</b></button>
-                                            <input type="text" value="100" id="txtFutQty" class="form-control" style="text-align: center;" title="Futures Qty" onchange="fnUpdFutStratSettings(this.value, 'StartFutQty', 'Futures Qty!');" />
-                                            <button class="btn btn-success" type="button" onclick="fnInitiateManualFutures('BUY');"><b>B</b></button>
+                                            <button class="btn btn-danger" type="button" onclick="fnPreInitAutoFutTrade('F', 'SELL');"><b>S</b></button>
+                                            <input type="text" value="100" id="txtFutQty" class="form-control" style="text-align: center;" title="Futures Qty" onchange="fnUpdFutStratSettings(this.value, 'StartFutQty', 'Futures Qty!', false, 'F', 'LotQty');" />
+                                            <button class="btn btn-success" type="button" onclick="fnPreInitAutoFutTrade('F', 'BUY');"><b>B</b></button>
                                         </div>
                                     </div>
 
@@ -129,10 +129,10 @@
                                     <div class="col-1"></div>
 
                                     <div class="col-1" style="text-align: center;">
-                                        <input type="checkbox" class="form-check-input" id="chkSellCE" onchange="fnUpdatedStratSettings(this, this.checked, 'NewSellCE', 'Sell CE!', false, 'sell', '', '');" title="Select to Sell New Call" />
+                                        <input type="checkbox" class="form-check-input" id="chkSellCE" onchange="fnUpdOptStratSettings(this, this.checked, 'NewSellCE', 'Sell CE!', false, 'sell', '', '');" title="Select to Sell New Call" />
                                     </div>
                                     <div class="col-1" style="text-align: center;">
-                                        <input type="checkbox" class="form-check-input" id="chkSellPE" onchange="fnUpdatedStratSettings(this, this.checked, 'NewSellPE', 'Sell PE!', false, 'sell', '', '');" title="Select to Sell New Put" />
+                                        <input type="checkbox" class="form-check-input" id="chkSellPE" onchange="fnUpdOptStratSettings(this, this.checked, 'NewSellPE', 'Sell PE!', false, 'sell', '', '');" title="Select to Sell New Put" />
                                     </div>
                                     <div class="col-2">
                                         <select id="ddlSellExpiryMode" class="form-select" onchange="fnUpdateSellExpiryMode();" placeholder="Select Sell Expiry Mode" title="Select Sell Leg Expiry Mode">
@@ -147,19 +147,19 @@
                                         <input type="date" class="form-control" placeholder="Sell Expiry" id="txtExpSell" value="" title="Select / Input Sell Leg Expiry Date" />
                                     </div>
                                     <div class="col-1">
-                                        <input type="number" class="form-control" min="1" value="1" id="txtStartSQty" onchange="fnUpdatedStratSettings(this, this.value, 'StartSellQty', 'Sell Qty!', false, 'sell', '', 'LotQty');" title="Sell Leg Qty in Lots" />
+                                        <input type="number" class="form-control" min="1" value="1" id="txtStartSQty" onchange="fnUpdOptStratSettings(this, this.value, 'StartSellQty', 'Sell Qty!', false, 'sell', '', 'LotQty');" title="Sell Leg Qty in Lots" />
                                     </div>
                                     <div class="col-1">
-                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="New Sell Delta" id="txtNewSellDelta" value="" onchange="fnUpdatedStratSettings(this, this.value, 'NewSellDelta', 'New Sell Delta!', false, 'sell', '', 'DeltaNP');" title="New Sell Leg Delta" />
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="New Sell Delta" id="txtNewSellDelta" value="" onchange="fnUpdOptStratSettings(this, this.value, 'NewSellDelta', 'New Sell Delta!', false, 'sell', '', 'DeltaNP');" title="New Sell Leg Delta" />
                                     </div>
                                     <div class="col-1">
-                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="Re-Entry Sell Delta" id="txtReSellDelta" value="" onchange="fnUpdatedStratSettings(this, this.value, 'ReSellDelta', 'Re-Sell Delta!', true, 'sell', '', 'DeltaNP');" title="Re-Entry Sell Leg Delta" />
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="Re-Entry Sell Delta" id="txtReSellDelta" value="" onchange="fnUpdOptStratSettings(this, this.value, 'ReSellDelta', 'Re-Sell Delta!', true, 'sell', '', 'DeltaNP');" title="Re-Entry Sell Leg Delta" />
                                     </div>
                                     <div class="col-1">
-                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="TP Delta" id="txtDeltaSellTP" value="" onchange="fnUpdatedStratSettings(this, this.value, 'SellDeltaTP', 'Sell Delta Take Profit!', true, 'sell', '', 'DeltaTP');" title="Sell Leg Take Profit Delta" />
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="TP Delta" id="txtDeltaSellTP" value="" onchange="fnUpdOptStratSettings(this, this.value, 'SellDeltaTP', 'Sell Delta Take Profit!', true, 'sell', '', 'DeltaTP');" title="Sell Leg Take Profit Delta" />
                                     </div>
                                     <div class="col-1">
-                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="SL Delta" id="txtDeltaSellSL" value="" onchange="fnUpdatedStratSettings(this, this.value, 'SellDeltaSL', 'Sell Delta Stop Loss!', true, 'sell', '', 'DeltaSL');" title="Sell Leg Stop Loss Delta" />
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="SL Delta" id="txtDeltaSellSL" value="" onchange="fnUpdOptStratSettings(this, this.value, 'SellDeltaSL', 'Sell Delta Stop Loss!', true, 'sell', '', 'DeltaSL');" title="Sell Leg Stop Loss Delta" />
                                     </div>
                                     <div class="col-1"></div>
 
@@ -176,10 +176,10 @@
                                     <div class="col-1"></div>
 
                                     <div class="col-1" style="text-align: center;">
-                                        <input type="checkbox" class="form-check-input" id="chkBuyCE" onchange="fnUpdatedStratSettings(this, this.checked, 'NewBuyCE', 'New Buy CE!', false, 'buy', '', '');" title="Select to Buy New Call" />
+                                        <input type="checkbox" class="form-check-input" id="chkBuyCE" onchange="fnUpdOptStratSettings(this, this.checked, 'NewBuyCE', 'New Buy CE!', false, 'buy', '', '');" title="Select to Buy New Call" />
                                     </div>
                                     <div class="col-1" style="text-align: center;">
-                                        <input type="checkbox" class="form-check-input" id="chkBuyPE" onchange="fnUpdatedStratSettings(this, this.checked, 'NewBuyPE', 'New Buy PE!', false, 'buy', '', '');" title="Select to Buy New Put" />
+                                        <input type="checkbox" class="form-check-input" id="chkBuyPE" onchange="fnUpdOptStratSettings(this, this.checked, 'NewBuyPE', 'New Buy PE!', false, 'buy', '', '');" title="Select to Buy New Put" />
                                     </div>
                                     <div class="col-2">
                                         <select id="ddlBuyExpiryMode" class="form-select" onchange="fnUpdateBuyExpiryMode();" placeholder="Select Buy Expiry Mode" title="Select Buy Leg Expiry Mode">
@@ -194,19 +194,19 @@
                                         <input type="date" class="form-control" placeholder="Buy Expiry" id="txtExpBuy" value="" title="Select / Input Buy Leg Expiry Date" />
                                     </div>
                                     <div class="col-1">
-                                        <input type="number" class="form-control" min="1" value="1" id="txtStartBQty" onchange="fnUpdatedStratSettings(this, this.value, 'StartBuyQty', 'Buy Qty!', false, 'buy', '', 'LotQty');" title="Buy Leg Qty in LOTS" />
+                                        <input type="number" class="form-control" min="1" value="1" id="txtStartBQty" onchange="fnUpdOptStratSettings(this, this.value, 'StartBuyQty', 'Buy Qty!', false, 'buy', '', 'LotQty');" title="Buy Leg Qty in LOTS" />
                                     </div>
                                     <div class="col-1">
-                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="New Buy Delta" id="txtNewBuyDelta" value="" onchange="fnUpdatedStratSettings(this, this.value, 'NewBuyDelta', 'New Buy Leg Delta!', false, 'buy', '', 'DeltaNP');" title="New Buy Leg Delta" />
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="New Buy Delta" id="txtNewBuyDelta" value="" onchange="fnUpdOptStratSettings(this, this.value, 'NewBuyDelta', 'New Buy Leg Delta!', false, 'buy', '', 'DeltaNP');" title="New Buy Leg Delta" />
                                     </div>
                                     <div class="col-1">
-                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="Re-Entry Buy Delta" id="txtReBuyDelta" value="" onchange="fnUpdatedStratSettings(this, this.value, 'ReBuyDelta', 'Re-Buy Leg Delta!', true, 'buy', '', 'DeltaNP');" title="Re-Entry Buy Leg Delta" />
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="Re-Entry Buy Delta" id="txtReBuyDelta" value="" onchange="fnUpdOptStratSettings(this, this.value, 'ReBuyDelta', 'Re-Buy Leg Delta!', true, 'buy', '', 'DeltaNP');" title="Re-Entry Buy Leg Delta" />
                                     </div>
                                     <div class="col-1">
-                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="TP Delta" id="txtDeltaBuyTP" value="" onchange="fnUpdatedStratSettings(this, this.value, 'BuyDeltaTP', 'Buy Delta Take Profit!', true, 'buy', '', 'DeltaTP');" title="Buy Leg Take Proft Delta" />
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="TP Delta" id="txtDeltaBuyTP" value="" onchange="fnUpdOptStratSettings(this, this.value, 'BuyDeltaTP', 'Buy Delta Take Profit!', true, 'buy', '', 'DeltaTP');" title="Buy Leg Take Proft Delta" />
                                     </div>
                                     <div class="col-1">
-                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="SL Delta" id="txtDeltaBuySL" value="" onchange="fnUpdatedStratSettings(this, this.value, 'BuyDeltaSL', 'Buy Delta Stop Loss!', true, 'buy', '', 'DeltaSL');" title="Buy Leg Stop Loss Delta" />
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="SL Delta" id="txtDeltaBuySL" value="" onchange="fnUpdOptStratSettings(this, this.value, 'BuyDeltaSL', 'Buy Delta Stop Loss!', true, 'buy', '', 'DeltaSL');" title="Buy Leg Stop Loss Delta" />
                                     </div>
                                     <div class="col-1"></div>
 
