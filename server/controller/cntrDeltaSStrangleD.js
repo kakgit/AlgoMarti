@@ -189,32 +189,17 @@ exports.fnExecFutByTType = async (req, res) => {
         vContractType = "put_options";
     }
     else{
-        vContractType = "";
+        vContractType = "futures";
     }
 
     try {
-        let objOptChn = await fnGetSrtdOptChnByDelta(vApiKey, vApiSecret, vTransType, vOptionType, vUAssetSymbol, vLotSize, vExpiry, vLotQty, vContractType, vDeltaPos, vDeltaRePos, vPointsTP, vPointsSL);
-        if(objOptChn.status === "success"){
-            let vLimitPrice = "0";
-            let vBestBuy = objOptChn.data.BestAsk;
-            let vBestSell = objOptChn.data.BestBid;
-            let vSymbol = objOptChn.data.Symbol;
+        let objSybDet = await fnGetSymbolDetails(vApiKey, vApiSecret, vUAssetSymbol, vTransType, vOptionType, vLotSize, vLotQty, vPointsTP, vPointsSL);
+        if(objSybDet.status === "success"){
 
-            if(vOrderType === "market_order"){
-                vBestBuy = "0";
-                vBestSell = "0";
-                vPostOnly = false;
-            }
-            if(vTransType === "buy"){
-                vLimitPrice = vBestBuy;
-            }
-            else if(vTransType === "sell"){
-                vLimitPrice = vBestSell;
-            }
-            res.send({ "status": "success", "message": objOptChn.message, "data": objOptChn.data });
+            res.send({ "status": "success", "message": objSybDet.message, "data": objSybDet.data });
         }
         else{
-            res.send({ "status": "danger", "message": objOptChn.message, "data": "" });
+            res.send({ "status": "danger", "message": objSybDet.message, "data": "" });
         }
     }
     catch (error) {
@@ -315,6 +300,62 @@ exports.fnGetBestRatesBySymbol = async (req, res) => {
         res.send({ "status": "danger", "message": "Error in Best Rates. Contact Administrator!", "data": objError });
     });
     // res.send({ "status": "success", "message": "Current Rate Information Feched!", "data": "" });
+}
+
+const fnGetSymbolDetails = async (pApiKey, pApiSecret, pUAssetSymbol, pTransType, pOptType, pLotSize, pLotQty, pPointsTP, pPointsSL) => {
+    const objPromise = new Promise((resolve, reject) => {
+        const vMethod = "GET";
+        const vPath = '/v2/tickers/' + pUAssetSymbol;
+        const vTimeStamp = Math.floor(new Date().getTime() / 1000);
+
+        const vQueryStr = "";
+        const vBody = "";
+        const vSignature = fnGetSignature(pApiSecret, vMethod, vPath, vQueryStr, vTimeStamp, vBody);
+        let config = {
+            method: vMethod,
+            maxBodyLength: Infinity,
+            url: gBaseUrl + vPath + vQueryStr,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'api-key': pApiKey,
+                'signature': vSignature,
+                'timestamp': vTimeStamp
+                }
+            };
+
+        axios.request(config)
+        .then((objResult) => {
+            let objRes = objResult.data;
+            let vDate = new Date();
+            const vRandNumb = getRandomIntInclusive(1, 1000);
+            let vTradeId = vDate.valueOf() + vRandNumb;
+            let vBestBuyPrice = parseFloat(objRes.result.quotes.best_ask);
+            let vBestSellPrice = parseFloat(objRes.result.quotes.best_bid);
+            let vRateTP, vRateSL = 0;
+
+            if(pTransType === "buy"){
+                vRateTP = vBestBuyPrice + parseFloat(pPointsTP);
+                vRateSL = vBestBuyPrice - parseFloat(pPointsSL);
+            }
+            else if(pTransType === "sell"){
+                vRateTP = vBestSellPrice - parseFloat(pPointsTP);
+                vRateSL = vBestSellPrice + parseFloat(pPointsSL);
+            }
+
+            let objFutLeg = { TradeID : vTradeId, ProductID : objRes.result.product_id, UndrAsstSymb : objRes.result.underlying_asset_symbol, ContType : objRes.result.contract_type, TransType: pTransType, OptionType : pOptType, Delta : 1.00, DeltaC : 1.00, BestAsk : vBestBuyPrice, BestBid : vBestSellPrice, Strike : parseInt(objRes.result.spot_price), Symbol : objRes.result.symbol, LotSize : pLotSize, LotQty : parseFloat(pLotQty), PointsTP : parseFloat(pPointsTP), PointsSL : parseFloat(pPointsSL), RateTP : vRateTP, RateSL : vRateSL };
+
+            resolve({ "status": "success", "message": "Best Buy and Sell Rates Feched!", "data": objFutLeg });
+        })
+        .catch((objError) => {
+            console.log(objError);
+            resolve({ "status": "danger", "message": "Error in Best Rates. Contact Administrator!", "data": objError });
+        });
+
+        // resolve({ "status": "success", "message": "Futures Data Fetched!", "data": "" });
+    });
+
+    return objPromise;
 }
 
 const fnGetUserWallet = async (pApiKey, pApiSecret) => {

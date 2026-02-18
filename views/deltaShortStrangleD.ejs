@@ -111,9 +111,9 @@
                                     </div>
                                     <div class="col-2">
                                         <div class="input-group mb-3">
-                                            <button class="btn btn-danger" type="button" onclick="fnPreInitAutoFutTrade('F', 'SELL');"><b>S</b></button>
+                                            <button class="btn btn-danger" type="button" onclick="fnPreInitAutoFutTrade('F', 'sell');"><b>S</b></button>
                                             <input type="text" value="100" id="txtFutQty" class="form-control" style="text-align: center;" title="Futures Qty" onchange="fnUpdFutStratSettings(this.value, 'StartFutQty', 'Futures Qty!', false, 'F', 'LotQty');" />
-                                            <button class="btn btn-success" type="button" onclick="fnPreInitAutoFutTrade('F', 'BUY');"><b>B</b></button>
+                                            <button class="btn btn-success" type="button" onclick="fnPreInitAutoFutTrade('F', 'buy');"><b>B</b></button>
                                         </div>
                                     </div>
 
@@ -237,6 +237,14 @@
                                         </div>
                                     </div>
 
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Brokerage Loss" id="txtBrok2Rec" value="0" title="Brokerage to Recovery" onchange="fnUpdHidFldSettings(this.value, 'BrokerageAmt', 'Brokerage Amount!');" />
+                                    </div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
 
                                     <div style="display: none;">
                                         <div class="col-2">
