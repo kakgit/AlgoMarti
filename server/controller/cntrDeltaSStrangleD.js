@@ -375,7 +375,7 @@ const fnGetUserWallet = async (pApiKey, pApiSecret) => {
                 }
             })
             .catch(function(objError) {
-                console.log("Error At Fut User Login Catch");
+                console.log(objError);
                 resolve({ "status": "danger", "message": "Error At User Login! Catch.", "data": objError });
             });
         });

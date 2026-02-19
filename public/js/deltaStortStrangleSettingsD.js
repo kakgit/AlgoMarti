@@ -78,11 +78,11 @@ function fnValidateDeltaLogin(){
                 localStorage.setItem("lsApiKeyDSSD", JSON.stringify(objApiKey.value));
                 localStorage.setItem("lsApiSecretDSSD", JSON.stringify(objApiSecret.value));
 
-                let objBalances = { Acc1BalINR: objResult.data[0].available_balance_inr, Acc1BalUSD: objResult.data[0].available_balance };
-                document.getElementById("spnBal1").innerText = (parseFloat(objBalances.Acc1BalUSD)).toFixed(2);
+                // let objBalances = { Acc1BalINR: objResult.data[0].available_balance_inr, Acc1BalUSD: objResult.data[0].available_balance };
+                // document.getElementById("spnBal1").innerText = (parseFloat(objBalances.Acc1BalUSD)).toFixed(2);
 
-                localStorage.setItem("NetLimitDSSD", JSON.stringify(objBalances));
-                console.log(localStorage.getItem("NetLimitDSSD"));
+                // localStorage.setItem("NetLimitDSSD", JSON.stringify(objBalances));
+                // console.log(localStorage.getItem("NetLimitDSSD"));
 
                 $('#mdlDeltaLogin').modal('hide');
                 localStorage.setItem("lsLoginValidDSSD", "true");
@@ -111,7 +111,7 @@ function fnValidateDeltaLogin(){
         })
         .catch(error => {
             fnClearLoginStatus();
-            //console.log('error: ', error);
+            console.log('error: ', error);
             fnGenMessage("Error to Fetch with Login Details.", `badge bg-danger`, "spnDeltaLogin");
         });
     }
