@@ -210,6 +210,38 @@
                                     </div>
                                     <div class="col-1"></div>
 
+
+                                    <div class="col-1"></div>
+                                    <div class="col-2">Profit % to Recvr</div>
+                                    <div class="col-2">Loss Multiplier in X</div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2">Total Brokerage to Recvr</div>
+                                    <div class="col-2">Total Yet To Recvr</div>
+                                    <div class="col-1"></div>
+
+
+                                    <div class="col-1">
+                                        <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                                            <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtLossRecvr" name="swtLossRecvr" onchange="fnUpdHidFldSettings(this.checked, 'SwtLossRec', 'Loss Recovery!');" />
+                                            <!-- <label for="swtLossRecvr" style="cursor:pointer;text-wrap:nowrap;">Step Qty</label> -->
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="% to Recvr in Profit" id="txtPrftPerc2Recvr" value="100" title="% to Recover when in profit" onchange="fnUpdHidFldSettings(this.value, 'PrftPerc2Rec', 'Profit Percent to Recover!');" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Loss Multiplier in X" id="txtLossMultiplier" value="1" title="Loss Multiplier in X" onchange="fnUpdHidFldSettings(this.value, 'LossMltplr', 'Loss Multiplier!');" />
+                                    </div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Brokerage Loss" id="txtBrok2Rec" value="0" title="Brokerage to Recovery" onchange="fnUpdHidFldSettings(this.value, 'BrokerageAmt', 'Brokerage Amount!');" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Total Yet to Recvr" id="txtYet2Recvr" value="0" title="Yet To Recover Loss Amount" onchange="fnUpdHidFldSettings(this.value, 'Yet2RecvrAmt', 'Yet To Recover Amount!');" />
+                                    </div>
+                                    <div class="col-1"></div>
+
+
                                     <div class="col-2">
                                         <div class="d-grid gap-1">
                                             <button class="btn btn-outline-warning" onclick="fnExecAllLegs();"><b>Exec All Legs</b></button>
@@ -236,15 +268,6 @@
                                             <button class="btn btn-outline-danger" onclick="fnPreInitAutoTrade('P', 'buy');"><b>BUY PE</b></button>
                                         </div>
                                     </div>
-
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Brokerage Loss" id="txtBrok2Rec" value="0" title="Brokerage to Recovery" onchange="fnUpdHidFldSettings(this.value, 'BrokerageAmt', 'Brokerage Amount!');" />
-                                    </div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
 
                                     <div style="display: none;">
                                         <div class="col-2">
