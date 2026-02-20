@@ -82,7 +82,7 @@ async function fnUpdFundingData(){
         let objCDcxFundingList = await fnGetCDcxFundingList();
         if(objCDcxFundingList.status === "success"){
             gCDcxFundingList = objCDcxFundingList.data.prices;
-            // console.log(gCDcxFundingList);
+            console.log(gCDcxFundingList);
 
             let objCDcxDeltaData = await fnGetCDcxDeltaData();
             if(objCDcxDeltaData.status === "success"){

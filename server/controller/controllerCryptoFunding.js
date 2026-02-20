@@ -58,7 +58,7 @@ exports.fnUpdCoindcxDeltaCoinsList = async (req, res) => {
 
     let objCoinDcxCoins = await fnGetCoinDcxStrList();
     if(objCoinDcxCoins.status === "success"){
-        let objDeltaCoinDCXCoins = await fnGetDeltaCoinsList(vApiKey, vApiSecret, objCoinDcxCoins.data);
+        let objDeltaCoinDCXCoins = await fnGetDeltaCoinsList1(vApiKey, vApiSecret, objCoinDcxCoins.data);
 
         if(objDeltaCoinDCXCoins.status === "success"){
 
@@ -235,13 +235,12 @@ exports.fnGetDeltaFundingList = async (req, res) => {
       axios.request(config)
       .then((objResult) => {
         let objFData = {};
-        // let objRes = (objResult.data);
-
+        let objRes = (objResult.data);
         // console.log(objResult.data.result.length);
         for(let i=0; i<objResult.data.result.length; i++){
             objFData[objResult.data.result[i].symbol] = parseFloat(objResult.data.result[i].funding_rate);
         }
-        // console.log(objRes);
+
         res.send({ "status": "success", "message": "Delta Funding Details Fetched!", "data": objFData });
     })
       .catch((objError) => {
@@ -353,8 +352,8 @@ const fnGetCoinDcxStrList = async () => {
 
         axios.request(config)
         .then((objResult) => {
-            // console.log(objResult);
             const objRes = (objResult.data).join(", ");
+            // console.log(objRes);
             resolve({ "status": "success", "message": "Coin DCX String List Fetched!", "data": objRes });
         })
         .catch((objError) => {
@@ -365,7 +364,7 @@ const fnGetCoinDcxStrList = async () => {
     return objPromise;
 }
 
-const fnGetDeltaCoinsList = async (pApiKey, pSecretCode, pCoinDcxList) => {
+const fnGetDeltaCoinsList1 = async (pApiKey, pSecretCode, pCoinDcxList) => {
     const objPromise = new Promise((resolve, reject) => {
         new DeltaRestClient(pApiKey, pSecretCode).then(client => {
             client.apis.Products.getProducts({ contract_types : "perpetual_futures", states : "live" }).then(function (response) {

@@ -75,7 +75,7 @@ window.addEventListener("DOMContentLoaded", function(){
     socket.on("tv-Msg-SSDemo-Close", (pMsg) => {
         let objMsg = (pMsg);
 
-        // fnPreInitTradeClose(objMsg.OptionType, objMsg.TransType);
+        fnPreInitTradeClose(objMsg.OptionType, objMsg.TransType);
     });
 });
 

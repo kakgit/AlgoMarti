@@ -1,5 +1,31 @@
 [
     {
+        "AnualFundD": 175.2,
+        "LotSizeD": 1,
+        "LeverageD": 20,
+        "SymbIdD": 49177,
+        "PosLimitD": 3898000,
+        "RateFeqMsD": 3600,
+        "RateFeqHrD": 1,
+        "SymbolD": "OMUSD",
+        "UndrAsstSymbD": "OM",
+        "AllowOnlyCloseD": false,
+        "SymbolC": "B-OM_USDT"
+    },
+    {
+        "AnualFundD": 43.8,
+        "LotSizeD": 0.001,
+        "LeverageD": 50,
+        "SymbIdD": 123006,
+        "PosLimitD": 200000,
+        "RateFeqMsD": 14400,
+        "RateFeqHrD": 4,
+        "SymbolD": "PAXGUSD",
+        "UndrAsstSymbD": "PAXG",
+        "AllowOnlyCloseD": false,
+        "SymbolC": "B-PAXG_USDT"
+    },
+    {
         "AnualFundD": 43.8,
         "LotSizeD": 10,
         "LeverageD": 20,
@@ -24,6 +50,19 @@
         "UndrAsstSymbD": "DUSK",
         "AllowOnlyCloseD": false,
         "SymbolC": "B-DUSK_USDT"
+    },
+    {
+        "AnualFundD": 43.8,
+        "LotSizeD": 10,
+        "LeverageD": 20,
+        "SymbIdD": 117583,
+        "PosLimitD": 20000,
+        "RateFeqMsD": 14400,
+        "RateFeqHrD": 4,
+        "SymbolD": "FRAXUSD",
+        "UndrAsstSymbD": "FRAX",
+        "AllowOnlyCloseD": false,
+        "SymbolC": "B-FRAX_USDT"
     },
     {
         "AnualFundD": 43.8,
@@ -157,6 +196,19 @@
     },
     {
         "AnualFundD": 43.8,
+        "LotSizeD": 100,
+        "LeverageD": 20,
+        "SymbIdD": 97414,
+        "PosLimitD": 219000,
+        "RateFeqMsD": 14400,
+        "RateFeqHrD": 4,
+        "SymbolD": "XANUSD",
+        "UndrAsstSymbD": "XAN",
+        "AllowOnlyCloseD": false,
+        "SymbolC": "B-XAN_USDT"
+    },
+    {
+        "AnualFundD": 43.8,
         "LotSizeD": 10,
         "LeverageD": 20,
         "SymbIdD": 97412,
@@ -274,6 +326,19 @@
     },
     {
         "AnualFundD": 43.8,
+        "LotSizeD": 100,
+        "LeverageD": 20,
+        "SymbIdD": 84926,
+        "PosLimitD": 50000,
+        "RateFeqMsD": 14400,
+        "RateFeqHrD": 4,
+        "SymbolD": "HUSD",
+        "UndrAsstSymbD": "H",
+        "AllowOnlyCloseD": false,
+        "SymbolC": "B-H_USDT"
+    },
+    {
+        "AnualFundD": 43.8,
         "LotSizeD": 1000,
         "LeverageD": 20,
         "SymbIdD": 84923,
@@ -362,6 +427,19 @@
         "UndrAsstSymbD": "SIGN",
         "AllowOnlyCloseD": false,
         "SymbolC": "B-SIGN_USDT"
+    },
+    {
+        "AnualFundD": 43.8,
+        "LotSizeD": 10,
+        "LeverageD": 20,
+        "SymbIdD": 74311,
+        "PosLimitD": 642000,
+        "RateFeqMsD": 14400,
+        "RateFeqHrD": 4,
+        "SymbolD": "DEEPUSD",
+        "UndrAsstSymbD": "DEEP",
+        "AllowOnlyCloseD": false,
+        "SymbolC": "B-DEEP_USDT"
     },
     {
         "AnualFundD": 43.8,
@@ -895,19 +973,6 @@
         "UndrAsstSymbD": "SUN",
         "AllowOnlyCloseD": false,
         "SymbolC": "B-SUN_USDT"
-    },
-    {
-        "AnualFundD": 43.8,
-        "LotSizeD": 1,
-        "LeverageD": 20,
-        "SymbIdD": 49177,
-        "PosLimitD": 3898000,
-        "RateFeqMsD": 14400,
-        "RateFeqHrD": 4,
-        "SymbolD": "OMUSD",
-        "UndrAsstSymbD": "OM",
-        "AllowOnlyCloseD": false,
-        "SymbolC": "B-OM_USDT"
     },
     {
         "AnualFundD": 43.8,
