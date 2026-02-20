@@ -37,23 +37,29 @@
                             <div class="col-2">
                                 <h4>Manual Trader</h4>
                             </div>
-                            <div class="col-1">
+                            <div class="col-3">
                                 <form name="frmSide" id="frmSide">
                                     <div class="tw-toggle" style="white-space: nowrap;">
-                                        <input id="txtBN1" type="radio" name="rdoTradeSide" value="false" onclick="fnTradeSide();" />
+                                        <input id="txtBN1" type="radio" name="rdoCallTradeSide" value="false" onclick="fnCallTradeSide();" />
                                         <label class="toggle toggle-yes" for="txtBN1"><i class="fa fa-arrow-down"></i></label>
-                                        <input id="txtBN2" checked type="radio" name="rdoTradeSide" value="-1" onclick="fnTradeSide();" />
+                                        <input id="txtBN2" checked type="radio" name="rdoCallTradeSide" value="-1" onclick="fnCallTradeSide();" />
                                         <label class="toggle toggle-yes" for="txtBN2"><i class="fa fa-minus"></i></label>
-                                        <input id="txtBN3" type="radio" name="rdoTradeSide" value="true" onclick="fnTradeSide();" />
+                                        <input id="txtBN3" type="radio" name="rdoCallTradeSide" value="true" onclick="fnCallTradeSide();" />
                                         <label class="toggle toggle-yes" for="txtBN3"><i class="fa fa-arrow-up"></i></label>
                                         <span></span>
-                                        <label for="txtBN1">Side</label>
+                                        <label for="txtBN1">Call</label>
+                                    </div>
+                                    <div class="tw-toggle" style="white-space: nowrap;">
+                                        <input id="txtBN11" type="radio" name="rdoPutTradeSide" value="false" onclick="fnPutTradeSide();" />
+                                        <label class="toggle toggle-yes" for="txtBN11"><i class="fa fa-arrow-down"></i></label>
+                                        <input id="txtBN12" checked type="radio" name="rdoPutTradeSide" value="-1" onclick="fnPutTradeSide();" />
+                                        <label class="toggle toggle-yes" for="txtBN12"><i class="fa fa-minus"></i></label>
+                                        <input id="txtBN13" type="radio" name="rdoPutTradeSide" value="true" onclick="fnPutTradeSide();" />
+                                        <label class="toggle toggle-yes" for="txtBN13"><i class="fa fa-arrow-up"></i></label>
+                                        <span></span>
+                                        <label for="txtBN11">Put</label>
                                     </div>
                                 </form>
-                            </div>
-                            <div class="col-1"></div>
-                            <div class="col-1">
-                                
                             </div>
                             <div class="col-1"></div>
                             <div class="col-1">

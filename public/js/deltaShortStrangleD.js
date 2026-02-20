@@ -32,21 +32,21 @@ let gOtherFlds = [{ SwtLossRec : true, PrftPerc2Rec : 100, LossMltplr : 1, Broke
 window.addEventListener("DOMContentLoaded", function(){
     fnGetAllStatus();
 
-    socket.on("CdlEmaTrend", (pMsg) => {
-        let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
-        let objJson = JSON.parse(pMsg);
+    // socket.on("CdlEmaTrend", (pMsg) => {
+    //     let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
+    //     let objJson = JSON.parse(pMsg);
 
-        if(objJson.Direc === "UP"){
-            objTradeSideVal.value = true;
-        }
-        else if(objJson.Direc === "DN"){
-            objTradeSideVal.value = false;
-        }
-        else{
-            objTradeSideVal.value = -1;
-        }
-        fnTradeSide();
-    });
+    //     if(objJson.Direc === "UP"){
+    //         objTradeSideVal.value = true;
+    //     }
+    //     else if(objJson.Direc === "DN"){
+    //         objTradeSideVal.value = false;
+    //     }
+    //     else{
+    //         objTradeSideVal.value = -1;
+    //     }
+    //     fnCallTradeSide();
+    // });
 
     socket.on("refreshAllDFL", () => {
         document.location.reload();
@@ -54,7 +54,8 @@ window.addEventListener("DOMContentLoaded", function(){
 
     socket.on("tv-Msg-SSDemo-Open", (pMsg) => {
         let isLsAutoTrader = localStorage.getItem("isAutoTraderDSSD");
-        let vTradeSide = localStorage.getItem("TradeSideSwtDSSD");
+        let vCallSide = localStorage.getItem("CallSideSwtDSSD");
+        let vPutSide = localStorage.getItem("PutSideSwtDSSD");
         let objMsg = (pMsg);
 
         // fnChangeSymbol(objMsg.symbolName);
@@ -63,12 +64,12 @@ window.addEventListener("DOMContentLoaded", function(){
             fnGenMessage("Trade Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
         }
         else{
-            // if(((vTradeSide === "true") && (objMsg.OptionType === "P")) || ((vTradeSide === "false") && (objMsg.OptionType === "C")) || (vTradeSide === "-1")){
+            if((vCallSide === "false") && (objMsg.OptionType === "C") && (objMsg.TransType === "sell") || (vCallSide === "true") && (objMsg.OptionType === "C") && (objMsg.TransType === "buy") || (vPutSide === "false") && (objMsg.OptionType === "P") && (objMsg.TransType === "buy") || (vPutSide === "true") && (objMsg.OptionType === "P") && (objMsg.TransType === "sell")){
                 fnPreInitAutoTrade(objMsg.OptionType, objMsg.TransType);
-            // }
-            // else{
-            //     fnGenMessage(objMsg.OptionType + " Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
-            // }
+            }
+            else{
+                fnGenMessage("Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
+            }
         }
     });
 
@@ -1925,7 +1926,6 @@ function fnClearLocalStorageTemp(){
     // localStorage.removeItem("FutStratDSSD");
     // localStorage.removeItem("StrategyDSSD");
     // localStorage.removeItem("StartQtyBuyDSSD");
-
     localStorage.removeItem("CETrdCntDSSD");
     localStorage.removeItem("PETrdCntDSSD");
 
@@ -2092,27 +2092,50 @@ function checkTimeForAlert() {
 
 //********** Indicators Sections *************//
 
-function fnTradeSide(){
-    let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
+function fnCallTradeSide(){
+    let objCallSideVal = document["frmSide"]["rdoCallTradeSide"];
 
-    localStorage.setItem("TradeSideSwtDSSD", objTradeSideVal.value);
+    localStorage.setItem("CallSideSwtDSSD", objCallSideVal.value);
+}
+
+function fnPutTradeSide(){
+    let objPutSideVal = document["frmSide"]["rdoPutTradeSide"];
+
+    localStorage.setItem("PutSideSwtDSSD", objPutSideVal.value);
 }
 
 function fnLoadTradeSide(){
-    if(localStorage.getItem("TradeSideSwtDSSD") === null){
-        localStorage.setItem("TradeSideSwtDSSD", "-1");
+    if(localStorage.getItem("CallSideSwtDSSD") === null){
+        localStorage.setItem("CallSideSwtDSSD", "-1");
     }
-    let lsTradeSideSwitchS = localStorage.getItem("TradeSideSwtDSSD");
-    let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
+    let lsCallSideSwitchS = localStorage.getItem("CallSideSwtDSSD");
+    let objCallSideVal = document["frmSide"]["rdoCallTradeSide"];
 
-    if(lsTradeSideSwitchS === "true"){
-        objTradeSideVal.value = true;
+    if(lsCallSideSwitchS === "true"){
+        objCallSideVal.value = true;
     }
-    else if(lsTradeSideSwitchS === "false"){
-        objTradeSideVal.value = false;
+    else if(lsCallSideSwitchS === "false"){
+        objCallSideVal.value = false;
     }
     else{
-        objTradeSideVal.value = -1;
+        objCallSideVal.value = -1;
+    }
+
+
+    if(localStorage.getItem("PutSideSwtDSSD") === null){
+        localStorage.setItem("PutSideSwtDSSD", "-1");
+    }
+    let lsPutSideSwitchS = localStorage.getItem("PutSideSwtDSSD");
+    let objPutSideVal = document["frmSide"]["rdoPutTradeSide"];
+
+    if(lsPutSideSwitchS === "true"){
+        objPutSideVal.value = true;
+    }
+    else if(lsPutSideSwitchS === "false"){
+        objPutSideVal.value = false;
+    }
+    else{
+        objPutSideVal.value = -1;
     }
 }
 
