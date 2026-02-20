@@ -32,51 +32,51 @@ let gOtherFlds = [{ SwtLossRec : true, PrftPerc2Rec : 100, LossMltplr : 1, Broke
 window.addEventListener("DOMContentLoaded", function(){
     fnGetAllStatus();
 
-    // socket.on("CdlEmaTrend", (pMsg) => {
-    //     let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
-    //     let objJson = JSON.parse(pMsg);
+    socket.on("CdlEmaTrend", (pMsg) => {
+        let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
+        let objJson = JSON.parse(pMsg);
 
-    //     if(objJson.Direc === "UP"){
-    //         objTradeSideVal.value = true;
-    //     }
-    //     else if(objJson.Direc === "DN"){
-    //         objTradeSideVal.value = false;
-    //     }
-    //     else{
-    //         objTradeSideVal.value = -1;
-    //     }
-    //     fnTradeSide();
-    // });
+        if(objJson.Direc === "UP"){
+            objTradeSideVal.value = true;
+        }
+        else if(objJson.Direc === "DN"){
+            objTradeSideVal.value = false;
+        }
+        else{
+            objTradeSideVal.value = -1;
+        }
+        fnTradeSide();
+    });
 
-    // socket.on("refreshAllDFL", () => {
-    //     document.location.reload();
-    // });
+    socket.on("refreshAllDFL", () => {
+        document.location.reload();
+    });
 
-    // socket.on("tv-Msg-SSDemo-Open", (pMsg) => {
-    //     let isLsAutoTrader = localStorage.getItem("isAutoTraderDSSD");
-    //     let vTradeSide = localStorage.getItem("TradeSideSwtDSSD");
-    //     let objMsg = (pMsg);
+    socket.on("tv-Msg-SSDemo-Open", (pMsg) => {
+        let isLsAutoTrader = localStorage.getItem("isAutoTraderDSSD");
+        let vTradeSide = localStorage.getItem("TradeSideSwtDSSD");
+        let objMsg = (pMsg);
 
-    //     // fnChangeSymbol(objMsg.symbolName);
+        // fnChangeSymbol(objMsg.symbolName);
 
-    //     if(isLsAutoTrader === "false"){
-    //         fnGenMessage("Trade Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
-    //     }
-    //     else{
-    //         // if(((vTradeSide === "true") && (objMsg.OptionType === "P")) || ((vTradeSide === "false") && (objMsg.OptionType === "C")) || (vTradeSide === "-1")){
-    //             fnPreInitAutoTrade(objMsg.OptionType, objMsg.TransType);
-    //         // }
-    //         // else{
-    //         //     fnGenMessage(objMsg.OptionType + " Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
-    //         // }
-    //     }
-    // });
+        if(isLsAutoTrader === "false"){
+            fnGenMessage("Trade Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
+        }
+        else{
+            // if(((vTradeSide === "true") && (objMsg.OptionType === "P")) || ((vTradeSide === "false") && (objMsg.OptionType === "C")) || (vTradeSide === "-1")){
+                fnPreInitAutoTrade(objMsg.OptionType, objMsg.TransType);
+            // }
+            // else{
+            //     fnGenMessage(objMsg.OptionType + " Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
+            // }
+        }
+    });
 
-    // socket.on("tv-Msg-SSDemo-Close", (pMsg) => {
-    //     let objMsg = (pMsg);
+    socket.on("tv-Msg-SSDemo-Close", (pMsg) => {
+        let objMsg = (pMsg);
 
-    //     fnPreInitTradeClose(objMsg.OptionType, objMsg.TransType);
-    // });
+        // fnPreInitTradeClose(objMsg.OptionType, objMsg.TransType);
+    });
 });
 
 function fnGetAllStatus(){
