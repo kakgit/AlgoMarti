@@ -27,7 +27,7 @@ let gReLeg = false;
 let gClsBuyLeg = false;
 let gCurrStrats = { StratsData : [{StratID : 1, NewSellCE : true, NewSellPE : true, StartSellQty : 1, NewSellDelta : 0.33, ReSellDelta : 0.33, SellDeltaTP : 0.10, SellDeltaSL : 0.53, NewBuyCE : false, NewBuyPE : false, StartBuyQty : 1, NewBuyDelta : 0.33, ReBuyDelta : 0.33, BuyDeltaTP : 2.0, BuyDeltaSL : 0.0 }]};
 let gCurrFutStrats = { StratsData : [{StratID : 11, StartFutQty : 1, PointsSL : 100, PointsTP : 200 }]};
-let gOtherFlds = [{ SwtActiveMsgs : false, SwtLossRec : true, PrftPerc2Rec : 100, LossMltplr : 1, BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtOpnBuyLeg : false }];
+let gOtherFlds = [{ SwtActiveMsgs : false, SwtLossRec : true, PrftPerc2Rec : 100, LossMltplr : 1, BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtOpnBuyLegOP : false, SwtOpnBuyLegSS : false }];
 
 window.addEventListener("DOMContentLoaded", function(){
     fnGetAllStatus();
@@ -166,7 +166,8 @@ function fnLoadHiddenFlds(){
     let objBrokAmt = document.getElementById("txtBrok2Rec");
     let objYet2Recvr = document.getElementById("txtYet2Recvr");
 
-    let objOpnBuyLeg = document.getElementById("swtOpnBuyLeg");
+    let objOpnBuyLegOP = document.getElementById("swtOpnBuyLegOP");
+    let objOpnBuyLegSS = document.getElementById("swtOpnBuyLegSS");
 
     if(objHidFlds === null || objHidFlds === ""){
         objHidFlds = gOtherFlds;
@@ -177,7 +178,8 @@ function fnLoadHiddenFlds(){
         objBrokAmt.value = objHidFlds[0]["BrokerageAmt"];
         objYet2Recvr.value = objHidFlds[0]["Yet2RecvrAmt"];
 
-        objOpnBuyLeg.checked = objHidFlds[0]["SwtOpnBuyLeg"];
+        objOpnBuyLegOP.checked = objHidFlds[0]["SwtOpnBuyLegOP"];
+        objOpnBuyLegSS.checked = objHidFlds[0]["SwtOpnBuyLegSS"];
     }
     else{
         gOtherFlds = objHidFlds;
@@ -188,7 +190,8 @@ function fnLoadHiddenFlds(){
         objBrokAmt.value = gOtherFlds[0]["BrokerageAmt"];
         objYet2Recvr.value = gOtherFlds[0]["Yet2RecvrAmt"];
 
-        objOpnBuyLeg.checked = gOtherFlds[0]["SwtOpnBuyLeg"];
+        objOpnBuyLegOP.checked = gOtherFlds[0]["SwtOpnBuyLegOP"];
+        objOpnBuyLegSS.checked = gOtherFlds[0]["SwtOpnBuyLegSS"];
     }
 }
 
@@ -1769,10 +1772,12 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
                 }
             }
             else{
-                let objOpnBuyLeg = document.getElementById("swtOpnBuyLeg");
+                let objOpnBuyLegOP = document.getElementById("swtOpnBuyLegOP");
+                let objOpnBuyLegSS = document.getElementById("swtOpnBuyLegSS");
 
-                if(objOpnBuyLeg.checked && gReLeg){
+                if(objOpnBuyLegOP.checked && gReLeg){
                     let vOptionType = "";
+                    
                     if(pOptionType === "C"){
                         vOptionType = "P";
                     }
@@ -1780,6 +1785,10 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
                         vOptionType = "C";
                     }
                     fnPreInitAutoTrade(vOptionType, "buy");
+                }
+
+                if(objOpnBuyLegSS.checked && gReLeg){
+                    fnPreInitAutoTrade(pOptionType, "buy");
                 }
             }
         }
