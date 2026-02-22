@@ -27,7 +27,7 @@ let gReLeg = false;
 let gClsBuyLeg = false;
 let gCurrStrats = { StratsData : [{StratID : 1, NewSellCE : true, NewSellPE : true, StartSellQty : 1, NewSellDelta : 0.33, ReSellDelta : 0.33, SellDeltaTP : 0.10, SellDeltaSL : 0.53, NewBuyCE : false, NewBuyPE : false, StartBuyQty : 1, NewBuyDelta : 0.33, ReBuyDelta : 0.33, BuyDeltaTP : 2.0, BuyDeltaSL : 0.0 }]};
 let gCurrFutStrats = { StratsData : [{StratID : 11, StartFutQty : 1, PointsSL : 100, PointsTP : 200 }]};
-let gOtherFlds = [{ SwtLossRec : true, PrftPerc2Rec : 100, LossMltplr : 1, BrokerageAmt : 0, Yet2RecvrAmt : 0 }];
+let gOtherFlds = [{ SwtActiveMsgs : false, SwtLossRec : true, PrftPerc2Rec : 100, LossMltplr : 1, BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtOpnBuyLeg : false }];
 
 window.addEventListener("DOMContentLoaded", function(){
     fnGetAllStatus();
@@ -56,6 +56,7 @@ window.addEventListener("DOMContentLoaded", function(){
         let isLsAutoTrader = localStorage.getItem("isAutoTraderDSSD");
         let vCallSide = localStorage.getItem("CallSideSwtDSSD");
         let vPutSide = localStorage.getItem("PutSideSwtDSSD");
+        let objSwtActiveMsgs = document.getElementById("swtActiveMsgs");
         let objMsg = (pMsg);
 
         // fnChangeSymbol(objMsg.symbolName);
@@ -64,7 +65,7 @@ window.addEventListener("DOMContentLoaded", function(){
             fnGenMessage("Trade Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
         }
         else{
-            if((vCallSide === "false") && (objMsg.OptionType === "C") && (objMsg.TransType === "sell") || (vCallSide === "true") && (objMsg.OptionType === "C") && (objMsg.TransType === "buy") || (vPutSide === "false") && (objMsg.OptionType === "P") && (objMsg.TransType === "buy") || (vPutSide === "true") && (objMsg.OptionType === "P") && (objMsg.TransType === "sell")){
+            if((objSwtActiveMsgs.checked) && ((vCallSide === "false") && (objMsg.OptionType === "C") && (objMsg.TransType === "sell") || (vCallSide === "true") && (objMsg.OptionType === "C") && (objMsg.TransType === "buy") || (vPutSide === "false") && (objMsg.OptionType === "P") && (objMsg.TransType === "buy") || (vPutSide === "true") && (objMsg.OptionType === "P") && (objMsg.TransType === "sell"))){
                 fnPreInitAutoTrade(objMsg.OptionType, objMsg.TransType);
             }
             else{
@@ -74,9 +75,12 @@ window.addEventListener("DOMContentLoaded", function(){
     });
 
     socket.on("tv-Msg-SSDemo-Close", (pMsg) => {
+        let objSwtActiveMsgs = document.getElementById("swtActiveMsgs");
         let objMsg = (pMsg);
 
-        fnPreInitTradeClose(objMsg.OptionType, objMsg.TransType);
+        if(objSwtActiveMsgs.checked){
+            fnPreInitTradeClose(objMsg.OptionType, objMsg.TransType);
+        }
     });
 });
 
@@ -155,27 +159,36 @@ function fnLoadDefFutStrategy(){
 
 function fnLoadHiddenFlds(){
     let objHidFlds = JSON.parse(localStorage.getItem("HidFldsDSSD"));
+    let objSwtActiveMsgs = document.getElementById("swtActiveMsgs");
     let objSwtLossRecvr = document.getElementById("swtLossRecvr");
     let objPrftPerc2Rec = document.getElementById("txtPrftPerc2Recvr");
     let objLossMltplr = document.getElementById("txtLossMultiplier");
     let objBrokAmt = document.getElementById("txtBrok2Rec");
     let objYet2Recvr = document.getElementById("txtYet2Recvr");
 
+    let objOpnBuyLeg = document.getElementById("swtOpnBuyLeg");
+
     if(objHidFlds === null || objHidFlds === ""){
         objHidFlds = gOtherFlds;
+        objSwtActiveMsgs.checked = objHidFlds[0]["SwtActiveMsgs"];
         objSwtLossRecvr.checked = objHidFlds[0]["SwtLossRec"];
         objPrftPerc2Rec.value = objHidFlds[0]["PrftPerc2Rec"];
         objLossMltplr.value = objHidFlds[0]["LossMltplr"];
         objBrokAmt.value = objHidFlds[0]["BrokerageAmt"];
         objYet2Recvr.value = objHidFlds[0]["Yet2RecvrAmt"];
+
+        objOpnBuyLeg.checked = objHidFlds[0]["SwtOpnBuyLeg"];
     }
     else{
         gOtherFlds = objHidFlds;
+        objSwtActiveMsgs.checked = gOtherFlds[0]["SwtActiveMsgs"];
         objSwtLossRecvr.checked = gOtherFlds[0]["SwtLossRec"];
         objPrftPerc2Rec.value = gOtherFlds[0]["PrftPerc2Rec"];
         objLossMltplr.value = gOtherFlds[0]["LossMltplr"];
         objBrokAmt.value = gOtherFlds[0]["BrokerageAmt"];
         objYet2Recvr.value = gOtherFlds[0]["Yet2RecvrAmt"];
+
+        objOpnBuyLeg.checked = gOtherFlds[0]["SwtOpnBuyLeg"];
     }
 }
 
@@ -190,7 +203,6 @@ function fnUpdHidFldSettings(pThisVal, pHidFldParam, pFieldMsg){
 
         fnGenMessage("Value Changed Successfully for " + pFieldMsg, `badge bg-success`, "spnGenMsg");
     }
-
 }
 
 function fnUpdFutStratSettings(pThisVal, pStratParam, pFieldMsg, pIfUpdFut, pOptionType, pCurrPosParam){
@@ -1152,6 +1164,7 @@ async function fnPreInitAutoTrade(pOptionType, pTransType){
             localStorage.setItem("HidFldsDSSD", JSON.stringify(gOtherFlds));
 
             console.log("Trade Executed");
+
             gUpdPos = true;
             fnSetSymbolTickerList();
             fnUpdateOpenPositions();
@@ -1747,22 +1760,38 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
             objYet2Recvr.value = gOtherFlds[0]["Yet2RecvrAmt"];
             localStorage.setItem("HidFldsDSSD", JSON.stringify(gOtherFlds));            
 
-            if((vPL > 0) && (parseFloat(objBrokAmt.value) >= vCharges)){
-                gOtherFlds[0]["BrokerageAmt"] = parseFloat(objBrokAmt.value) - vCharges;
-                objBrokAmt.value = gOtherFlds[0]["BrokerageAmt"];
+            if(vPL > 0){
+                if(parseFloat(objBrokAmt.value) >= vCharges){
+                    gOtherFlds[0]["BrokerageAmt"] = parseFloat(objBrokAmt.value) - vCharges;
+                    objBrokAmt.value = gOtherFlds[0]["BrokerageAmt"];
 
-                localStorage.setItem("HidFldsDSSD", JSON.stringify(gOtherFlds));
+                    localStorage.setItem("HidFldsDSSD", JSON.stringify(gOtherFlds));
+                }
+            }
+            else{
+                let objOpnBuyLeg = document.getElementById("swtOpnBuyLeg");
+
+                if(objOpnBuyLeg.checked && gReLeg){
+                    let vOptionType = "";
+                    if(pOptionType === "C"){
+                        vOptionType = "P";
+                    }
+                    else if(pOptionType === "P"){
+                        vOptionType = "C";
+                    }
+                    fnPreInitAutoTrade(vOptionType, "buy");
+                }
             }
         }
         else{
             //This part is not required in Real code
-            gOtherFlds[0]["Yet2RecvrAmt"]  = parseFloat(objYet2Recvr.value) - vPL;
-            objYet2Recvr.value = gOtherFlds[0]["Yet2RecvrAmt"];
+            // gOtherFlds[0]["Yet2RecvrAmt"]  = parseFloat(objYet2Recvr.value) - vPL;
+            // objYet2Recvr.value = gOtherFlds[0]["Yet2RecvrAmt"];
 
-            gOtherFlds[0]["BrokerageAmt"] = parseFloat(objBrokAmt.value) + vCharges;
-            objBrokAmt.value = gOtherFlds[0]["BrokerageAmt"];
+            // gOtherFlds[0]["BrokerageAmt"] = parseFloat(objBrokAmt.value) + vCharges;
+            // objBrokAmt.value = gOtherFlds[0]["BrokerageAmt"];
 
-            localStorage.setItem("HidFldsDSSD", JSON.stringify(gOtherFlds));            
+            // localStorage.setItem("HidFldsDSSD", JSON.stringify(gOtherFlds));
         }
 
         console.log("Position Closed!");
