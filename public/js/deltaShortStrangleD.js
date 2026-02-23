@@ -6,7 +6,7 @@ let gQtyBuyMultiplierM = 0;
 let gQtySellMultiplierM = 0;
 let gObjDeltaDirec = [];
 let gCurrPosDSSD = { TradeData : []};
-let gTradeInst = 0;
+let gTradeInst, gTodayClsOpt = 0;
 
 let gUpdPos = true;
 let gSymbBRateList = {};
@@ -106,6 +106,8 @@ function fnGetAllStatus(){
         fnLoadCurrentTradePos();
         // setInterval(fnGetDelta, 300000);
         fnUpdateOpenPositions();
+
+        gTodayClsOpt = setInterval(fnChkTodayPosToCls, 900000);
 
         // fnLoadTotalLossAmtQty();
     }
@@ -481,6 +483,48 @@ function fnLoadTotalLossAmtQty(){
 
 }
 
+function fnChkTodayPosToCls(){
+    let vTodayDate = new Date();
+    let vDDMMYYYY = fnSetDDMMYYYY(vTodayDate);
+    let vIsRecExists = false;
+    let vLegID = 0;
+    let vTransType = "";
+    let vOptionType = "";
+    let vSymbol = "";
+
+    for(let i=0; i<gCurrPosDSSD.TradeData.length; i++){
+        if(gCurrPosDSSD.TradeData[i].Expiry === vDDMMYYYY){
+            let vDate3PM = new Date();
+            let vDate5PM = new Date();
+            vDate3PM.setHours(15, 30, 0, 0);
+            vDate5PM.setHours(17, 0, 0, 0);
+
+            let v3PM = vDate3PM.getTime();
+            let v5PM = vDate5PM.getTime();
+
+            let vState = gCurrPosDSSD.TradeData[i].Status;
+
+            if((vTodayDate.valueOf() > v3PM) && (vTodayDate.valueOf() < v5PM)){
+                if(vState === "OPEN"){
+                    vLegID = gCurrPosDSSD.TradeData[i].TradeID;
+                    vTransType = gCurrPosDSSD.TradeData[i].TransType;
+                    vOptionType = gCurrPosDSSD.TradeData[i].OptionType;
+                    vSymbol = gCurrPosDSSD.TradeData[i].Symbol;
+                    
+                    vIsRecExists = true;
+
+                }
+            }
+        }
+    }
+
+    if(vIsRecExists === true){
+        fnCloseOptPosition(vLegID, vTransType, vOptionType, vSymbol, "CLOSED");
+    }
+
+    // console.log(gCurrPosDSSD);
+}
+
 //************** Check for Open Position PL Status and close *************//
 function fnSaveUpdCurrPos(){
     let vToPosClose = false;
@@ -640,7 +684,32 @@ function fnRefreshAllOpenBrowser(){
 }
 
 function fnTest(){
+    let vTodayDate = new Date();
+    let vDDMMYYYY = fnSetDDMMYYYY(vTodayDate);
+    let vDate3PM = new Date();
+    let vDate5PM = new Date();
+
+    vDate3PM.setHours(15, 30, 0, 0);
+    vDate5PM.setHours(17, 0, 0, 0);
+
+    // Epoch time in milliseconds
+    let v3PM = vDate3PM.getTime();
+    let v5PM = vDate5PM.getTime();
+
     console.log(gCurrPosDSSD);
+    console.log(vDDMMYYYY);
+    console.log(v3PM);
+    console.log(v5PM);
+    
+
+    // // console.log("Open epoch (ms):", v4PM);
+    // // console.log("Close epoch (ms):", v5PM);
+
+    // if((gDateNow.valueOf() > v4PM) && (gDateNow.valueOf() < v5PM)){
+    //     console.log("Upded!");
+    // }
+
+    // console.log("Now Time: " + gDateNow.valueOf());
 }
 
 //************ Update Live Code Here **************//
@@ -1777,7 +1846,7 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
 
                 if(objOpnBuyLegOP.checked && gReLeg){
                     let vOptionType = "";
-                    
+
                     if(pOptionType === "C"){
                         vOptionType = "P";
                     }
