@@ -1826,7 +1826,7 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
         let vCharges = fnGetTradeCharges(vStrikePrice, vLotSize, vLotQty, vBuyPrice, vSellPrice, pOptionType);
         let vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vLotQty, vCharges);
 
-        console.log(vPL);
+        // console.log(vPL);
         if(pStatus === "CLOSED"){
             gOtherFlds[0]["Yet2RecvrAmt"]  = parseFloat(objYet2Recvr.value) + vPL;
             objYet2Recvr.value = gOtherFlds[0]["Yet2RecvrAmt"];
@@ -1844,7 +1844,7 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
                 let objOpnBuyLegOP = document.getElementById("swtOpnBuyLegOP");
                 let objOpnBuyLegSS = document.getElementById("swtOpnBuyLegSS");
 
-                if(objOpnBuyLegOP.checked && gReLeg){
+                if(objOpnBuyLegOP.checked && pTransType === "sell"){
                     let vOptionType = "";
 
                     if(pOptionType === "C"){
@@ -1856,7 +1856,7 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
                     fnPreInitAutoTrade(vOptionType, "buy");
                 }
 
-                if(objOpnBuyLegSS.checked && gReLeg){
+                if(objOpnBuyLegSS.checked && pTransType === "sell"){
                     fnPreInitAutoTrade(pOptionType, "buy");
                 }
             }
