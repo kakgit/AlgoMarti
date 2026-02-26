@@ -29,7 +29,7 @@ let gReLeg = false;
 let gClsBuyLeg = false;
 let gCurrStrats = { StratsData : [{StratID : 1, NewSellCE : true, NewSellPE : true, StartSellQty : 1, NewSellDelta : 0.33, ReSellDelta : 0.33, SellDeltaTP : 0.10, SellDeltaSL : 0.53, NewBuyCE : false, NewBuyPE : false, StartBuyQty : 1, NewBuyDelta : 0.33, ReBuyDelta : 0.33, BuyDeltaTP : 2.0, BuyDeltaSL : 0.0 }]};
 let gCurrFutStrats = { StratsData : [{StratID : 11, StartFutQty : 1, PointsSL : 100, PointsTP : 200 }]};
-let gOtherFlds = [{ SwtActiveMsgs : false, SwtLossRec : true, PrftPerc2Rec : 100, LossMltplr : 1, BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtOpnBuyLegOP : false, SwtOpnBuyLegSS : false }];
+let gOtherFlds = [{ SwtActiveMsgs : false, SwtLossRec : true, PrftPerc2Rec : 100, LossMltplr : 1, BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtOpnBuyLegOP : false, SwtOpnBuyLegSS : false, SwtBrokRec : false, BrokX4Profit : 2, ReLegBrok : false }];
 
 window.addEventListener("DOMContentLoaded", function(){
     fnGetAllStatus();
@@ -175,6 +175,10 @@ function fnLoadHiddenFlds(){
     let objOpnBuyLegOP = document.getElementById("swtOpnBuyLegOP");
     let objOpnBuyLegSS = document.getElementById("swtOpnBuyLegSS");
 
+    let objSwtBrokerage = document.getElementById("swtBrokRecvry");
+    let objTxtBrokVal = document.getElementById("txtXBrok2Rec");
+    let objChkReLeg = document.getElementById("chkReLegBrok");
+
     if(objHidFlds === null || objHidFlds === ""){
         objHidFlds = gOtherFlds;
         objSwtActiveMsgs.checked = objHidFlds[0]["SwtActiveMsgs"];
@@ -186,6 +190,10 @@ function fnLoadHiddenFlds(){
 
         objOpnBuyLegOP.checked = objHidFlds[0]["SwtOpnBuyLegOP"];
         objOpnBuyLegSS.checked = objHidFlds[0]["SwtOpnBuyLegSS"];
+
+        objSwtBrokerage.checked = objHidFlds[0]["SwtBrokRec"]; 
+        objTxtBrokVal.value = objHidFlds[0]["BrokX4Profit"];
+        objChkReLeg.checked = objHidFlds[0]["ReLegBrok"]; 
     }
     else{
         gOtherFlds = objHidFlds;
@@ -198,6 +206,10 @@ function fnLoadHiddenFlds(){
 
         objOpnBuyLegOP.checked = gOtherFlds[0]["SwtOpnBuyLegOP"];
         objOpnBuyLegSS.checked = gOtherFlds[0]["SwtOpnBuyLegSS"];
+
+        objSwtBrokerage.checked = gOtherFlds[0]["SwtBrokRec"]; 
+        objTxtBrokVal.value = gOtherFlds[0]["BrokX4Profit"];
+        objChkReLeg.checked = gOtherFlds[0]["ReLegBrok"]; 
     }
 }
 
@@ -548,18 +560,19 @@ function fnSaveUpdCurrPos(){
     let vTransType = "";
     let vOptionType = "";
     let vSymbol = "";
+    let vBrokSwt = document.getElementById("swtBrokRecvry").checked;
     let vBrokAmt = document.getElementById("txtBrok2Rec").value;
+    let vBrokXVal = document.getElementById("txtXBrok2Rec").value;
 
-    vBrokAmt = parseFloat(vBrokAmt) * 2;
+    vBrokAmt = parseFloat(vBrokAmt) * parseInt(vBrokXVal);
 
-
-    // if(gPL > vBrokAmt){
-    //     // console.log("gPL: " + gPL);
-    //     // console.log("vBrokAmt: " + vBrokAmt);
-    //     console.log("Close All Positions...");
-    //     fnExitAllPositions();
-    // }
-    // else{
+    if((gPL > vBrokAmt) && vBrokSwt){
+        // console.log("gPL: " + gPL);
+        // console.log("vBrokAmt: " + vBrokAmt);
+        console.log("Close All Positions...");
+        fnExitAllPositions();
+    }
+    else{
         for(let i=0; i<gCurrPosDSSD.TradeData.length; i++){
             if(gCurrPosDSSD.TradeData[i].Status === "OPEN"){
                 let vOptionTypeZZ = gCurrPosDSSD.TradeData[i].OptionType;
@@ -625,13 +638,14 @@ function fnSaveUpdCurrPos(){
             // }
             fnCloseOptPosition(vLegID, vTransType, vOptionType, vSymbol, "CLOSED");
         }
-    // }
+    }
 }
 
 function fnExitAllPositions(){
     let vDate = new Date();
     let vMonth = vDate.getMonth() + 1;
     let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
+    let objChkReLeg = document.getElementById("chkReLegBrok");
 
     gUpdPos = false;
 
@@ -661,7 +675,9 @@ function fnExitAllPositions(){
     fnUpdateOpenPositions();
     fnDispClosedPositions();
 
-    setTimeout(fnExecAllLegs, 900000);
+    if(objChkReLeg){
+        setTimeout(fnExecAllLegs, 900000);
+    }
 }
 
 function fnCloseBuyLeg(pTransType, pOptionType){
