@@ -553,13 +553,13 @@ function fnSaveUpdCurrPos(){
     vBrokAmt = parseFloat(vBrokAmt) * 2;
 
 
-    if(gPL > vBrokAmt){
-        // console.log("gPL: " + gPL);
-        // console.log("vBrokAmt: " + vBrokAmt);
-        console.log("Close All Positions...");
-        fnExitAllPositions();
-    }
-    else{
+    // if(gPL > vBrokAmt){
+    //     // console.log("gPL: " + gPL);
+    //     // console.log("vBrokAmt: " + vBrokAmt);
+    //     console.log("Close All Positions...");
+    //     fnExitAllPositions();
+    // }
+    // else{
         for(let i=0; i<gCurrPosDSSD.TradeData.length; i++){
             if(gCurrPosDSSD.TradeData[i].Status === "OPEN"){
                 let vOptionTypeZZ = gCurrPosDSSD.TradeData[i].OptionType;
@@ -625,7 +625,7 @@ function fnSaveUpdCurrPos(){
             // }
             fnCloseOptPosition(vLegID, vTransType, vOptionType, vSymbol, "CLOSED");
         }
-    }
+    // }
 }
 
 function fnExitAllPositions(){
