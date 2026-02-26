@@ -136,7 +136,7 @@
                                     <div class="col-1">R-Sl D</div>
                                     <div class="col-1">TP D</div>
                                     <div class="col-1">SL D</div>
-                                    <div class="col-1"></div>
+                                    <div class="col-1" style="text-align: center;">Re Enter</div>
 
                                     <div class="col-1" style="text-align: center;">
                                         <input type="checkbox" class="form-check-input" id="chkSellCE" onchange="fnUpdOptStratSettings(this, this.checked, 'NewSellCE', 'Sell CE!', false, 'sell', '', '');" title="Select to Sell New Call" />
@@ -171,7 +171,9 @@
                                     <div class="col-1">
                                         <input type="number" class="form-control" min="0.0" max="2.0" placeholder="SL Delta" id="txtDeltaSellSL" value="" onchange="fnUpdOptStratSettings(this, this.value, 'SellDeltaSL', 'Sell Delta Stop Loss!', true, 'sell', '', 'DeltaSL');" title="Sell Leg Stop Loss Delta" />
                                     </div>
-                                    <div class="col-1"></div>
+                                    <div class="col-1" style="text-align: center;">
+                                        <input type="checkbox" class="form-check-input" id="chkReLegSell" onchange="fnUpdHidFldSettings(this.checked, 'ReLegSell', 'Re Enter Sell Legs!');" title="Select to Re Enter Sell Leg when Closed" />
+                                    </div>
 
 
                                     <div class="col-1" style="text-align: center;">Buy CE</div>
@@ -183,7 +185,7 @@
                                     <div class="col-1">R-By D</div>
                                     <div class="col-1">TP D</div>
                                     <div class="col-1">SL D</div>
-                                    <div class="col-1"></div>
+                                    <div class="col-1" style="text-align: center;">Re Enter</div>
 
                                     <div class="col-1" style="text-align: center;">
                                         <input type="checkbox" class="form-check-input" id="chkBuyCE" onchange="fnUpdOptStratSettings(this, this.checked, 'NewBuyCE', 'New Buy CE!', false, 'buy', '', '');" title="Select to Buy New Call" />
@@ -218,7 +220,9 @@
                                     <div class="col-1">
                                         <input type="number" class="form-control" min="0.0" max="2.0" placeholder="SL Delta" id="txtDeltaBuySL" value="" onchange="fnUpdOptStratSettings(this, this.value, 'BuyDeltaSL', 'Buy Delta Stop Loss!', true, 'buy', '', 'DeltaSL');" title="Buy Leg Stop Loss Delta" />
                                     </div>
-                                    <div class="col-1"></div>
+                                    <div class="col-1" style="text-align: center;">
+                                        <input type="checkbox" class="form-check-input" id="chkReLegBuy" onchange="fnUpdHidFldSettings(this.checked, 'ReLegBuy', 'Re Enter Buy Legs!');" title="Select to Re Enter Buy Leg when Closed" />
+                                    </div>
 
 
                                     <div class="col-4">

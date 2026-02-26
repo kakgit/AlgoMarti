@@ -29,7 +29,7 @@ let gReLeg = false;
 let gClsBuyLeg = false;
 let gCurrStrats = { StratsData : [{StratID : 1, NewSellCE : true, NewSellPE : true, StartSellQty : 1, NewSellDelta : 0.33, ReSellDelta : 0.33, SellDeltaTP : 0.10, SellDeltaSL : 0.53, NewBuyCE : false, NewBuyPE : false, StartBuyQty : 1, NewBuyDelta : 0.33, ReBuyDelta : 0.33, BuyDeltaTP : 2.0, BuyDeltaSL : 0.0 }]};
 let gCurrFutStrats = { StratsData : [{StratID : 11, StartFutQty : 1, PointsSL : 100, PointsTP : 200 }]};
-let gOtherFlds = [{ SwtActiveMsgs : false, SwtLossRec : true, PrftPerc2Rec : 100, LossMltplr : 1, BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtOpnBuyLegOP : false, SwtOpnBuyLegSS : false, SwtBrokRec : false, BrokX4Profit : 2, ReLegBrok : false }];
+let gOtherFlds = [{ SwtActiveMsgs : false, SwtLossRec : true, PrftPerc2Rec : 100, LossMltplr : 1, BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtOpnBuyLegOP : false, SwtOpnBuyLegSS : false, SwtBrokRec : false, BrokX4Profit : 2, ReLegBrok : false, ReLegSell : false, ReLegBuy : false }];
 
 window.addEventListener("DOMContentLoaded", function(){
     fnGetAllStatus();
@@ -179,6 +179,9 @@ function fnLoadHiddenFlds(){
     let objTxtBrokVal = document.getElementById("txtXBrok2Rec");
     let objChkReLeg = document.getElementById("chkReLegBrok");
 
+    let objChkReLegSell = document.getElementById("chkReLegSell");
+    let objChkReLegBuy = document.getElementById("chkReLegBuy");
+
     if(objHidFlds === null || objHidFlds === ""){
         objHidFlds = gOtherFlds;
         objSwtActiveMsgs.checked = objHidFlds[0]["SwtActiveMsgs"];
@@ -194,6 +197,9 @@ function fnLoadHiddenFlds(){
         objSwtBrokerage.checked = objHidFlds[0]["SwtBrokRec"]; 
         objTxtBrokVal.value = objHidFlds[0]["BrokX4Profit"];
         objChkReLeg.checked = objHidFlds[0]["ReLegBrok"]; 
+
+        objChkReLegSell.checked = objHidFlds[0]["ReLegSell"]; 
+        objChkReLegBuy.checked = objHidFlds[0]["ReLegBuy"]; 
     }
     else{
         gOtherFlds = objHidFlds;
@@ -210,6 +216,9 @@ function fnLoadHiddenFlds(){
         objSwtBrokerage.checked = gOtherFlds[0]["SwtBrokRec"]; 
         objTxtBrokVal.value = gOtherFlds[0]["BrokX4Profit"];
         objChkReLeg.checked = gOtherFlds[0]["ReLegBrok"]; 
+
+        objChkReLegSell.checked = gOtherFlds[0]["ReLegSell"]; 
+        objChkReLegBuy.checked = gOtherFlds[0]["ReLegBuy"]; 
     }
 }
 
@@ -563,6 +572,8 @@ function fnSaveUpdCurrPos(){
     let vBrokSwt = document.getElementById("swtBrokRecvry").checked;
     let vBrokAmt = document.getElementById("txtBrok2Rec").value;
     let vBrokXVal = document.getElementById("txtXBrok2Rec").value;
+    let objChkReLegSell = document.getElementById("chkReLegSell");
+    let objChkReLegBuy = document.getElementById("chkReLegBuy");
 
     vBrokAmt = parseFloat(vBrokAmt) * parseInt(vBrokXVal);
 
@@ -603,7 +614,10 @@ function fnSaveUpdCurrPos(){
                         vOptionType = gCurrPosDSSD.TradeData[i].OptionType;
                         vSymbol = gCurrPosDSSD.TradeData[i].Symbol;
                         vToPosClose = true;
-                        gReLeg = true;
+                        
+                        if(objChkReLegSell.checked){
+                            gReLeg = true;
+                        }
                     }
                 }
                 else if(gCurrPosDSSD.TradeData[i].TransType === "buy"){
@@ -616,7 +630,10 @@ function fnSaveUpdCurrPos(){
                         vOptionType = gCurrPosDSSD.TradeData[i].OptionType;
                         vSymbol = gCurrPosDSSD.TradeData[i].Symbol;
                         vToPosClose = true;
-                        gReLeg = false;
+
+                        if(objChkReLegBuy.checked){
+                            gReLeg = true;
+                        }
                     }
                 }
             }
