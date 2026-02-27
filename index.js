@@ -12,6 +12,7 @@ const dotenv = require("dotenv");
 const morgan = require("morgan");
 const bodyparser = require("body-parser");
 const path = require("path");
+const axios = require("axios");
 const { Server } = require("socket.io");
 
 // const connectDB = require("./server/database/connection.js");
@@ -28,6 +29,7 @@ const vPort = process.env.PORT || 8080;
 
 const server = http.createServer(app);
 const io = new Server(server);
+const objCFV2RateWatchers = new Map();
 
 io.on("connection", (cSocket) => {
     //console.log("New User ID: ", cSocket.id);
@@ -54,6 +56,14 @@ io.on("connection", (cSocket) => {
 
     cSocket.on("DeltaMsgAll1", (pObjMsg) => {
         io.emit("DeltaMsgRec1", pObjMsg);
+    });
+
+    cSocket.on("CFV2_WatchPaperTrades", (pObjMsg) => {
+        fnSetCFV2RatesWatcher(cSocket, pObjMsg);
+    });
+
+    cSocket.on("disconnect", () => {
+        fnClearCFV2RatesWatcher(cSocket.id);
     });
 });
 
@@ -304,3 +314,158 @@ app.use('/', require('./server/routes/router.js'));
 server.listen(vPort, ()=> {
     console.log(`Server is running on ${process.env.API_PATH}`);
 });
+
+function fnClearCFV2RatesWatcher(pSocketId) {
+    const objWatch = objCFV2RateWatchers.get(pSocketId);
+    if (objWatch && objWatch.deltaTimer) {
+        clearInterval(objWatch.deltaTimer);
+    }
+    if (objWatch && objWatch.coinTimer) {
+        clearInterval(objWatch.coinTimer);
+    }
+    objCFV2RateWatchers.delete(pSocketId);
+}
+
+function fnSetCFV2RatesWatcher(pSocket, pPayload) {
+    try {
+        const objTrades = Array.isArray(pPayload?.trades) ? pPayload.trades : [];
+
+        fnClearCFV2RatesWatcher(pSocket.id);
+        if (objTrades.length === 0) return;
+
+        const objWatch = {
+            deltaTimer: null,
+            coinTimer: null,
+            busyDelta: false,
+            busyCoin: false,
+            trades: objTrades
+        };
+
+        objWatch.deltaTimer = setInterval(async () => {
+            if (objWatch.busyDelta) return;
+            objWatch.busyDelta = true;
+            try {
+                const objRates = await fnGetCFV2DeltaRatesByTrades(objWatch.trades);
+                pSocket.emit("CFV2_DeltaRatesUpdate", { status: "success", data: objRates, ts: Date.now() });
+            } catch (err) {
+                pSocket.emit("CFV2_DeltaRatesUpdate", { status: "danger", data: [], ts: Date.now() });
+            } finally {
+                objWatch.busyDelta = false;
+            }
+        }, 5000);
+
+        objWatch.coinTimer = setInterval(async () => {
+            if (objWatch.busyCoin) return;
+            objWatch.busyCoin = true;
+            try {
+                const objRates = await fnGetCFV2CoinRatesByTrades(objWatch.trades);
+                pSocket.emit("CFV2_CoinRatesUpdate", { status: "success", data: objRates, ts: Date.now() });
+            } catch (err) {
+                pSocket.emit("CFV2_CoinRatesUpdate", { status: "danger", data: [], ts: Date.now() });
+            } finally {
+                objWatch.busyCoin = false;
+            }
+        }, 5000);
+
+        objCFV2RateWatchers.set(pSocket.id, objWatch);
+    } catch (err) {
+        // ignore watcher setup failures for now
+    }
+}
+
+async function fnGetCFV2DeltaRatesByTrades(pTrades) {
+    const objDeltaResp = await axios.get("https://api.india.delta.exchange/v2/tickers?contract_types=perpetual_futures");
+    const objDeltaRows = Array.isArray(objDeltaResp.data?.result) ? objDeltaResp.data.result : [];
+    const objDeltaMap = {};
+    for (const row of objDeltaRows) {
+        if (!row?.symbol) continue;
+        objDeltaMap[row.symbol] = {
+            bestAsk: Number(row?.quotes?.best_ask),
+            bestBid: Number(row?.quotes?.best_bid),
+            fundingRate: Number(row?.funding_rate),
+            nextFundingRealization: normalizeTimestampToMsCFV2(row?.next_funding_realization)
+        };
+    }
+
+    const objUpdates = [];
+    for (const objTrade of (pTrades || [])) {
+        const objDelta = objDeltaMap[objTrade.symbolD] || {};
+        const vDRate = fnPickRateBySide(objTrade.sideD, objDelta.bestAsk, objDelta.bestBid);
+        const vDFunding = Number(objDelta.fundingRate);
+        const vDNextFundingTs = Number(objDelta.nextFundingRealization);
+        objUpdates.push({
+            id: objTrade.id,
+            dRate: Number.isFinite(vDRate) ? vDRate : null,
+            dBestAsk: Number.isFinite(Number(objDelta.bestAsk)) ? Number(objDelta.bestAsk) : null,
+            dBestBid: Number.isFinite(Number(objDelta.bestBid)) ? Number(objDelta.bestBid) : null,
+            dFunding: Number.isFinite(vDFunding) ? vDFunding : null,
+            dNextFundingTs: Number.isFinite(vDNextFundingTs) ? vDNextFundingTs : null
+        });
+    }
+
+    return objUpdates;
+}
+
+async function fnGetCFV2CoinRatesByTrades(pTrades) {
+    const objCoinPairs = [...new Set((pTrades || []).map((x) => x.symbolC).filter(Boolean))];
+    const objCoinMap = {};
+    const objCoinFundingMap = {};
+    try {
+        const objFundResp = await axios.get("https://public.coindcx.com/market_data/v3/current_prices/futures/rt");
+        const objPrices = objFundResp.data?.prices || {};
+        for (const [symb, val] of Object.entries(objPrices)) {
+            const vFr = Number(val?.fr);
+            objCoinFundingMap[symb] = Number.isFinite(vFr) ? vFr * 100 : null;
+        }
+    } catch (err) {
+        // funding map best-effort only
+    }
+
+    await Promise.all(objCoinPairs.map(async (vPair) => {
+        try {
+            const objResp = await axios.get(`https://public.coindcx.com/market_data/v3/orderbook/${encodeURIComponent(vPair)}-futures/50`);
+            const objAsks = objResp.data?.asks || {};
+            const objBids = objResp.data?.bids || {};
+            const objAskKeys = Object.keys(objAsks).map((x) => Number(x)).filter((x) => Number.isFinite(x));
+            const objBidKeys = Object.keys(objBids).map((x) => Number(x)).filter((x) => Number.isFinite(x));
+            objCoinMap[vPair] = {
+                bestAsk: objAskKeys.length > 0 ? Math.min(...objAskKeys) : null,
+                bestBid: objBidKeys.length > 0 ? Math.max(...objBidKeys) : null
+            };
+        } catch (err) {
+            objCoinMap[vPair] = { bestAsk: null, bestBid: null };
+        }
+    }));
+
+    const objUpdates = [];
+    for (const objTrade of (pTrades || [])) {
+        const objCoin = objCoinMap[objTrade.symbolC] || {};
+        const vCRate = fnPickRateBySide(objTrade.sideC, objCoin.bestAsk, objCoin.bestBid);
+        const vCFunding = Number(objCoinFundingMap[objTrade.symbolC]);
+        objUpdates.push({
+            id: objTrade.id,
+            cRate: Number.isFinite(vCRate) ? vCRate : null,
+            cBestAsk: Number.isFinite(Number(objCoin.bestAsk)) ? Number(objCoin.bestAsk) : null,
+            cBestBid: Number.isFinite(Number(objCoin.bestBid)) ? Number(objCoin.bestBid) : null,
+            cFunding: Number.isFinite(vCFunding) ? vCFunding : null
+        });
+    }
+    return objUpdates;
+}
+
+function normalizeTimestampToMsCFV2(rawTs) {
+    const ts = Number(rawTs);
+    if (!Number.isFinite(ts) || ts <= 0) return null;
+    // Handle seconds, milliseconds, or microseconds defensively.
+    if (ts > 1e14) return Math.floor(ts / 1000); // microseconds -> ms
+    if (ts > 1e11) return Math.floor(ts); // already ms
+    return Math.floor(ts * 1000); // seconds -> ms
+}
+
+function fnPickRateBySide(pSide, pBestAsk, pBestBid) {
+    const vAsk = Number(pBestAsk);
+    const vBid = Number(pBestBid);
+    if (pSide === "B") return Number.isFinite(vAsk) ? vAsk : null;
+    if (pSide === "S") return Number.isFinite(vBid) ? vBid : null;
+    return null;
+}

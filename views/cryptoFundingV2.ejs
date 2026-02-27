@@ -1,0 +1,282 @@
+<div id="main" class="container-xxl">
+    <style>
+        .cfv2-live-blink {
+            animation: cfv2Blink 1.1s infinite;
+        }
+        @keyframes cfv2Blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.35; }
+            100% { opacity: 1; }
+        }
+    </style>
+    <div class="page-heading">
+        <div class="row">
+            <div class="col-4">
+                <h3>Crypto - Funding V2</h3>
+            </div>
+            <div class="col-4 text-center">
+                <span class="badge bg-warning" id="spnGenMsg">Ready</span>
+            </div>
+            <div class="col-4" style="text-align: right;"></div>
+        </div>
+    </div>
+    <div class="page-content">
+        <section class="row">
+            <div class="col-12 col-lg-12">
+                <div class="row" style="text-align: center;">
+                    <div class="col-6 col-lg-4 col-md-6">
+                        <button class="badge bg-danger" onclick="fnShowTraderLoginMdlCFV2(this);" id="btnTraderStatusCFV2">Trader - Invalid</button>
+                    </div>
+                    <div class="col-6 col-lg-4 col-md-6">
+                        <button class="badge bg-danger" onclick="fnToggleAutoTraderCFV2();" id="btnAutoTraderStatusCFV2">Auto Trader - OFF</button>
+                    </div>
+                    <div class="col-6 col-lg-4 col-md-6">
+                        <button class="badge bg-success" type="button">No Open Position</button>
+                    </div>
+                    <div class="col-12">&nbsp;</div>
+                </div>
+            </div>
+        </section>
+        <section class="row">
+            <div class="col-12">
+                <div class="card" id="cardOpenPositionsV2">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-3">
+                                <h4>Open Positions</h4>
+                            </div>
+                            <div class="col-9" style="text-align: right;">
+                                <span class="badge bg-primary" id="spnVirtFundDeltaCFV2" style="margin-right: 8px;">Delta Fund: 10000.00</span>
+                                <i class="fa fa-refresh" aria-hidden="true" style="color: #5bc0de; cursor: pointer; margin-right: 8px;" title="Reset Virtual Funds" onclick="fnResetVirtualFundsCFV2();"></i>
+                                <span class="badge bg-success" id="spnVirtFundCoinCFV2" style="margin-right: 12px;">CoinD Fund: 10000.00</span>
+                                <i class="fa fa-trash" aria-hidden="true" style="color: #d9534f; cursor: pointer; margin-right: 12px;" title="Clear Open Paper Trades" onclick="fnClearOpenPaperTradesCFV2();"></i>
+                                <a data-bs-toggle="collapse" href="#divOpenPosClpsCFV2" role="button" aria-expanded="true" aria-controls="divOpenPosClpsCFV2">
+                                    <i class="fa fa-caret-square-o-down" style="color: orangered;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="collapse show" id="divOpenPosClpsCFV2">
+                            <div class="container-fluid">
+                                <ul class="nav nav-tabs" id="openPosTabsCFV2" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="paperTrades-tabCFV2" data-bs-toggle="tab" data-bs-target="#paperTradesCFV2" type="button" role="tab" aria-controls="paperTradesCFV2" aria-selected="true">Paper Trades</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="realTrade-tabCFV2" data-bs-toggle="tab" data-bs-target="#realTradeCFV2" type="button" role="tab" aria-controls="realTradeCFV2" aria-selected="false">Real Trade</button>
+                                    </li>
+                                </ul>
+                                <div class="tab-content" id="openPosTabsContentCFV2" style="padding-top: 12px;">
+                                    <div class="tab-pane fade show active" id="paperTradesCFV2" role="tabpanel" aria-labelledby="paperTrades-tabCFV2" tabindex="0">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr style="text-align:center;">
+                                                        <th scope="col">Exchange</th>
+                                                        <th scope="col">Symbol</th>
+                                                        <th scope="col">Funding Rate (%)</th>
+                                                        <th scope="col">Funding/Event</th>
+                                                        <th scope="col">Next Funding</th>
+                                                        <th scope="col">TB-Rate</th>
+                                                        <th scope="col">Day-Rate</th>
+                                                        <th scope="col">Side</th>
+                                                        <th scope="col">Lot Size</th>
+                                                        <th scope="col">Qty</th>
+                                                        <th scope="col">Entry</th>
+                                                        <th scope="col">Current</th>
+                                                        <th scope="col">Capital</th>
+                                                        <th scope="col">Brokerage</th>
+                                                        <th scope="col">PnL</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tBodyPaperOpenPositionsCFV2">
+                                                    <tr>
+                                                        <td colspan="15" style="text-align:center;">No Paper Trades</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane fade" id="realTradeCFV2" role="tabpanel" aria-labelledby="realTrade-tabCFV2" tabindex="0">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr style="text-align:center;">
+                                                        <th scope="col">Exchange</th>
+                                                        <th scope="col">Symbol</th>
+                                                        <th scope="col">Funding Rate (%)</th>
+                                                        <th scope="col">Funding/Event</th>
+                                                        <th scope="col">Next Funding</th>
+                                                        <th scope="col">TB-Rate</th>
+                                                        <th scope="col">Day-Rate</th>
+                                                        <th scope="col">Side</th>
+                                                        <th scope="col">Lot Size</th>
+                                                        <th scope="col">Qty</th>
+                                                        <th scope="col">Entry</th>
+                                                        <th scope="col">Current</th>
+                                                        <th scope="col">Capital</th>
+                                                        <th scope="col">Brokerage</th>
+                                                        <th scope="col">PnL</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tBodyRealOpenPositionsCFV2">
+                                                    <tr>
+                                                        <td colspan="15" style="text-align:center;">No Real Trades</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="cardClosedPositionsV2">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-3">
+                                <h4>Closed Positions</h4>
+                            </div>
+                            <div class="col-9" style="text-align: right;">
+                                <a data-bs-toggle="collapse" href="#divClosedPosClpsCFV2" role="button" aria-expanded="true" aria-controls="divClosedPosClpsCFV2">
+                                    <i class="fa fa-caret-square-o-down" style="color: orangered;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="collapse show" id="divClosedPosClpsCFV2">
+                            <div class="container-fluid">
+                                <ul class="nav nav-tabs" id="closedPosTabsCFV2" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="paperClosed-tabCFV2" data-bs-toggle="tab" data-bs-target="#paperClosedCFV2" type="button" role="tab" aria-controls="paperClosedCFV2" aria-selected="true">Paper Trades</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="realClosed-tabCFV2" data-bs-toggle="tab" data-bs-target="#realClosedCFV2" type="button" role="tab" aria-controls="realClosedCFV2" aria-selected="false">Real Trade</button>
+                                    </li>
+                                </ul>
+                                <div class="tab-content" id="closedPosTabsContentCFV2" style="padding-top: 12px;">
+                                    <div class="tab-pane fade show active" id="paperClosedCFV2" role="tabpanel" aria-labelledby="paperClosed-tabCFV2" tabindex="0">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr style="text-align:center;">
+                                                        <th scope="col">Exchange</th>
+                                                        <th scope="col">Symbol</th>
+                                                        <th scope="col">Side</th>
+                                                        <th scope="col">Qty</th>
+                                                        <th scope="col">Entry</th>
+                                                        <th scope="col">Exit</th>
+                                                        <th scope="col">Brokerage</th>
+                                                        <th scope="col">PnL</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tBodyPaperClosedPositionsCFV2">
+                                                    <tr>
+                                                        <td colspan="8" style="text-align:center;">No Closed Paper Trades</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane fade" id="realClosedCFV2" role="tabpanel" aria-labelledby="realClosed-tabCFV2" tabindex="0">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr style="text-align:center;">
+                                                        <th scope="col">Exchange</th>
+                                                        <th scope="col">Symbol</th>
+                                                        <th scope="col">Side</th>
+                                                        <th scope="col">Qty</th>
+                                                        <th scope="col">Entry</th>
+                                                        <th scope="col">Exit</th>
+                                                        <th scope="col">Brokerage</th>
+                                                        <th scope="col">PnL</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tBodyRealClosedPositionsCFV2">
+                                                    <tr>
+                                                        <td colspan="8" style="text-align:center;">No Closed Real Trades</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="cardDeltaTokensV2">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-3">
+                                <h4>Funding Screener</h4>
+                            </div>
+                            <div class="col-2">
+                                <button class="btn btn-primary" type="button" onclick="fnRefreshFundingDataCFV2();">Update Delta-CoinDcx</button>
+                            </div>
+                            <div class="col-2">
+                                <div class="input-group">
+                                    <span class="input-group-text">Min D-Rate</span>
+                                    <input class="form-control" type="number" id="txtMinRateCFV2" min="0" step="0.01" value="0.50" />
+                                </div>
+                            </div>
+                            <div class="col-2">
+                                <div class="input-group">
+                                    <span class="input-group-text">Auto (min)</span>
+                                    <input class="form-control" type="number" id="txtAutoRefreshMinCFV2" min="1" step="1" value="5" />
+                                </div>
+                            </div>
+                            <div class="col-1"></div>
+                            <div class="col-1" style="text-align: right;">
+                                <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnDisplayFundingCFV2();"></i>
+                            </div>
+                            <div class="col-1" style="text-align: right;">
+                                <a data-bs-toggle="collapse" href="#divTraderClpsCFV2" role="button" aria-expanded="true" aria-controls="divTraderClpsCFV2">
+                                    <i class="fa fa-caret-square-o-down" style="color: orangered;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="collapse show" id="divTraderClpsCFV2">
+                            <div class="container-fluid">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr style="text-align:center;">
+                                                <th scope="col">Exchange</th>
+                                                <th scope="col">Symbols</th>
+                                                <th scope="col">Volume</th>
+                                                <th scope="col">Hrly Feq</th>
+                                                <th scope="col">Funding</th>
+                                                <th scope="col">TB-Rate</th>
+                                                <th scope="col">Day-Rate</th>
+                                                <th scope="col">BS</th>
+                                                <th scope="col">Rates</th>
+                                                <th scope="col">Min Odr Val</th>
+                                                <th scope="col">Trade</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tBodyAvailFundingCFV2"></tbody>
+                                    </table>
+                                </div>
+                                <div style="text-align:right; margin-top: 6px;">
+                                    <small id="spnMetaCFV2">No data loaded</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<%- include('partials/settingsCryptoFundingV2.ejs') %>
+
+<script src="/js/settingsCryptoFundingV2.js"></script>
+<script src="/js/mainCryptoFundingV2.js"></script>

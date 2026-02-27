@@ -26,6 +26,7 @@ const deltaSStraddleLiveCtrler = require("../controller/cntrDeltaSStraddleL.js")
 const deltaSStrangleDemoCtrler = require("../controller/cntrDeltaSStrangleD.js");
 const deltaSStrangleLiveCtrler = require("../controller/cntrDeltaSStrangleL.js");
 const ctrlCryptoFunding = require("../controller/controllerCryptoFunding.js");
+const ctrlCryptoFundingV2 = require("../controller/controllerCryptoFundingV2.js");
 
 //home Routes
 route.get("/", homeServices.defaultRoute);
@@ -86,6 +87,7 @@ route.get("/deltaSStrangleLive", deltaSStrangleLiveCtrler.defaultRoute);
 
 //Crypto Funding Route
 route.get("/cryptoFunding", ctrlCryptoFunding.defaultRoute);
+route.get("/cryptoFundingV2", ctrlCryptoFundingV2.defaultRoute);
 
 // //Samco Routes
 // route.get("/samco", samcoServices.defaultRoute);
@@ -256,6 +258,11 @@ route.post("/execCryptoFunding/getCdcxCoinDetails", ctrlCryptoFunding.fnGetCdcxC
 route.post("/execCryptoFunding/getDeltaFundingList", ctrlCryptoFunding.fnGetDeltaFundingList);
 route.post("/execCryptoFunding/updDeltaLeverage", ctrlCryptoFunding.fnUpdateDeltaLeverage);
 route.post("/execCryptoFunding/execOpenOrderCDcx", ctrlCryptoFunding.fnExecOpenOrderCDcx);
+
+//Crypto Funding V2 Routes
+route.post("/execCryptoFundingV2/DeltaCredValidate", ctrlCryptoFundingV2.fnDeltaCredValidate);
+route.post("/execCryptoFundingV2/refreshFundingData", ctrlCryptoFundingV2.fnRefreshFundingData);
+route.post("/execCryptoFundingV2/getLatestTradeRates", ctrlCryptoFundingV2.fnGetLatestTradeRates);
 
 //Delta Futures Demo Routes
 route.post("/deltaExcFut/validateLogin", deltaFutDemoController.fnValidateUserLogin);

@@ -1,18 +1,5 @@
 [
     {
-        "AnualFundD": 175.2,
-        "LotSizeD": 1,
-        "LeverageD": 20,
-        "SymbIdD": 49177,
-        "PosLimitD": 3898000,
-        "RateFeqMsD": 3600,
-        "RateFeqHrD": 1,
-        "SymbolD": "OMUSD",
-        "UndrAsstSymbD": "OM",
-        "AllowOnlyCloseD": false,
-        "SymbolC": "B-OM_USDT"
-    },
-    {
         "AnualFundD": 43.8,
         "LotSizeD": 0.001,
         "LeverageD": 50,

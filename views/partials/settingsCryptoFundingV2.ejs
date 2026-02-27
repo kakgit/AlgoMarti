@@ -1,0 +1,45 @@
+<div class="modal fade text-left" id="mdlDeltaLoginCFV2" tabindex="-1" role="dialog" aria-labelledby="mdlDeltaLoginCFV2Label"
+    data-bs-backdrop="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h4 class="modal-title" id="mdlDeltaLoginCFV2Label">Delta Login (Session Only)</h4>
+                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12" style="text-align: center;">
+                        <span id="spnLoginMsgsCFV2" class="badge bg-primary">Enter Delta API credentials</span>
+                    </div>
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">Delta Exchange</div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label for="txtDeltaAPIKeyCFV2">API Key</label>
+                                        <input type="text" id="txtDeltaAPIKeyCFV2" class="form-control" value="" placeholder="API Key" autocomplete="off" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="txtDeltaSecretCFV2">Secret Code</label>
+                                        <input type="password" id="txtDeltaSecretCFV2" class="form-control" value="" placeholder="Secret Code" autocomplete="off" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer" style="text-align: right;">
+                                <button id="btnSubmitCFV2" type="button" class="btn btn-primary ms-1" onclick="fnCheckDeltaCredCFV2();">
+                                    <span>CHECK</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                    <span>CLOSE</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

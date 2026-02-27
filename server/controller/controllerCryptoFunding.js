@@ -56,8 +56,10 @@ exports.fnUpdCoindcxDeltaCoinsList = async (req, res) => {
     let vApiKey = req.body.ApiKey;
     let vApiSecret = req.body.ApiSecret;
 
+    //Receives CoinDCX Coins List in String format
     let objCoinDcxCoins = await fnGetCoinDcxStrList();
     if(objCoinDcxCoins.status === "success"){
+
         let objDeltaCoinDCXCoins = await fnGetDeltaCoinsList1(vApiKey, vApiSecret, objCoinDcxCoins.data);
 
         if(objDeltaCoinDCXCoins.status === "success"){
@@ -391,7 +393,7 @@ const fnGetDeltaCoinsList1 = async (pApiKey, pSecretCode, pCoinDcxList) => {
                     objSortData = objMyData.sort(fnSortByRateHour);
             
                     // res.send({ "status": "success", "message": "Successfully!", "data": objResult });
-                    // res.send({ "status": "success", "message": "Successfully!", "data": objSortData });
+                    // resolve({ "status": "success", "message": "Successfully !", "data": objResult });
                     resolve({ "status": "success", "message": "Successfully !", "data": objSortData });
                 }
                 else{

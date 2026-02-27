@@ -44,9 +44,6 @@ function fnGetCoinDcxDeltaCoinsList(){
     .then(response => response.json())
     .then(objResult => {
         if(objResult.status === "success"){
-            // gDeltaCoinsList = objResult.data;
-
-            // console.log(objResult);
             fnUpdFundingData();
         }
         else if(objResult.status === "danger"){
@@ -82,7 +79,7 @@ async function fnUpdFundingData(){
         let objCDcxFundingList = await fnGetCDcxFundingList();
         if(objCDcxFundingList.status === "success"){
             gCDcxFundingList = objCDcxFundingList.data.prices;
-            console.log(gCDcxFundingList);
+            // console.log(gCDcxFundingList);
 
             let objCDcxDeltaData = await fnGetCDcxDeltaData();
             if(objCDcxDeltaData.status === "success"){
@@ -176,6 +173,7 @@ function fnMergeSortFundingData(){
 
     localStorage.setItem("FundingSortedDataCF", JSON.stringify(gDeltaCdcxList));
     console.log("Funding Updated!");
+    fnDisplayFunding();
 }
 
 function fnSortByFundingRate(a, b) {
