@@ -9,6 +9,7 @@ const COINDCX_FREQ_TTL_MS = 6 * 60 * 60 * 1000;
 const COINDCX_FREQ_CACHE = new Map();
 const COINDCX_BOOK_TTL_MS = 15 * 1000;
 const COINDCX_BOOK_CACHE = new Map();
+const CFV2_REAL_MAX_NOTIONAL_DEFAULT = 100;
 
 exports.defaultRoute = (req, res) => {
     res.render("cryptoFundingV2.ejs");
@@ -144,6 +145,124 @@ exports.fnGetLatestTradeRates = async (req, res) => {
         res.send({ status: "danger", message: "Failed to fetch latest trade rates.", data: normalizeError(error) });
     }
 };
+
+exports.fnPreviewRealTrade = async (req, res) => {
+    try {
+        const trade = req.body?.Trade || {};
+        const maxNotional = Number(req.body?.MaxNotionalPerLeg || CFV2_REAL_MAX_NOTIONAL_DEFAULT);
+        const preview = buildRealTradePreview(trade, maxNotional);
+        if (!preview.ok) {
+            res.send({ status: "warning", message: preview.message, data: preview });
+            return;
+        }
+        res.send({ status: "success", message: "Real trade preview ready.", data: preview });
+    } catch (error) {
+        res.send({ status: "danger", message: "Failed to build real trade preview.", data: normalizeError(error) });
+    }
+};
+
+exports.fnExecuteRealTrade = async (req, res) => {
+    try {
+        const trade = req.body?.Trade || {};
+        const maxNotional = Number(req.body?.MaxNotionalPerLeg || CFV2_REAL_MAX_NOTIONAL_DEFAULT);
+        const dryRun = req.body?.DryRun !== false;
+        const preview = buildRealTradePreview(trade, maxNotional);
+        if (!preview.ok) {
+            res.send({ status: "warning", message: preview.message, data: preview });
+            return;
+        }
+
+        const realTradeEnabled = String(process.env.CFV2_REAL_TRADE_ENABLE || "false").toLowerCase() === "true";
+        if (!realTradeEnabled || dryRun) {
+            res.send({
+                status: "success",
+                message: "Dry-run only. Real execution is blocked by kill switch or DryRun flag.",
+                data: { ...preview, dryRun: true, executed: false }
+            });
+            return;
+        }
+
+        // Real exchange order placement intentionally gated. Keep endpoint safe by default.
+        res.send({
+            status: "warning",
+            message: "Real execution path is not wired yet. Keep DryRun enabled until exchange handlers are added.",
+            data: { ...preview, dryRun: false, executed: false }
+        });
+    } catch (error) {
+        res.send({ status: "danger", message: "Failed to execute real trade.", data: normalizeError(error) });
+    }
+};
+
+function buildRealTradePreview(trade, maxNotionalPerLeg) {
+    const symbolD = String(trade.symbolD || "");
+    const symbolC = String(trade.symbolC || "");
+    const sideD = String(trade.sideD || "");
+    const sideC = String(trade.sideC || "");
+    const qtyD = Number(trade.qtyD);
+    const qtyC = Number(trade.qtyC);
+    const lotD = Number(trade.lotSizeD);
+    const lotC = Number(trade.lotSizeC);
+    const rateD = Number(trade.entryRateD);
+    const rateC = Number(trade.entryRateC);
+    const levD = Number(trade.leverageD);
+    const levC = Number(trade.leverageC);
+    const maxPerLeg = Number.isFinite(Number(maxNotionalPerLeg)) && Number(maxNotionalPerLeg) > 0
+        ? Number(maxNotionalPerLeg)
+        : CFV2_REAL_MAX_NOTIONAL_DEFAULT;
+
+    if (!symbolD || !symbolC || !sideD || !sideC) {
+        return { ok: false, message: "Missing symbol/side for real trade preview." };
+    }
+    if (!Number.isFinite(qtyD) || !Number.isFinite(qtyC) || qtyD <= 0 || qtyC <= 0) {
+        return { ok: false, message: "Invalid quantity for real trade preview." };
+    }
+    if (!Number.isFinite(lotD) || !Number.isFinite(lotC) || lotD <= 0 || lotC <= 0) {
+        return { ok: false, message: "Invalid lot size for real trade preview." };
+    }
+    if (!Number.isFinite(rateD) || !Number.isFinite(rateC) || rateD <= 0 || rateC <= 0) {
+        return { ok: false, message: "Invalid rates for real trade preview." };
+    }
+
+    const notionalD = Math.abs(qtyD * lotD * rateD);
+    const notionalC = Math.abs(qtyC * lotC * rateC);
+    const leverageD = Number.isFinite(levD) && levD > 0 ? levD : 1;
+    const leverageC = Number.isFinite(levC) && levC > 0 ? levC : 1;
+    const marginD = notionalD / leverageD;
+    const marginC = notionalC / leverageC;
+
+    if (notionalD > maxPerLeg || notionalC > maxPerLeg) {
+        return {
+            ok: false,
+            message: `Notional exceeds max-per-leg limit (${maxPerLeg}).`,
+            symbolD,
+            symbolC,
+            notionalD,
+            notionalC,
+            maxPerLeg
+        };
+    }
+
+    return {
+        ok: true,
+        symbolD,
+        symbolC,
+        sideD,
+        sideC,
+        qtyD,
+        qtyC,
+        lotD,
+        lotC,
+        rateD,
+        rateC,
+        leverageD,
+        leverageC,
+        notionalD,
+        notionalC,
+        marginD,
+        marginC,
+        maxPerLeg
+    };
+}
 
 async function getDeltaWallet(apiKey, apiSecret) {
     try {

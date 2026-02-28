@@ -8,6 +8,18 @@
             50% { opacity: 0.35; }
             100% { opacity: 1; }
         }
+        .cfv2-open-table th:last-child,
+        .cfv2-open-table td:last-child {
+            position: sticky;
+            right: 0;
+            z-index: 2;
+            background: #1f2530;
+            min-width: 72px;
+            text-align: center;
+        }
+        .cfv2-open-table th:last-child {
+            z-index: 3;
+        }
     </style>
     <div class="page-heading">
         <div class="row">
@@ -70,13 +82,13 @@
                                 <div class="tab-content" id="openPosTabsContentCFV2" style="padding-top: 12px;">
                                     <div class="tab-pane fade show active" id="paperTradesCFV2" role="tabpanel" aria-labelledby="paperTrades-tabCFV2" tabindex="0">
                                         <div class="table-responsive">
-                                            <table class="table">
+                                            <table class="table cfv2-open-table">
                                                 <thead>
                                                     <tr style="text-align:center;">
                                                         <th scope="col">Exchange</th>
                                                         <th scope="col">Symbol</th>
                                                         <th scope="col">Funding Rate (%)</th>
-                                                        <th scope="col">Funding/Event</th>
+                                                        <th scope="col">Funding/ Event</th>
                                                         <th scope="col">Next Funding</th>
                                                         <th scope="col">TB-Rate</th>
                                                         <th scope="col">Day-Rate</th>
@@ -85,7 +97,7 @@
                                                         <th scope="col">Qty</th>
                                                         <th scope="col">Entry</th>
                                                         <th scope="col">Current</th>
-                                                        <th scope="col">Capital</th>
+                                                        <th scope="col">Margin</th>
                                                         <th scope="col">Brokerage</th>
                                                         <th scope="col">PnL</th>
                                                         <th scope="col">Action</th>
@@ -101,7 +113,7 @@
                                     </div>
                                     <div class="tab-pane fade" id="realTradeCFV2" role="tabpanel" aria-labelledby="realTrade-tabCFV2" tabindex="0">
                                         <div class="table-responsive">
-                                            <table class="table">
+                                            <table class="table cfv2-open-table">
                                                 <thead>
                                                     <tr style="text-align:center;">
                                                         <th scope="col">Exchange</th>
@@ -116,7 +128,7 @@
                                                         <th scope="col">Qty</th>
                                                         <th scope="col">Entry</th>
                                                         <th scope="col">Current</th>
-                                                        <th scope="col">Capital</th>
+                                                        <th scope="col">Margin</th>
                                                         <th scope="col">Brokerage</th>
                                                         <th scope="col">PnL</th>
                                                         <th scope="col">Action</th>
@@ -142,6 +154,7 @@
                                 <h4>Closed Positions</h4>
                             </div>
                             <div class="col-9" style="text-align: right;">
+                                <i class="fa fa-trash" aria-hidden="true" style="color: #d9534f; cursor: pointer; margin-right: 12px;" title="Clear Closed Paper Trades" onclick="fnClearClosedPaperTradesCFV2();"></i>
                                 <a data-bs-toggle="collapse" href="#divClosedPosClpsCFV2" role="button" aria-expanded="true" aria-controls="divClosedPosClpsCFV2">
                                     <i class="fa fa-caret-square-o-down" style="color: orangered;"></i>
                                 </a>
@@ -216,29 +229,37 @@
                 <div class="card" id="cardDeltaTokensV2">
                     <div class="card-header">
                         <div class="row">
-                            <div class="col-3">
+                            <div class="col-12 col-lg-2">
                                 <h4>Funding Screener</h4>
                             </div>
-                            <div class="col-2">
-                                <button class="btn btn-primary" type="button" onclick="fnRefreshFundingDataCFV2();">Update Delta-CoinDcx</button>
+                            <div class="col-12 col-lg-1">
+                                <i class="fa fa-refresh" aria-hidden="true" style="color: #0d6efd; cursor: pointer; font-size: 22px; padding-top: 8px;" title="Update Delta-CoinDcx" onclick="fnRefreshFundingDataCFV2();"></i>
                             </div>
-                            <div class="col-2">
+                            <div class="col-6 col-lg-2">
                                 <div class="input-group">
                                     <span class="input-group-text">Min D-Rate</span>
                                     <input class="form-control" type="number" id="txtMinRateCFV2" min="0" step="0.01" value="0.50" />
                                 </div>
                             </div>
-                            <div class="col-2">
+                            <div class="col-6 col-lg-2">
                                 <div class="input-group">
                                     <span class="input-group-text">Auto (min)</span>
                                     <input class="form-control" type="number" id="txtAutoRefreshMinCFV2" min="1" step="1" value="5" />
                                 </div>
                             </div>
-                            <div class="col-1"></div>
-                            <div class="col-1" style="text-align: right;">
-                                <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnDisplayFundingCFV2();"></i>
+                            <div class="col-6 col-lg-2">
+                                <div class="input-group">
+                                    <span class="input-group-text">Order USD</span>
+                                    <input class="form-control" type="number" id="txtOrderUsdCFV2" min="1" step="1" value="100" />
+                                </div>
                             </div>
-                            <div class="col-1" style="text-align: right;">
+                            <div class="col-6 col-lg-2">
+                                <div class="input-group">
+                                    <span class="input-group-text">Leverage</span>
+                                    <input class="form-control" type="number" id="txtLeverageCFV2" min="1" max="20" step="1" value="20" />
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divTraderClpsCFV2" role="button" aria-expanded="true" aria-controls="divTraderClpsCFV2">
                                     <i class="fa fa-caret-square-o-down" style="color: orangered;"></i>
                                 </a>

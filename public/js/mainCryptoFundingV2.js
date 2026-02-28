@@ -3,7 +3,8 @@ const CFV2_STORAGE = {
     meta: "FundingMetaCFV2",
     paperOpen: "PaperOpenPositionsCFV2",
     paperClosed: "PaperClosedPositionsCFV2",
-    virtualFunds: "VirtualFundsCFV2"
+    virtualFunds: "VirtualFundsCFV2",
+    uiInputs: "CFV2UiInputs"
 };
 const CFV2_ORDER_USD = 10;
 const CFV2_LEVERAGE = 20;
@@ -13,6 +14,13 @@ const CFV2_DEFAULT_DELTA_TAKER_FEE = 0.0005;
 const CFV2_DEFAULT_COIND_TAKER_FEE = 0.00059;
 const CFV2_DISPLAY_DECIMALS = 3;
 const CFV2_INITIAL_VIRTUAL_FUND = 10000;
+const CFV2_REAL_MAX_NOTIONAL_PER_LEG = 100;
+const CFV2_UI_INPUT_DEFAULTS = {
+    txtMinRateCFV2: 0.5,
+    txtAutoRefreshMinCFV2: 5,
+    txtOrderUsdCFV2: 100,
+    txtLeverageCFV2: 20
+};
 let gCFV2Socket = null;
 let gCFV2LiveDeltaRatesByTradeId = {};
 let gCFV2LiveCoinRatesByTradeId = {};
@@ -25,6 +33,8 @@ let gCFV2AutoRefreshBusy = false;
 let gCFV2AutoPaperTradeBusy = false;
 
 window.addEventListener("DOMContentLoaded", function () {
+    restoreUiInputsCFV2();
+    initUiInputPersistenceCFV2();
     fnGetAllStatusCFV2();
     initPaperTradeHandlersCFV2();
     initPaperTradeRatesSocketCFV2();
@@ -38,7 +48,79 @@ window.addEventListener("DOMContentLoaded", function () {
     updateOpenPositionStatusCFV2();
     initFundingCountdownTimerCFV2();
     initFundingAutoRefreshCFV2();
+    scheduleUiInputReapplyCFV2();
 });
+window.addEventListener("pageshow", function () {
+    restoreUiInputsCFV2();
+});
+
+function restoreUiInputsCFV2() {
+    restoreSingleUiInputCFV2("txtMinRateCFV2", loadUiInputValueCFV2("txtMinRateCFV2"), CFV2_UI_INPUT_DEFAULTS.txtMinRateCFV2);
+    restoreSingleUiInputCFV2("txtAutoRefreshMinCFV2", loadUiInputValueCFV2("txtAutoRefreshMinCFV2"), CFV2_UI_INPUT_DEFAULTS.txtAutoRefreshMinCFV2);
+    restoreSingleUiInputCFV2("txtOrderUsdCFV2", loadUiInputValueCFV2("txtOrderUsdCFV2"), CFV2_UI_INPUT_DEFAULTS.txtOrderUsdCFV2);
+    restoreSingleUiInputCFV2("txtLeverageCFV2", loadUiInputValueCFV2("txtLeverageCFV2"), CFV2_UI_INPUT_DEFAULTS.txtLeverageCFV2);
+
+    persistAllUiInputsCFV2();
+}
+
+function scheduleUiInputReapplyCFV2() {
+    setTimeout(() => restoreUiInputsCFV2(), 0);
+    setTimeout(() => restoreUiInputsCFV2(), 200);
+    setTimeout(() => restoreUiInputsCFV2(), 1200);
+}
+
+function restoreSingleUiInputCFV2(id, value, fallbackValue) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const source = (value === null || value === undefined || value === "") ? fallbackValue : value;
+    if (source === null || source === undefined || source === "") return;
+    el.value = String(source);
+}
+
+function initUiInputPersistenceCFV2() {
+    ["txtMinRateCFV2", "txtAutoRefreshMinCFV2", "txtOrderUsdCFV2", "txtLeverageCFV2"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener("input", () => persistRawUiInputCFV2(id, el.value));
+        el.addEventListener("change", () => persistRawUiInputCFV2(id, el.value));
+        el.addEventListener("blur", () => persistRawUiInputCFV2(id, el.value));
+    });
+}
+
+function persistSingleUiInputCFV2(id, value, fallbackValue) {
+    const source = (value === null || value === undefined || value === "") ? fallbackValue : value;
+    if (source === null || source === undefined) return;
+    localStorage.setItem(getUiInputStorageKeyCFV2(id), String(source));
+}
+
+function persistAllUiInputsCFV2() {
+    Object.keys(CFV2_UI_INPUT_DEFAULTS).forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        persistSingleUiInputCFV2(id, el.value, CFV2_UI_INPUT_DEFAULTS[id]);
+    });
+}
+
+function persistRawUiInputCFV2(id, value) {
+    localStorage.setItem(getUiInputStorageKeyCFV2(id), String(value ?? ""));
+}
+
+function getUiInputStorageKeyCFV2(id) {
+    return `CFV2UiInput:${id}`;
+}
+
+function loadUiInputValueCFV2(id) {
+    const direct = localStorage.getItem(getUiInputStorageKeyCFV2(id));
+    if (direct !== null) return direct;
+    // Backward compatibility for older single-object storage format.
+    try {
+        const legacy = JSON.parse(localStorage.getItem(CFV2_STORAGE.uiInputs) || "{}");
+        if (legacy && Object.prototype.hasOwnProperty.call(legacy, id)) return legacy[id];
+    } catch (error) {
+        // ignore legacy parse errors
+    }
+    return null;
+}
 
 function fnGetAllStatusCFV2() {
     const appStatus = JSON.parse(localStorage.getItem("AppMsgStatusS"));
@@ -130,12 +212,28 @@ function toNum(value, decimals) {
 function toRate(value) {
     const num = Number(value);
     if (!Number.isFinite(num)) return "-";
-    return num.toFixed(CFV2_DISPLAY_DECIMALS);
+    const abs = Math.abs(num);
+    let decimals = 3;
+    if (abs > 0 && abs < 0.001) decimals = 8;
+    else if (abs < 0.01) decimals = 7;
+    else if (abs < 0.1) decimals = 6;
+    else if (abs < 1) decimals = 5;
+    else if (abs < 10) decimals = 4;
+    return num.toFixed(decimals);
+}
+
+function roundToDisplayCFV2(value) {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return NaN;
+    return Number(num.toFixed(CFV2_DISPLAY_DECIMALS));
 }
 
 function renderTradeButton(row, index) {
     if (!shouldShowPaperTrade(row)) return "-";
-    return `<button type="button" class="btn btn-sm btn-outline-primary" data-row-index="${index}">Paper Trade</button>`;
+    return `<div class="d-flex justify-content-center align-items-center gap-1">
+        <button type="button" class="btn btn-sm btn-outline-primary" data-row-index="${index}">Paper Trade</button>
+        <button type="button" class="btn btn-sm btn-outline-warning" data-real-row-index="${index}">Real Trade</button>
+    </div>`;
 }
 
 function shouldShowPaperTrade(row) {
@@ -153,7 +251,9 @@ function shouldShowPaperTrade(row) {
     if (cSide === "S" && Number.isFinite(cRate)) sellRate = cRate;
 
     if (!Number.isFinite(buyRate) || !Number.isFinite(sellRate)) return false;
-    return buyRate <= sellRate;
+    const buyR = roundToDisplayCFV2(buyRate);
+    const sellR = roundToDisplayCFV2(sellRate);
+    return buyR <= sellR;
 }
 
 function safeText(value) {
@@ -229,6 +329,14 @@ function initPaperTradeHandlersCFV2() {
     if (!tableBody) return;
 
     tableBody.addEventListener("click", function (event) {
+        const realButton = event.target.closest("button[data-real-row-index]");
+        if (realButton) {
+            const rowIndex = Number(realButton.getAttribute("data-real-row-index"));
+            if (!Number.isInteger(rowIndex)) return;
+            openRealTradeFromScreenerRowCFV2(rowIndex);
+            return;
+        }
+
         const button = event.target.closest("button[data-row-index]");
         if (!button) return;
 
@@ -270,6 +378,13 @@ async function openPaperTradeFromScreenerRowCFV2(rowIndex) {
         return;
     }
 
+    const orderUsdInput = document.getElementById("txtOrderUsdCFV2");
+    const configuredOrderUsd = Number(orderUsdInput?.value);
+    const orderUsdPerLeg = Number.isFinite(configuredOrderUsd) && configuredOrderUsd > 0 ? configuredOrderUsd : CFV2_TARGET_USD_PER_LEG;
+    const leverageInput = document.getElementById("txtLeverageCFV2");
+    const configuredLeverage = Number(leverageInput?.value);
+    const leveragePerLeg = Number.isFinite(configuredLeverage) ? Math.max(1, Math.min(20, Math.floor(configuredLeverage))) : CFV2_LEVERAGE;
+
     const trade = {
         id: `PT-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
         openedAt: Date.now(),
@@ -283,10 +398,11 @@ async function openPaperTradeFromScreenerRowCFV2(rowIndex) {
         qtyStepC: Number(row.CQtyStep),
         minQtyD: null,
         minQtyC: Number(row.CQtyMin),
-        leverageD: CFV2_LEVERAGE,
-        leverageC: CFV2_LEVERAGE,
-        orderUsdD: CFV2_ORDER_USD,
-        orderUsdC: CFV2_ORDER_USD,
+        leverageD: leveragePerLeg,
+        leverageC: leveragePerLeg,
+        orderUsdD: orderUsdPerLeg,
+        orderUsdC: orderUsdPerLeg,
+        targetUsdPerLeg: orderUsdPerLeg,
         entryRateD: Number(latestRates.data.DRate),
         entryRateC: Number(latestRates.data.CRate),
         entryFundingD: Number(row.FundDelta),
@@ -313,6 +429,8 @@ async function openPaperTradeFromScreenerRowCFV2(rowIndex) {
     trade.qtyC = sizing.qtyC;
     trade.orderUsdD = sizing.usdD;
     trade.orderUsdC = sizing.usdC;
+    trade.reserveUsdD = Number(trade.orderUsdD) / normalizePositiveCFV2(trade.leverageD, CFV2_LEVERAGE);
+    trade.reserveUsdC = Number(trade.orderUsdC) / normalizePositiveCFV2(trade.leverageC, CFV2_LEVERAGE);
     trade.sizingMode = sizing.mode;
     trade.capitalReserved = true;
 
@@ -327,13 +445,125 @@ async function openPaperTradeFromScreenerRowCFV2(rowIndex) {
     renderPaperOpenPositionsCFV2();
     if (trade.sizingMode === "equal_100") {
         fnGenMessage(
-            `Paper trade opened for ${safeText(row.SymbolD)} / ${safeText(row.SymbolC)} near ${toNum(CFV2_TARGET_USD_PER_LEG, 2)} USD each (D: ${toNum(trade.orderUsdD, 2)}, C: ${toNum(trade.orderUsdC, 2)}).`,
+            `Paper trade opened for ${safeText(row.SymbolD)} / ${safeText(row.SymbolC)} near ${(toNum(trade.targetUsdPerLeg * trade.leverageD, 2))} notional each (D: ${toNum(trade.orderUsdD, 2)}, C: ${toNum(trade.orderUsdC, 2)}).`,
             "badge bg-success",
             "spnGenMsg"
         );
     } else {
-        fnGenMessage(`Paper trade opened for ${safeText(row.SymbolD)} / ${safeText(row.SymbolC)} at ${CFV2_LEVERAGE}x with ${CFV2_ORDER_USD} USD each.`, "badge bg-success", "spnGenMsg");
+        fnGenMessage(`Paper trade opened for ${safeText(row.SymbolD)} / ${safeText(row.SymbolC)} at ${leveragePerLeg}x with ${toNum(orderUsdPerLeg, 2)} USD each.`, "badge bg-success", "spnGenMsg");
     }
+}
+
+async function openRealTradeFromScreenerRowCFV2(rowIndex) {
+    const autoTradeOn = sessionStorage.getItem("isAutoTraderCFV2") === "true";
+    if (!autoTradeOn) {
+        fnGenMessage("Auto Trade is OFF. Turn ON Auto Trade before Real Trade.", "badge bg-warning", "spnGenMsg");
+        return;
+    }
+
+    const apiKey = sessionStorage.getItem("lsApiKeyCFV2");
+    const apiSecret = sessionStorage.getItem("lsSecretCFV2");
+    if (!apiKey || !apiSecret) {
+        fnGenMessage("Please validate Delta login first.", "badge bg-warning", "spnGenMsg");
+        return;
+    }
+
+    const rows = JSON.parse(localStorage.getItem(CFV2_STORAGE.rows) || "[]");
+    const row = rows[rowIndex];
+    if (!row) {
+        fnGenMessage("Selected screener row not found.", "badge bg-warning", "spnGenMsg");
+        return;
+    }
+
+    const latestRates = await fetchLatestRatesForPaperTradeCFV2(row);
+    if (latestRates.status !== "success") {
+        fnGenMessage(latestRates.message || "Failed to fetch latest rates for real trade.", `badge bg-${latestRates.status || "warning"}`, "spnGenMsg");
+        return;
+    }
+
+    const orderUsdInput = document.getElementById("txtOrderUsdCFV2");
+    const configuredOrderUsd = Number(orderUsdInput?.value);
+    const orderUsdPerLeg = Number.isFinite(configuredOrderUsd) && configuredOrderUsd > 0 ? configuredOrderUsd : CFV2_TARGET_USD_PER_LEG;
+    const leverageInput = document.getElementById("txtLeverageCFV2");
+    const configuredLeverage = Number(leverageInput?.value);
+    const leveragePerLeg = Number.isFinite(configuredLeverage) ? Math.max(1, Math.min(20, Math.floor(configuredLeverage))) : CFV2_LEVERAGE;
+
+    const trade = {
+        id: `RT-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
+        symbolD: row.SymbolD,
+        symbolC: row.SymbolC,
+        sideD: row.DeltaBS,
+        sideC: row.CDcxBS,
+        lotSizeD: Number(row.LotSizeD),
+        lotSizeC: Number(row.CLotSize),
+        qtyStepD: null,
+        qtyStepC: Number(row.CQtyStep),
+        minQtyD: null,
+        minQtyC: Number(row.CQtyMin),
+        leverageD: leveragePerLeg,
+        leverageC: leveragePerLeg,
+        orderUsdD: orderUsdPerLeg,
+        orderUsdC: orderUsdPerLeg,
+        targetUsdPerLeg: orderUsdPerLeg,
+        entryRateD: Number(latestRates.data.DRate),
+        entryRateC: Number(latestRates.data.CRate),
+        minOrderValueC: Number(row.MinOdrValC)
+    };
+
+    const sizing = applyPaperTradeSizingCFV2(trade);
+    if (!sizing.ok) {
+        fnGenMessage(sizing.message || "Unable to size real trade.", "badge bg-warning", "spnGenMsg");
+        return;
+    }
+    trade.qtyD = sizing.qtyD;
+    trade.qtyC = sizing.qtyC;
+    trade.orderUsdD = sizing.usdD;
+    trade.orderUsdC = sizing.usdC;
+
+    let previewResult;
+    try {
+        const response = await fetch("/execCryptoFundingV2/previewRealTrade", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ Trade: trade, MaxNotionalPerLeg: CFV2_REAL_MAX_NOTIONAL_PER_LEG })
+        });
+        previewResult = await response.json();
+    } catch (error) {
+        fnGenMessage("Failed to build real trade preview.", "badge bg-danger", "spnGenMsg");
+        return;
+    }
+
+    if (previewResult.status !== "success" || !previewResult.data?.ok) {
+        fnGenMessage(previewResult.message || "Real trade preview rejected.", `badge bg-${previewResult.status || "warning"}`, "spnGenMsg");
+        return;
+    }
+
+    const p = previewResult.data;
+    const confirmation = [
+        "Confirm Real Trade?",
+        `${p.symbolD} ${p.sideD} qty ${toNum(p.qtyD, 3)} @ ${toRate(p.rateD)} | Notional ${toNum(p.notionalD, 3)} | Margin ${toNum(p.marginD, 3)}`,
+        `${p.symbolC} ${p.sideC} qty ${toNum(p.qtyC, 3)} @ ${toRate(p.rateC)} | Notional ${toNum(p.notionalC, 3)} | Margin ${toNum(p.marginC, 3)}`,
+        `Max/leg: ${toNum(p.maxPerLeg, 3)}`
+    ].join("\n");
+    if (!window.confirm(confirmation)) return;
+
+    let executeResult;
+    try {
+        const response = await fetch("/execCryptoFundingV2/executeRealTrade", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ Trade: trade, MaxNotionalPerLeg: CFV2_REAL_MAX_NOTIONAL_PER_LEG, DryRun: false })
+        });
+        executeResult = await response.json();
+    } catch (error) {
+        fnGenMessage("Failed to execute real trade.", "badge bg-danger", "spnGenMsg");
+        return;
+    }
+
+    const statusClass = executeResult.status === "success"
+        ? (executeResult.data?.dryRun ? "badge bg-warning" : "badge bg-success")
+        : `badge bg-${executeResult.status || "warning"}`;
+    fnGenMessage(executeResult.message || "Real trade execution response received.", statusClass, "spnGenMsg");
 }
 
 async function fetchLatestRatesForPaperTradeCFV2(row) {
@@ -430,8 +660,8 @@ function renderPaperOpenPositionsCFV2() {
         const dayRate = Number.isFinite(signal.dayRate) ? signal.dayRate : Number(trade.entryDayRate);
         const tbClass = getDeltaClassCFV2(tbRate, Number(trade.entryTBRate));
         const dayClass = getDeltaClassCFV2(dayRate, Number(trade.entryDayRate));
-        const pnlD = computeLegPnlCFV2(trade.sideD, trade.entryRateD, currentRateD, trade.qtyD);
-        const pnlC = computeLegPnlCFV2(trade.sideC, trade.entryRateC, currentRateC, trade.qtyC);
+        const pnlD = computeLegPnlCFV2(trade.sideD, trade.entryRateD, currentRateD, trade.qtyD, trade.lotSizeD);
+        const pnlC = computeLegPnlCFV2(trade.sideC, trade.entryRateC, currentRateC, trade.qtyC, trade.lotSizeC);
         const feeRateD = Number.isFinite(Number(trade.feeRateD)) ? Number(trade.feeRateD) : CFV2_DEFAULT_DELTA_TAKER_FEE;
         const feeRateC = Number.isFinite(Number(trade.feeRateC)) ? Number(trade.feeRateC) : CFV2_DEFAULT_COIND_TAKER_FEE;
         const entryNotionalD = Number(trade.qtyD) * Number(trade.entryRateD) * normalizePositiveCFV2(trade.lotSizeD, 1);
@@ -445,8 +675,8 @@ function renderPaperOpenPositionsCFV2() {
         const netPnlD = pnlD - brokerageD;
         const netPnlC = pnlC - brokerageC;
         const pnlTotal = netPnlD + netPnlC;
-        const capD = Number.isFinite(Number(trade.orderUsdD)) ? Number(trade.orderUsdD) : 0;
-        const capC = Number.isFinite(Number(trade.orderUsdC)) ? Number(trade.orderUsdC) : 0;
+        const capD = getTradeReserveUsdCFV2(trade, "D");
+        const capC = getTradeReserveUsdCFV2(trade, "C");
         const closeEval = evaluateAutoCloseTradeCFV2(trade, currentRateD, currentRateC, dayRate);
 
         if (closeEval.shouldClose) {
@@ -551,13 +781,14 @@ function buildLiveRowMapCFV2() {
     return map;
 }
 
-function computeLegPnlCFV2(side, entry, current, qty) {
+function computeLegPnlCFV2(side, entry, current, qty, lotSize) {
     const e = Number(entry);
     const c = Number(current);
     const q = Number(qty);
-    if (!Number.isFinite(e) || !Number.isFinite(c) || !Number.isFinite(q)) return 0;
-    if (side === "B") return (c - e) * q;
-    if (side === "S") return (e - c) * q;
+    const lot = normalizePositiveCFV2(lotSize, 1);
+    if (!Number.isFinite(e) || !Number.isFinite(c) || !Number.isFinite(q) || !Number.isFinite(lot)) return 0;
+    if (side === "B") return (c - e) * q * lot;
+    if (side === "S") return (e - c) * q * lot;
     return 0;
 }
 
@@ -578,6 +809,17 @@ function computeFundingEventCFV2(side, fundingRatePercent, currentNotional) {
     if (s === "B") return -1 * notional * rDec;
     if (s === "S") return notional * rDec;
     return 0;
+}
+
+function getTradeReserveUsdCFV2(trade, leg) {
+    const isDelta = leg === "D";
+    const reserve = Number(isDelta ? trade?.reserveUsdD : trade?.reserveUsdC);
+    if (Number.isFinite(reserve) && reserve > 0) return reserve;
+    const notional = Number(isDelta ? trade?.orderUsdD : trade?.orderUsdC);
+    const lev = Number(isDelta ? trade?.leverageD : trade?.leverageC);
+    if (!Number.isFinite(notional) || notional <= 0) return 0;
+    const leverage = Number.isFinite(lev) && lev > 0 ? lev : CFV2_LEVERAGE;
+    return notional / leverage;
 }
 
 function applyFundingSettlementIfDueCFV2(trade, ctx) {
@@ -750,6 +992,20 @@ function fnClearOpenPaperTradesCFV2() {
     fnGenMessage("Open paper trades cleared from memory.", "badge bg-warning", "spnGenMsg");
 }
 
+function fnClearClosedPaperTradesCFV2() {
+    const paperClosed = JSON.parse(localStorage.getItem(CFV2_STORAGE.paperClosed) || "[]");
+    if (!Array.isArray(paperClosed) || paperClosed.length === 0) {
+        fnGenMessage("No closed paper trades to clear.", "badge bg-warning", "spnGenMsg");
+        return;
+    }
+    const ok = window.confirm("Clear all closed paper trades?");
+    if (!ok) return;
+    localStorage.removeItem(CFV2_STORAGE.paperClosed);
+    renderPaperClosedPositionsCFV2();
+    renderVirtualFundsCFV2();
+    fnGenMessage("Closed paper trades cleared.", "badge bg-warning", "spnGenMsg");
+}
+
 function fnManualClosePaperTradeCFV2(tradeId) {
     const id = safeText(tradeId);
     if (!id || id === "-") return;
@@ -801,8 +1057,8 @@ function fnManualClosePaperTradeCFV2(tradeId) {
     const signal = computeFundingSignalCFV2(fundingD, fundingC, rateFeqHrD, rateFeqHrC, trade.sideD, trade.sideC);
     const tbRate = Number.isFinite(signal.tbRate) ? signal.tbRate : Number(trade.entryTBRate);
     const dayRate = Number.isFinite(signal.dayRate) ? signal.dayRate : Number(trade.entryDayRate);
-    const pnlD = computeLegPnlCFV2(trade.sideD, trade.entryRateD, currentRateD, trade.qtyD);
-    const pnlC = computeLegPnlCFV2(trade.sideC, trade.entryRateC, currentRateC, trade.qtyC);
+    const pnlD = computeLegPnlCFV2(trade.sideD, trade.entryRateD, currentRateD, trade.qtyD, trade.lotSizeD);
+    const pnlC = computeLegPnlCFV2(trade.sideC, trade.entryRateC, currentRateC, trade.qtyC, trade.lotSizeC);
     const feeRateD = Number.isFinite(Number(trade.feeRateD)) ? Number(trade.feeRateD) : CFV2_DEFAULT_DELTA_TAKER_FEE;
     const feeRateC = Number.isFinite(Number(trade.feeRateC)) ? Number(trade.feeRateC) : CFV2_DEFAULT_COIND_TAKER_FEE;
     const entryNotionalD = Number(trade.qtyD) * Number(trade.entryRateD) * normalizePositiveCFV2(trade.lotSizeD, 1);
@@ -1024,6 +1280,11 @@ function applyPaperTradeSizingCFV2(trade) {
         };
     }
 
+    const targetUsdPerLeg = normalizePositiveCFV2(trade.targetUsdPerLeg, CFV2_TARGET_USD_PER_LEG);
+    const levD = normalizePositiveCFV2(trade.leverageD, CFV2_LEVERAGE);
+    const levC = normalizePositiveCFV2(trade.leverageC, CFV2_LEVERAGE);
+    const targetNotionalD = targetUsdPerLeg * levD;
+    const targetNotionalC = targetUsdPerLeg * levC;
     const rateD = Number(trade.entryRateD);
     const rateC = Number(trade.entryRateC);
     const lotD = normalizePositiveCFV2(trade.lotSizeD, 1);
@@ -1036,16 +1297,16 @@ function applyPaperTradeSizingCFV2(trade) {
         return { ok: false, message: "Invalid live rates for sizing.", mode: "equal_100" };
     }
 
-    // 1) Size Delta close to target USD.
-    let qtyD = CFV2_TARGET_USD_PER_LEG / (rateD * lotD);
+    // 1) Size Delta close to target notional (Order USD * Leverage).
+    let qtyD = targetNotionalD / (rateD * lotD);
     qtyD = roundDownCFV2(qtyD, 6);
     if (!Number.isFinite(qtyD) || qtyD <= 0) {
         return { ok: false, message: "Delta quantity became zero for target USD.", mode: "equal_100" };
     }
     const usdD = qtyD * rateD * lotD;
 
-    // 2) Size CoinD close to same target USD, honoring Coin constraints.
-    let qtyC = CFV2_TARGET_USD_PER_LEG / (rateC * lotC);
+    // 2) Size CoinD close to same target notional, honoring Coin constraints.
+    let qtyC = targetNotionalC / (rateC * lotC);
     qtyC = applyCoinQtyConstraintsCFV2(qtyC, stepC, minQtyC, false);
     let usdC = qtyC * rateC * lotC;
 
@@ -1160,8 +1421,8 @@ function computeDeployedCapitalCFV2() {
 
     for (const trade of openTrades) {
         if (trade?.capitalReserved === false) continue;
-        const capD = Number(trade?.orderUsdD);
-        const capC = Number(trade?.orderUsdC);
+        const capD = getTradeReserveUsdCFV2(trade, "D");
+        const capC = getTradeReserveUsdCFV2(trade, "C");
         if (Number.isFinite(capD) && capD > 0) delta += capD;
         if (Number.isFinite(capC) && capC > 0) coin += capC;
     }
@@ -1182,8 +1443,8 @@ function reconcileVirtualFundsCFV2() {
 
     for (const trade of (Array.isArray(openTrades) ? openTrades : [])) {
         if (trade?.capitalReserved !== false) {
-            const capD = Number(trade.orderUsdD);
-            const capC = Number(trade.orderUsdC);
+            const capD = getTradeReserveUsdCFV2(trade, "D");
+            const capC = getTradeReserveUsdCFV2(trade, "C");
             if (Number.isFinite(capD) && capD > 0) deployedDelta += capD;
             if (Number.isFinite(capC) && capC > 0) deployedCoin += capC;
         }
@@ -1231,8 +1492,8 @@ function reserveVirtualFundsForTradeCFV2(trade) {
     if (!Number.isFinite(delta)) delta = CFV2_INITIAL_VIRTUAL_FUND;
     if (!Number.isFinite(coin)) coin = CFV2_INITIAL_VIRTUAL_FUND;
 
-    const capD = Number(trade?.orderUsdD);
-    const capC = Number(trade?.orderUsdC);
+    const capD = getTradeReserveUsdCFV2(trade, "D");
+    const capC = getTradeReserveUsdCFV2(trade, "C");
     const reqD = Number.isFinite(capD) && capD > 0 ? capD : 0;
     const reqC = Number.isFinite(capC) && capC > 0 ? capC : 0;
 
@@ -1313,6 +1574,8 @@ function migrateOpenTradesLotSizeCFV2() {
             trade.qtyC = sizing.qtyC;
             trade.orderUsdD = sizing.usdD;
             trade.orderUsdC = sizing.usdC;
+            trade.reserveUsdD = Number(trade.orderUsdD) / normalizePositiveCFV2(trade.leverageD, CFV2_LEVERAGE);
+            trade.reserveUsdC = Number(trade.orderUsdC) / normalizePositiveCFV2(trade.leverageC, CFV2_LEVERAGE);
             trade.sizingMode = sizing.mode;
             changed = true;
         }

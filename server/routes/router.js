@@ -263,6 +263,8 @@ route.post("/execCryptoFunding/execOpenOrderCDcx", ctrlCryptoFunding.fnExecOpenO
 route.post("/execCryptoFundingV2/DeltaCredValidate", ctrlCryptoFundingV2.fnDeltaCredValidate);
 route.post("/execCryptoFundingV2/refreshFundingData", ctrlCryptoFundingV2.fnRefreshFundingData);
 route.post("/execCryptoFundingV2/getLatestTradeRates", ctrlCryptoFundingV2.fnGetLatestTradeRates);
+route.post("/execCryptoFundingV2/previewRealTrade", ctrlCryptoFundingV2.fnPreviewRealTrade);
+route.post("/execCryptoFundingV2/executeRealTrade", ctrlCryptoFundingV2.fnExecuteRealTrade);
 
 //Delta Futures Demo Routes
 route.post("/deltaExcFut/validateLogin", deltaFutDemoController.fnValidateUserLogin);
