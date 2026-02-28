@@ -523,6 +523,10 @@ function applyDayRateAndFilter(rows, minDailyRate) {
     const threshold = Number(minDailyRate || 0);
     const out = [];
     for (const row of (rows || [])) {
+        const dRate = Number(row.DRate);
+        const cRate = Number(row.CRate);
+        if (!Number.isFinite(dRate) || dRate <= 0 || !Number.isFinite(cRate) || cRate <= 0) continue;
+
         const tbRate = computeTbRateHourly(
             row.DeltaBS,
             row.CDcxBS,

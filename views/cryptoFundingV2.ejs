@@ -31,7 +31,7 @@
                         <button class="badge bg-danger" onclick="fnToggleAutoTraderCFV2();" id="btnAutoTraderStatusCFV2">Auto Trader - OFF</button>
                     </div>
                     <div class="col-6 col-lg-4 col-md-6">
-                        <button class="badge bg-success" type="button">No Open Position</button>
+                        <button class="badge bg-success" type="button" id="btnOpenPosStatusCFV2">No Open Position</button>
                     </div>
                     <div class="col-12">&nbsp;</div>
                 </div>
@@ -88,11 +88,12 @@
                                                         <th scope="col">Capital</th>
                                                         <th scope="col">Brokerage</th>
                                                         <th scope="col">PnL</th>
+                                                        <th scope="col">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="tBodyPaperOpenPositionsCFV2">
                                                     <tr>
-                                                        <td colspan="15" style="text-align:center;">No Paper Trades</td>
+                                                        <td colspan="16" style="text-align:center;">No Paper Trades</td>
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -118,11 +119,12 @@
                                                         <th scope="col">Capital</th>
                                                         <th scope="col">Brokerage</th>
                                                         <th scope="col">PnL</th>
+                                                        <th scope="col">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="tBodyRealOpenPositionsCFV2">
                                                     <tr>
-                                                        <td colspan="15" style="text-align:center;">No Real Trades</td>
+                                                        <td colspan="16" style="text-align:center;">No Real Trades</td>
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -169,13 +171,14 @@
                                                         <th scope="col">Qty</th>
                                                         <th scope="col">Entry</th>
                                                         <th scope="col">Exit</th>
+                                                        <th scope="col">Realized Fnd</th>
                                                         <th scope="col">Brokerage</th>
                                                         <th scope="col">PnL</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="tBodyPaperClosedPositionsCFV2">
                                                     <tr>
-                                                        <td colspan="8" style="text-align:center;">No Closed Paper Trades</td>
+                                                        <td colspan="9" style="text-align:center;">No Closed Paper Trades</td>
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -192,13 +195,14 @@
                                                         <th scope="col">Qty</th>
                                                         <th scope="col">Entry</th>
                                                         <th scope="col">Exit</th>
+                                                        <th scope="col">Realized Fnd</th>
                                                         <th scope="col">Brokerage</th>
                                                         <th scope="col">PnL</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="tBodyRealClosedPositionsCFV2">
                                                     <tr>
-                                                        <td colspan="8" style="text-align:center;">No Closed Real Trades</td>
+                                                        <td colspan="9" style="text-align:center;">No Closed Real Trades</td>
                                                     </tr>
                                                 </tbody>
                                             </table>

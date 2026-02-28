@@ -35,6 +35,7 @@ window.addEventListener("DOMContentLoaded", function () {
     migrateOpenTradesLotSizeCFV2();
     renderPaperOpenPositionsCFV2();
     renderPaperClosedPositionsCFV2();
+    updateOpenPositionStatusCFV2();
     initFundingCountdownTimerCFV2();
     initFundingAutoRefreshCFV2();
 });
@@ -152,7 +153,7 @@ function shouldShowPaperTrade(row) {
     if (cSide === "S" && Number.isFinite(cRate)) sellRate = cRate;
 
     if (!Number.isFinite(buyRate) || !Number.isFinite(sellRate)) return false;
-    return buyRate < sellRate;
+    return buyRate <= sellRate;
 }
 
 function safeText(value) {
@@ -369,8 +370,9 @@ function renderPaperOpenPositionsCFV2() {
     const paperOpen = JSON.parse(localStorage.getItem(CFV2_STORAGE.paperOpen) || "[]");
     const paperClosed = JSON.parse(localStorage.getItem(CFV2_STORAGE.paperClosed) || "[]");
     if (!Array.isArray(paperOpen) || paperOpen.length === 0) {
-        tBody.innerHTML = '<tr><td colspan="15" style="text-align:center;">No Paper Trades</td></tr>';
+        tBody.innerHTML = '<tr><td colspan="16" style="text-align:center;">No Paper Trades</td></tr>';
         publishPaperTradeWatchlistCFV2([]);
+        updateOpenPositionStatusCFV2();
         renderPaperClosedPositionsCFV2();
         return;
     }
@@ -497,6 +499,7 @@ function renderPaperOpenPositionsCFV2() {
         html += `<td style="text-align:right;">${toNum(capD, 2)}<br/>${toNum(capC, 2)}<br/><span style="color:#0d6efd; font-weight:700;">${toNum(capD + capC, 2)}</span></td>`;
         html += `<td style="text-align:right;">${toNum(brokerageD, 6)}<br/>${toNum(brokerageC, 6)}<br/><span style="color:#0d6efd; font-weight:700;">${toNum(brokerageD + brokerageC, 6)}</span></td>`;
         html += `<td style="text-align:right;">${toNum(netPnlD, 6)}<br/>${toNum(netPnlC, 6)}<br/><span style="color:#0d6efd; font-weight:700;">${toNum(pnlTotal, 6)}</span></td>`;
+        html += `<td style="text-align:center;"><button type="button" class="btn btn-sm btn-outline-danger" title="Close Position" onclick="fnManualClosePaperTradeCFV2('${safeText(trade.id)}')"><i class="fa fa-times"></i></button></td>`;
         html += "</tr>";
     }
 
@@ -510,18 +513,20 @@ function renderPaperOpenPositionsCFV2() {
     }
 
     if (stillOpen.length === 0) {
-        tBody.innerHTML = '<tr><td colspan="15" style="text-align:center;">No Paper Trades</td></tr>';
+        tBody.innerHTML = '<tr><td colspan="16" style="text-align:center;">No Paper Trades</td></tr>';
     } else {
         html += "<tr>";
         html += "<td colspan=\"12\" style=\"text-align:right; font-weight:700;\">Totals</td>";
         html += `<td style="text-align:right; font-weight:700;">${toNum(totalCapD + totalCapC, 3)}</td>`;
         html += `<td style="text-align:right; font-weight:700;">${toNum(totalBrokerageD + totalBrokerageC, 3)}</td>`;
         html += `<td style="text-align:right; font-weight:700;">${toNum(totalNetPnlD + totalNetPnlC, 3)}</td>`;
+        html += "<td style=\"text-align:center; font-weight:700;\">-</td>";
         html += "</tr>";
         tBody.innerHTML = html;
     }
     refreshFundingCountdownCellsCFV2();
     publishPaperTradeWatchlistCFV2(stillOpen);
+    updateOpenPositionStatusCFV2();
     renderPaperClosedPositionsCFV2();
 
     if (newlyClosed.length > 0) {
@@ -623,8 +628,7 @@ function applyFundingSettlementIfDueCFV2(trade, ctx) {
     const notionalD = Math.abs(qtyD * pxD * lotD);
     const notionalC = Math.abs(qtyC * pxC * lotC);
 
-    let guard = 0;
-    while (Number.isFinite(nextD) && Number.isFinite(intervalD) && intervalD > 0 && now >= nextD && guard < 8) {
+    if (Number.isFinite(nextD) && Number.isFinite(intervalD) && intervalD > 0 && now >= nextD) {
         const evtD = computeFundingEventCFV2(trade.sideD, ctx.fundingD, notionalD);
         if (Number.isFinite(evtD)) {
             deltaAmount += evtD;
@@ -632,12 +636,10 @@ function applyFundingSettlementIfDueCFV2(trade, ctx) {
             trade.lastFundingTsD = nextD;
             count += 1;
         }
-        nextD += intervalD;
-        guard += 1;
+        nextD = advanceNextFundingTsCFV2(nextD, intervalD, now);
     }
 
-    guard = 0;
-    while (Number.isFinite(nextC) && Number.isFinite(intervalC) && intervalC > 0 && now >= nextC && guard < 8) {
+    if (Number.isFinite(nextC) && Number.isFinite(intervalC) && intervalC > 0 && now >= nextC) {
         const evtC = computeFundingEventCFV2(trade.sideC, ctx.fundingC, notionalC);
         if (Number.isFinite(evtC)) {
             coinAmount += evtC;
@@ -645,8 +647,7 @@ function applyFundingSettlementIfDueCFV2(trade, ctx) {
             trade.lastFundingTsC = nextC;
             count += 1;
         }
-        nextC += intervalC;
-        guard += 1;
+        nextC = advanceNextFundingTsCFV2(nextC, intervalC, now);
     }
 
     if (Number.isFinite(nextD)) trade.nextFundingTsD = nextD;
@@ -673,6 +674,16 @@ function computeNextFundingBoundaryTsCFV2(nowMs, intervalMs) {
     const intv = Number(intervalMs);
     if (!Number.isFinite(now) || !Number.isFinite(intv) || intv <= 0) return null;
     return Math.ceil(now / intv) * intv;
+}
+
+function advanceNextFundingTsCFV2(currentTs, intervalMs, nowMs) {
+    const cur = Number(currentTs);
+    const intv = Number(intervalMs);
+    const now = Number(nowMs);
+    if (!Number.isFinite(cur) || !Number.isFinite(intv) || intv <= 0 || !Number.isFinite(now)) return cur;
+    if (cur > now) return cur;
+    const steps = Math.floor((now - cur) / intv) + 1;
+    return cur + (steps * intv);
 }
 
 function formatNextFundingCountdownCFV2(nextTsMs) {
@@ -735,7 +746,101 @@ function fnClearOpenPaperTradesCFV2() {
     gCFV2LiveCoinFundingByTradeId = {};
     renderPaperOpenPositionsCFV2();
     renderVirtualFundsCFV2();
+    updateOpenPositionStatusCFV2();
     fnGenMessage("Open paper trades cleared from memory.", "badge bg-warning", "spnGenMsg");
+}
+
+function fnManualClosePaperTradeCFV2(tradeId) {
+    const id = safeText(tradeId);
+    if (!id || id === "-") return;
+    const ok = window.confirm(`Close this paper position now?\nTrade: ${id}`);
+    if (!ok) return;
+
+    const paperOpen = JSON.parse(localStorage.getItem(CFV2_STORAGE.paperOpen) || "[]");
+    const paperClosed = JSON.parse(localStorage.getItem(CFV2_STORAGE.paperClosed) || "[]");
+    const idx = Array.isArray(paperOpen) ? paperOpen.findIndex((x) => safeText(x.id) === id) : -1;
+    if (idx < 0) {
+        fnGenMessage("Selected open trade not found.", "badge bg-warning", "spnGenMsg");
+        return;
+    }
+
+    const trade = paperOpen[idx];
+    const live = buildLiveRowMapCFV2()[`${trade.symbolD}|${trade.symbolC}`] || {};
+    const wsLiveD = gCFV2LiveDeltaRatesByTradeId[trade.id] || {};
+    const wsLiveC = gCFV2LiveCoinRatesByTradeId[trade.id] || {};
+    const closeSideD = getOppositeSideCFV2(trade.sideD);
+    const closeSideC = getOppositeSideCFV2(trade.sideC);
+    const wsCloseRateD = pickRateBySideCFV2(closeSideD, wsLiveD.dBestAsk, wsLiveD.dBestBid);
+    const wsCloseRateC = pickRateBySideCFV2(closeSideC, wsLiveC.cBestAsk, wsLiveC.cBestBid);
+    const currentRateD = Number.isFinite(Number(wsCloseRateD)) ? Number(wsCloseRateD) : (Number.isFinite(Number(live.DRate)) ? Number(live.DRate) : Number(trade.entryRateD));
+    const currentRateC = Number.isFinite(Number(wsCloseRateC)) ? Number(wsCloseRateC) : (Number.isFinite(Number(live.CRate)) ? Number(live.CRate) : Number(trade.entryRateC));
+    const wsFundingD = Number(gCFV2LiveDeltaFundingByTradeId[trade.id]);
+    const wsFundingC = Number(gCFV2LiveCoinFundingByTradeId[trade.id]);
+    const fundingD = Number.isFinite(wsFundingD) ? wsFundingD : (Number.isFinite(Number(live.FundDelta)) ? Number(live.FundDelta) : Number(trade.entryFundingD));
+    const fundingC = Number.isFinite(wsFundingC) ? wsFundingC : (Number.isFinite(Number(live.FundCDcx)) ? Number(live.FundCDcx) : Number(trade.entryFundingC));
+    const rateFeqHrD = Number.isFinite(Number(trade.entryDHrlyFeq)) ? Number(trade.entryDHrlyFeq) : Number(live.RateFeqHrD);
+    const rateFeqHrC = Number.isFinite(Number(trade.entryCHrlyFeq)) ? Number(trade.entryCHrlyFeq) : Number(live.CRateFeqHr);
+
+    const settleResult = applyFundingSettlementIfDueCFV2(trade, {
+        fundingD,
+        fundingC,
+        rateFeqHrD,
+        rateFeqHrC,
+        currentRateD,
+        currentRateC,
+        deltaBestAsk: wsLiveD.dBestAsk,
+        deltaBestBid: wsLiveD.dBestBid,
+        coinBestAsk: wsLiveC.cBestAsk,
+        coinBestBid: wsLiveC.cBestBid,
+        deltaNextFundingTs: wsLiveD.dNextFundingTs
+    });
+    if (settleResult.applied) {
+        applyFundingCashflowToVirtualFundsCFV2(settleResult.deltaAmount, settleResult.coinAmount);
+    }
+
+    const signal = computeFundingSignalCFV2(fundingD, fundingC, rateFeqHrD, rateFeqHrC, trade.sideD, trade.sideC);
+    const tbRate = Number.isFinite(signal.tbRate) ? signal.tbRate : Number(trade.entryTBRate);
+    const dayRate = Number.isFinite(signal.dayRate) ? signal.dayRate : Number(trade.entryDayRate);
+    const pnlD = computeLegPnlCFV2(trade.sideD, trade.entryRateD, currentRateD, trade.qtyD);
+    const pnlC = computeLegPnlCFV2(trade.sideC, trade.entryRateC, currentRateC, trade.qtyC);
+    const feeRateD = Number.isFinite(Number(trade.feeRateD)) ? Number(trade.feeRateD) : CFV2_DEFAULT_DELTA_TAKER_FEE;
+    const feeRateC = Number.isFinite(Number(trade.feeRateC)) ? Number(trade.feeRateC) : CFV2_DEFAULT_COIND_TAKER_FEE;
+    const entryNotionalD = Number(trade.qtyD) * Number(trade.entryRateD) * normalizePositiveCFV2(trade.lotSizeD, 1);
+    const currentNotionalD = Number(trade.qtyD) * Number(currentRateD) * normalizePositiveCFV2(trade.lotSizeD, 1);
+    const entryNotionalC = Number(trade.qtyC) * Number(trade.entryRateC) * normalizePositiveCFV2(trade.lotSizeC, 1);
+    const currentNotionalC = Number(trade.qtyC) * Number(currentRateC) * normalizePositiveCFV2(trade.lotSizeC, 1);
+    const brokerageD = computeBrokerageCFV2(entryNotionalD, currentNotionalD, feeRateD);
+    const brokerageC = computeBrokerageCFV2(entryNotionalC, currentNotionalC, feeRateC);
+    const netPnlD = pnlD - brokerageD;
+    const netPnlC = pnlC - brokerageC;
+    const pnlTotal = netPnlD + netPnlC;
+
+    const closedTrade = {
+        ...trade,
+        closedAt: Date.now(),
+        closeRateD: currentRateD,
+        closeRateC: currentRateC,
+        closeFundingD: fundingD,
+        closeFundingC: fundingC,
+        closeTBRate: tbRate,
+        closeDayRate: dayRate,
+        closeReason: "Manual close",
+        realizedFundingD: Number(trade.realizedFundingD || 0),
+        realizedFundingC: Number(trade.realizedFundingC || 0),
+        brokerageD,
+        brokerageC,
+        pnlD: netPnlD,
+        pnlC: netPnlC,
+        pnlTotal
+    };
+
+    paperOpen.splice(idx, 1);
+    paperClosed.push(closedTrade);
+    localStorage.setItem(CFV2_STORAGE.paperOpen, JSON.stringify(paperOpen));
+    localStorage.setItem(CFV2_STORAGE.paperClosed, JSON.stringify(paperClosed));
+    applyClosedTradesToVirtualFundsCFV2([closedTrade]);
+    renderPaperOpenPositionsCFV2();
+    fnGenMessage(`Manual close completed for ${safeText(trade.symbolD)} / ${safeText(trade.symbolC)}.`, "badge bg-warning", "spnGenMsg");
 }
 
 function renderPaperClosedPositionsCFV2() {
@@ -744,7 +849,7 @@ function renderPaperClosedPositionsCFV2() {
 
     const paperClosed = JSON.parse(localStorage.getItem(CFV2_STORAGE.paperClosed) || "[]");
     if (!Array.isArray(paperClosed) || paperClosed.length === 0) {
-        tBody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No Closed Paper Trades</td></tr>';
+        tBody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No Closed Paper Trades</td></tr>';
         return;
     }
 
@@ -752,6 +857,8 @@ function renderPaperClosedPositionsCFV2() {
     for (const trade of paperClosed) {
         const brokerageD = Number.isFinite(Number(trade.brokerageD)) ? Number(trade.brokerageD) : 0;
         const brokerageC = Number.isFinite(Number(trade.brokerageC)) ? Number(trade.brokerageC) : 0;
+        const realizedFundingD = Number.isFinite(Number(trade.realizedFundingD)) ? Number(trade.realizedFundingD) : 0;
+        const realizedFundingC = Number.isFinite(Number(trade.realizedFundingC)) ? Number(trade.realizedFundingC) : 0;
         html += "<tr>";
         html += "<td style=\"text-align:left;\">Delta<br/>CoinD</td>";
         html += `<td style="text-align:left;">${safeText(trade.symbolD)}<br/>${safeText(trade.symbolC)}</td>`;
@@ -759,8 +866,9 @@ function renderPaperClosedPositionsCFV2() {
         html += `<td style="text-align:right;">${toNum(trade.qtyD, 6)}<br/>${toNum(trade.qtyC, 6)}</td>`;
         html += `<td style="text-align:right;">${toRate(trade.entryRateD)}<br/>${toRate(trade.entryRateC)}</td>`;
         html += `<td style="text-align:right;">${toRate(trade.closeRateD)}<br/>${toRate(trade.closeRateC)}</td>`;
+        html += `<td style="text-align:right;">D: ${toNum(realizedFundingD, 6)}<br/>C: ${toNum(realizedFundingC, 6)}<br/><span style="color:#0d6efd; font-weight:700;">${toNum(realizedFundingD + realizedFundingC, 6)}</span></td>`;
         html += `<td style="text-align:right;">D: ${toNum(brokerageD, 6)}<br/>C: ${toNum(brokerageC, 6)}<br/><span style="color:#0d6efd; font-weight:700;">${toNum(brokerageD + brokerageC, 6)}</span></td>`;
-        html += `<td style="text-align:right;">D: ${toNum(trade.pnlD, 6)}<br/>C: ${toNum(trade.pnlC, 6)}<br/><span style="color:#0d6efd; font-weight:700;">${toNum(trade.pnlTotal, 6)}</span><br/>${safeText(trade.closeReason)}</td>`;
+        html += `<td style="text-align:right;">D: ${toNum(trade.pnlD, 6)}<br/>C: ${toNum(trade.pnlC, 6)}<br/><span style="color:#0d6efd; font-weight:700;">${toNum(trade.pnlTotal, 6)}</span><br/>${safeText(trade.closeReason)} | ${toNum(trade.closeDayRate, 3)}</td>`;
         html += "</tr>";
     }
     tBody.innerHTML = html;
@@ -1028,6 +1136,20 @@ function renderVirtualFundsCFV2() {
     const coinEl = document.getElementById("spnVirtFundCoinCFV2");
     if (deltaEl) deltaEl.innerText = `Delta Avl: ${toNum(availableDelta, 3)} | Dep: ${toNum(deployedDelta, 3)}`;
     if (coinEl) coinEl.innerText = `CoinD Avl: ${toNum(availableCoin, 3)} | Dep: ${toNum(deployedCoin, 3)}`;
+}
+
+function updateOpenPositionStatusCFV2() {
+    const btn = document.getElementById("btnOpenPosStatusCFV2");
+    if (!btn) return;
+    const openTrades = JSON.parse(localStorage.getItem(CFV2_STORAGE.paperOpen) || "[]");
+    const count = Array.isArray(openTrades) ? openTrades.length : 0;
+    if (count > 0) {
+        btn.className = "badge bg-danger";
+        btn.textContent = `Open Positions: ${count}`;
+    } else {
+        btn.className = "badge bg-success";
+        btn.textContent = "No Open Position";
+    }
 }
 
 function computeDeployedCapitalCFV2() {
