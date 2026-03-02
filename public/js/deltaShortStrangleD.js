@@ -1825,11 +1825,91 @@ function fnUpdateOpenPositions(){
             objCurrTradeList.innerHTML = vTempHtml;
             gPL = vNetPL;
         }
+        fnDispClosedPositions();
     }
 }
 
 function fnDispClosedPositions(){
-    console.log(gClsdPosDSSD);
+    let objClosedTradeList = document.getElementById("tBodyClosedTrades");
+    if(!objClosedTradeList){
+        return;
+    }
+
+    const objMapClosedById = new Map();
+
+    if(gClsdPosDSSD && Array.isArray(gClsdPosDSSD.TradeData)){
+        for(let i=0; i<gClsdPosDSSD.TradeData.length; i++){
+            let objLeg = gClsdPosDSSD.TradeData[i];
+            if(objLeg && objLeg.TradeID !== undefined){
+                objMapClosedById.set(String(objLeg.TradeID), objLeg);
+            }
+        }
+    }
+
+    if(gCurrPosDSSD && Array.isArray(gCurrPosDSSD.TradeData)){
+        for(let i=0; i<gCurrPosDSSD.TradeData.length; i++){
+            let objLeg = gCurrPosDSSD.TradeData[i];
+            if(objLeg && objLeg.Status !== "OPEN" && objLeg.TradeID !== undefined){
+                objMapClosedById.set(String(objLeg.TradeID), objLeg);
+            }
+        }
+    }
+
+    const objAllClosedRows = Array.from(objMapClosedById.values());
+
+    if(objAllClosedRows.length === 0){
+        objClosedTradeList.innerHTML = '<tr><td colspan="13"><div class="col-sm-12" style="border:0px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 32px;">No Closed Trades Yet</div></td></tr>';
+        return;
+    }
+
+    let vTempHtml = "";
+    let vTotalTrades = 0;
+    let vTotalCharges = 0;
+    let vNetPL = 0;
+
+    for(let i=0; i<objAllClosedRows.length; i++){
+        let objLeg = objAllClosedRows[i];
+
+        let vStatus = objLeg.Status || "CLOSED";
+        let vDelta = parseFloat(objLeg.Delta || 0);
+        let vDeltaC = parseFloat(objLeg.DeltaC || objLeg.Delta || 0);
+        let vSymbol = objLeg.Symbol || "-";
+        let vTransType = objLeg.TransType || "-";
+        let vOptionType = objLeg.OptionType || "";
+        let vLotSize = parseFloat(objLeg.LotSize || 0);
+        let vQty = parseFloat(objLeg.LotQty || 0);
+        let vBuyPrice = parseFloat(objLeg.BuyPrice || 0);
+        let vSellPrice = parseFloat(objLeg.SellPrice || 0);
+        let vStrikePrice = parseFloat(objLeg.StrikePrice || 0);
+        let vOpenDT = objLeg.OpenDT || "-";
+        let vCloseDT = objLeg.CloseDT || "-";
+
+        let vCharges = fnGetTradeCharges(vStrikePrice, vLotSize, vQty, vBuyPrice, vSellPrice, vOptionType);
+        let vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
+
+        vTotalTrades += 1;
+        vTotalCharges += parseFloat(vCharges);
+        vNetPL += parseFloat(vPL);
+
+        vTempHtml += "<tr>";
+        vTempHtml += '<td style="text-wrap: nowrap; color:grey; text-align:right;">' + vStatus + "</td>";
+        vTempHtml += '<td><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vDeltaC).toFixed(2) + '</div><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vDelta).toFixed(2) + "</div></td>";
+        vTempHtml += '<td style="text-wrap: nowrap; color:grey; text-align:center;">' + vSymbol + "</td>";
+        vTempHtml += '<td style="text-wrap: nowrap; color:grey; text-align:center;">' + vTransType + "</td>";
+        vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:grey;">' + vLotSize + "</td>";
+        vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:grey;">' + vQty + "</td>";
+        vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:grey;">' + (vBuyPrice).toFixed(2) + "</td>";
+        vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:grey;">' + (vSellPrice).toFixed(2) + "</td>";
+        vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:grey;">' + (parseFloat(vCharges)).toFixed(2) + "</td>";
+        vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color:grey;">' + (vPL).toFixed(2) + "</td>";
+        vTempHtml += '<td style="text-wrap: nowrap; color:grey; text-align:center;">' + vOpenDT + "</td>";
+        vTempHtml += '<td style="text-wrap: nowrap; color:grey; text-align:center;">' + vCloseDT + "</td>";
+        vTempHtml += '<td style="text-wrap: nowrap; text-align:center; color:grey;">-</td>';
+        vTempHtml += "</tr>";
+    }
+
+    vTempHtml += '<tr><td></td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">Total Trades: </td><td style="text-wrap: nowrap; text-align:right; font-weight:bold;">' + vTotalTrades + '</td><td></td><td></td><td></td><td></td><td></td><td style="text-wrap: nowrap; text-align:right; color: red; font-weight:bold;">' + (vTotalCharges).toFixed(2) + '</td><td style="text-wrap: nowrap; text-align:right; color: white; font-weight:bold;">' + (vNetPL).toFixed(2) + "</td><td></td><td></td><td></td></tr>";
+    objClosedTradeList.innerHTML = vTempHtml;
 }
 
 function fnGetTradeCharges(pIndexPrice, pLotSize, pQty, pBuyPrice, pSellPrice, pOptionType){
