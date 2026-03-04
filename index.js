@@ -205,8 +205,9 @@ app.post("/tv-msg-trend", (req, res) => {
 
 app.post("/tv-msg-ema-trend", (req, res) => {
     const vDirec = req.body.Direc;
+    const vQty = req.body.Qty;
     
-    const objMsg = JSON.stringify({ Direc: vDirec });
+    const objMsg = JSON.stringify({ Direc: vDirec, Qty: vQty });
 
     //console.log(objMsg);
     io.emit("CdlEmaTrend", objMsg);

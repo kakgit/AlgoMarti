@@ -24,6 +24,9 @@ window.addEventListener("DOMContentLoaded", function(){
     socket.on("CdlEmaTrend", (pMsg) => {
         let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
         let objJson = JSON.parse(pMsg);
+        let objQty = document.getElementById("txtStartQty");
+        objQty.value = objJson.Qty;
+        fnChangeStartQty(objQty);
 
         if(objJson.Direc === "UP"){
             objTradeSideVal.value = true;
@@ -254,10 +257,10 @@ function fnChangeStartQty(pThisVal){
         fnGenMessage("No of Qty to Start With is Changed!", `badge bg-success`, "spnGenMsg");
         localStorage.setItem("StartQtyNoDelta", pThisVal.value);
 
-        if(confirm("Are You Sure You want to change the Quantity?")){
+        // if(confirm("Are You Sure You want to change the Quantity?")){
             objQty.value = pThisVal.value;
             localStorage.setItem("QtyMulDelta", pThisVal.value);
-        }
+        // }
     }
 }
 
