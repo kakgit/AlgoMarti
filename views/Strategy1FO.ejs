@@ -2,7 +2,7 @@
     <div class="page-heading">
         <div class="row">
             <div class="col-4">
-                <h3>Delta - Short Strangle Demo V1</h3>
+                <h3>Strategy1FO</h3>
             </div>
             <div class="col-4 text-center">
                 <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
@@ -146,7 +146,8 @@
                                     </div>
                                     <div class="col-2">
                                         <select id="ddlSellExpiryMode" class="form-select" onchange="fnUpdateSellExpiryMode();" placeholder="Select Sell Expiry Mode" title="Select Sell Leg Expiry Mode">
-                                            <option value=1>DAILY</option>
+                                            <option value=1>DAILY T+1</option>
+                                            <option value=2>DAILY T+2</option>
                                             <option value=4>WEEKLY</option>
                                             <option value=5>BI-WEEKLY</option>
                                             <option value=6>MONTHLY</option>
@@ -192,10 +193,11 @@
                                     </div>
                                     <div class="col-1" style="text-align: center;">
                                         <input type="checkbox" class="form-check-input" id="chkBuyPE" onchange="fnUpdOptStratSettings(this, this.checked, 'NewBuyPE', 'New Buy PE!', false, 'buy', '', '');" title="Select to Buy New Put" />
-                                    </div>
+                                    </div>  
                                     <div class="col-2">
                                         <select id="ddlBuyExpiryMode" class="form-select" onchange="fnUpdateBuyExpiryMode();" placeholder="Select Buy Expiry Mode" title="Select Buy Leg Expiry Mode">
-                                            <option value=1>DAILY</option>
+                                            <option value=1>DAILY T+1</option>
+                                            <option value=2>DAILY T+2</option>
                                             <option value=4>WEEKLY</option>
                                             <option value=5>BI-WEEKLY</option>
                                             <option value=6>MONTHLY</option>
@@ -226,14 +228,24 @@
 
 
                                     <div class="col-4">
+                                        Manage Delta Neutral Treshold for Options
+                                    </div>
+                                    <div class="col-2"></div>
+                                    <div class="col-4">
                                         Close All when Net Profit is > X of Brokerage
                                     </div>
                                     <div class="col-2">Re-Enter</div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
 
 
+                                    <div class="col-2">
+                                        <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                                            <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtDeltaNeutral" name="swtDeltaNeutral" onchange="fnUpdHidFldSettings(this.checked, 'SwtDeltaNtrl', 'Delta Neutral !');" />
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="+/- Delta Value" id="txtMinDeltaPM" value="0.10" title="Minimun Total Delta +/- to Accept" onchange="fnUpdHidFldSettings(this.value, 'DeltaPM', 'Delta Change Value!');" />
+                                    </div>
+                                    <div class="col-2">+/-</div>
                                     <div class="col-1">
                                         <div class="form-check form-switch fs-6" style="white-space: nowrap;">
                                             <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtBrokRecvry" name="swtBrokRecvry" onchange="fnUpdHidFldSettings(this.checked, 'SwtBrokRec', 'Brok Recovery!');" />
@@ -246,16 +258,13 @@
                                     <div class="col-2">
                                         <input type="checkbox" class="form-check-input" id="chkReLegBrok" onchange="fnUpdHidFldSettings(this.checked, 'ReLegBrok', 'Re Enter After Profit from Brokerage!');" title="Select to Buy New Call" />
                                     </div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
 
                                     <div class="col-1"></div>
                                     <div class="col-2">Profit % to Recvr</div>
                                     <div class="col-2">Loss Multiplier in X</div>
                                     <div class="col-2"></div>
                                     <div class="col-2">Total Brokerage to Recvr</div>
-                                    <div class="col-2">Total Yet To Recvr</div>
+                                    <div class="col-2">Total PnL</div>
                                     <div class="col-1"></div>
 
 
@@ -386,13 +395,11 @@
                                     <table class="table">
                                         <thead>
                                             <tr style="text-align:center;">
-                                                <th scope="col" style="text-wrap: nowrap;">Status</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Actions</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Delta</th>
-                                                <!-- <th scope="col" style="text-wrap: nowrap;">Gamma</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Gamma</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Theta</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Vega</th>
-                                                <th scope="col" style="text-wrap: nowrap;">IV</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Rho</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Theta</th> -->
                                                 <th scope="col" style="text-wrap: nowrap;">Symbol</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Tr Type</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Lot Sz</th>
@@ -403,7 +410,7 @@
                                                 <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Start DT</th>
                                                 <th scope="col" style="text-wrap: nowrap;">End DT</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Actions</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tBodyCurrTrades">
@@ -437,8 +444,11 @@
                                     <table class="table">
                                         <thead>
                                             <tr style="text-align:center;">
-                                                <th scope="col" style="text-wrap: nowrap;">Status</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Actions</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Delta</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Gamma</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Theta</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Vega</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Symbol</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Tr Type</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Lot Sz</th>
@@ -449,7 +459,7 @@
                                                 <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Start DT</th>
                                                 <th scope="col" style="text-wrap: nowrap;">End DT</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Actions</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tBodyClosedTrades">
@@ -512,7 +522,7 @@
     </div>
 </div>
 
-<%- include('partials/deltaShortStrangleSettingsDV1.ejs') %>
+<%- include('partials/Strategy1FOSettings.ejs') %>
 
-<script src="/js/deltaShortStrangleDV1.js"></script>
-<script src="/js/deltaStortStrangleSettingsDV1.js"></script>
+<script src="/js/Strategy1FO.js"></script>
+<script src="/js/Strategy1FOSettings.js"></script>

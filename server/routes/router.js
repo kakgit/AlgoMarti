@@ -24,7 +24,7 @@ const deltaFundingLiveCtrler = require("../controller/controllerDeltaFundingLive
 const deltaSStraddleDemoCtrler = require("../controller/cntrDeltaSStraddleD.js");
 const deltaSStraddleLiveCtrler = require("../controller/cntrDeltaSStraddleL.js");
 const deltaSStrangleDemoCtrler = require("../controller/cntrDeltaSStrangleD.js");
-const deltaSStrangleDemoV1Ctrler = require("../controller/cntrDeltaSStrangleDV1.js");
+const strategy1FOCtrler = require("../controller/cntrStrategy1FO.js");
 const deltaSStrangleLiveCtrler = require("../controller/cntrDeltaSStrangleL.js");
 const deltaPaperCtrler = require("../controller/cntrDeltaPaper.js");
 const ctrlCryptoFunding = require("../controller/controllerCryptoFunding.js");
@@ -84,8 +84,8 @@ route.get("/deltaSStraddleLive", deltaSStraddleLiveCtrler.defaultRoute);
 //Delta Short strangle Demo Route
 route.get("/deltaSStrangle-Demo", deltaSStrangleDemoCtrler.defaultRoute);
 
-//Delta Short strangle Demo V1 Route
-route.get("/deltaSStrangle-Demo-V1", deltaSStrangleDemoV1Ctrler.defaultRoute);
+//Strategy1FO Route
+route.get("/Strategy1FO", strategy1FOCtrler.defaultRoute);
 
 //Delta Short Strangle Live Route
 route.get("/deltaSStrangleLive", deltaSStrangleLiveCtrler.defaultRoute);
@@ -236,13 +236,13 @@ route.post("/deltaSStraddleLive/getRealClsdPos", deltaSStraddleLiveCtrler.fnGetR
 route.post("/deltaSStraddleLive/openRealPosition", deltaSStraddleLiveCtrler.fnOpenRealPoistion);
 route.post("/deltaSStraddleLive/closeRealPosition", deltaSStraddleLiveCtrler.fnCloseRealPoistion);
 
-//Delta Short Strangle Demo V1 Routes
-route.post("/deltaSStrangleDemoV1/validateLogin", deltaSStrangleDemoV1Ctrler.fnValidateUserLogin);
-route.post("/deltaSStrangleDemoV1/getOptChnSDKByAstOptTypExp", deltaSStrangleDemoV1Ctrler.fnGetOptChnSDKByAstOptTypExp);
-route.post("/deltaSStrangleDemoV1/execOption", deltaSStrangleDemoV1Ctrler.fnExecOptionByOptTypeExpTransType);
-route.post("/deltaSStrangleDemoV1/execOptionLeg", deltaSStrangleDemoV1Ctrler.fnExecOptByOTypExpTType);
-route.post("/deltaSStrangleDemoV1/execFutureLeg", deltaSStrangleDemoV1Ctrler.fnExecFutByTType);
-route.post("/deltaSStrangleDemoV1/getBestRatesBySymb", deltaSStrangleDemoV1Ctrler.fnGetBestRatesBySymbol);
+//Strategy1FO Routes
+route.post("/strategy1fo/validateLogin", strategy1FOCtrler.fnValidateUserLogin);
+route.post("/strategy1fo/getOptChnSDKByAstOptTypExp", strategy1FOCtrler.fnGetOptChnSDKByAstOptTypExp);
+route.post("/strategy1fo/execOption", strategy1FOCtrler.fnExecOptionByOptTypeExpTransType);
+route.post("/strategy1fo/execOptionLeg", strategy1FOCtrler.fnExecOptByOTypExpTType);
+route.post("/strategy1fo/execFutureLeg", strategy1FOCtrler.fnExecFutByTType);
+route.post("/strategy1fo/getBestRatesBySymb", strategy1FOCtrler.fnGetBestRatesBySymbol);
 //Delta Short Strangle Demo Routes
 route.post("/deltaSStrangleDemo/validateLogin", deltaSStrangleDemoCtrler.fnValidateUserLogin);
 route.post("/deltaSStrangleDemo/getOptChnSDKByAstOptTypExp", deltaSStrangleDemoCtrler.fnGetOptChnSDKByAstOptTypExp);

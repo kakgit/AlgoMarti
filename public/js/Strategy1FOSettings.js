@@ -70,7 +70,7 @@ function fnValidateDeltaLogin(){
             redirect: 'follow'
         };
 
-        fetch("/deltaSStrangleDemoV1/validateLogin", requestOptions)
+        fetch("/strategy1fo/validateLogin", requestOptions)
         .then(response => response.json())
         .then(objResult => {
             if(objResult.status === "success"){

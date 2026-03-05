@@ -12,7 +12,7 @@ const gBaseUrl = 'https://api.india.delta.exchange';
 
 exports.defaultRoute = (req, res) => {
     //res.send("Crud Application");
-    res.render("deltaShortStrangleDV1.ejs");
+    res.render("Strategy1FO.ejs");
 }
 
 exports.fnValidateUserLogin = async (req, res) => {
@@ -234,7 +234,7 @@ exports.fnExecOptionByOptTypeExpTransType = async (req, res) => {
     }
 
     try {
-        let objOptChn = await fnGetSrtdOptChnByRate(vApiKey, vApiSecret, vOptionType, vUAssetSymbol, vExpiry, vContractType, vDeltaNPos, vRateNPos);
+        let objOptChn = await fnGetSrtdOptChnByRate(vApiKey, vApiSecret, vTransType, vOptionType, vUAssetSymbol, vExpiry, vContractType, vDeltaNPos, vRateNPos);
         if(objOptChn.status === "success"){
             let vLimitPrice = "0";
             let vBestBuy = objOptChn.data.BestAsk;
@@ -333,17 +333,23 @@ const fnGetSymbolDetails = async (pApiKey, pApiSecret, pUAssetSymbol, pTransType
             let vBestBuyPrice = parseFloat(objRes.result.quotes.best_ask);
             let vBestSellPrice = parseFloat(objRes.result.quotes.best_bid);
             let vRateTP, vRateSL = 0;
+            let vLotSizeNum = parseFloat(pLotSize) || 0;
+            let vLotQtyNum = parseFloat(pLotQty) || 0;
+            let vFutDeltaAbs = vLotSizeNum * vLotQtyNum;
+            let vFutDelta = vFutDeltaAbs;
 
             if(pTransType === "buy"){
                 vRateTP = vBestBuyPrice + parseFloat(pPointsTP);
                 vRateSL = vBestBuyPrice - parseFloat(pPointsSL);
+                vFutDelta = vFutDeltaAbs;
             }
             else if(pTransType === "sell"){
                 vRateTP = vBestSellPrice - parseFloat(pPointsTP);
                 vRateSL = vBestSellPrice + parseFloat(pPointsSL);
+                vFutDelta = -vFutDeltaAbs;
             }
 
-            let objFutLeg = { TradeID : vTradeId, ProductID : objRes.result.product_id, UndrAsstSymb : objRes.result.underlying_asset_symbol, ContType : objRes.result.contract_type, TransType: pTransType, OptionType : pOptType, Delta : 1.00, DeltaC : 1.00, BestAsk : vBestBuyPrice, BestBid : vBestSellPrice, Strike : parseInt(objRes.result.spot_price), Symbol : objRes.result.symbol, LotSize : pLotSize, LotQty : parseFloat(pLotQty), PointsTP : parseFloat(pPointsTP), PointsSL : parseFloat(pPointsSL), RateTP : vRateTP, RateSL : vRateSL };
+            let objFutLeg = { TradeID : vTradeId, ProductID : objRes.result.product_id, UndrAsstSymb : objRes.result.underlying_asset_symbol, ContType : objRes.result.contract_type, TransType: pTransType, OptionType : pOptType, Delta : vFutDelta, DeltaC : vFutDelta, BestAsk : vBestBuyPrice, BestBid : vBestSellPrice, Strike : parseInt(objRes.result.spot_price), Symbol : objRes.result.symbol, LotSize : pLotSize, LotQty : parseFloat(pLotQty), PointsTP : parseFloat(pPointsTP), PointsSL : parseFloat(pPointsSL), RateTP : vRateTP, RateSL : vRateSL };
 
             resolve({ "status": "success", "message": "Best Buy and Sell Rates Feched!", "data": objFutLeg });
         })
@@ -409,7 +415,7 @@ const fnGetOptChnByCntrctTypeExp = async (pApiKey, pApiSecret, pUndrAsstSymb, pE
     return objPromise;
 }
 
-const fnGetSrtdOptChnByRate = async (pApiKey, pApiSecret, pOptType, pUAssetSymbol, pExpiry, pContractType, pDeltaNPos, pRateNPos) => {
+const fnGetSrtdOptChnByRate = async (pApiKey, pApiSecret, pTransType, pOptType, pUAssetSymbol, pExpiry, pContractType, pDeltaNPos, pRateNPos) => {
     const objPromise = new Promise((resolve, reject) => {
 
         // console.log(pRateNPos);
@@ -423,12 +429,13 @@ const fnGetSrtdOptChnByRate = async (pApiKey, pApiSecret, pOptType, pUAssetSymbo
 
                 if(objResult.success){
                     for(let i=0; i<objResult.result.length; i++){
-                        let vAbsDelta = Math.abs(parseFloat(objResult.result[i].greeks.delta));
+                        let vDelta = parseFloat(objResult.result[i].greeks.delta);
+                        let vPosDelta = (pTransType === "sell") ? (-1 * vDelta) : vDelta;
                         let vBestSellPrice = parseFloat(objResult.result[i].quotes.best_ask);
                         let vBestBuyPrice = parseFloat(objResult.result[i].quotes.best_bid);
                         if(vBestSellPrice >= parseFloat(pRateNPos)){
                             // console.log(objResult.result[i]);
-                            let objOCLeg = { ProductID : objResult.result[i].product_id, UndrAsstSymb : objResult.result[i].underlying_asset_symbol, ContType : objResult.result[i].contract_type, OptionType : pOptType, Delta : vAbsDelta, Gamma : parseFloat(objResult.result[i].greeks.gamma), Rho : parseFloat(objResult.result[i].greeks.rho), Theta : parseFloat(objResult.result[i].greeks.theta), Vega : parseFloat(objResult.result[i].greeks.vega), MarkIV : parseFloat(objResult.result[i].quotes.mark_iv), BestAsk : vBestSellPrice, BestBid : vBestBuyPrice, Strike : parseInt(objResult.result[i].strike_price), Symbol : objResult.result[i].symbol, Expiry : pExpiry };
+                            let objOCLeg = { ProductID : objResult.result[i].product_id, UndrAsstSymb : objResult.result[i].underlying_asset_symbol, ContType : objResult.result[i].contract_type, OptionType : pOptType, Delta : vPosDelta, Gamma : parseFloat(objResult.result[i].greeks.gamma), Rho : parseFloat(objResult.result[i].greeks.rho), Theta : parseFloat(objResult.result[i].greeks.theta), Vega : parseFloat(objResult.result[i].greeks.vega), MarkIV : parseFloat(objResult.result[i].quotes.mark_iv), BestAsk : vBestSellPrice, BestBid : vBestBuyPrice, Strike : parseInt(objResult.result[i].strike_price), Symbol : objResult.result[i].symbol, Expiry : pExpiry };
 
                             objOCData.push(objOCLeg);
                         }
@@ -468,13 +475,15 @@ const fnGetSrtdOptChnByDelta = async (pApiKey, pApiSecret,pTransType, pOptType, 
 
                 if(objResult.success){
                     for(let i=0; i<objResult.result.length; i++){
-                        let vAbsDelta = Math.abs(parseFloat(objResult.result[i].greeks.delta));
+                        let vDelta = parseFloat(objResult.result[i].greeks.delta);
+                        let vPosDelta = (pTransType === "sell") ? (-1 * vDelta) : vDelta;
+                        let vAbsDelta = Math.abs(vDelta);
 
                         if(vAbsDelta <= parseFloat(pDeltaPos)){
                             // console.log(objResult.result[i]);
                             //, Gamma : parseFloat(objResult.result[i].greeks.gamma), Rho : parseFloat(objResult.result[i].greeks.rho), Theta : parseFloat(objResult.result[i].greeks.theta), Vega : parseFloat(objResult.result[i].greeks.vega), MarkIV : parseFloat(objResult.result[i].quotes.mark_iv)
 
-                            let objOCLeg = { TradeID : vTradeId, ProductID : objResult.result[i].product_id, UndrAsstSymb : objResult.result[i].underlying_asset_symbol, ContType : objResult.result[i].contract_type, TransType: pTransType, OptionType : pOptType, Delta : vAbsDelta, DeltaC : vAbsDelta, BestAsk : parseFloat(objResult.result[i].quotes.best_ask), BestBid : parseFloat(objResult.result[i].quotes.best_bid), Strike : parseInt(objResult.result[i].strike_price), Symbol : objResult.result[i].symbol, Expiry : pExpiry, LotSize : pLotSize, LotQty : parseFloat(pLotQty), DeltaRePos : parseFloat(vDeltaRePos), DeltaTP : parseFloat(vDeltaTP), DeltaSL : parseFloat(vDeltaSL) };
+                            let objOCLeg = { TradeID : vTradeId, ProductID : objResult.result[i].product_id, UndrAsstSymb : objResult.result[i].underlying_asset_symbol, ContType : objResult.result[i].contract_type, TransType: pTransType, OptionType : pOptType, Delta : vPosDelta, DeltaC : vPosDelta, DeltaAbs : vAbsDelta, Gamma : parseFloat(objResult.result[i].greeks.gamma), GammaC : parseFloat(objResult.result[i].greeks.gamma), Theta : parseFloat(objResult.result[i].greeks.theta), ThetaC : parseFloat(objResult.result[i].greeks.theta), Vega : parseFloat(objResult.result[i].greeks.vega), VegaC : parseFloat(objResult.result[i].greeks.vega), BestAsk : parseFloat(objResult.result[i].quotes.best_ask), BestBid : parseFloat(objResult.result[i].quotes.best_bid), Strike : parseInt(objResult.result[i].strike_price), Symbol : objResult.result[i].symbol, Expiry : pExpiry, LotSize : pLotSize, LotQty : parseFloat(pLotQty), DeltaRePos : parseFloat(vDeltaRePos), DeltaTP : parseFloat(vDeltaTP), DeltaSL : parseFloat(vDeltaSL) };
 
                             objOCData.push(objOCLeg);
                         }
@@ -499,7 +508,9 @@ const fnGetSrtdOptChnByDelta = async (pApiKey, pApiSecret,pTransType, pOptType, 
 }
 
 function fnSortRevByDelta(a, b) {
-    return (b.Delta) - (a.Delta);
+    let vADeltaAbs = Number.isFinite(Number(a.DeltaAbs)) ? Number(a.DeltaAbs) : Math.abs(Number(a.Delta) || 0);
+    let vBDeltaAbs = Number.isFinite(Number(b.DeltaAbs)) ? Number(b.DeltaAbs) : Math.abs(Number(b.Delta) || 0);
+    return vBDeltaAbs - vADeltaAbs;
 }
 
 function fnSortByRate(a, b) {
