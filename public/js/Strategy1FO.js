@@ -583,14 +583,22 @@ function fnSaveUpdCurrPos(){
     let vBrokSwt = document.getElementById("swtBrokRecvry").checked;
     let vBrokAmt = document.getElementById("txtBrok2Rec").value;
     let vBrokXVal = document.getElementById("txtXBrok2Rec").value;
+    let vYetRecAmt = parseFloat(document.getElementById("txtYet2Recvr").value);
     let objChkReLegSell = document.getElementById("chkReLegSell");
     let objChkReLegBuy = document.getElementById("chkReLegBuy");
+    let vTotalPL = 0;
 
     vBrokAmt = parseFloat(vBrokAmt) * parseInt(vBrokXVal);
 
-    if((gPL > vBrokAmt) && vBrokSwt){
-        // console.log("gPL: " + gPL);
-        // console.log("vBrokAmt: " + vBrokAmt);
+    if(vYetRecAmt < 0){
+        vTotalPL = gPL + vYetRecAmt;
+    }
+    else{
+        vTotalPL = gPL - vYetRecAmt;
+    }
+    // console.log("vTotalPL: " + vTotalPL);
+
+    if((vTotalPL > vBrokAmt) && vBrokSwt){
         console.log("Close All Positions...");
         fnExitAllPositions();
     }
@@ -841,6 +849,8 @@ function fnExitAllPositions(){
 
     document.getElementById("txtBrok2Rec").value = 0;
     fnUpdHidFldSettings(0, "BrokerageAmt", "Brokerage Amount!");
+    document.getElementById("txtYet2Recvr").value = 0;
+    fnUpdHidFldSettings(0, "Yet2RecvrAmt", "et To Recover Amount!");
     gPL = 0;
 
     gUpdPos = true;
