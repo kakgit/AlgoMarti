@@ -426,6 +426,12 @@ const fnGetSrtdOptChnByRate = async (pApiKey, pApiSecret, pTransType, pOptType, 
                 let objResult = JSON.parse(response.data);
             	let objOCData = [];
             	let objOCSortData = [];
+                let objOCNearestLeg = null;
+                let vBestDeltaDiff = Number.POSITIVE_INFINITY;
+                let vTargetDelta = parseFloat(pDeltaPos);
+                if(!Number.isFinite(vTargetDelta)){
+                    vTargetDelta = 0;
+                }
 
                 if(objResult.success){
                     for(let i=0; i<objResult.result.length; i++){
@@ -472,25 +478,43 @@ const fnGetSrtdOptChnByDelta = async (pApiKey, pApiSecret,pTransType, pOptType, 
                 let objResult = JSON.parse(response.data);
             	let objOCData = [];
             	let objOCSortData = [];
+                let objOCNearestLeg = null;
+                let vBestDeltaDiff = Number.POSITIVE_INFINITY;
+                let vTargetDelta = parseFloat(pDeltaPos);
+                if(!Number.isFinite(vTargetDelta)){
+                    vTargetDelta = 0;
+                }
 
                 if(objResult.success){
                     for(let i=0; i<objResult.result.length; i++){
                         let vDelta = parseFloat(objResult.result[i].greeks.delta);
                         let vPosDelta = (pTransType === "sell") ? (-1 * vDelta) : vDelta;
                         let vAbsDelta = Math.abs(vDelta);
+                        let objOCLeg = { TradeID : vTradeId, ProductID : objResult.result[i].product_id, UndrAsstSymb : objResult.result[i].underlying_asset_symbol, ContType : objResult.result[i].contract_type, TransType: pTransType, OptionType : pOptType, Delta : vPosDelta, DeltaC : vPosDelta, DeltaAbs : vAbsDelta, Gamma : parseFloat(objResult.result[i].greeks.gamma), GammaC : parseFloat(objResult.result[i].greeks.gamma), Theta : parseFloat(objResult.result[i].greeks.theta), ThetaC : parseFloat(objResult.result[i].greeks.theta), Vega : parseFloat(objResult.result[i].greeks.vega), VegaC : parseFloat(objResult.result[i].greeks.vega), BestAsk : parseFloat(objResult.result[i].quotes.best_ask), BestBid : parseFloat(objResult.result[i].quotes.best_bid), Strike : parseInt(objResult.result[i].strike_price), Symbol : objResult.result[i].symbol, Expiry : pExpiry, LotSize : pLotSize, LotQty : parseFloat(pLotQty), DeltaRePos : parseFloat(vDeltaRePos), DeltaTP : parseFloat(vDeltaTP), DeltaSL : parseFloat(vDeltaSL) };
 
-                        if(vAbsDelta <= parseFloat(pDeltaPos)){
+                        let vDeltaDiff = Math.abs(vAbsDelta - vTargetDelta);
+                        if(vDeltaDiff < vBestDeltaDiff){
+                            vBestDeltaDiff = vDeltaDiff;
+                            objOCNearestLeg = objOCLeg;
+                        }
+
+                        if(vAbsDelta <= vTargetDelta){
                             // console.log(objResult.result[i]);
                             //, Gamma : parseFloat(objResult.result[i].greeks.gamma), Rho : parseFloat(objResult.result[i].greeks.rho), Theta : parseFloat(objResult.result[i].greeks.theta), Vega : parseFloat(objResult.result[i].greeks.vega), MarkIV : parseFloat(objResult.result[i].quotes.mark_iv)
-
-                            let objOCLeg = { TradeID : vTradeId, ProductID : objResult.result[i].product_id, UndrAsstSymb : objResult.result[i].underlying_asset_symbol, ContType : objResult.result[i].contract_type, TransType: pTransType, OptionType : pOptType, Delta : vPosDelta, DeltaC : vPosDelta, DeltaAbs : vAbsDelta, Gamma : parseFloat(objResult.result[i].greeks.gamma), GammaC : parseFloat(objResult.result[i].greeks.gamma), Theta : parseFloat(objResult.result[i].greeks.theta), ThetaC : parseFloat(objResult.result[i].greeks.theta), Vega : parseFloat(objResult.result[i].greeks.vega), VegaC : parseFloat(objResult.result[i].greeks.vega), BestAsk : parseFloat(objResult.result[i].quotes.best_ask), BestBid : parseFloat(objResult.result[i].quotes.best_bid), Strike : parseInt(objResult.result[i].strike_price), Symbol : objResult.result[i].symbol, Expiry : pExpiry, LotSize : pLotSize, LotQty : parseFloat(pLotQty), DeltaRePos : parseFloat(vDeltaRePos), DeltaTP : parseFloat(vDeltaTP), DeltaSL : parseFloat(vDeltaSL) };
 
                             objOCData.push(objOCLeg);
                         }
                     }
-                    objOCSortData = objOCData.sort(fnSortRevByDelta);
-                    // console.log(objOCSortData[0]);
-                    resolve({ "status": "success", "message": "Option Chain Data Feched!", "data": objOCSortData[0] });
+                    if(objOCData.length > 0){
+                        objOCSortData = objOCData.sort(fnSortRevByDelta);
+                        resolve({ "status": "success", "message": "Option Chain Data Feched!", "data": objOCSortData[0] });
+                    }
+                    else if(objOCNearestLeg !== null){
+                        resolve({ "status": "success", "message": "Nearest delta leg selected.", "data": objOCNearestLeg });
+                    }
+                    else{
+                        resolve({ "status": "warning", "message": "No option chain leg found for requested expiry.", "data": "" });
+                    }
                 }
                 else{
                     resolve({ "status": "warning", "message": "Option Chain Failed!", "data": objResult });
