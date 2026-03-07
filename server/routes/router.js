@@ -25,6 +25,7 @@ const deltaSStraddleDemoCtrler = require("../controller/cntrDeltaSStraddleD.js")
 const deltaSStraddleLiveCtrler = require("../controller/cntrDeltaSStraddleL.js");
 const deltaSStrangleDemoCtrler = require("../controller/cntrDeltaSStrangleD.js");
 const strategy1FOCtrler = require("../controller/cntrStrategy1FO.js");
+const liveStrategy1FOCtrler = require("../controller/cntrLiveStrategy1FO.js");
 const deltaSStrangleLiveCtrler = require("../controller/cntrDeltaSStrangleL.js");
 const deltaPaperCtrler = require("../controller/cntrDeltaPaper.js");
 const ctrlCryptoFunding = require("../controller/controllerCryptoFunding.js");
@@ -86,6 +87,7 @@ route.get("/deltaSStrangle-Demo", deltaSStrangleDemoCtrler.defaultRoute);
 
 //Strategy1FO Route
 route.get("/Strategy1FO", strategy1FOCtrler.defaultRoute);
+route.get("/LiveStrategy1FO", liveStrategy1FOCtrler.defaultRoute);
 
 //Delta Short Strangle Live Route
 route.get("/deltaSStrangleLive", deltaSStrangleLiveCtrler.defaultRoute);
@@ -243,6 +245,13 @@ route.post("/strategy1fo/execOption", strategy1FOCtrler.fnExecOptionByOptTypeExp
 route.post("/strategy1fo/execOptionLeg", strategy1FOCtrler.fnExecOptByOTypExpTType);
 route.post("/strategy1fo/execFutureLeg", strategy1FOCtrler.fnExecFutByTType);
 route.post("/strategy1fo/getBestRatesBySymb", strategy1FOCtrler.fnGetBestRatesBySymbol);
+route.post("/liveStrategy1fo/validateLogin", liveStrategy1FOCtrler.fnValidateUserLogin);
+route.post("/liveStrategy1fo/getOptChnSDKByAstOptTypExp", liveStrategy1FOCtrler.fnGetOptChnSDKByAstOptTypExp);
+route.post("/liveStrategy1fo/execOption", liveStrategy1FOCtrler.fnExecOptionByOptTypeExpTransType);
+route.post("/liveStrategy1fo/execOptionLeg", liveStrategy1FOCtrler.fnExecOptByOTypExpTType);
+route.post("/liveStrategy1fo/execFutureLeg", liveStrategy1FOCtrler.fnExecFutByTType);
+route.post("/liveStrategy1fo/closeLeg", liveStrategy1FOCtrler.fnCloseLeg);
+route.post("/liveStrategy1fo/getBestRatesBySymb", liveStrategy1FOCtrler.fnGetBestRatesBySymbol);
 //Delta Short Strangle Demo Routes
 route.post("/deltaSStrangleDemo/validateLogin", deltaSStrangleDemoCtrler.fnValidateUserLogin);
 route.post("/deltaSStrangleDemo/getOptChnSDKByAstOptTypExp", deltaSStrangleDemoCtrler.fnGetOptChnSDKByAstOptTypExp);

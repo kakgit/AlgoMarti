@@ -12,7 +12,7 @@ const gBaseUrl = 'https://api.india.delta.exchange';
 
 exports.defaultRoute = (req, res) => {
     //res.send("Crud Application");
-    res.render("Strategy1FO.ejs");
+    res.render("LiveStrategy1FO.ejs");
 }
 
 exports.fnValidateUserLogin = async (req, res) => {
@@ -140,23 +140,39 @@ exports.fnExecOptByOTypExpTType = async (req, res) => {
     try {
         let objOptChn = await fnGetSrtdOptChnByDelta(vApiKey, vApiSecret, vTransType, vOptionType, vUAssetSymbol, vLotSize, vExpiry, vLotQty, vContractType, vDeltaPos, vDeltaRePos, vDeltaTP, vDeltaSL);
         if(objOptChn.status === "success"){
-            let vLimitPrice = "0";
-            let vBestBuy = objOptChn.data.BestAsk;
-            let vBestSell = objOptChn.data.BestBid;
-            let vSymbol = objOptChn.data.Symbol;
+            let vLimitPrice = (vTransType === "buy") ? Number(objOptChn.data.BestAsk) : Number(objOptChn.data.BestBid);
+            let objOrdRes = await fnPlaceLiveOrder(vApiKey, vApiSecret, {
+                symbol: objOptChn.data.Symbol,
+                size: Number(vLotQty),
+                side: vTransType,
+                orderType: vOrderType,
+                limitPrice: vLimitPrice,
+                reduceOnly: false
+            });
 
-            if(vOrderType === "market_order"){
-                vBestBuy = "0";
-                vBestSell = "0";
-                vPostOnly = false;
+            if(objOrdRes.status !== "success"){
+                res.send({ "status": objOrdRes.status, "message": objOrdRes.message, "data": objOrdRes.data });
+                return;
             }
+
+            let objOrd = objOrdRes.data.result;
+            let vExecPx = fnGetExecPrice(objOrd, vLimitPrice);
+
             if(vTransType === "buy"){
-                vLimitPrice = vBestBuy;
+                objOptChn.data.BestAsk = vExecPx;
             }
             else if(vTransType === "sell"){
-                vLimitPrice = vBestSell;
+                objOptChn.data.BestBid = vExecPx;
             }
-            res.send({ "status": "success", "message": objOptChn.message, "data": objOptChn.data });
+            objOptChn.data.ClientOrderID = objOrd.client_order_id;
+            objOptChn.data.TradeID = objOrd.id;
+            objOptChn.data.Commission = objOrd.paid_commission;
+            objOptChn.data.ProductID = objOrd.product_id;
+            objOptChn.data.Symbol = objOrd.product_symbol;
+            objOptChn.data.TransType = objOrd.side;
+            objOptChn.data.Qty = objOrd.size;
+            objOptChn.data.State = (objOrd.state === "open") ? "PENDING" : "OPEN";
+            res.send({ "status": "success", "message": "Order Executed Successfully!", "data": objOptChn.data });
         }
         else{
             res.send({ "status": "danger", "message": objOptChn.message, "data": "" });
@@ -195,8 +211,43 @@ exports.fnExecFutByTType = async (req, res) => {
     try {
         let objSybDet = await fnGetSymbolDetails(vApiKey, vApiSecret, vUAssetSymbol, vTransType, vOptionType, vLotSize, vLotQty, vPointsTP, vPointsSL);
         if(objSybDet.status === "success"){
+            let vOrderSize = Number(vLotSize) * Number(vLotQty);
+            if(!Number.isFinite(vOrderSize) || vOrderSize <= 0){
+                vOrderSize = Number(vLotQty);
+            }
+            let vLimitPrice = (vTransType === "buy") ? Number(objSybDet.data.BestAsk) : Number(objSybDet.data.BestBid);
+            let objOrdRes = await fnPlaceLiveOrder(vApiKey, vApiSecret, {
+                symbol: objSybDet.data.Symbol,
+                size: vOrderSize,
+                side: vTransType,
+                orderType: vOrderType,
+                limitPrice: vLimitPrice,
+                reduceOnly: false
+            });
 
-            res.send({ "status": "success", "message": objSybDet.message, "data": objSybDet.data });
+            if(objOrdRes.status !== "success"){
+                res.send({ "status": objOrdRes.status, "message": objOrdRes.message, "data": objOrdRes.data });
+                return;
+            }
+
+            let objOrd = objOrdRes.data.result;
+            let vExecPx = fnGetExecPrice(objOrd, vLimitPrice);
+
+            if(vTransType === "buy"){
+                objSybDet.data.BestAsk = vExecPx;
+            }
+            else if(vTransType === "sell"){
+                objSybDet.data.BestBid = vExecPx;
+            }
+            objSybDet.data.ClientOrderID = objOrd.client_order_id;
+            objSybDet.data.TradeID = objOrd.id;
+            objSybDet.data.Commission = objOrd.paid_commission;
+            objSybDet.data.ProductID = objOrd.product_id;
+            objSybDet.data.Symbol = objOrd.product_symbol;
+            objSybDet.data.TransType = objOrd.side;
+            objSybDet.data.Qty = objOrd.size;
+            objSybDet.data.State = (objOrd.state === "open") ? "PENDING" : "OPEN";
+            res.send({ "status": "success", "message": "Order Executed Successfully!", "data": objSybDet.data });
         }
         else{
             res.send({ "status": "danger", "message": objSybDet.message, "data": "" });
@@ -236,23 +287,39 @@ exports.fnExecOptionByOptTypeExpTransType = async (req, res) => {
     try {
         let objOptChn = await fnGetSrtdOptChnByRate(vApiKey, vApiSecret, vTransType, vOptionType, vUAssetSymbol, vExpiry, vContractType, vDeltaNPos, vRateNPos);
         if(objOptChn.status === "success"){
-            let vLimitPrice = "0";
-            let vBestBuy = objOptChn.data.BestAsk;
-            let vBestSell = objOptChn.data.BestBid;
-            let vSymbol = objOptChn.data.Symbol;
+            let vLimitPrice = (vTransType === "buy") ? Number(objOptChn.data.BestAsk) : Number(objOptChn.data.BestBid);
+            let objOrdRes = await fnPlaceLiveOrder(vApiKey, vApiSecret, {
+                symbol: objOptChn.data.Symbol,
+                size: Number(vLotQty),
+                side: vTransType,
+                orderType: vOrderType,
+                limitPrice: vLimitPrice,
+                reduceOnly: false
+            });
 
-            if(vOrderType === "market_order"){
-                vBestBuy = "0";
-                vBestSell = "0";
-                vPostOnly = false;
+            if(objOrdRes.status !== "success"){
+                res.send({ "status": objOrdRes.status, "message": objOrdRes.message, "data": objOrdRes.data });
+                return;
             }
+
+            let objOrd = objOrdRes.data.result;
+            let vExecPx = fnGetExecPrice(objOrd, vLimitPrice);
+
             if(vTransType === "buy"){
-                vLimitPrice = vBestBuy;
+                objOptChn.data.BestAsk = vExecPx;
             }
             else if(vTransType === "sell"){
-                vLimitPrice = vBestSell;
+                objOptChn.data.BestBid = vExecPx;
             }
-            res.send({ "status": "success", "message": objOptChn.message, "data": objOptChn.data });
+            objOptChn.data.ClientOrderID = objOrd.client_order_id;
+            objOptChn.data.TradeID = objOrd.id;
+            objOptChn.data.Commission = objOrd.paid_commission;
+            objOptChn.data.ProductID = objOrd.product_id;
+            objOptChn.data.Symbol = objOrd.product_symbol;
+            objOptChn.data.TransType = objOrd.side;
+            objOptChn.data.Qty = objOrd.size;
+            objOptChn.data.State = (objOrd.state === "open") ? "PENDING" : "OPEN";
+            res.send({ "status": "success", "message": "Order Executed Successfully!", "data": objOptChn.data });
         }
         else{
             res.send({ "status": "danger", "message": objOptChn.message, "data": "" });
@@ -262,6 +329,62 @@ exports.fnExecOptionByOptTypeExpTransType = async (req, res) => {
             res.send({ "status": "danger", "message": error.message, "data": "" });
     }
     // res.send({ "status": "success", "message": "Option Chain Data Received Successfully!", "data": "" });
+}
+
+exports.fnCloseLeg = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+    let vSymbol = req.body.Symbol;
+    let vOpenTransType = req.body.TransType;
+    let vOptionType = req.body.OptionType;
+    let vLotSize = Number(req.body.LotSize);
+    let vLotQty = Number(req.body.LotQty);
+
+    let vCloseSide = (vOpenTransType === "sell") ? "buy" : "sell";
+    let vOrderSize = vLotQty;
+    if(vOptionType === "F"){
+        vOrderSize = vLotSize * vLotQty;
+    }
+    if(!Number.isFinite(vOrderSize) || vOrderSize <= 0){
+        res.send({ "status": "warning", "message": "Invalid close quantity.", "data": "" });
+        return;
+    }
+
+    try {
+        let objOrdRes = await fnPlaceLiveOrder(vApiKey, vApiSecret, {
+            symbol: vSymbol,
+            size: vOrderSize,
+            side: vCloseSide,
+            orderType: "market_order",
+            limitPrice: 0,
+            reduceOnly: true
+        });
+
+        if(objOrdRes.status !== "success"){
+            res.send({ "status": objOrdRes.status, "message": objOrdRes.message, "data": objOrdRes.data });
+            return;
+        }
+
+        let objOrd = objOrdRes.data.result;
+        let vExecPx = fnGetExecPrice(objOrd, 0);
+
+        res.send({
+            "status": "success",
+            "message": "Close Order Executed Successfully!",
+            "data": {
+                TradeID: objOrd.id,
+                ClientOrderID: objOrd.client_order_id,
+                Symbol: objOrd.product_symbol,
+                TransType: objOrd.side,
+                Qty: objOrd.size,
+                State: objOrd.state,
+                ClosePrice: vExecPx
+            }
+        });
+    }
+    catch (error) {
+        res.send({ "status": "danger", "message": error.message, "data": "" });
+    }
 }
 
 exports.fnGetBestRatesBySymbol = async (req, res) => {
@@ -359,6 +482,71 @@ const fnGetSymbolDetails = async (pApiKey, pApiSecret, pUAssetSymbol, pTransType
         });
 
         // resolve({ "status": "success", "message": "Futures Data Fetched!", "data": "" });
+    });
+
+    return objPromise;
+}
+
+const fnGetExecPrice = (pOrderResult, pFallbackPrice) => {
+    let vAvg = Number(pOrderResult?.average_fill_price);
+    if(Number.isFinite(vAvg) && vAvg > 0){
+        return vAvg;
+    }
+    let vLimit = Number(pOrderResult?.limit_price);
+    if(Number.isFinite(vLimit) && vLimit > 0){
+        return vLimit;
+    }
+    let vFallback = Number(pFallbackPrice);
+    if(Number.isFinite(vFallback) && vFallback > 0){
+        return vFallback;
+    }
+    return 0;
+}
+
+const fnPlaceLiveOrder = async (pApiKey, pApiSecret, pOrder) => {
+    const objPromise = new Promise((resolve, reject) => {
+        let vOrderSize = Number(pOrder.size);
+        if(!Number.isFinite(vOrderSize) || vOrderSize <= 0){
+            resolve({ "status": "warning", "message": "Invalid order size.", "data": "" });
+            return;
+        }
+
+        let vOrderType = pOrder.orderType || "market_order";
+        let vLimitPrice = Number(pOrder.limitPrice);
+        if(!Number.isFinite(vLimitPrice) || vLimitPrice <= 0){
+            vLimitPrice = 1;
+        }
+        if(vOrderType === "market_order"){
+            vLimitPrice = 1;
+        }
+
+        let vClientOrderId = Date.now().toString() + getRandomIntInclusive(100, 999).toString();
+
+        new DeltaRestClient(pApiKey, pApiSecret).then(client => {
+            client.apis.Orders.placeOrder({
+                order: {
+                    product_symbol: pOrder.symbol,
+                    size: vOrderSize,
+                    side: pOrder.side,
+                    limit_price: vLimitPrice,
+                    order_type: vOrderType,
+                    client_order_id: vClientOrderId,
+                    reduce_only: !!pOrder.reduceOnly
+                }
+            }).then(function (response) {
+                let objResult = JSON.parse(response.data);
+                if(objResult.success){
+                    resolve({ "status": "success", "message": "Order placed.", "data": objResult });
+                }
+                else{
+                    resolve({ "status": "warning", "message": "Error to place order.", "data": objResult });
+                }
+            })
+            .catch(function(objError) {
+                let vErrMsg = objError?.response?.text || objError?.message || "Error placing order.";
+                resolve({ "status": "danger", "message": vErrMsg, "data": objError });
+            });
+        });
     });
 
     return objPromise;
