@@ -77,6 +77,7 @@ function fnValidateDeltaLogin(){
                 // console.log(objResult.data);
                 localStorage.setItem("lsApiKeyDSSLIVE1", JSON.stringify(objApiKey.value));
                 localStorage.setItem("lsApiSecretDSSLIVE1", JSON.stringify(objApiSecret.value));
+                localStorage.removeItem("DFL_SUPPRESS_STREAM_MSG");
 
                 // let objBalances = { Acc1BalINR: objResult.data[0].available_balance_inr, Acc1BalUSD: objResult.data[0].available_balance };
                 // document.getElementById("spnBal1").innerText = (parseFloat(objBalances.Acc1BalUSD)).toFixed(2);
@@ -91,13 +92,17 @@ function fnValidateDeltaLogin(){
             }
             else if(objResult.status === "danger"){
                 fnClearLoginStatus();
-                //ip_not_whitelisted_for_api_key
-                //invalid_api_key
-                if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-                    fnGenMessage(objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, `badge bg-${objResult.status}`, "spnDeltaLogin");
+                let objErr = fnParseDeltaLoginError(objResult.data);
+                if(objErr.code === "ip_not_whitelisted_for_api_key"){
+                    let vIPMsg = objErr.clientIp ? (" IP: " + objErr.clientIp) : " IP not available in response.";
+                    localStorage.setItem("DFL_SUPPRESS_STREAM_MSG", "true");
+                    fnGenMessage(objErr.code + vIPMsg, `badge bg-${objResult.status}`, "spnDeltaLogin");
                 }
+                else if(objErr.code){
+                    fnGenMessage(objErr.code + " Contact Admin!", `badge bg-${objResult.status}`, "spnDeltaLogin");
+                }                
                 else{
-                    fnGenMessage(objResult.data.response.body.error.code + " Contact Admin!", `badge bg-${objResult.status}`, "spnDeltaLogin");
+                    fnGenMessage(objResult.message || "Error in Login, Contact Admin.", `badge bg-${objResult.status}`, "spnDeltaLogin");
                 }
             }
             else if(objResult.status === "warning"){
@@ -111,10 +116,40 @@ function fnValidateDeltaLogin(){
         })
         .catch(error => {
             fnClearLoginStatus();
-            console.log('error: ', error);
             fnGenMessage("Error to Fetch with Login Details.", `badge bg-danger`, "spnDeltaLogin");
         });
     }
+}
+
+function fnParseDeltaLoginError(pErrData){
+    let objPayload = pErrData;
+    let vCode = "";
+    let vClientIP = "";
+
+    // Some Delta SDK errors come as JSON text in response.text
+    if(objPayload?.response?.text && typeof objPayload.response.text === "string"){
+        try{
+            objPayload = JSON.parse(objPayload.response.text);
+        }
+        catch(objErr){
+            // keep original payload
+        }
+    }
+
+    if(typeof objPayload === "string"){
+        try{
+            objPayload = JSON.parse(objPayload);
+        }
+        catch(objErr){
+            objPayload = { message: objPayload };
+        }
+    }
+
+    let objErrNode = objPayload?.response?.body?.error || objPayload?.error || null;
+    vCode = objErrNode?.code || objPayload?.code || "";
+    vClientIP = objErrNode?.context?.client_ip || objPayload?.context?.client_ip || "";
+
+    return { code: vCode, clientIp: vClientIP };
 }
 
 function fnToggleAutoTrader(){
@@ -140,24 +175,10 @@ function fnToggleAutoTrader(){
     }
 }
 
-function fnGetSetAutoTraderStatus(){
-    let isLsAutoTrader = localStorage.getItem("isAutoTraderDSSLIVE1");
-    let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
-
-    if(isLsAutoTrader === "true")
-    {
-        fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-success", "Auto Trader - ON");
-    }
-    else
-    {
-        fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
-        localStorage.setItem("isAutoTraderDSSLIVE1", "false");
-    }
-}
-
 function fnClearLoginStatus(){
     localStorage.removeItem("lsLoginValidDSSLIVE1");
     localStorage.removeItem("isAutoTraderDSSLIVE1");
+    localStorage.removeItem("DFL_SUPPRESS_STREAM_MSG");
 
     fnGetSetTraderLoginStatus();
 }

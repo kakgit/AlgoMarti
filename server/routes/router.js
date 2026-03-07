@@ -251,7 +251,9 @@ route.post("/liveStrategy1fo/execOption", liveStrategy1FOCtrler.fnExecOptionByOp
 route.post("/liveStrategy1fo/execOptionLeg", liveStrategy1FOCtrler.fnExecOptByOTypExpTType);
 route.post("/liveStrategy1fo/execFutureLeg", liveStrategy1FOCtrler.fnExecFutByTType);
 route.post("/liveStrategy1fo/closeLeg", liveStrategy1FOCtrler.fnCloseLeg);
+route.post("/liveStrategy1fo/getLiveOpenPositions", liveStrategy1FOCtrler.fnGetLiveOpenPositions);
 route.post("/liveStrategy1fo/getBestRatesBySymb", liveStrategy1FOCtrler.fnGetBestRatesBySymbol);
+route.post("/liveStrategy1fo/getFilledOrderHistory", liveStrategy1FOCtrler.fnGetFilledOrderHistory);
 //Delta Short Strangle Demo Routes
 route.post("/deltaSStrangleDemo/validateLogin", deltaSStrangleDemoCtrler.fnValidateUserLogin);
 route.post("/deltaSStrangleDemo/getOptChnSDKByAstOptTypExp", deltaSStrangleDemoCtrler.fnGetOptChnSDKByAstOptTypExp);

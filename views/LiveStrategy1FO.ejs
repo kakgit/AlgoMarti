@@ -121,9 +121,9 @@
                                     </div>
                                     <div class="col-2">
                                         <div class="input-group mb-3">
-                                            <button class="btn btn-danger" type="button" onclick="fnPreInitAutoFutTrade('F', 'sell');"><b>S</b></button>
+                                            <button class="btn btn-danger" id="btnSellManF" type="button" onclick="fnPreInitAutoFutTrade('F', 'sell');"><b>S</b></button>
                                             <input type="text" value="100" id="txtFutQty" class="form-control" style="text-align: center;" title="Futures Qty" onchange="fnUpdFutStratSettings(this.value, 'StartFutQty', 'Futures Qty!', false, 'F', 'LotQty');" />
-                                            <button class="btn btn-success" type="button" onclick="fnPreInitAutoFutTrade('F', 'buy');"><b>B</b></button>
+                                            <button class="btn btn-success" id="btnBuyManF" type="button" onclick="fnPreInitAutoFutTrade('F', 'buy');"><b>B</b></button>
                                         </div>
                                     </div>
 
@@ -353,20 +353,20 @@
                             <div class="col-3">
                                 <h4>Open Position(s)</h4>
                             </div>
-                            <div class="col-2"></div>
-                            <div class="col-1"></div>
-                            <div class="col-2">
-                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                    <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtStepDFL" name="swtStepDFL" onchange="fnChangeStep();" />
-                                    <label for="swtStepDFL" style="cursor:pointer;text-wrap:nowrap;">Step Qty</label>
-                                </div>
+                            <div class="col-1">
+                                <a href="javascript:void(0);" class="nav-link" onclick="fnOpenFetchLivePosModal();" title="Fetch Live Positions">
+                                    <i class="fa fa-download" aria-hidden="true"></i>
+                                </a>
                             </div>
+                            <div class="col-1"></div>
+                            <div class="col-1"></div>
+                            <div class="col-2"></div>
                             <div class="col-1" style="text-align: right;">
                                 <button class='nav-link' onclick="fnClearLocalStorageTemp();" role="tab" type="button">Clear All</button>
                             </div>
                             <div class="col-1"><i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnRefreshAllOpenBrowser();"></i></div>
                             <div class="col-1" style="text-align: right;">
-                                <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px;" onclick="fnTest();">&nbsp;</span>
+                                <span id="spnClsAllPos" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" title="Kill Switch - Close All Real Open Legs" onclick="fnKillSwitchCloseAll();">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divOpenPosClps" role="button" aria-expanded="true" aria-controls="divOpenPosClps">
@@ -416,7 +416,17 @@
                             <div class="col-3">
                                 <h4>Closed Positions</h4>
                             </div>
-                            <div class="col-8"></div>
+                            <div class="col-4" style="display: flex; align-items: center; gap: 8px;">
+                                <label for="txtClsFromDate" style="margin-bottom: 0; white-space: nowrap;">From</label>
+                                <input type="datetime-local" class="form-control" id="txtClsFromDate" />
+                            </div>
+                            <div class="col-4" style="display: flex; align-items: center; gap: 8px;">
+                                <label for="txtClsToDate" style="margin-bottom: 0; white-space: nowrap;">To</label>
+                                <input type="datetime-local" class="form-control" id="txtClsToDate" />
+                                <a href="javascript:void(0);" title="Clear and load defaults" onclick="fnClearClosedPosDateTimeFilters();" style="color: #dc3545;">
+                                    <i class="fa fa-times-circle" aria-hidden="true"></i>
+                                </a>
+                            </div>
                             <div class="col-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divClosedPosClps" role="button" aria-expanded="true" aria-controls="divClosedPosClps">
                                     <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
@@ -431,11 +441,8 @@
                                     <table class="table">
                                         <thead>
                                             <tr style="text-align:center;">
-                                                <th scope="col" style="text-wrap: nowrap;">Actions</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Delta</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Gamma</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Theta</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Vega</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Start DT</th>
+                                                <th scope="col" style="text-wrap: nowrap;">End DT</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Symbol</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Tr Type</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Lot Sz</th>
@@ -444,9 +451,6 @@
                                                 <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Charges</th>
                                                 <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Start DT</th>
-                                                <th scope="col" style="text-wrap: nowrap;">End DT</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tBodyClosedTrades">
@@ -506,6 +510,47 @@
                 </div>
             </div>
         </section>
+    </div>
+</div>
+
+<div class="modal fade text-left" id="mdlFetchLivePos" tabindex="-1" role="dialog" aria-labelledby="mdlFetchLivePosLabel">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h5 class="modal-title" id="mdlFetchLivePosLabel">Fetch Live Open Positions</h5>
+                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="margin-bottom: 10px;">
+                    <div class="col-12" style="text-align: right;">
+                        <label for="chkReplaceExistingLivePos" style="margin-right: 8px; cursor: pointer;">Replace existing symbol legs</label>
+                        <input type="checkbox" id="chkReplaceExistingLivePos" style="cursor: pointer;" />
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr style="text-align:center;">
+                                <th scope="col"><input type="checkbox" id="chkFetchAllLivePos" onchange="fnToggleSelectAllFetchLivePos(this.checked);" /></th>
+                                <th scope="col">Symbol</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Side</th>
+                                <th scope="col">Qty</th>
+                                <th scope="col">Entry</th>
+                                <th scope="col">Best Ask</th>
+                                <th scope="col">Best Bid</th>
+                                <th scope="col">U-PnL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tBodyFetchLivePos"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="fnAddSelectedLivePosToLocal();">Add Selected</button>
+            </div>
+        </div>
     </div>
 </div>
 

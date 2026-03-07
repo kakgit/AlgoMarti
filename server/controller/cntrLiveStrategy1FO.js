@@ -18,13 +18,10 @@ exports.defaultRoute = (req, res) => {
 exports.fnValidateUserLogin = async (req, res) => {
     let vApiKey = req.body.ApiKey;
     let vApiSecret = req.body.ApiSecret;
-    let objWallet = [];
 
     let objRetData1 = await fnGetUserWallet(vApiKey, vApiSecret);
     if(objRetData1.status === "success"){
-        // console.log(objRetData1.data.result[0]);
-        objWallet.push(objRetData1.data.result[0]);
-
+        let objWallet = Array.isArray(objRetData1.data?.result) ? objRetData1.data.result : [];
         res.send({ "status": "success", "message": objRetData1.message, "data": objWallet });
     }
     else{
@@ -211,10 +208,8 @@ exports.fnExecFutByTType = async (req, res) => {
     try {
         let objSybDet = await fnGetSymbolDetails(vApiKey, vApiSecret, vUAssetSymbol, vTransType, vOptionType, vLotSize, vLotQty, vPointsTP, vPointsSL);
         if(objSybDet.status === "success"){
-            let vOrderSize = Number(vLotSize) * Number(vLotQty);
-            if(!Number.isFinite(vOrderSize) || vOrderSize <= 0){
-                vOrderSize = Number(vLotQty);
-            }
+            // Delta futures `size` expects contract quantity, not base-notional.
+            let vOrderSize = Number(vLotQty);
             let vLimitPrice = (vTransType === "buy") ? Number(objSybDet.data.BestAsk) : Number(objSybDet.data.BestBid);
             let objOrdRes = await fnPlaceLiveOrder(vApiKey, vApiSecret, {
                 symbol: objSybDet.data.Symbol,
@@ -343,7 +338,8 @@ exports.fnCloseLeg = async (req, res) => {
     let vCloseSide = (vOpenTransType === "sell") ? "buy" : "sell";
     let vOrderSize = vLotQty;
     if(vOptionType === "F"){
-        vOrderSize = vLotSize * vLotQty;
+        // Close futures by contracts (`LotQty`) for schema compatibility.
+        vOrderSize = vLotQty;
     }
     if(!Number.isFinite(vOrderSize) || vOrderSize <= 0){
         res.send({ "status": "warning", "message": "Invalid close quantity.", "data": "" });
@@ -419,10 +415,127 @@ exports.fnGetBestRatesBySymbol = async (req, res) => {
         res.send({ "status": "success", "message": "Best Buy and Sell Rates Feched!", "data": objRes });
     })
       .catch((objError) => {
-        console.log(objError);
         res.send({ "status": "danger", "message": "Error in Best Rates. Contact Administrator!", "data": objError });
     });
     // res.send({ "status": "success", "message": "Current Rate Information Feched!", "data": "" });
+}
+
+exports.fnGetLiveOpenPositions = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+
+    if(!vApiKey || !vApiSecret){
+        res.send({ "status": "warning", "message": "API credentials are required.", "data": [] });
+        return;
+    }
+
+    try {
+        let objRetData = await fnGetOpenPositions(vApiKey, vApiSecret);
+        if(objRetData.status !== "success"){
+            res.send({ "status": objRetData.status, "message": objRetData.message, "data": [] });
+            return;
+        }
+
+        let objOpenPos = Array.isArray(objRetData.data?.result) ? objRetData.data.result : [];
+        if(objOpenPos.length === 0){
+            res.send({ "status": "success", "message": "No open positions.", "data": [] });
+            return;
+        }
+
+        let objTickerRows = await Promise.all(objOpenPos.map(async (objPos) => {
+            let vSymbol = objPos?.product_symbol || objPos?.symbol || "";
+            let objTicker = await fnGetTickerBySymbol(vSymbol);
+            let objTResult = objTicker?.data?.result || {};
+            let vSizeRaw = Number(objPos?.size);
+            let vQty = Number.isFinite(vSizeRaw) ? Math.abs(vSizeRaw) : Number(objPos?.size || 0);
+            let vSide = (objPos?.side || "").toString().toLowerCase();
+            if(vSide !== "buy" && vSide !== "sell"){
+                vSide = (Number(vSizeRaw) < 0) ? "sell" : "buy";
+            }
+
+            let vContractType = objTResult?.contract_type || objPos?.contract_type || "";
+            let vOptionType = "F";
+            if(vContractType === "call_options"){
+                vOptionType = "C";
+            }
+            else if(vContractType === "put_options"){
+                vOptionType = "P";
+            }
+
+            return {
+                PositionID: objPos?.id || (Date.now().toString() + getRandomIntInclusive(100, 999).toString()),
+                ProductID: objPos?.product_id || objTResult?.product_id || 0,
+                Symbol: vSymbol,
+                UndrAsstSymb: objTResult?.underlying_asset_symbol || objPos?.underlying_asset_symbol || "",
+                ContType: vContractType,
+                OptionType: vOptionType,
+                TransType: vSide,
+                Qty: Number.isFinite(vQty) ? vQty : 0,
+                EntryPrice: Number(objPos?.entry_price || 0),
+                MarkPrice: Number(objPos?.mark_price || 0),
+                BestAsk: Number(objTResult?.quotes?.best_ask || 0),
+                BestBid: Number(objTResult?.quotes?.best_bid || 0),
+                Strike: Number(objTResult?.strike_price || 0),
+                Expiry: objTResult?.expiry_date || "",
+                Delta: Number(objTResult?.greeks?.delta || 0),
+                Gamma: Number(objTResult?.greeks?.gamma || 0),
+                Theta: Number(objTResult?.greeks?.theta || 0),
+                Vega: Number(objTResult?.greeks?.vega || 0),
+                UnrealizedPnL: Number(objPos?.unrealized_pnl || 0)
+            };
+        }));
+
+        res.send({ "status": "success", "message": "Open positions fetched.", "data": objTickerRows });
+    }
+    catch (error) {
+        res.send({ "status": "danger", "message": error.message, "data": [] });
+    }
+}
+
+exports.fnGetFilledOrderHistory = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+    let vStartDT = Number(req.body.StartDT);
+    let vEndDT = Number(req.body.EndDT);
+
+    if(!vApiKey || !vApiSecret){
+        res.send({ "status": "warning", "message": "API credentials are required.", "data": [] });
+        return;
+    }
+
+    if(!Number.isFinite(vStartDT) || vStartDT <= 0){
+        vStartDT = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    }
+    if(!Number.isFinite(vEndDT) || vEndDT <= 0){
+        vEndDT = Date.now();
+    }
+    if(vEndDT < vStartDT){
+        let vTmp = vEndDT;
+        vEndDT = vStartDT;
+        vStartDT = vTmp;
+    }
+
+    vStartDT = fnNormalizeOrderHistoryTs(vStartDT);
+    vEndDT = fnNormalizeOrderHistoryTs(vEndDT);
+
+    try{
+        let objRetData = await fnGetOrderHistory(vApiKey, vApiSecret, vStartDT, vEndDT);
+        if(objRetData.status !== "success"){
+            res.send({ "status": objRetData.status, "message": objRetData.message, "data": objRetData.data });
+            return;
+        }
+
+        let objRows = Array.isArray(objRetData.data?.result) ? objRetData.data.result : [];
+        let objFilledRows = objRows.filter((objOrd) => {
+            let vState = (objOrd?.state || "").toString().toLowerCase();
+            return (vState === "filled" || vState === "closed");
+        });
+
+        res.send({ "status": "success", "message": "Filled order history fetched.", "data": objFilledRows });
+    }
+    catch(error){
+        res.send({ "status": "danger", "message": error.message, "data": error });
+    }
 }
 
 const fnGetSymbolDetails = async (pApiKey, pApiSecret, pUAssetSymbol, pTransType, pOptType, pLotSize, pLotQty, pPointsTP, pPointsSL) => {
@@ -456,9 +569,7 @@ const fnGetSymbolDetails = async (pApiKey, pApiSecret, pUAssetSymbol, pTransType
             let vBestBuyPrice = parseFloat(objRes.result.quotes.best_ask);
             let vBestSellPrice = parseFloat(objRes.result.quotes.best_bid);
             let vRateTP, vRateSL = 0;
-            let vLotSizeNum = parseFloat(pLotSize) || 0;
-            let vLotQtyNum = parseFloat(pLotQty) || 0;
-            let vFutDeltaAbs = vLotSizeNum * vLotQtyNum;
+            let vFutDeltaAbs = 0.10;
             let vFutDelta = vFutDeltaAbs;
 
             if(pTransType === "buy"){
@@ -477,7 +588,6 @@ const fnGetSymbolDetails = async (pApiKey, pApiSecret, pUAssetSymbol, pTransType
             resolve({ "status": "success", "message": "Best Buy and Sell Rates Feched!", "data": objFutLeg });
         })
         .catch((objError) => {
-            console.log(objError);
             resolve({ "status": "danger", "message": "Error in Best Rates. Contact Administrator!", "data": objError });
         });
 
@@ -501,6 +611,25 @@ const fnGetExecPrice = (pOrderResult, pFallbackPrice) => {
         return vFallback;
     }
     return 0;
+}
+
+const fnGetTickerBySymbol = async (pSymbol) => {
+    const objPromise = new Promise((resolve, reject) => {
+        if(!pSymbol){
+            resolve({ "status": "warning", "message": "Symbol missing.", "data": {} });
+            return;
+        }
+
+        axios.get(gBaseUrl + "/v2/tickers/" + pSymbol)
+        .then((objResult) => {
+            resolve({ "status": "success", "message": "Ticker fetched.", "data": objResult.data });
+        })
+        .catch((objError) => {
+            resolve({ "status": "warning", "message": "Ticker fetch failed.", "data": {} });
+        });
+    });
+
+    return objPromise;
 }
 
 const fnPlaceLiveOrder = async (pApiKey, pApiSecret, pOrder) => {
@@ -569,12 +698,63 @@ const fnGetUserWallet = async (pApiKey, pApiSecret) => {
                 }
             })
             .catch(function(objError) {
-                console.log(objError);
                 resolve({ "status": "danger", "message": "Error At User Login! Catch.", "data": objError });
             });
         });
     });
     return objPromise;
+}
+
+const fnGetOpenPositions = async (pApiKey, pApiSecret) => {
+    const objPromise = new Promise((resolve, reject) => {
+        new DeltaRestClient(pApiKey, pApiSecret).then(client => {
+            client.apis.Positions.getMarginedPositions().then(function (response) {
+                let objResult = JSON.parse(response.data.toString());
+                if(objResult.success){
+                    resolve({ "status": "success", "message": "Open positions fetched.", "data": objResult });
+                }
+                else{
+                    resolve({ "status": "warning", "message": "Error while fetching open positions.", "data": objResult });
+                }
+            })
+            .catch(function(objError) {
+                resolve({ "status": "danger", "message": "Error at get open positions.", "data": objError });
+            });
+        });
+    });
+    return objPromise;
+}
+
+const fnGetOrderHistory = async (pApiKey, pApiSecret, pStartDT, pEndDT) => {
+    const objPromise = new Promise((resolve, reject) => {
+        new DeltaRestClient(pApiKey, pApiSecret).then(client => {
+            client.apis.TradeHistory.getOrderHistory({ start_time: pStartDT, end_time: pEndDT, page_size: 100 }).then(function (response) {
+                let objResult = JSON.parse(response.data.toString());
+                if(objResult.success){
+                    resolve({ "status": "success", "message": "Order history fetched.", "data": objResult });
+                }
+                else{
+                    resolve({ "status": "warning", "message": "Error while fetching order history.", "data": objResult });
+                }
+            })
+            .catch(function(objError) {
+                resolve({ "status": "danger", "message": "Error at order history.", "data": objError });
+            });
+        });
+    });
+    return objPromise;
+}
+
+const fnNormalizeOrderHistoryTs = (pVal) => {
+    let vTs = Number(pVal);
+    if(!Number.isFinite(vTs) || vTs <= 0){
+        return 0;
+    }
+    // Delta history APIs in this project use microseconds.
+    if(vTs < 1000000000000000){
+        return Math.trunc(vTs * 1000);
+    }
+    return Math.trunc(vTs);
 }
 
 const fnGetOptChnByCntrctTypeExp = async (pApiKey, pApiSecret, pUndrAsstSymb, pExpiry, pContractType) => {
@@ -594,7 +774,6 @@ const fnGetOptChnByCntrctTypeExp = async (pApiKey, pApiSecret, pUndrAsstSymb, pE
                 }
             })
             .catch(function(objError) {
-                console.log(objError);
                 resolve({ "status": "danger", "message": "Error in getting Option Chain!", "data": objError });
             });
         });
@@ -637,7 +816,6 @@ const fnGetSrtdOptChnByRate = async (pApiKey, pApiSecret, pTransType, pOptType, 
                 }
             })
             .catch(function(objError) {
-                console.log(objError);
                 resolve({ "status": "danger", "message": "Error in getting Option Chain!", "data": objError });
             });
         });
@@ -719,7 +897,6 @@ const fnGetSrtdOptChnByDelta = async (pApiKey, pApiSecret,pTransType, pOptType, 
                 }
             })
             .catch(function(objError) {
-                console.log(objError);
                 resolve({ "status": "danger", "message": "Error in getting Option Chain!", "data": objError });
             });
         });
