@@ -1,4 +1,26 @@
 <div id="main" class="container-xxl">
+    <style>
+        #cardPayoffGraph .card-body {
+            background: radial-gradient(circle at 20% 10%, #1f273a 0%, #111726 50%, #0c1220 100%);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+        }
+
+        #cnvPayoffGraph {
+            width: 100%;
+            height: 380px;
+            display: block;
+            border-radius: 0.5rem;
+        }
+
+        #divPayoffGraphEmpty {
+            display: none;
+            text-align: center;
+            color: #9fb5d1;
+            font-weight: 600;
+            padding: 1rem 0;
+        }
+    </style>
     <div class="page-heading">
         <div class="row">
             <div class="col-4">
@@ -242,9 +264,15 @@
                                         </div>
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="+/- Delta Value" id="txtMinDeltaPM" value="0.10" title="Minimun Total Delta +/- to Accept" onchange="fnUpdHidFldSettings(this.value, 'DeltaPM', 'Delta Change Value!');" />
+                                        <input type="number" class="form-control" placeholder="Delta Threshold" id="txtMinDeltaPM" value="0.10" title="Minimum net delta threshold to trigger adjustment" onchange="fnUpdHidFldSettings(this.value, 'DeltaPM', 'Delta Change Value!');" />
                                     </div>
-                                    <div class="col-2">+/-</div>
+                                    <div class="col-2">
+                                        <select class="form-select" id="ddlDeltaAdjSide" title="Delta side to trigger adjustment" onchange="fnUpdHidFldSettings(this.value, 'DeltaAdjSide', 'Delta Adjustment Side!');">
+                                            <option value="BOTH">BOTH</option>
+                                            <option value="-DELTA">-DELTA</option>
+                                            <option value="+DELTA">+DELTA</option>
+                                        </select>
+                                    </div>
                                     <div class="col-1">
                                         <div class="form-check form-switch fs-6" style="white-space: nowrap;">
                                             <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtBrokRecvry" name="swtBrokRecvry" onchange="fnUpdHidFldSettings(this.checked, 'SwtBrokRec', 'Brok Recovery!');" />
@@ -407,6 +435,23 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="card" id="cardPayoffGraph">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-6">
+                                <h4>Payoff Graph</h4>
+                            </div>
+                            <div class="col-6" style="text-align: right;">
+                                <span class="badge bg-dark" id="spnPayoffMode">Expiry vs Target</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="cnvPayoffGraph" height="380"></canvas>
+                        <div id="divPayoffGraphEmpty">No open positions to render payoff graph.</div>
                     </div>
                 </div>
 

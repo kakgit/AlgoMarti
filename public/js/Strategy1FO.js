@@ -18,6 +18,8 @@ let gSymbThetaList = {};
 let gSymbVegaList = {};
 let gSpotPrice = 0;
 let gPL = 0;
+let gPayoffGraphLastData = null;
+let gPayoffGraphRenderTs = 0;
 
 // let gSymbMarkIVList = {};
 // let gSymbRhoList = {};
@@ -31,7 +33,7 @@ let gDeltaNtrlBusy = false;
 let gDeltaNtrlLastActionTs = 0;
 let gCurrStrats = { StratsData : [{StratID : 1, NewSellCE : true, NewSellPE : true, StartSellQty : 1, NewSellDelta : 0.33, ReSellDelta : 0.33, SellDeltaTP : 0.10, SellDeltaSL : 0.53, NewBuyCE : false, NewBuyPE : false, StartBuyQty : 1, NewBuyDelta : 0.33, ReBuyDelta : 0.33, BuyDeltaTP : 2.0, BuyDeltaSL : 0.0 }]};
 let gCurrFutStrats = { StratsData : [{StratID : 11, StartFutQty : 1, PointsSL : 100, PointsTP : 200 }]};
-let gOtherFlds = [{ SwtActiveMsgs : false, BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtOpnBuyLegOP : false, SwtOpnBuyLegSS : false, SwtBrokRec : false, BrokX4Profit : 2, ReLegBrok : false, ReLegSell : false, ReLegBuy : false, SwtDeltaNtrl : true, DeltaPM : 0.10 }];
+let gOtherFlds = [{ SwtActiveMsgs : false, BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtOpnBuyLegOP : false, SwtOpnBuyLegSS : false, SwtBrokRec : false, BrokX4Profit : 2, ReLegBrok : false, ReLegSell : false, ReLegBuy : false, SwtDeltaNtrl : true, DeltaPM : 0.10, DeltaAdjSide : "BOTH" }];
 
 window.addEventListener("DOMContentLoaded", function(){
     fnGetAllStatus();
@@ -87,6 +89,369 @@ window.addEventListener("DOMContentLoaded", function(){
         }
     });
 });
+
+window.addEventListener("resize", function(){
+    if(gPayoffGraphLastData){
+        fnDrawPayoffGraph(gPayoffGraphLastData);
+    }
+});
+
+function fnFormatPayoffAxisVal(pVal){
+    let vVal = Number(pVal || 0);
+    let vAbs = Math.abs(vVal);
+    if(vAbs >= 1000000){
+        return `${(vVal / 1000000).toFixed(1)}M`;
+    }
+    if(vAbs >= 1000){
+        return `${(vVal / 1000).toFixed(1)}K`;
+    }
+    return vVal.toFixed(2);
+}
+
+function fnBuildPayoffGraphData(){
+    if(!gCurrPosDSSDV1 || !Array.isArray(gCurrPosDSSDV1.TradeData)){
+        return null;
+    }
+
+    let objOpenLegs = gCurrPosDSSDV1.TradeData.filter(objLeg => objLeg && objLeg.Status === "OPEN");
+    if(objOpenLegs.length === 0){
+        return null;
+    }
+
+    let objStrikes = [];
+    let vFallbackSpot = 0;
+    let vCurrentPnl = 0;
+    let objExposureByStrike = {};
+
+    for(let i=0; i<objOpenLegs.length; i++){
+        let objLeg = objOpenLegs[i];
+        let vStrike = Number(objLeg.StrikePrice || 0);
+        let vLotSize = Math.abs(Number(objLeg.LotSize || 0));
+        let vLotQty = Math.abs(Number(objLeg.LotQty || 0));
+        let vUnits = vLotSize * vLotQty;
+        let vSymbol = objLeg.Symbol || "";
+        let vSide = (objLeg.TransType || "").toLowerCase();
+        let vOptType = (objLeg.OptionType || "").toUpperCase();
+
+        if(vStrike > 0){
+            objStrikes.push(vStrike);
+            vFallbackSpot += vStrike;
+            let vExpSign = (vSide === "sell") ? 1 : -1;
+            objExposureByStrike[vStrike] = (objExposureByStrike[vStrike] || 0) + (vUnits * vExpSign);
+        }
+
+        let vCurrBuy = Number(gSymbBRateList[vSymbol]);
+        let vCurrSell = Number(gSymbSRateList[vSymbol]);
+        let vLegBuyPrice = Number(objLeg.BuyPrice || 0);
+        let vLegSellPrice = Number(objLeg.SellPrice || 0);
+
+        if(!Number.isFinite(vCurrBuy)){
+            vCurrBuy = vLegBuyPrice;
+        }
+        if(!Number.isFinite(vCurrSell)){
+            vCurrSell = vLegSellPrice;
+        }
+
+        let vBuyVal = (vSide === "sell") ? vCurrBuy : vLegBuyPrice;
+        let vSellVal = (vSide === "sell") ? vLegSellPrice : vCurrSell;
+        let vCharges = fnGetTradeCharges(vStrike, vLotSize, vLotQty, vBuyVal, vSellVal, vOptType);
+        vCurrentPnl += fnGetTradePL(vBuyVal, vSellVal, vLotSize, vLotQty, vCharges);
+    }
+
+    let vSpot = Number(gSpotPrice || 0);
+    if(!(vSpot > 0)){
+        vSpot = objStrikes.length > 0 ? (vFallbackSpot / objStrikes.length) : 0;
+    }
+    if(!(vSpot > 0)){
+        return null;
+    }
+
+    let vMinStrike = objStrikes.length > 0 ? Math.min(...objStrikes) : vSpot;
+    let vMaxStrike = objStrikes.length > 0 ? Math.max(...objStrikes) : vSpot;
+    let vSpan = Math.max(vMaxStrike - vMinStrike, vSpot * 0.03, 20);
+    let vXMin = Math.max(1, Math.min(vMinStrike, vSpot) - (vSpan * 1.1));
+    let vXMax = Math.max(vMaxStrike, vSpot) + (vSpan * 1.1);
+    let vPoints = 49;
+    let vStep = (vXMax - vXMin) / (vPoints - 1);
+
+    let objSeries = [];
+    for(let i=0; i<vPoints; i++){
+        let vS = vXMin + (i * vStep);
+        let vExpiryPnl = 0;
+
+        for(let j=0; j<objOpenLegs.length; j++){
+            let objLeg = objOpenLegs[j];
+            let vStrike = Number(objLeg.StrikePrice || vSpot);
+            let vLotSize = Math.abs(Number(objLeg.LotSize || 0));
+            let vLotQty = Math.abs(Number(objLeg.LotQty || 0));
+            let vUnits = vLotSize * vLotQty;
+            let vSide = (objLeg.TransType || "").toLowerCase();
+            let vOptType = (objLeg.OptionType || "").toUpperCase();
+            let vBuy = Number(objLeg.BuyPrice || 0);
+            let vSell = Number(objLeg.SellPrice || 0);
+            let vIntrinsic = 0;
+            let vEntryCash = ((vSide === "sell") ? vSell : -vBuy) * vUnits;
+            let vSign = (vSide === "sell") ? -1 : 1;
+
+            if(vOptType === "C"){
+                vIntrinsic = Math.max(vS - vStrike, 0);
+                vExpiryPnl += (vSign * vIntrinsic * vUnits) + vEntryCash;
+            }
+            else if(vOptType === "P"){
+                vIntrinsic = Math.max(vStrike - vS, 0);
+                vExpiryPnl += (vSign * vIntrinsic * vUnits) + vEntryCash;
+            }
+            else if(vOptType === "F"){
+                let vRef = (vStrike > 0) ? vStrike : vSpot;
+                vExpiryPnl += (vSign * (vS - vRef) * vUnits);
+            }
+        }
+
+        let vTargetPnl = vCurrentPnl + ((vExpiryPnl - vCurrentPnl) * 0.42);
+        objSeries.push({ x: vS, expiry: vExpiryPnl, target: vTargetPnl });
+    }
+
+    return {
+        series: objSeries,
+        spot: vSpot,
+        currentPnl: vCurrentPnl,
+        exposureByStrike: objExposureByStrike
+    };
+}
+
+function fnDrawPayoffGraph(pGraphData){
+    let objCanvas = document.getElementById("cnvPayoffGraph");
+    let objEmpty = document.getElementById("divPayoffGraphEmpty");
+    if(!objCanvas){
+        return;
+    }
+
+    if(!pGraphData || !Array.isArray(pGraphData.series) || pGraphData.series.length === 0){
+        if(objEmpty){
+            objEmpty.style.display = "block";
+        }
+        let objCtxBlank = objCanvas.getContext("2d");
+        objCtxBlank.clearRect(0, 0, objCanvas.width, objCanvas.height);
+        return;
+    }
+
+    if(objEmpty){
+        objEmpty.style.display = "none";
+    }
+
+    let dpr = window.devicePixelRatio || 1;
+    let vWidth = Math.max(600, objCanvas.clientWidth || 600);
+    let vHeight = Math.max(360, objCanvas.clientHeight || 380);
+    objCanvas.width = Math.floor(vWidth * dpr);
+    objCanvas.height = Math.floor(vHeight * dpr);
+
+    let ctx = objCanvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, vWidth, vHeight);
+
+    let padL = 58;
+    let padR = 72;
+    let padT = 44;
+    let padB = 54;
+    let plotW = vWidth - padL - padR;
+    let plotH = vHeight - padT - padB;
+
+    let bg = ctx.createLinearGradient(0, 0, 0, vHeight);
+    bg.addColorStop(0, "#111a2b");
+    bg.addColorStop(1, "#0b111e");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, vWidth, vHeight);
+
+    let objSeries = pGraphData.series;
+    let xs = objSeries.map(o => o.x);
+    let ysExp = objSeries.map(o => o.expiry);
+    let ysTar = objSeries.map(o => o.target);
+    let yAll = ysExp.concat(ysTar).concat([0]);
+
+    let xMin = Math.min(...xs);
+    let xMax = Math.max(...xs);
+    let yMin = Math.min(...yAll);
+    let yMax = Math.max(...yAll);
+    let yPad = Math.max((yMax - yMin) * 0.12, 1);
+    yMin -= yPad;
+    yMax += yPad;
+
+    let toX = (v) => padL + ((v - xMin) / (xMax - xMin || 1)) * plotW;
+    let toY = (v) => padT + ((yMax - v) / (yMax - yMin || 1)) * plotH;
+
+    ctx.strokeStyle = "rgba(145, 167, 199, 0.16)";
+    ctx.lineWidth = 1;
+    for(let i=0; i<=5; i++){
+        let yVal = yMin + ((yMax - yMin) * i / 5);
+        let py = toY(yVal);
+        ctx.beginPath();
+        ctx.moveTo(padL, py);
+        ctx.lineTo(vWidth - padR, py);
+        ctx.stroke();
+    }
+
+    let yZero = toY(0);
+    ctx.strokeStyle = "rgba(219, 97, 97, 0.7)";
+    ctx.beginPath();
+    ctx.moveTo(padL, yZero);
+    ctx.lineTo(vWidth - padR, yZero);
+    ctx.stroke();
+
+    let objBars = pGraphData.exposureByStrike || {};
+    let objBarKeys = Object.keys(objBars).map(Number).filter(Number.isFinite);
+    let maxBar = 1;
+    for(let i=0; i<objBarKeys.length; i++){
+        maxBar = Math.max(maxBar, Math.abs(objBars[objBarKeys[i]] || 0));
+    }
+
+    for(let i=0; i<objBarKeys.length; i++){
+        let k = objBarKeys[i];
+        let v = Number(objBars[k] || 0);
+        let px = toX(k);
+        let bw = Math.max(4, plotW / 65);
+        let bh = (Math.abs(v) / maxBar) * (plotH * 0.24);
+        ctx.fillStyle = v >= 0 ? "rgba(0, 210, 160, 0.56)" : "rgba(230, 88, 100, 0.56)";
+        if(v >= 0){
+            ctx.fillRect(px - (bw / 2), yZero - bh, bw, bh);
+        }
+        else{
+            ctx.fillRect(px - (bw / 2), yZero, bw, bh);
+        }
+    }
+
+    ctx.beginPath();
+    for(let i=0; i<objSeries.length; i++){
+        let px = toX(objSeries[i].x);
+        let py = toY(objSeries[i].expiry);
+        if(i === 0){
+            ctx.moveTo(px, py);
+        }
+        else{
+            ctx.lineTo(px, py);
+        }
+    }
+    let xEnd = toX(objSeries[objSeries.length - 1].x);
+    let xStart = toX(objSeries[0].x);
+    ctx.lineTo(xEnd, yZero);
+    ctx.lineTo(xStart, yZero);
+    ctx.closePath();
+    ctx.fillStyle = "rgba(0, 214, 165, 0.24)";
+    ctx.fill();
+
+    ctx.beginPath();
+    for(let i=0; i<objSeries.length; i++){
+        let px = toX(objSeries[i].x);
+        let py = toY(objSeries[i].expiry);
+        if(i === 0){
+            ctx.moveTo(px, py);
+        }
+        else{
+            ctx.lineTo(px, py);
+        }
+    }
+    ctx.strokeStyle = "#00e0b8";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.beginPath();
+    for(let i=0; i<objSeries.length; i++){
+        let px = toX(objSeries[i].x);
+        let py = toY(objSeries[i].target);
+        if(i === 0){
+            ctx.moveTo(px, py);
+        }
+        else{
+            ctx.lineTo(px, py);
+        }
+    }
+    ctx.strokeStyle = "#ff8f1f";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    let xSpot = toX(pGraphData.spot);
+    ctx.beginPath();
+    ctx.moveTo(xSpot, padT + 2);
+    ctx.lineTo(xSpot, vHeight - padB);
+    ctx.strokeStyle = "rgba(252, 71, 111, 0.95)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = "#9fb5d1";
+    ctx.font = "12px sans-serif";
+    ctx.fillText("\u2014 On Expiry Date", padL - 20, 20);
+    ctx.fillStyle = "#ff8f1f";
+    ctx.fillText("\u2014 On Target Date", vWidth - padR - 122, 20);
+
+    let vBadge = `Current Price: ${pGraphData.spot.toFixed(2)}`;
+    ctx.font = "600 13px sans-serif";
+    let bW = Math.max(150, ctx.measureText(vBadge).width + 24);
+    let bX = Math.min(Math.max(xSpot - (bW / 2), padL + 2), vWidth - padR - bW - 2);
+    ctx.fillStyle = "rgba(29, 36, 54, 0.96)";
+    ctx.fillRect(bX, 6, bW, 28);
+    ctx.fillStyle = "#dce7f7";
+    ctx.fillText(vBadge, bX + 12, 24);
+
+    ctx.fillStyle = "#7fa0c8";
+    ctx.font = "11px sans-serif";
+    for(let i=0; i<=5; i++){
+        let xVal = xMin + ((xMax - xMin) * i / 5);
+        let px = toX(xVal);
+        let txt = xVal.toFixed(0);
+        let tw = ctx.measureText(txt).width;
+        ctx.fillText(txt, px - (tw / 2), vHeight - 18);
+    }
+
+    for(let i=0; i<=5; i++){
+        let yVal = yMin + ((yMax - yMin) * i / 5);
+        let py = toY(yVal);
+        let txt = fnFormatPayoffAxisVal(yVal);
+        let tw = ctx.measureText(txt).width;
+        ctx.fillText(txt, padL - tw - 8, py + 4);
+        ctx.fillText(txt, vWidth - padR + 10, py + 4);
+    }
+
+    ctx.save();
+    ctx.translate(16, padT + (plotH / 2));
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = "#8ba8cc";
+    ctx.font = "12px sans-serif";
+    ctx.fillText("Profit / Loss", -40, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(vWidth - 12, padT + (plotH / 2));
+    ctx.rotate(Math.PI / 2);
+    ctx.fillStyle = "#8ba8cc";
+    ctx.font = "12px sans-serif";
+    ctx.fillText("Position Exposure", -54, 0);
+    ctx.restore();
+
+    let vSpotProjected = 0;
+    let vClosestDiff = Number.MAX_VALUE;
+    for(let i=0; i<objSeries.length; i++){
+        let d = Math.abs(objSeries[i].x - pGraphData.spot);
+        if(d < vClosestDiff){
+            vClosestDiff = d;
+            vSpotProjected = objSeries[i].target;
+        }
+    }
+
+    let vLbl = (vSpotProjected >= 0 ? "Projected Profit" : "Projected Loss") + `: ${vSpotProjected.toFixed(2)}`;
+    ctx.font = "600 13px sans-serif";
+    let cW = Math.max(210, ctx.measureText(vLbl).width + 26);
+    let cX = (vWidth / 2) - (cW / 2);
+    let cY = vHeight - 32;
+    ctx.fillStyle = vSpotProjected >= 0 ? "#0d7a4f" : "#9d1f2f";
+    ctx.fillRect(cX, cY, cW, 24);
+    ctx.fillStyle = "#ffe7e7";
+    ctx.fillText(vLbl, cX + 13, cY + 16);
+}
+
+function fnUpdatePayoffGraph(){
+    let objData = fnBuildPayoffGraphData();
+    gPayoffGraphLastData = objData;
+    fnDrawPayoffGraph(objData);
+}
 
 function fnGetAllStatus(){
 	let bAppStatus = JSON.parse(localStorage.getItem("AppMsgStatusS"));
@@ -183,6 +548,7 @@ function fnLoadHiddenFlds(){
 
     let objChkDeltaNeutral = document.getElementById("swtDeltaNeutral");
     let objMinDeltaPM = document.getElementById("txtMinDeltaPM");
+    let objDeltaAdjSide = document.getElementById("ddlDeltaAdjSide");
 
     if(objHidFlds === null || objHidFlds === ""){
         objHidFlds = gOtherFlds;
@@ -202,9 +568,20 @@ function fnLoadHiddenFlds(){
 
         objChkDeltaNeutral.checked = objHidFlds[0]["SwtDeltaNtrl"]; 
         objMinDeltaPM.value = objHidFlds[0]["DeltaPM"]; 
+        if(objDeltaAdjSide){
+            objDeltaAdjSide.value = objHidFlds[0]["DeltaAdjSide"] || "BOTH";
+        }
     }
     else{
         gOtherFlds = objHidFlds;
+        let bUpdatedDefaults = false;
+        if(!gOtherFlds[0]["DeltaAdjSide"]){
+            gOtherFlds[0]["DeltaAdjSide"] = "BOTH";
+            bUpdatedDefaults = true;
+        }
+        if(bUpdatedDefaults){
+            localStorage.setItem("HidFldsDSSDV1", JSON.stringify(gOtherFlds));
+        }
         objSwtActiveMsgs.checked = gOtherFlds[0]["SwtActiveMsgs"];
         objBrokAmt.value = gOtherFlds[0]["BrokerageAmt"];
         objYet2Recvr.value = gOtherFlds[0]["Yet2RecvrAmt"];
@@ -221,6 +598,9 @@ function fnLoadHiddenFlds(){
 
         objChkDeltaNeutral.checked = gOtherFlds[0]["SwtDeltaNtrl"]; 
         objMinDeltaPM.value = gOtherFlds[0]["DeltaPM"]; 
+        if(objDeltaAdjSide){
+            objDeltaAdjSide.value = gOtherFlds[0]["DeltaAdjSide"] || "BOTH";
+        }
     }
 }
 
@@ -581,13 +961,13 @@ function fnSaveUpdCurrPos(){
 
     vBrokAmt = parseFloat(vBrokAmt) * parseInt(vBrokXVal);
 
+
     if(vYetRecAmt < 0){
         vTotalPL = gPL + vYetRecAmt;
     }
     else{
-        vTotalPL = gPL - vYetRecAmt;
+        vTotalPL = gPL + vYetRecAmt;
     }
-    // console.log("vTotalPL: " + vTotalPL);
 
     document.getElementById("divNetPL").innerText = (vTotalPL).toFixed(2);
 
@@ -707,6 +1087,7 @@ function fnGetOpenFutureLegBySide(pTransType){
 async function fnRunDeltaNeutralFutures(){
     let objSwtDeltaNeutral = document.getElementById("swtDeltaNeutral");
     let objMinDeltaPM = document.getElementById("txtMinDeltaPM");
+    let objDeltaAdjSide = document.getElementById("ddlDeltaAdjSide");
 
     if(!objSwtDeltaNeutral || !objSwtDeltaNeutral.checked){
         return;
@@ -716,6 +1097,7 @@ async function fnRunDeltaNeutralFutures(){
     if(!Number.isFinite(vMinDeltaPM)){
         vMinDeltaPM = Math.abs(parseFloat(gOtherFlds[0]["DeltaPM"] || 0.10));
     }
+    let vDeltaAdjSide = (objDeltaAdjSide ? objDeltaAdjSide.value : (gOtherFlds[0]["DeltaAdjSide"] || "BOTH"));
 
     let vOptionDelta = 0;
     let vFutureDelta = 0;
@@ -760,7 +1142,18 @@ async function fnRunDeltaNeutralFutures(){
 
     gDeltaNtrlBusy = true;
     try{
-        if(vNetDelta > -vMinDeltaPM && vNetDelta < vMinDeltaPM){
+        let bNeedsAdjustment = false;
+        if(vDeltaAdjSide === "+DELTA"){
+            bNeedsAdjustment = (vNetDelta >= vMinDeltaPM);
+        }
+        else if(vDeltaAdjSide === "-DELTA"){
+            bNeedsAdjustment = (vNetDelta <= -vMinDeltaPM);
+        }
+        else{
+            bNeedsAdjustment = !(vNetDelta > -vMinDeltaPM && vNetDelta < vMinDeltaPM);
+        }
+
+        if(!bNeedsAdjustment){
             return;
         }
 
@@ -2034,6 +2427,7 @@ function fnUpdateOpenPositions(){
             objCurrTradeList.innerHTML = vTempHtml;
             gPL = vNetPL;
         }
+        fnUpdatePayoffGraph();
         fnDispClosedPositions();
     }
 }
@@ -2541,6 +2935,12 @@ function fnUpdateRates(pTicData){
         gSpotPrice = pTicData.spot_price;
         // gSymbMarkIVList[pTicData.symbol] = pTicData.quotes.mark_iv;
         // gSymbRhoList[pTicData.symbol] = pTicData.greeks.rho;
+    }
+
+    let vNow = Date.now();
+    if(vNow - gPayoffGraphRenderTs >= 400){
+        gPayoffGraphRenderTs = vNow;
+        fnUpdatePayoffGraph();
     }
 }
 
