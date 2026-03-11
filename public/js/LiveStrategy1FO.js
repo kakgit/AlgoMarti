@@ -41,7 +41,7 @@ let gDeltaNtrlBusy = false;
 let gDeltaNtrlLastActionTs = 0;
 let gCurrStrats = { StratsData : [{StratID : 1, NewSellCE : true, NewSellPE : true, StartSellQty : 1, NewSellDelta : 0.33, ReSellDelta : 0.33, SellDeltaTP : 0.10, SellDeltaSL : 0.53, NewBuyCE : false, NewBuyPE : false, StartBuyQty : 1, NewBuyDelta : 0.33, ReBuyDelta : 0.33, BuyDeltaTP : 2.0, BuyDeltaSL : 0.0 }]};
 let gCurrFutStrats = { StratsData : [{StratID : 11, StartFutQty : 1, PointsSL : 100, PointsTP : 200 }]};
-let gOtherFlds = [{ SwtActiveMsgs : false, BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtOpnBuyLegOP : false, SwtOpnBuyLegSS : false, SwtBrokRec : false, BrokX4Profit : 2, ReLegBrok : false, ReLegSell : false, ReLegBuy : false, SwtDeltaNtrl : true, DeltaPM : 0.10 }];
+let gOtherFlds = [{ SwtActiveMsgs : false, BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtOpnBuyLegOP : false, SwtOpnBuyLegSS : false, SwtBrokRec : false, BrokX4Profit : 2, ReLegBrok : false, ReLegSell : false, ReLegBuy : false, SwtDeltaNtrl : true, DeltaMinusPM : 0.10, DeltaPlusPM : 0.10, DeltaAdjSide : "BOTH" }];
 
 window.addEventListener("DOMContentLoaded", function(){
     fnInitClosedPosDateTimeFilters();
@@ -834,7 +834,8 @@ function fnLoadHiddenFlds(){
     let objChkReLegBuy = document.getElementById("chkReLegBuy");
 
     let objChkDeltaNeutral = document.getElementById("swtDeltaNeutral");
-    let objMinDeltaPM = document.getElementById("txtMinDeltaPM");
+    let objMinusDeltaPM = document.getElementById("txtMinusDeltaPM");
+    let objPlusDeltaPM = document.getElementById("txtPlusDeltaPM");
     let objDeltaAdjSide = document.getElementById("ddlDeltaAdjSide");
 
     if(objHidFlds === null || objHidFlds === ""){
@@ -854,7 +855,8 @@ function fnLoadHiddenFlds(){
         objChkReLegBuy.checked = objHidFlds[0]["ReLegBuy"]; 
 
         objChkDeltaNeutral.checked = objHidFlds[0]["SwtDeltaNtrl"]; 
-        objMinDeltaPM.value = objHidFlds[0]["DeltaPM"]; 
+        objMinusDeltaPM.value = objHidFlds[0]["DeltaMinusPM"]; 
+        objPlusDeltaPM.value = objHidFlds[0]["DeltaPlusPM"]; 
         if(objDeltaAdjSide){
             objDeltaAdjSide.value = objHidFlds[0]["DeltaAdjSide"] || "BOTH";
         }
@@ -862,6 +864,14 @@ function fnLoadHiddenFlds(){
     else{
         gOtherFlds = objHidFlds;
         let bUpdatedDefaults = false;
+        if(!Number.isFinite(parseFloat(gOtherFlds[0]["DeltaMinusPM"]))){
+            gOtherFlds[0]["DeltaMinusPM"] = 0.10;
+            bUpdatedDefaults = true;
+        }
+        if(!Number.isFinite(parseFloat(gOtherFlds[0]["DeltaPlusPM"]))){
+            gOtherFlds[0]["DeltaPlusPM"] = 0.10;
+            bUpdatedDefaults = true;
+        }
         if(!gOtherFlds[0]["DeltaAdjSide"]){
             gOtherFlds[0]["DeltaAdjSide"] = "BOTH";
             bUpdatedDefaults = true;
@@ -884,7 +894,8 @@ function fnLoadHiddenFlds(){
         objChkReLegBuy.checked = gOtherFlds[0]["ReLegBuy"]; 
 
         objChkDeltaNeutral.checked = gOtherFlds[0]["SwtDeltaNtrl"]; 
-        objMinDeltaPM.value = gOtherFlds[0]["DeltaPM"]; 
+        objMinusDeltaPM.value = gOtherFlds[0]["DeltaMinusPM"]; 
+        objPlusDeltaPM.value = gOtherFlds[0]["DeltaPlusPM"]; 
         if(objDeltaAdjSide){
             objDeltaAdjSide.value = gOtherFlds[0]["DeltaAdjSide"] || "BOTH";
         }
@@ -1751,17 +1762,30 @@ function fnGetOpenFutureLegBySide(pTransType){
 
 async function fnRunDeltaNeutralFutures(){
     let objSwtDeltaNeutral = document.getElementById("swtDeltaNeutral");
-    let objMinDeltaPM = document.getElementById("txtMinDeltaPM");
+    let objMinusDeltaPM = document.getElementById("txtMinusDeltaPM");
+    let objPlusDeltaPM = document.getElementById("txtPlusDeltaPM");
     let objDeltaAdjSide = document.getElementById("ddlDeltaAdjSide");
 
     if(!objSwtDeltaNeutral || !objSwtDeltaNeutral.checked){
         return;
     }
 
-    let vMinDeltaPM = Math.abs(parseFloat(objMinDeltaPM ? objMinDeltaPM.value : 0));
-    if(!Number.isFinite(vMinDeltaPM)){
-        vMinDeltaPM = Math.abs(parseFloat(gOtherFlds[0]["DeltaPM"] || 0.10));
+    let vMinusThreshold = Math.abs(parseFloat(objMinusDeltaPM ? objMinusDeltaPM.value : NaN));
+    if(!Number.isFinite(vMinusThreshold)){
+        vMinusThreshold = Math.abs(parseFloat(gOtherFlds[0]["DeltaMinusPM"]));
     }
+    if(!Number.isFinite(vMinusThreshold) || vMinusThreshold === 0){
+        vMinusThreshold = 0.10;
+    }
+
+    let vPlusThreshold = Math.abs(parseFloat(objPlusDeltaPM ? objPlusDeltaPM.value : NaN));
+    if(!Number.isFinite(vPlusThreshold)){
+        vPlusThreshold = Math.abs(parseFloat(gOtherFlds[0]["DeltaPlusPM"]));
+    }
+    if(!Number.isFinite(vPlusThreshold) || vPlusThreshold === 0){
+        vPlusThreshold = 0.10;
+    }
+
     let vDeltaAdjSide = (objDeltaAdjSide ? objDeltaAdjSide.value : (gOtherFlds[0]["DeltaAdjSide"] || "BOTH"));
 
     let vOptionDelta = 0;
@@ -1798,7 +1822,8 @@ async function fnRunDeltaNeutralFutures(){
     }
 
     vNetDelta = parseFloat(vNetDelta.toFixed(6));
-    vMinDeltaPM = parseFloat(vMinDeltaPM.toFixed(6));
+    vMinusThreshold = parseFloat(vMinusThreshold.toFixed(6));
+    vPlusThreshold = parseFloat(vPlusThreshold.toFixed(6));
 
     let vNow = Date.now();
     if(gDeltaNtrlBusy || (vNow - gDeltaNtrlLastActionTs) < 5000){
@@ -1809,13 +1834,13 @@ async function fnRunDeltaNeutralFutures(){
     try{
         let bNeedsAdjustment = false;
         if(vDeltaAdjSide === "+DELTA"){
-            bNeedsAdjustment = (vNetDelta >= vMinDeltaPM);
+            bNeedsAdjustment = (vNetDelta >= vPlusThreshold);
         }
         else if(vDeltaAdjSide === "-DELTA"){
-            bNeedsAdjustment = (vNetDelta <= -vMinDeltaPM);
+            bNeedsAdjustment = (vNetDelta <= -vMinusThreshold);
         }
         else{
-            bNeedsAdjustment = !(vNetDelta > -vMinDeltaPM && vNetDelta < vMinDeltaPM);
+            bNeedsAdjustment = (vNetDelta <= -vMinusThreshold || vNetDelta >= vPlusThreshold);
         }
 
         if(!bNeedsAdjustment){
@@ -4068,4 +4093,3 @@ function fnDisplayDeltaDirec(){
     // console.log("Delta Directions");
     // console.log(objDeltas);
 }
-

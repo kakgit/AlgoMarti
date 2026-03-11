@@ -262,8 +262,11 @@
                                             <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtDeltaNeutral" name="swtDeltaNeutral" onchange="fnUpdHidFldSettings(this.checked, 'SwtDeltaNtrl', 'Delta Neutral !');" />
                                         </div>
                                     </div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Delta Threshold" id="txtMinDeltaPM" value="0.10" title="Minimum net delta threshold to trigger adjustment" onchange="fnUpdHidFldSettings(this.value, 'DeltaPM', 'Delta Change Value!');" />
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" placeholder="-Delta Threshold" id="txtMinusDeltaPM" value="0.10" min="0" step="0.01" title="Minimum negative net delta threshold to trigger adjustment" onchange="fnUpdHidFldSettings(this.value, 'DeltaMinusPM', 'Delta Change Value!');" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" placeholder="+Delta Threshold" id="txtPlusDeltaPM" value="0.10" min="0" step="0.01" title="Minimum positive net delta threshold to trigger adjustment" onchange="fnUpdHidFldSettings(this.value, 'DeltaPlusPM', 'Delta Change Value!');" />
                                     </div>
                                     <div class="col-2">
                                         <select class="form-select" id="ddlDeltaAdjSide" title="Delta side to trigger adjustment" onchange="fnUpdHidFldSettings(this.value, 'DeltaAdjSide', 'Delta Adjustment Side!');">
