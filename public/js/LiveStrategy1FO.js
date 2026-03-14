@@ -37,6 +37,7 @@ let gOptionBrokerage = 0.01;
 let gFutureBrokerage = 0.05;
 let gReLeg = false;
 let gClsBuyLeg = false;
+let gSaveUpdBusy = false;
 let gDeltaNtrlBusy = false;
 let gDeltaNtrlLastActionTs = 0;
 let gCurrStrats = { StratsData : [{StratID : 1, NewSellCE : true, NewSellPE : true, StartSellQty : 1, NewSellDelta : 0.33, ReSellDelta : 0.33, SellDeltaTP : 0.10, SellDeltaSL : 0.53, NewBuyCE : false, NewBuyPE : false, StartBuyQty : 1, NewBuyDelta : 0.33, ReBuyDelta : 0.33, BuyDeltaTP : 2.0, BuyDeltaSL : 0.0 }]};
@@ -1572,7 +1573,7 @@ function fnSetSymbolTickerList(){
         fnSubscribeDFL();
 
         clearInterval(gTradeInst);
-        gTradeInst = setInterval(fnSaveUpdCurrPos, 30000);
+        gTradeInst = setInterval(fnSaveUpdCurrPos, 15000);
     }
 }
 
@@ -1623,7 +1624,12 @@ function fnChkTodayPosToCls(){
 }
 
 //************** Check for Open Position PL Status and close *************//
-function fnSaveUpdCurrPos(){
+async function fnSaveUpdCurrPos(){
+    if(gSaveUpdBusy){
+        return;
+    }
+    gSaveUpdBusy = true;
+    try{
     let vToPosClose = false;
     let vLegID = 0;
     let vTransType = "";
@@ -1741,11 +1747,15 @@ function fnSaveUpdCurrPos(){
 
             //     fnGetBuyOpenPosAndClose(vTransType, vOptionType);
             // }
-            fnCloseOptPosition(vLegID, vTransType, vOptionType, vSymbol, "CLOSED");
+            await fnCloseOptPosition(vLegID, vTransType, vOptionType, vSymbol, "CLOSED");
         }
         else{
-            fnRunDeltaNeutralFutures();
+            await fnRunDeltaNeutralFutures();
         }
+    }
+    }
+    finally{
+        gSaveUpdBusy = false;
     }
 }
 

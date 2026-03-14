@@ -27,7 +27,6 @@ const deltaSStrangleDemoCtrler = require("../controller/cntrDeltaSStrangleD.js")
 const strategy1FOCtrler = require("../controller/cntrStrategy1FO.js");
 const liveStrategy1FOCtrler = require("../controller/cntrLiveStrategy1FO.js");
 const deltaSStrangleLiveCtrler = require("../controller/cntrDeltaSStrangleL.js");
-const deltaPaperCtrler = require("../controller/cntrDeltaPaper.js");
 const ctrlCryptoFunding = require("../controller/controllerCryptoFunding.js");
 const ctrlCryptoFundingV2 = require("../controller/controllerCryptoFundingV2.js");
 
@@ -91,9 +90,6 @@ route.get("/LiveStrategy1FO", liveStrategy1FOCtrler.defaultRoute);
 
 //Delta Short Strangle Live Route
 route.get("/deltaSStrangleLive", deltaSStrangleLiveCtrler.defaultRoute);
-
-//Delta Paper Strategy Route
-route.get("/deltaPaper", deltaPaperCtrler.defaultRoute);
 
 //Crypto Funding Route
 route.get("/cryptoFunding", ctrlCryptoFunding.defaultRoute);
