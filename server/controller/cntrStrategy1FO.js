@@ -333,9 +333,7 @@ const fnGetSymbolDetails = async (pApiKey, pApiSecret, pUAssetSymbol, pTransType
             let vBestBuyPrice = parseFloat(objRes.result.quotes.best_ask);
             let vBestSellPrice = parseFloat(objRes.result.quotes.best_bid);
             let vRateTP, vRateSL = 0;
-            let vLotSizeNum = parseFloat(pLotSize) || 0;
-            let vLotQtyNum = parseFloat(pLotQty) || 0;
-            let vFutDeltaAbs = vLotSizeNum * vLotQtyNum;
+            let vFutDeltaAbs = 0.10;
             let vFutDelta = vFutDeltaAbs;
 
             if(pTransType === "buy"){
