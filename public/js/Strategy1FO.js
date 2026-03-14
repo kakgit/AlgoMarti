@@ -2553,7 +2553,7 @@ function fnDispClosedPositions(){
         vTotalVegaC += vVegaC;
 
         vTempHtml += "<tr>";
-        vTempHtml += '<td style="text-wrap: nowrap; text-align:center;"><i class="fa fa-wrench" aria-hidden="true" style="color:#01ff1f;" onclick="fnOpenEditModel('+ vLegID +', '+ vLotSize +', '+ vQty +', `'+ vBuyPrice +'`, `'+ vSellPrice +'`);"></i></td>';
+        vTempHtml += '<td style="text-wrap: nowrap; text-align:center;"><i class="fa fa-wrench" aria-hidden="true" style="color:#01ff1f;" onclick="fnOpenEditModel('+ vLegID +', '+ vLotSize +', '+ vQty +', `'+ vBuyPrice +'`, `'+ vSellPrice +'`);"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" aria-hidden="true" style="color:red;" onclick="fnDelLeg('+ vLegID +');"></i></td>';
         vTempHtml += '<td><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vDeltaC).toFixed(2) + '</div><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vDelta).toFixed(2) + "</div></td>";
         vTempHtml += '<td><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vGammaC).toFixed(4) + '</div><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vGamma).toFixed(4) + "</div></td>";
         vTempHtml += '<td><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vThetaC).toFixed(4) + '</div><div style="text-wrap: nowrap; text-align:right; font-weight:bold; color:grey;">' + (vTheta).toFixed(4) + "</div></td>";
@@ -2840,20 +2840,39 @@ function fnUpdateOptionLeg(){
         fnGenMessage("Please Enter Sell Price!", `badge bg-warning`, "spnGenMsg");
     }
     else{
-        for(let i=0; i<gCurrPosDSSDV1.TradeData.length; i++){
-            if(gCurrPosDSSDV1.TradeData[i].TradeID === parseInt(objLegID.value)){
-                gCurrPosDSSDV1.TradeData[i].LotSize = parseFloat(objLotSize.value);
-                gCurrPosDSSDV1.TradeData[i].LotQty = parseInt(objQty.value);
-                gCurrPosDSSDV1.TradeData[i].BuyPrice = parseFloat(objBuyPrice.value);
-                gCurrPosDSSDV1.TradeData[i].SellPrice = parseFloat(objSellPrice.value);
-            }
-        }
+        let vLegID = String(objLegID.value);
+        let bUpdated = false;
 
-        let objExcTradeDtls = JSON.stringify(gCurrPosDSSDV1);
-        localStorage.setItem("CurrPosDSSDV1", objExcTradeDtls);
-        fnLoadCurrentTradePos();
-        fnGenMessage("Option Leg Updated!", `badge bg-success`, "spnGenMsg");
-        $('#mdlLegEditor').modal('hide');
+        const fnUpdLeg = (objStore) => {
+            if(!objStore || !Array.isArray(objStore.TradeData)){
+                return false;
+            }
+            for(let i=0; i<objStore.TradeData.length; i++){
+                if(String(objStore.TradeData[i].TradeID) === vLegID){
+                    objStore.TradeData[i].LotSize = parseFloat(objLotSize.value);
+                    objStore.TradeData[i].LotQty = parseInt(objQty.value);
+                    objStore.TradeData[i].BuyPrice = parseFloat(objBuyPrice.value);
+                    objStore.TradeData[i].SellPrice = parseFloat(objSellPrice.value);
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        bUpdated = fnUpdLeg(gCurrPosDSSDV1) || bUpdated;
+        bUpdated = fnUpdLeg(gClsdPosDSSDV1) || bUpdated;
+
+        localStorage.setItem("CurrPosDSSDV1", JSON.stringify(gCurrPosDSSDV1));
+        localStorage.setItem("ClsdPosDSSDV1", JSON.stringify(gClsdPosDSSDV1));
+
+        if(bUpdated){
+            fnLoadCurrentTradePos();
+            fnGenMessage("Option Leg Updated!", `badge bg-success`, "spnGenMsg");
+            $('#mdlLegEditor').modal('hide');
+        }
+        else{
+            fnGenMessage("Leg not found for update!", `badge bg-warning`, "spnGenMsg");
+        }
     }
     gUpdPos = true;
 }
@@ -2871,22 +2890,30 @@ function fnDelLeg(pLegID){
         // gSymbMarkIVList = {};
         // gSymbRhoList = {};
 
-        let vDelRec = null;
+        let vLegID = String(pLegID);
+        let vCurrLen = (gCurrPosDSSDV1 && Array.isArray(gCurrPosDSSDV1.TradeData)) ? gCurrPosDSSDV1.TradeData.length : 0;
+        let vClsdLen = (gClsdPosDSSDV1 && Array.isArray(gClsdPosDSSDV1.TradeData)) ? gClsdPosDSSDV1.TradeData.length : 0;
 
-        for(let i=0; i<gCurrPosDSSDV1.TradeData.length; i++){
-            if(gCurrPosDSSDV1.TradeData[i].TradeID === pLegID){
-                vDelRec = i;
-            }
+        if(gCurrPosDSSDV1 && Array.isArray(gCurrPosDSSDV1.TradeData)){
+            gCurrPosDSSDV1.TradeData = gCurrPosDSSDV1.TradeData.filter(objLeg => String(objLeg.TradeID) !== vLegID);
+        }
+        if(gClsdPosDSSDV1 && Array.isArray(gClsdPosDSSDV1.TradeData)){
+            gClsdPosDSSDV1.TradeData = gClsdPosDSSDV1.TradeData.filter(objLeg => String(objLeg.TradeID) !== vLegID);
         }
 
-        gCurrPosDSSDV1.TradeData.splice(vDelRec, 1);
+        localStorage.setItem("CurrPosDSSDV1", JSON.stringify(gCurrPosDSSDV1));
+        localStorage.setItem("ClsdPosDSSDV1", JSON.stringify(gClsdPosDSSDV1));
 
-        let objExcTradeDtls = JSON.stringify(gCurrPosDSSDV1);
-        localStorage.setItem("CurrPosDSSDV1", objExcTradeDtls);
+        let bDeleted = ((gCurrPosDSSDV1.TradeData.length !== vCurrLen) || (gClsdPosDSSDV1.TradeData.length !== vClsdLen));
         gUpdPos = true;
 
-        fnSetSymbolTickerList();
-        fnUpdateOpenPositions();
+        if(bDeleted){
+            fnSetSymbolTickerList();
+            fnUpdateOpenPositions();
+        }
+        else{
+            fnGenMessage("Leg not found for delete!", `badge bg-warning`, "spnGenMsg");
+        }
     }
 }
 
