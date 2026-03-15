@@ -594,7 +594,7 @@ function fnCheckBuySLTP(pCurrPrice){
 			fnCloseManualFutures(gByorSl);
 		}
 	}
-	else if(parseFloat(pCurrPrice) >= parseFloat(gAmtTP)){
+	else if((parseFloat(gAmtTP) > 0) && (parseFloat(gPL) >= parseFloat(gAmtTP))){
 		// console.log("TP Hit");
 		fnCloseManualFutures(gByorSl);
 	}
@@ -651,7 +651,7 @@ function fnCheckSellSLTP(pCurrPrice){
 			fnCloseManualFutures(gByorSl);
 		}
 	}
-	else if(parseFloat(pCurrPrice) <= parseFloat(gAmtTP)){
+	else if((parseFloat(gAmtTP) > 0) && (parseFloat(gPL) >= parseFloat(gAmtTP))){
 		// console.log("TP Hit");
 		fnCloseManualFutures(gByorSl);
 	}
@@ -725,10 +725,14 @@ function fnLoadSlTp(){
     let objCurrSlTp = JSON.parse(localStorage.getItem("DeltaCurrFutSlTp"));
     let objTxtSL = document.getElementById("txtPointsSL");
     let objTxtTP1 = document.getElementById("txtPointsTP1");
-    let objTxtTP = document.getElementById("txtPointsTP");
+    let objTxtTP = document.getElementById("txtAmountTP") || document.getElementById("txtPointsTP");
+
+    if(!objTxtSL || !objTxtTP1 || !objTxtTP){
+        return;
+    }
 
     if(objCurrSlTp === null){
-    	let objSlTp = { PointSL : 200, PointTP1 : 300, PointTP : 1000 };
+    	let objSlTp = { PointSL : 200, PointTP1 : 300, AmountTP : 1000 };
     	localStorage.setItem("DeltaCurrFutSlTp", JSON.stringify(objSlTp));
     	objTxtSL.value = 200;
     	objTxtTP1.value = 300;
@@ -737,16 +741,20 @@ function fnLoadSlTp(){
     else{
     	objTxtSL.value = objCurrSlTp.PointSL;
     	objTxtTP1.value = objCurrSlTp.PointTP1;
-    	objTxtTP.value = objCurrSlTp.PointTP;
+    	objTxtTP.value = (objCurrSlTp.AmountTP !== undefined) ? objCurrSlTp.AmountTP : objCurrSlTp.PointTP;
     }
 }
 
 function fnUpdateSlTp(){
     let objTxtSL = document.getElementById("txtPointsSL");
     let objTxtTP1 = document.getElementById("txtPointsTP1");
-    let objTxtTP = document.getElementById("txtPointsTP");
+    let objTxtTP = document.getElementById("txtAmountTP") || document.getElementById("txtPointsTP");
 
-    let objSlTp = { PointSL : objTxtSL.value, PointTP1 : objTxtTP1.value, PointTP : objTxtTP.value };
+    if(!objTxtSL || !objTxtTP1 || !objTxtTP){
+        return;
+    }
+
+    let objSlTp = { PointSL : objTxtSL.value, PointTP1 : objTxtTP1.value, AmountTP : objTxtTP.value };
     localStorage.setItem("DeltaCurrFutSlTp", JSON.stringify(objSlTp));
 
     fnGenMessage("Updated SL & TP!", `badge bg-success`, "spnGenMsg");    
@@ -772,7 +780,8 @@ async function fnInitiateManualFutures(pTransType){
 			    let objLotSize = document.getElementById("txtLotSize");
 			    let vSLPoints = parseFloat(document.getElementById("txtPointsSL").value);
 			    let vTPPoints1 = parseFloat(document.getElementById("txtPointsTP1").value);
-			    let vTPPoints = parseFloat(document.getElementById("txtPointsTP").value);
+			    let objTPAmount = document.getElementById("txtAmountTP") || document.getElementById("txtPointsTP");
+			    let vTPAmount = parseFloat(objTPAmount ? objTPAmount.value : NaN);
 			    let vBestBuy = parseFloat(objBestRates.data.BestBuy);
 			    let vBestSell = parseFloat(objBestRates.data.BestSell);
 				
@@ -781,12 +790,12 @@ async function fnInitiateManualFutures(pTransType){
 				if(gByorSl === "buy"){
 	                gAmtSL = (vBestBuy - vSLPoints).toFixed(2);
 	                gAmtTP1 = (vBestBuy + vTPPoints1).toFixed(2);
-	                gAmtTP = (vBestBuy + vTPPoints).toFixed(2);
+	                gAmtTP = Number.isFinite(vTPAmount) ? vTPAmount : 0;
 				}
 				else if(gByorSl === "sell"){
 	                gAmtSL = (vBestBuy + vSLPoints).toFixed(2);
 	                gAmtTP1 = (vBestBuy - vTPPoints1).toFixed(2);
-	                gAmtTP = (vBestBuy - vTPPoints).toFixed(2);
+	                gAmtTP = Number.isFinite(vTPAmount) ? vTPAmount : 0;
 				}
 				else{
 					gAmtSL = 0;
@@ -794,7 +803,7 @@ async function fnInitiateManualFutures(pTransType){
 					gAmtTP = 0;				
 				}
 
-	            let vExcTradeDtls = { TradeData: [{ OrderID : vOrdId, OpenDT : vToday, FutSymbol : objFutDDL.value, TransType : pTransType, LotSize : objLotSize.value, Qty : objQty.value, BuyPrice : vBestBuy, SellPrice : vBestSell, AmtSL : gAmtSL, AmtTP1 : gAmtTP1, AmtTP : gAmtTP, StopLossPts: vSLPoints, TakeProfitPts : vTPPoints, OpenDTVal : vOrdId }] };
+	            let vExcTradeDtls = { TradeData: [{ OrderID : vOrdId, OpenDT : vToday, FutSymbol : objFutDDL.value, TransType : pTransType, LotSize : objLotSize.value, Qty : objQty.value, BuyPrice : vBestBuy, SellPrice : vBestSell, AmtSL : gAmtSL, AmtTP1 : gAmtTP1, AmtTP : gAmtTP, StopLossPts: vSLPoints, TakeProfitAmt : vTPAmount, OpenDTVal : vOrdId }] };
 	            let objExcTradeDtls = JSON.stringify(vExcTradeDtls);
 	            gCurrPos = vExcTradeDtls;
 
@@ -852,10 +861,10 @@ function fnSetInitFutTrdDtls(){
 		gSellPrice = parseFloat(gCurrPos.TradeData[0].SellPrice).toFixed(2);
 		gLotSize = parseFloat(gCurrPos.TradeData[0].LotSize);
 		gQty = parseFloat(gCurrPos.TradeData[0].Qty);
-        gByorSl = gCurrPos.TradeData[0].TransType;
+		gByorSl = gCurrPos.TradeData[0].TransType;
 		gAmtSL = gCurrPos.TradeData[0].AmtSL;
 		gAmtTP1 = gCurrPos.TradeData[0].AmtTP1;
-		gAmtTP = gCurrPos.TradeData[0].AmtTP;
+		gAmtTP = (gCurrPos.TradeData[0].TakeProfitAmt !== undefined) ? gCurrPos.TradeData[0].TakeProfitAmt : gCurrPos.TradeData[0].AmtTP;
 
 		objDateTime.innerText = gCurrPos.TradeData[0].OpenDT;
 		objSymbol.innerText = gCurrPos.TradeData[0].FutSymbol;
