@@ -25,6 +25,7 @@ const deltaSStraddleDemoCtrler = require("../controller/cntrDeltaSStraddleD.js")
 const deltaSStraddleLiveCtrler = require("../controller/cntrDeltaSStraddleL.js");
 const deltaSStrangleDemoCtrler = require("../controller/cntrDeltaSStrangleD.js");
 const strategy1FOCtrler = require("../controller/cntrStrategy1FO.js");
+const strategy2FOCtrler = require("../controller/cntrStrategy2FO.js");
 const liveStrategy1FOCtrler = require("../controller/cntrLiveStrategy1FO.js");
 const deltaSStrangleLiveCtrler = require("../controller/cntrDeltaSStrangleL.js");
 const ctrlCryptoFunding = require("../controller/controllerCryptoFunding.js");
@@ -86,6 +87,7 @@ route.get("/deltaSStrangle-Demo", deltaSStrangleDemoCtrler.defaultRoute);
 
 //Strategy1FO Route
 route.get("/Strategy1FO", strategy1FOCtrler.defaultRoute);
+route.get("/Strategy2FO", strategy2FOCtrler.defaultRoute);
 route.get("/LiveStrategy1FO", liveStrategy1FOCtrler.defaultRoute);
 
 //Delta Short Strangle Live Route
@@ -241,6 +243,12 @@ route.post("/strategy1fo/execOption", strategy1FOCtrler.fnExecOptionByOptTypeExp
 route.post("/strategy1fo/execOptionLeg", strategy1FOCtrler.fnExecOptByOTypExpTType);
 route.post("/strategy1fo/execFutureLeg", strategy1FOCtrler.fnExecFutByTType);
 route.post("/strategy1fo/getBestRatesBySymb", strategy1FOCtrler.fnGetBestRatesBySymbol);
+route.post("/strategy2fo/validateLogin", strategy2FOCtrler.fnValidateUserLogin);
+route.post("/strategy2fo/getOptChnSDKByAstOptTypExp", strategy2FOCtrler.fnGetOptChnSDKByAstOptTypExp);
+route.post("/strategy2fo/execOption", strategy2FOCtrler.fnExecOptionByOptTypeExpTransType);
+route.post("/strategy2fo/execOptionLeg", strategy2FOCtrler.fnExecOptByOTypExpTType);
+route.post("/strategy2fo/execFutureLeg", strategy2FOCtrler.fnExecFutByTType);
+route.post("/strategy2fo/getBestRatesBySymb", strategy2FOCtrler.fnGetBestRatesBySymbol);
 route.post("/liveStrategy1fo/validateLogin", liveStrategy1FOCtrler.fnValidateUserLogin);
 route.post("/liveStrategy1fo/getOptChnSDKByAstOptTypExp", liveStrategy1FOCtrler.fnGetOptChnSDKByAstOptTypExp);
 route.post("/liveStrategy1fo/execOption", liveStrategy1FOCtrler.fnExecOptionByOptTypeExpTransType);
