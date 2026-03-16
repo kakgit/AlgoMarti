@@ -34,7 +34,7 @@ let gDeltaNtrlBusy = false;
 let gDeltaNtrlLastActionTs = 0;
 let gCurrStrats = { StratsData : [{StratID : 1, NewSellCE : true, NewSellPE : true, StartSellQty : 1, NewSellDelta : 0.33, ReSellDelta : 0.33, SellDeltaTP : 0.10, SellDeltaSL : 0.53, NewBuyCE : false, NewBuyPE : false, StartBuyQty : 1, NewBuyDelta : 0.33, ReBuyDelta : 0.33, BuyDeltaTP : 2.0, BuyDeltaSL : 0.0 }]};
 let gCurrFutStrats = { StratsData : [{StratID : 11, StartFutQty : 1, PointsSL : 100, PointsTP : 200 }]};
-let gOtherFlds = [{ SwtActiveMsgs : false, BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtOpnBuyLegOP : false, SwtOpnBuyLegSS : false, SwtBrokRec : false, BrokX4Profit : 2, ReLegBrok : false, ReLegSell : false, ReLegBuy : false, SwtDeltaNtrl : true, DeltaMinusPM : 0.10, DeltaPlusPM : 0.10, DeltaAdjSide : "BOTH" }];
+let gOtherFlds = [{ SwtActiveMsgs : false, BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtFutOpDN : true, SwtBrokRec : false, BrokX4Profit : 2, ReLegBrok : false, ReLegSell : false, ReLegBuy : false, SwtDeltaNtrl : true, DeltaMinusPM : 0.10, DeltaPlusPM : 0.10, DeltaAdjSide : "BOTH" }];
 
 window.addEventListener("DOMContentLoaded", function(){
     fnGetAllStatus();
@@ -536,9 +536,7 @@ function fnLoadHiddenFlds(){
     let objSwtActiveMsgs = document.getElementById("swtActiveMsgs");
     let objBrokAmt = document.getElementById("txtBrok2Rec");
     let objYet2Recvr = document.getElementById("txtYet2Recvr");
-
-    let objOpnBuyLegOP = document.getElementById("swtOpnBuyLegOP");
-    let objOpnBuyLegSS = document.getElementById("swtOpnBuyLegSS");
+    let objSwtFutOpDN = document.getElementById("swtFutOpDN");
 
     let objSwtBrokerage = document.getElementById("swtBrokRecvry");
     let objTxtBrokVal = document.getElementById("txtXBrok2Rec");
@@ -557,9 +555,9 @@ function fnLoadHiddenFlds(){
         objSwtActiveMsgs.checked = objHidFlds[0]["SwtActiveMsgs"];
         objBrokAmt.value = objHidFlds[0]["BrokerageAmt"];
         objYet2Recvr.value = objHidFlds[0]["Yet2RecvrAmt"];
-
-        objOpnBuyLegOP.checked = objHidFlds[0]["SwtOpnBuyLegOP"];
-        objOpnBuyLegSS.checked = objHidFlds[0]["SwtOpnBuyLegSS"];
+        if(objSwtFutOpDN){
+            objSwtFutOpDN.checked = (objHidFlds[0]["SwtFutOpDN"] !== undefined) ? objHidFlds[0]["SwtFutOpDN"] : true;
+        }
 
         objSwtBrokerage.checked = objHidFlds[0]["SwtBrokRec"]; 
         objTxtBrokVal.value = objHidFlds[0]["BrokX4Profit"];
@@ -596,9 +594,9 @@ function fnLoadHiddenFlds(){
         objSwtActiveMsgs.checked = gOtherFlds[0]["SwtActiveMsgs"];
         objBrokAmt.value = gOtherFlds[0]["BrokerageAmt"];
         objYet2Recvr.value = gOtherFlds[0]["Yet2RecvrAmt"];
-
-        objOpnBuyLegOP.checked = gOtherFlds[0]["SwtOpnBuyLegOP"];
-        objOpnBuyLegSS.checked = gOtherFlds[0]["SwtOpnBuyLegSS"];
+        if(objSwtFutOpDN){
+            objSwtFutOpDN.checked = (gOtherFlds[0]["SwtFutOpDN"] !== undefined) ? gOtherFlds[0]["SwtFutOpDN"] : true;
+        }
 
         objSwtBrokerage.checked = gOtherFlds[0]["SwtBrokRec"]; 
         objTxtBrokVal.value = gOtherFlds[0]["BrokX4Profit"];
@@ -996,6 +994,8 @@ async function fnSaveUpdCurrPos(){
         for(let i=0; i<gCurrPosDSSDV1.TradeData.length; i++){
             if(gCurrPosDSSDV1.TradeData[i].Status === "OPEN"){
                 let vOptionTypeZZ = gCurrPosDSSDV1.TradeData[i].OptionType;
+                let objSwtFutOpDN = document.getElementById("swtFutOpDN");
+                let bInvertDeltaNeutral = !!(objSwtFutOpDN && objSwtFutOpDN.checked);
                 let vCurrDelta = parseFloat(gSymbDeltaList[gCurrPosDSSDV1.TradeData[i].Symbol]);
                 let vCurrGamma = parseFloat(gSymbGammaList[gCurrPosDSSDV1.TradeData[i].Symbol]);
                 let vCurrTheta = parseFloat(gSymbThetaList[gCurrPosDSSDV1.TradeData[i].Symbol]);
@@ -1006,6 +1006,9 @@ async function fnSaveUpdCurrPos(){
                     if(!isNaN(vCurrDelta)){
                         if(gCurrPosDSSDV1.TradeData[i].TransType === "sell"){
                             vCurrDeltaPos = -1 * vCurrDelta;
+                        }
+                        if(bInvertDeltaNeutral){
+                            vCurrDeltaPos = -1 * vCurrDeltaPos;
                         }
                     }
                     if(!isNaN(vCurrDelta)){
@@ -1020,6 +1023,13 @@ async function fnSaveUpdCurrPos(){
                     if(!isNaN(vCurrVega)){
                         gCurrPosDSSDV1.TradeData[i].VegaC = vCurrVega;
                     }
+                }
+                else{
+                    let vFutDelta = parseFloat(gCurrPosDSSDV1.TradeData[i].Delta);
+                    if(!Number.isFinite(vFutDelta)){
+                        vFutDelta = (gCurrPosDSSDV1.TradeData[i].TransType === "sell") ? -0.10 : 0.10;
+                    }
+                    gCurrPosDSSDV1.TradeData[i].DeltaC = bInvertDeltaNeutral ? (-1 * vFutDelta) : vFutDelta;
                 }
 
                 let vStrikePrice = gCurrPosDSSDV1.TradeData[i].StrikePrice;
@@ -1107,6 +1117,7 @@ function fnGetOpenFutureLegBySide(pTransType){
 
 async function fnRunDeltaNeutralFutures(){
     let objSwtDeltaNeutral = document.getElementById("swtDeltaNeutral");
+    let objSwtFutOpDN = document.getElementById("swtFutOpDN");
     let objMinusDeltaPM = document.getElementById("txtMinusDeltaPM");
     let objPlusDeltaPM = document.getElementById("txtPlusDeltaPM");
     let objDeltaAdjSide = document.getElementById("ddlDeltaAdjSide");
@@ -1169,6 +1180,8 @@ async function fnRunDeltaNeutralFutures(){
     vNetDelta = parseFloat(vNetDelta.toFixed(6));
     vMinusThreshold = parseFloat(vMinusThreshold.toFixed(6));
     vPlusThreshold = parseFloat(vPlusThreshold.toFixed(6));
+    let bInvertDeltaNeutral = !!(objSwtFutOpDN && objSwtFutOpDN.checked);
+    let vEvalNetDelta = bInvertDeltaNeutral ? (-1 * vNetDelta) : vNetDelta;
 
     let vNow = Date.now();
     if(gDeltaNtrlBusy || (vNow - gDeltaNtrlLastActionTs) < 5000){
@@ -1179,20 +1192,20 @@ async function fnRunDeltaNeutralFutures(){
     try{
         let bNeedsAdjustment = false;
         if(vDeltaAdjSide === "+DELTA"){
-            bNeedsAdjustment = (vNetDelta >= vPlusThreshold);
+            bNeedsAdjustment = (vEvalNetDelta >= vPlusThreshold);
         }
         else if(vDeltaAdjSide === "-DELTA"){
-            bNeedsAdjustment = (vNetDelta <= -vMinusThreshold);
+            bNeedsAdjustment = (vEvalNetDelta <= -vMinusThreshold);
         }
         else{
-            bNeedsAdjustment = (vNetDelta <= -vMinusThreshold || vNetDelta >= vPlusThreshold);
+            bNeedsAdjustment = (vEvalNetDelta <= -vMinusThreshold || vEvalNetDelta >= vPlusThreshold);
         }
 
         if(!bNeedsAdjustment){
             return;
         }
 
-        let vNeedAction = (vNetDelta > 0) ? "sell" : "buy";
+        let vNeedAction = (vEvalNetDelta > 0) ? "sell" : "buy";
         let vOppositeAction = (vNeedAction === "buy") ? "sell" : "buy";
         let objOppFuture = fnGetOpenFutureLegBySide(vOppositeAction);
 
@@ -1985,6 +1998,12 @@ async function fnPreInitAutoFutTrade(pOptionType, pTransType){
         let vBestSell = parseFloat(objTradeDtls.data.BestBid);
         let vDelta = objTradeDtls.data.Delta;
         let vDeltaC = parseFloat(objTradeDtls.data.DeltaC);
+        let objSwtFutOpDN = document.getElementById("swtFutOpDN");
+        let bInvertDeltaNeutral = !!(objSwtFutOpDN && objSwtFutOpDN.checked);
+        if(Number.isFinite(parseFloat(vDelta))){
+            vDelta = parseFloat(vDelta);
+            vDeltaC = bInvertDeltaNeutral ? (-1 * vDelta) : vDelta;
+        }
         let vPointsTP = objTradeDtls.data.PointsTP;
         let vPointsSL = objTradeDtls.data.PointsSL;
         let vRateTP = objTradeDtls.data.RateTP;
@@ -2707,24 +2726,7 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
                 }
             }
             else{
-                let objOpnBuyLegOP = document.getElementById("swtOpnBuyLegOP");
-                let objOpnBuyLegSS = document.getElementById("swtOpnBuyLegSS");
-
-                if(objOpnBuyLegOP.checked && pTransType === "sell"){
-                    let vOptionType = "";
-
-                    if(pOptionType === "C"){
-                        vOptionType = "P";
-                    }
-                    else if(pOptionType === "P"){
-                        vOptionType = "C";
-                    }
-                    fnPreInitAutoTrade(vOptionType, "buy");
-                }
-
-                if(objOpnBuyLegSS.checked && pTransType === "sell"){
-                    fnPreInitAutoTrade(pOptionType, "buy");
-                }
+                // Intentionally no auto-open buy-leg action on sell SL.
             }
         }
         else{
