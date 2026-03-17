@@ -24,9 +24,9 @@ window.addEventListener("DOMContentLoaded", function(){
     socket.on("CdlEmaTrend", (pMsg) => {
         let objTradeSideVal = document["frmSide"]["rdoTradeSide"];
         let objJson = JSON.parse(pMsg);
-        let objQty = document.getElementById("txtStartQty");
-        objQty.value = objJson.Qty;
-        fnChangeStartQty(objQty);
+        // let objQty = document.getElementById("txtStartQty");
+        // objQty.value = objJson.Qty;
+        // fnChangeStartQty(objQty);
 
         if(objJson.Direc === "UP"){
             objTradeSideVal.value = true;
