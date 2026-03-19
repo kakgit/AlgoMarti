@@ -70,7 +70,6 @@ window.addEventListener("DOMContentLoaded", function(){
     socket.on("tv-AutoTrade", (pMsg) => {
     	localStorage.setItem("isDeltaAutoTrader", pMsg.AutoTrade);
     	fnGetSetAutoTraderStatus();
-
     });
 });
 
@@ -1176,7 +1175,8 @@ function fnSetNextOptTradeSettings(){
 
     if(objSwtMarti.checked){
 		if(parseFloat(vNewLossAmt) < 0){
-	        let vNextQty = parseInt(vOldQtyMul) * 2;
+	        // let vNextQty = parseInt(vOldQtyMul) * 2;
+	        let vNextQty = parseInt(vOldQtyMul) + parseInt(vStartLots);
 	        localStorage.setItem("QtyMulDelta", vNextQty);
 	        objQty.value = vNextQty;
 		}
