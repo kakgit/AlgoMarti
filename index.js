@@ -204,10 +204,11 @@ app.post("/tv-msg-trend", (req, res) => {
 });
 
 app.post("/tv-msg-ema-trend", (req, res) => {
+    const vIndc = req.body.Indc;
     const vDirec = req.body.Direc;
     const vQty = req.body.Qty;
     
-    const objMsg = JSON.stringify({ Direc: vDirec, Qty: vQty });
+    const objMsg = JSON.stringify({ Indc: vIndc, Direc: vDirec, Qty: vQty });
 
     //console.log(objMsg);
     io.emit("CdlEmaTrend", objMsg);
@@ -216,9 +217,10 @@ app.post("/tv-msg-ema-trend", (req, res) => {
 });
 
 app.post("/tv-btcusd-exec", (req, res) => {
+    const vIndc = req.body.Indc;
     const vTransType = req.body.direc;
 
-    let objMsg = {TransType: vTransType};
+    let objMsg = { Indc: vIndc, TransType: vTransType};
 
     io.emit("tv-btcusd-exec", objMsg);
     res.send({ status: "success", message: "Open " + objMsg.TransType + " Trade Received!", data: objMsg });
@@ -272,9 +274,10 @@ app.post("/tv-AutoTrd", (req, res) => {
 });
 
 app.post("/tv-btcusd-close", (req, res) => {
+    const vIndc = req.body.Indc;
     const vTransType = req.body.direc;
 
-    let objMsg = {TransType: vTransType};
+    let objMsg = { Indc: vIndc, TransType: vTransType};
 
     io.emit("tv-btcusd-close", objMsg);
     res.send({ status: "success", message: "Close " + objMsg.TransType + " Trade Received!", data: objMsg });

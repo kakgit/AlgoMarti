@@ -16,6 +16,7 @@ const kotakLiveControllerNS = require("../controller/controllerKotakScalper.js")
 const kotakPaperController = require("../controller/controllerKotakPaper.js");
 const deltaLiveController = require("../controller/controllerDeltaLive.js");
 const deltaFutDemoController = require("../controller/controllerDeltaFutDemo.js");
+const deltaFutScprDemoController = require("../controller/controllerDeltaFutScprDemo.js");
 const deltaFutLiveController = require("../controller/controllerDeltaFutLive.js");
 const deltaOptDemoController = require("../controller/controllerDeltaOptDemo.js");
 const deltaOptScalpDemoCtrler = require("../controller/controllerDeltaOptScalperDemo.js");
@@ -60,6 +61,7 @@ route.get("/deltaLive", deltaLiveController.defaultRoute);
 
 //Delta Futures Demo Route
 route.get("/deltaFutures-Demo", deltaFutDemoController.defaultRoute);
+route.get("/DeltaFutScprDemo", deltaFutScprDemoController.defaultRoute);
 
 //Delta Futures Live Route
 route.get("/deltaFutures-Live", deltaFutLiveController.defaultRoute);
@@ -301,6 +303,10 @@ route.post("/deltaExcFut/validateLogin", deltaFutDemoController.fnValidateUserLo
 route.post("/deltaExcFut/getHistOHLC", deltaFutDemoController.fnHistoricalOHLCAPI);
 route.post("/deltaExcFut/getCurrBSRates", deltaFutDemoController.fnGetCurrBuySellRates);
 route.post("/deltaExcFut/placeLimitOrder", deltaFutDemoController.fnPlaceLimitOrderSDK);
+route.post("/deltaFutScprDemo/validateLogin", deltaFutScprDemoController.fnValidateUserLogin);
+route.post("/deltaFutScprDemo/getHistOHLC", deltaFutScprDemoController.fnHistoricalOHLCAPI);
+route.post("/deltaFutScprDemo/getCurrBSRates", deltaFutScprDemoController.fnGetCurrBuySellRates);
+route.post("/deltaFutScprDemo/placeLimitOrder", deltaFutScprDemoController.fnPlaceLimitOrderSDK);
 
 //Delta Options Routes
 route.post("/deltaExcOpt/getOptionChainSDK", deltaOptDemoController.fnGetOptionChainSDK);
