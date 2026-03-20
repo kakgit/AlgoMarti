@@ -216,6 +216,21 @@ app.post("/tv-msg-ema-trend", (req, res) => {
     res.send("success");
 });
 
+app.post("/tv-msg-ohlc", (req, res) => {
+    const vIndc = req.body.Indc;
+    const vOpen = req.body.Open;
+    const vHigh = req.body.High;
+    const vLow = req.body.Low;
+    const vCLose = req.body.Close;
+
+    const objMsg = { Indc: vIndc, Open: vOpen, High: vHigh, Low: vLow, Close: vCLose };
+
+    //console.log(objMsg);
+    io.emit("cdlOHLC", objMsg);
+
+    res.send("success");
+});
+
 app.post("/tv-btcusd-exec", (req, res) => {
     const vIndc = req.body.Indc;
     const vTransType = req.body.direc;

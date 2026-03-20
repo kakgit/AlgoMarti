@@ -69,10 +69,16 @@ window.addEventListener("DOMContentLoaded", function(){
     	}
     });
 
+    socket.on("cdlOHLC", (pMsg) => {
+    	if(pMsg.Indc === parseInt(objIncType.value)){
+    		console.log(pMsg);
+	        // fnCloseManualFutures(pMsg.TransType);
+    	}
+    });
+
     socket.on("tv-AutoTrade", (pMsg) => {
     	localStorage.setItem("isDFSDAutoTrader", pMsg.AutoTrade);
     	fnGetSetAutoTraderStatus();
-
     });
 });
 
