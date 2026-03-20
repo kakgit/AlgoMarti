@@ -18,13 +18,10 @@ const deltaLiveController = require("../controller/controllerDeltaLive.js");
 const deltaFutDemoController = require("../controller/controllerDeltaFutDemo.js");
 const deltaFutScprDemoController = require("../controller/controllerDeltaFutScprDemo.js");
 const deltaFutLiveController = require("../controller/controllerDeltaFutLive.js");
+const deltaFutScprLiveController = require("../controller/controllerDeltaFutScprLive.js");
 const deltaOptDemoController = require("../controller/controllerDeltaOptDemo.js");
-const deltaOptScalpDemoCtrler = require("../controller/controllerDeltaOptScalperDemo.js");
-const deltaCalDemoController = require("../controller/controllerDeltaCalDemo.js");
 const deltaFundingLiveCtrler = require("../controller/controllerDeltaFundingLive.js");
-const deltaSStraddleDemoCtrler = require("../controller/cntrDeltaSStraddleD.js");
 const deltaSStraddleLiveCtrler = require("../controller/cntrDeltaSStraddleL.js");
-const deltaSStrangleDemoCtrler = require("../controller/cntrDeltaSStrangleD.js");
 const strategy1FOCtrler = require("../controller/cntrStrategy1FO.js");
 const strategy2FOCtrler = require("../controller/cntrStrategy2FO.js");
 const liveStrategy1FOCtrler = require("../controller/cntrLiveStrategy1FO.js");
@@ -62,30 +59,19 @@ route.get("/deltaLive", deltaLiveController.defaultRoute);
 //Delta Futures Demo Route
 route.get("/deltaFutures-Demo", deltaFutDemoController.defaultRoute);
 route.get("/DeltaFutScprDemo", deltaFutScprDemoController.defaultRoute);
+route.get("/DeltaFutScprLive", deltaFutScprLiveController.defaultRoute);
 
 //Delta Futures Live Route
-route.get("/deltaFutures-Live", deltaFutLiveController.defaultRoute);
-
-//Delta Futures Calander Route
-route.get("/deltaCal-Demo", deltaCalDemoController.defaultRoute);
+route.get("/deltaFutures-Live", deltaFutScprLiveController.defaultRoute);
 
 //Delta Options Demo Route
 route.get("/deltaOptions-Demo", deltaOptDemoController.defaultRoute);
 
-//Delta Options Scalper Demo Route
-route.get("/deltaExcOptSclprD", deltaOptScalpDemoCtrler.defaultRoute);
-
 //Delta Funding Demo Route
 route.get("/deltaFunding-Live", deltaFundingLiveCtrler.defaultRoute);
 
-//Delta Short Straddle Demo Route
-route.get("/deltaSStraddle-Demo", deltaSStraddleDemoCtrler.defaultRoute);
-
 //Delta Short Straddle Live Route
 route.get("/deltaSStraddleLive", deltaSStraddleLiveCtrler.defaultRoute);
-
-//Delta Short strangle Demo Route
-route.get("/deltaSStrangle-Demo", deltaSStrangleDemoCtrler.defaultRoute);
 
 //Strategy1FO Route
 route.get("/Strategy1FO", strategy1FOCtrler.defaultRoute);
@@ -208,24 +194,15 @@ route.post("/deltaExcFutR/placeRealOrder", deltaFutLiveController.fnPlaceOrderSD
 route.post("/deltaExcFutR/getOrderDetails", deltaFutLiveController.fnGetOrderDetails);
 route.post("/deltaExcFutR/cancelPendingOrder", deltaFutLiveController.fnCancelOrderSDK);
 route.post("/deltaExcFutR/getFilledPosById", deltaFutLiveController.fnGetOpenPositionByIdSDK);
+route.post("/deltaExcFutR/getFilledOrderHistory", deltaFutLiveController.fnGetFilledOrderHistory);
 route.post("/deltaExcFutR/getProductsList", deltaFutLiveController.fnGetProductsList);
 route.post("/deltaExcFutR/closeRealPosition", deltaFutLiveController.fnCloseRealPoistion);
-
-//Delta Options Scalper Demo Routes
-route.post("/deltaExcOptSclprD/getSellOptOpenStatus", deltaOptScalpDemoCtrler.fnExecOptOpen);
-route.post("/deltaExcOptSclprD/getBestRatesBySymb", deltaOptScalpDemoCtrler.fnGetBestRatesBySymbol);
 
 //Delta Funding Live Routes
 route.post("/deltaExcFunding/validateLogin", deltaFundingLiveCtrler.fnValidateUserLogin);
 route.post("/deltaExcFunding/getOptChnSDKByAstOptTypExp", deltaFundingLiveCtrler.fnGetOptChnSDKByAstOptTypExp);
 route.post("/deltaExcFunding/execOption", deltaFundingLiveCtrler.fnExecOptionByOptTypeExpTransType);
 route.post("/deltaExcFunding/getBestRatesBySymb", deltaFundingLiveCtrler.fnGetBestRatesBySymbol);
-
-//Delta Short Straddle Demo Routes
-route.post("/deltaSStraddleDemo/validateLogin", deltaSStraddleDemoCtrler.fnValidateUserLogin);
-route.post("/deltaSStraddleDemo/getOptChnSDKByAstOptTypExp", deltaSStraddleDemoCtrler.fnGetOptChnSDKByAstOptTypExp);
-route.post("/deltaSStraddleDemo/execOption", deltaSStraddleDemoCtrler.fnExecOptionByOptTypeExpTransType);
-route.post("/deltaSStraddleDemo/getBestRatesBySymb", deltaSStraddleDemoCtrler.fnGetBestRatesBySymbol);
 
 //Delta Short Straddle Live Routes
 route.post("/deltaSStraddleLive/validateLogin", deltaSStraddleLiveCtrler.fnValidateUserLogin);
@@ -260,14 +237,6 @@ route.post("/liveStrategy1fo/closeLeg", liveStrategy1FOCtrler.fnCloseLeg);
 route.post("/liveStrategy1fo/getLiveOpenPositions", liveStrategy1FOCtrler.fnGetLiveOpenPositions);
 route.post("/liveStrategy1fo/getBestRatesBySymb", liveStrategy1FOCtrler.fnGetBestRatesBySymbol);
 route.post("/liveStrategy1fo/getFilledOrderHistory", liveStrategy1FOCtrler.fnGetFilledOrderHistory);
-//Delta Short Strangle Demo Routes
-route.post("/deltaSStrangleDemo/validateLogin", deltaSStrangleDemoCtrler.fnValidateUserLogin);
-route.post("/deltaSStrangleDemo/getOptChnSDKByAstOptTypExp", deltaSStrangleDemoCtrler.fnGetOptChnSDKByAstOptTypExp);
-route.post("/deltaSStrangleDemo/execOption", deltaSStrangleDemoCtrler.fnExecOptionByOptTypeExpTransType);
-route.post("/deltaSStrangleDemo/execOptionLeg", deltaSStrangleDemoCtrler.fnExecOptByOTypExpTType);
-route.post("/deltaSStrangleDemo/execFutureLeg", deltaSStrangleDemoCtrler.fnExecFutByTType);
-route.post("/deltaSStrangleDemo/getBestRatesBySymb", deltaSStrangleDemoCtrler.fnGetBestRatesBySymbol);
-
 //Delta Short Strangle Live Routes
 route.post("/deltaSStrangleLive/validateLogin", deltaSStrangleLiveCtrler.fnValidateUserLogin);
 route.post("/deltaSStrangleLive/getWalletDetails", deltaSStrangleLiveCtrler.fnWalletDetails);
@@ -312,12 +281,6 @@ route.post("/deltaFutScprDemo/placeLimitOrder", deltaFutScprDemoController.fnPla
 route.post("/deltaExcOpt/getOptionChainSDK", deltaOptDemoController.fnGetOptionChainSDK);
 route.post("/deltaExcOpt/getOptChnSDKByAstOptTypExp", deltaOptDemoController.fnGetOptChnSDKByAstOptTypExp);
 route.post("/deltaExcOpt/getBestRatesBySymb", deltaOptDemoController.fnGetBestRatesBySymbol);
-
-//Delta Calendar Routes
-route.post("/deltaExcCal/getOptChnSDKByUndAstExp", deltaCalDemoController.fnGetOptChnSDKByUndAstExp);
-route.post("/deltaExcCal/getBestRatesBySymb", deltaCalDemoController.fnGetBestRatesBySymbol);
-route.post("/deltaExcCal/getOptChnSDKByUndAstExpOpTyp", deltaCalDemoController.fnGetOptChnSDKByUndAstExpOpTyp);
-route.post("/deltaExcCal/getCurrBSFutRates", deltaCalDemoController.fnGetCurrBuySellFutRates);
 
 //Samples
 route.post("/deltaExc/getTestWalletAPI", deltaLiveController.fnTestWalletAPI);

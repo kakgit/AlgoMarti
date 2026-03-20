@@ -1,4 +1,4 @@
-<div id="main" class="container-xxl">
+﻿<div id="main" class="container-xxl">
     <style>
         .dfs-phase3 .card {
             border: 0;
@@ -59,7 +59,7 @@
     <div class="page-heading">
         <div class="row align-items-center g-2">
             <div class="col-12 col-md-4">
-                <h3>DeltaFutScprDemo</h3>
+                <h3>DeltaFutScprLive</h3>
             </div>
             <div class="col-12 col-md-4 text-center">
                 <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
@@ -165,8 +165,7 @@
                                         <input type="text" value="0.001" id="txtLotSize" class="form-control" />
                                     </div>
                                     <div class="col-12 col-md-2">
-                                        <select id="ddlOrderType" class="form-select" placeholder="Select Order Type">
-                                            <option value='limit_order'>Limit Order</option>
+                                        <select id="ddlOrderType" class="form-select" placeholder="Select Order Type" onchange="fnChangeOrderType(this.value);">
                                             <option value='market_order' selected>Market Order</option>
                                         </select>
                                     </div>
@@ -176,16 +175,24 @@
 
                                     <div class="col-2">Loss Recovery %</div>
                                     <div class="col-2">X-Multiplier</div>
+                                    <div class="col-2">Total Margin</div>
+                                    <div class="col-2">Blocked Margin</div>
+                                    <div class="col-2">Available Balance</div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtLossRecvPerct" value="100" onchange="fnUpdateLossRecPrct(this);" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtMultiplierX" value="1" onchange="fnUpdateMultiplierX(this);" />
+                                    </div>
+                                    <div class="col-2" id="divTotalMargin">-</div>
+                                    <div class="col-2" id="divBlockedMargin">-</div>
+                                    <div class="col-2" id="divBalanceMargin">-</div>
+                                    <div class="col-2"></div>
                                     <div class="col-2">Best Buying Price</div>
                                     <div class="col-2">Mark Price</div>
                                     <div class="col-2">Best Selling Price</div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtLossRecvPerct" value="50" onchange="fnUpdateLossRecPrct(this);" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtMultiplierX" value="2.0" onchange="fnUpdateMultiplierX(this);" />
-                                    </div>
+                                    <div class="col-6"></div>
                                     <div class="col-2">
                                         <input type="number" class="form-control" placeholder="Best Buy Price" id="txtBestBuyPrice" />
                                     </div>
@@ -343,7 +350,7 @@
                                     <input type="number" class="form-control" placeholder="SL Points" id="txtPointsSL" />
                                 </div>
                                 <div class="col-1">
-                                    <input type="number" class="form-control" placeholder="TP1 Points" id="txtPointsTP1" />
+                                    <input type="number" class="form-control" placeholder="TP Points" id="txtPointsTP1" />
                                 </div>
                                 <div class="col-1">
                                     <input type="number" class="form-control" placeholder="TP Amount" id="txtPointsTP" />
@@ -372,37 +379,37 @@
                 </div>
                 <div class="card" id="cardClosedPositions">
                     <div class="card-header">
-                        <div class="row align-items-center row-tight">
-                            <div class="col-12 col-lg-3">
+                        <div class="row align-items-center g-2">
+                            <div class="col-lg-2">
                                 <h4>Closed Position(s)</h4>
                             </div>
-                            <div class="col-1" style="font-weight: bold;">
-                            </div>
-                            <div class="col-1" style="font-weight: bold;">
+                            <div class="col-lg-1" style="font-weight: bold;">
                                 P&L: 
                             </div>
-                            <div class="col-1" id="tdHeadPL">
+                            <div class="col-lg-1" id="tdHeadPL">
                                 0.00
                             </div>
-                            <div class="col-2" style="font-weight: bold;">
+                            <div class="col-lg-1" style="font-weight: bold;">
                                 <div class="form-check form-switch fs-6" style="white-space: nowrap;">
                                     <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtYetToRec" name="swtYetToRec" onchange="fnUpdateYet2RecSwt();" />
-                                    <label id="lblYetToRecover" for="swtYetToRec" style="cursor:pointer;text-wrap:nowrap;">Yet to Recover:</label>
+                                    <label id="lblYetToRecover" for="swtYetToRec" style="cursor:pointer;text-wrap:nowrap;">Y2R:</label>
                                 </div>
                             </div>
-                            <div class="col-2">
+                            <div class="col-lg-1">
                                 <span id="spnYtRL" style="text-align:left;font-weight:bold;color:red;">0.00</span>
                             </div>
-                            <!-- <div class="col-1">
-                                Brk Rec: 
+                            <div class="col-lg-3" style="display: flex; align-items: center; gap: 8px;">
+                                <label for="txtClsFromDate" style="margin-bottom: 0; white-space: nowrap;">From</label>
+                                <input type="datetime-local" class="form-control" id="txtClsFromDate" />
                             </div>
-                            <div class="col-1" id="tdHeadBrkRec">
-                                0.00
-                            </div> -->
-                            <div class="col-1">
-                                <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnLoadTodayTrades();"></i>
+                            <div class="col-lg-2" style="display: flex; align-items: center; gap: 8px;">
+                                <label for="txtClsToDate" style="margin-bottom: 0; white-space: nowrap;">To</label>
+                                <input type="datetime-local" class="form-control" id="txtClsToDate" />
+                                <a href="javascript:void(0);" title="Clear and load defaults" onclick="fnClearClosedPosDateTimeFilters();" style="color: #dc3545;">
+                                    <i class="fa fa-times-circle" aria-hidden="true"></i>
+                                </a>
                             </div>
-                            <div class="col-1" style="text-align: right;">
+                            <div class="col-lg-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divClosedPosClps" role="button" aria-expanded="true" aria-controls="divClosedPosClps">
                                     <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
                                 </a>
@@ -444,7 +451,7 @@
 </div>
 </div>
 
-<%- include('partials/DeltaFutScprDemoSettings.ejs') %>
+<%- include('partials/DeltaFutScprLiveSettings.ejs') %>
 
-<script src="/js/DeltaFutScprDemo.js"></script>
-<script src="/js/DeltaFutScprDemoSettings.js"></script>
+<script src="/js/DeltaFutScprLive.js"></script>
+<script src="/js/DeltaFutScprLiveSettings.js"></script>

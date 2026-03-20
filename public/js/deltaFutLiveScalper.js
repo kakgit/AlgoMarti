@@ -70,6 +70,7 @@ function fnGetAllStatus(){
         fnGetSetTraderLoginStatus();
 		fnGetSetAutoTraderStatus();
 		fnLoadDefSymbol();
+		fnLoadOrderType();
 		fnLoadMarti();
 		fnLoadDefQty();
 		fnLoadLossRecoveryMultiplier();
@@ -119,6 +120,38 @@ function fnSetSymbolData(pThisVal){
 	else{
 		objLotSize.value = 0;
 	}
+}
+
+function fnLoadOrderType(){
+    let objOrderType = document.getElementById("ddlOrderType");
+    let objLimitPrice = document.getElementById("txtLimitPrice");
+    let vOrderType = localStorage.getItem("DeltaFutOrderTypeR");
+    let vLimitPrice = localStorage.getItem("DeltaFutLimitPriceR");
+
+    if(vOrderType === null || vOrderType === ""){
+        vOrderType = "limit_order";
+    }
+    objOrderType.value = vOrderType;
+
+    if(vLimitPrice !== null){
+        objLimitPrice.value = vLimitPrice;
+    }
+    fnChangeOrderType(vOrderType);
+}
+
+function fnChangeOrderType(pOrderType){
+    let objLimitPrice = document.getElementById("txtLimitPrice");
+    let vOrderType = pOrderType || document.getElementById("ddlOrderType").value;
+
+    localStorage.setItem("DeltaFutOrderTypeR", vOrderType);
+    if(vOrderType === "market_order"){
+        objLimitPrice.disabled = true;
+        objLimitPrice.placeholder = "Not required for market";
+    }
+    else{
+        objLimitPrice.disabled = false;
+        objLimitPrice.placeholder = "Limit Price";
+    }
 }
 
 function fnLoadDefQty(){
@@ -688,6 +721,8 @@ async function fnInitRealFuturesTrade(pTransType){
 	    let objQty = document.getElementById("txtFuturesQty");
 	    let objLotSize = document.getElementById("txtLotSize");
 	    let objOrderTypeDDL = document.getElementById("ddlOrderType");
+        let objLimitPrice = document.getElementById("txtLimitPrice");
+        let vLimitPrice = 0;
 
 	    if(objFutDDL.value === ""){
 			fnGenMessage("Please Select Symbol to Place the Order!", `badge bg-warning`, "spnGenMsg");
@@ -698,11 +733,19 @@ async function fnInitRealFuturesTrade(pTransType){
 	    else if(objLotSize.value === "" || parseFloat(objLotSize.value) <= 0){
 			fnGenMessage("Please Input Lot Size to Place the Order!", `badge bg-warning`, "spnGenMsg");
 	    }
+        else if(objOrderTypeDDL.value === "limit_order" && (objLimitPrice.value === "" || parseFloat(objLimitPrice.value) <= 0)){
+            fnGenMessage("Please input a valid Limit Price for limit orders!", `badge bg-warning`, "spnGenMsg");
+        }
 	    else{
+            if(objOrderTypeDDL.value === "limit_order"){
+                vLimitPrice = parseFloat(objLimitPrice.value);
+            }
+            localStorage.setItem("DeltaFutLimitPriceR", objLimitPrice.value);
+
             let vDate = new Date();
             let vClientOrdID = vDate.valueOf();
 
-	        let objOrder = await fnPlaceRealOrder(vClientOrdID, objFutDDL.value, objOrderTypeDDL.value, objQty.value, pTransType);
+	        let objOrder = await fnPlaceRealOrder(vClientOrdID, objFutDDL.value, objOrderTypeDDL.value, objQty.value, pTransType, vLimitPrice);
 
 	        if(objOrder.status === "success"){
 			    // console.log(objOrder);
@@ -777,14 +820,14 @@ async function fnInitRealFuturesTrade(pTransType){
 	}
 }
 
-function fnPlaceRealOrder(pOrdId, pSymbol, pOrderType, pQty, pTransType){
+function fnPlaceRealOrder(pOrdId, pSymbol, pOrderType, pQty, pTransType, pLimitPrice){
 	const objPromise = new Promise((resolve, reject) => {
 	    let objApiKey = document.getElementById("txtUserAPIKey");
 	    let objApiSecret = document.getElementById("txtAPISecret");
 	    let vHeaders = new Headers();
 	    vHeaders.append("Content-Type", "application/json");
 
-	    let vAction = JSON.stringify({ ApiKey : objApiKey.value, ApiSecret : objApiSecret.value, ClientOrdID : pOrdId, SymbolID : pSymbol, OrderType : pOrderType, Quantity : pQty, TransType : pTransType });
+	    let vAction = JSON.stringify({ ApiKey : objApiKey.value, ApiSecret : objApiSecret.value, ClientOrdID : pOrdId, SymbolID : pSymbol, OrderType : pOrderType, Quantity : pQty, TransType : pTransType, LimitPrice : pLimitPrice });
 
 	    let requestOptions = {
 	        method: 'POST',

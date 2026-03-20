@@ -44,6 +44,7 @@ exports.fnPlaceOrderSDK = async (req, res) => {
     let vClientOrdID = req.body.ClientOrdID;
     let vSymbolID = req.body.SymbolID;
     let vOrderType = req.body.OrderType; //limit_order, market_order
+    let vLimitPrice = parseFloat(req.body.LimitPrice);
     let vQuantity = req.body.Quantity;
     let vTransType = req.body.TransType;
 
@@ -53,19 +54,25 @@ exports.fnPlaceOrderSDK = async (req, res) => {
         let ObjBestRatesData = objCurrRates.data;
         let vBestBuy = objCurrRates.data.result.quotes.best_ask;
         let vBestSell = objCurrRates.data.result.quotes.best_bid;
-        let vLimitPrice = "0";
+        let vOrderLimitPrice = "0";
         let vPostOnly = true;
 
         if(vOrderType === "market_order"){
             vBestBuy = "0";
             vBestSell = "0";
             vPostOnly = false;
+            vOrderLimitPrice = "0";
         }
-        if(vTransType === "buy"){
-            vLimitPrice = vBestBuy;
-        }
-        else if(vTransType === "sell"){
-            vLimitPrice = vBestSell;
+        else if(vOrderType === "limit_order"){
+            if(!isNaN(vLimitPrice) && vLimitPrice > 0){
+                vOrderLimitPrice = vLimitPrice.toString();
+            }
+            else if(vTransType === "buy"){
+                vOrderLimitPrice = vBestBuy;
+            }
+            else if(vTransType === "sell"){
+                vOrderLimitPrice = vBestSell;
+            }
         }
         
         // //******* COMMENT WHEN LIVE */
@@ -86,7 +93,7 @@ exports.fnPlaceOrderSDK = async (req, res) => {
                 product_symbol: vSymbolID,
                 size: vQuantity,
                 side: vTransType,
-                limit_price: vLimitPrice,
+                limit_price: vOrderLimitPrice,
                 order_type: vOrderType,
                 // post_only: vPostOnly,
                 client_order_id: (vClientOrdID).toString()
@@ -323,6 +330,52 @@ exports.fnCloseRealPoistion = async (req, res) => {
     }
 }
 
+exports.fnGetFilledOrderHistory = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+    let vStartDT = Number(req.body.StartDT);
+    let vEndDT = Number(req.body.EndDT);
+
+    if(!vApiKey || !vApiSecret){
+        res.send({ "status": "warning", "message": "API credentials are required.", "data": [] });
+        return;
+    }
+
+    if(!Number.isFinite(vStartDT) || vStartDT <= 0){
+        vStartDT = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    }
+    if(!Number.isFinite(vEndDT) || vEndDT <= 0){
+        vEndDT = Date.now();
+    }
+    if(vEndDT < vStartDT){
+        let vTmp = vEndDT;
+        vEndDT = vStartDT;
+        vStartDT = vTmp;
+    }
+
+    vStartDT = fnNormalizeOrderHistoryTs(vStartDT);
+    vEndDT = fnNormalizeOrderHistoryTs(vEndDT);
+
+    try{
+        let objRetData = await fnGetOrderHistory(vApiKey, vApiSecret, vStartDT, vEndDT);
+        if(objRetData.status !== "success"){
+            res.send({ "status": objRetData.status, "message": objRetData.message, "data": objRetData.data });
+            return;
+        }
+
+        let objRows = Array.isArray(objRetData.data?.result) ? objRetData.data.result : [];
+        let objFilledRows = objRows.filter((objOrd) => {
+            let vState = (objOrd?.state || "").toString().toLowerCase();
+            return (vState === "filled" || vState === "closed");
+        });
+
+        res.send({ "status": "success", "message": "Filled order history fetched.", "data": objFilledRows });
+    }
+    catch(error){
+        res.send({ "status": "danger", "message": error.message, "data": error });
+    }
+}
+
 const fnGetCurrRates = async (pApiKey, pApiSecret, pSymbolID) => {
     const objPromise = new Promise((resolve, reject) => {
         const vMethod = "GET";
@@ -395,6 +448,37 @@ const fnGetPositionByIdSDK = async (pApiKey, pApiSecret, pProductID, pStartValDT
 
     return objPromise;
 };
+
+const fnGetOrderHistory = async (pApiKey, pApiSecret, pStartDT, pEndDT) => {
+    const objPromise = new Promise((resolve, reject) => {
+        new DeltaRestClient(pApiKey, pApiSecret).then(client => {
+            client.apis.TradeHistory.getOrderHistory({ start_time: pStartDT, end_time: pEndDT, page_size: 100 }).then(function (response) {
+                let objResult = JSON.parse(response.data.toString());
+                if(objResult.success){
+                    resolve({ "status": "success", "message": "Order history fetched.", "data": objResult });
+                }
+                else{
+                    resolve({ "status": "warning", "message": "Error while fetching order history.", "data": objResult });
+                }
+            })
+            .catch(function(objError) {
+                resolve({ "status": "danger", "message": "Error at order history.", "data": objError });
+            });
+        });
+    });
+    return objPromise;
+};
+
+const fnNormalizeOrderHistoryTs = (pVal) => {
+    let vTs = Number(pVal);
+    if(!Number.isFinite(vTs) || vTs <= 0){
+        return 0;
+    }
+    if(vTs < 1000000000000000){
+        return Math.trunc(vTs * 1000);
+    }
+    return Math.trunc(vTs);
+}
 
 function fnGetSignature(pApiSecret, pMethod, pPath, pQueryStr, pTimeStamp, pBody){
   if (!pBody || R.isEmpty(pBody)) pBody = "";
