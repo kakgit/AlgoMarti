@@ -132,29 +132,89 @@ exports.fnGetOrderDetails = async (req, res) => {
     // console.log("vOrderID: " + vOrderID);
     // console.log("vClientOrdID: " + vClientOrdID);
 
-    new DeltaRestClient(vApiKey, vApiSecret).then(client => {
-        client.apis.Orders.getOrders({
-            order: {
-                id: parseInt(vOrderID),
-                client_order_id: vClientOrdID
-                // product_id: 27
+    try{
+        const vMethod = "GET";
+        const vPath = "/v2/orders/" + parseInt(vOrderID);
+        const vTimeStamp = Math.floor(new Date().getTime() / 1000);
+        const vQueryStr = "";
+        const vBody = "";
+        const vSignature = fnGetSignature(vApiSecret, vMethod, vPath, vQueryStr, vTimeStamp, vBody);
+        const objResp = await axios.request({
+            method: vMethod,
+            url: gBaseUrl + vPath,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "api-key": vApiKey,
+                "signature": vSignature,
+                "timestamp": vTimeStamp
             }
-          }).then(function (response) {
-            let objResult = JSON.parse(response.data);
-
-            if(objResult.success){
-                res.send({ "status": "success", "message": "Order Details Sent Successfully!", "data": objResult });
-            }
-            else{
-                res.send({ "status": "warning", "message": "Error: Contact Admin!", "data": objResult });
-            }
-        })
-        .catch(function(objError) {
-            console.log(objError);
-            res.send({ "status": "danger", "message": objError.response.text, "data": objError });
         });
-    });
+
+        let objResult = objResp.data;
+        if(objResult.success){
+            res.send({ "status": "success", "message": "Order Details Sent Successfully!", "data": objResult });
+        }
+        else{
+            res.send({ "status": "warning", "message": "Error: Contact Admin!", "data": objResult });
+        }
+    }
+    catch(objError){
+        res.send({ "status": "danger", "message": objError?.response?.data || objError.message, "data": objError });
+    }
     // res.send({ "status": "success", "message": "Order Details Sent!", "data": "" });
+}
+
+exports.fnEditOrderSDK = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+    let vOrderID = parseInt(req.body.OrderID);
+    let vSymbol = req.body.Symbol;
+    let vQuantity = parseInt(req.body.Quantity);
+    let vLimitPrice = parseFloat(req.body.LimitPrice);
+
+    if(!vOrderID || !vSymbol || !vQuantity || !(vLimitPrice > 0)){
+        res.send({ "status": "warning", "message": "Invalid edit order input.", "data": "" });
+        return;
+    }
+
+    try{
+        const vMethod = "PUT";
+        const vPath = "/v2/orders";
+        const vTimeStamp = Math.floor(new Date().getTime() / 1000);
+        const objBody = {
+            id: vOrderID,
+            product_symbol: vSymbol,
+            size: vQuantity,
+            limit_price: vLimitPrice.toString()
+        };
+        const vBody = JSON.stringify(objBody);
+        const vSignature = fnGetSignature(vApiSecret, vMethod, vPath, "", vTimeStamp, vBody);
+
+        const objResp = await axios.request({
+            method: vMethod,
+            url: gBaseUrl + vPath,
+            data: vBody,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "api-key": vApiKey,
+                "signature": vSignature,
+                "timestamp": vTimeStamp
+            }
+        });
+
+        let objResult = objResp.data;
+        if(objResult.success){
+            res.send({ "status": "success", "message": "Order Edited Successfully!", "data": objResult });
+        }
+        else{
+            res.send({ "status": "warning", "message": "Error editing order.", "data": objResult });
+        }
+    }
+    catch(objError){
+        res.send({ "status": "danger", "message": objError?.response?.data || objError.message, "data": objError });
+    }
 }
 
 exports.fnCancelOrderSDK = async (req, res) => {

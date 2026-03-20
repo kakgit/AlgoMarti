@@ -19,6 +19,7 @@ let gForceCloseDFL = false;
 let g50Perc1Time = true;
 let gExchangeClosedOrderRows = [];
 let gClosedHistoryLoaded = false;
+let gLimitEntryInProgress = false;
 
 window.addEventListener("DOMContentLoaded", function(){
     fnInitClosedPosDateTimeFilters();
@@ -457,11 +458,9 @@ function fnLoadOrderType(){
         return;
     }
 
-    const vOrderType = "market_order";
+    const vOrderType = localStorage.getItem("DFSL_OrderType") || "market_order";
     const vLimitPrice = localStorage.getItem("DFSL_LimitPrice");
-    localStorage.setItem("DFSL_OrderType", vOrderType);
     objOrderType.value = vOrderType;
-    objOrderType.disabled = true;
     if(vLimitPrice !== null){
         objLimitPrice.value = vLimitPrice;
     }
@@ -475,10 +474,9 @@ function fnChangeOrderType(pOrderType){
         return;
     }
 
-    const vOrderType = "market_order";
+    const vOrderType = pOrderType || objOrderType.value;
     localStorage.setItem("DFSL_OrderType", vOrderType);
     objOrderType.value = vOrderType;
-    objOrderType.disabled = true;
     if(vOrderType === "market_order"){
         objLimitPrice.disabled = true;
         objLimitPrice.placeholder = "Not required for market";
@@ -1196,10 +1194,15 @@ async function fnInitiateManualFutures(pTransType){
         fnGenMessage("Close the Open Position to Execute New Trade!", `badge bg-warning`, "spnGenMsg");
         return;
     }
+    if(gLimitEntryInProgress){
+        fnGenMessage("Limit order processing is already running. Please wait.", `badge bg-warning`, "spnGenMsg");
+        return;
+    }
 
     const objFutDDL = document.getElementById("ddlFuturesSymbols");
     const objQty = document.getElementById("txtFuturesQty");
     const objLotSize = document.getElementById("txtLotSize");
+    const objOrderType = document.getElementById("ddlOrderType");
     const objLimitPrice = document.getElementById("txtLimitPrice");
     const vSLPoints = fnParsePositiveNumber(document.getElementById("txtPointsSL").value, NaN);
     const vTPPoints1 = fnParsePositiveNumber(document.getElementById("txtPointsTP1").value, NaN);
@@ -1224,9 +1227,19 @@ async function fnInitiateManualFutures(pTransType){
         return;
     }
 
-    const vExecOrderType = "market_order";
+    const vExecOrderType = objOrderType?.value || "market_order";
     let vLimitPrice = 0;
+    if(vExecOrderType === "limit_order"){
+        const vAutoLimit = await fnGetLimitPriceForOpen(objFutDDL.value, pTransType);
+        if(!Number.isFinite(vAutoLimit) || vAutoLimit <= 0){
+            fnGenMessage("Unable to fetch current best price for limit order.", `badge bg-warning`, "spnGenMsg");
+            return;
+        }
+        vLimitPrice = vAutoLimit;
+        objLimitPrice.value = vAutoLimit;
+    }
     localStorage.setItem("DFSL_LimitPrice", objLimitPrice.value || "");
+    localStorage.setItem("DFSL_OrderType", vExecOrderType);
 
     const vDate = new Date();
     const vClientOrdID = vDate.valueOf();
@@ -1239,12 +1252,29 @@ async function fnInitiateManualFutures(pTransType){
         return;
     }
 
-    const vRes = objOrder.data.result;
+    let vRes = objOrder.data.result;
+    let vState = (vRes?.state || "").toLowerCase();
+    if(vExecOrderType === "limit_order" && vState !== "closed" && vState !== "filled"){
+        gLimitEntryInProgress = true;
+        fnGenMessage("Limit order placed. Repricing every 3s (max 3 tries).", `badge bg-warning`, "spnGenMsg");
+        const objRetryFlow = await fnTryFillLimitOrder(vRes.id, vClientOrdID, objFutDDL.value, objQty.value, pTransType);
+        gLimitEntryInProgress = false;
+        if(objRetryFlow.status !== "success"){
+            fnGenMessage(objRetryFlow.message, `badge bg-warning`, "spnGenMsg");
+            return;
+        }
+        vRes = objRetryFlow.data;
+        vState = (vRes?.state || "").toLowerCase();
+    }
+
     const vOrdId = vRes.id;
-    const vState = vRes.state;
     const vOrderTypeVal = vRes.order_type;
     const vProductID = vRes.product_id;
-    const vExecPrice = (vState === "closed") ? parseFloat(vRes.average_fill_price) : parseFloat(vRes.limit_price);
+    const vExecPrice = fnGetExecPriceSafe(vRes);
+    if(!Number.isFinite(vExecPrice) || vExecPrice <= 0){
+        fnGenMessage("Filled price not available. Trade not recorded.", `badge bg-warning`, "spnGenMsg");
+        return;
+    }
 
     gByorSl = pTransType;
     if(gByorSl === "buy"){
@@ -1294,8 +1324,156 @@ async function fnInitiateManualFutures(pTransType){
 
     fnSetInitFutTrdDtls();
     fnSubscribe();
-    fnGenMessage("Live order placed successfully!", `badge bg-success`, "spnGenMsg");
+    fnGenMessage("Live order filled and position opened successfully!", `badge bg-success`, "spnGenMsg");
     document.getElementById("spnLossTrd").className = "badge rounded-pill text-bg-success";
+}
+
+function fnGetExecPriceSafe(pOrd){
+    const vAvg = Number(pOrd?.average_fill_price);
+    if(Number.isFinite(vAvg) && vAvg > 0){
+        return vAvg;
+    }
+    const vLimit = Number(pOrd?.limit_price);
+    if(Number.isFinite(vLimit) && vLimit > 0){
+        return vLimit;
+    }
+    return NaN;
+}
+
+function fnSleepMs(pMs){
+    return new Promise((resolve) => setTimeout(resolve, pMs));
+}
+
+async function fnGetLimitPriceForOpen(pSymbol, pTransType){
+    const objBestRates = await fnGetFutBestRates();
+    if(objBestRates.status !== "success"){
+        return NaN;
+    }
+    if(pTransType === "buy"){
+        return Number(objBestRates.data.BestBuy);
+    }
+    return Number(objBestRates.data.BestSell);
+}
+
+function fnGetLiveOrderDetails(pOrderID, pClientOrdID){
+    return new Promise((resolve, reject) => {
+        const objApiKey = document.getElementById("txtUserAPIKey");
+        const objApiSecret = document.getElementById("txtAPISecret");
+        const vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+        const vAction = JSON.stringify({
+            ApiKey: objApiKey.value,
+            ApiSecret: objApiSecret.value,
+            OrderID: pOrderID,
+            ClientOrdID: pClientOrdID
+        });
+
+        fetch("/deltaExcFutR/getOrderDetails", {
+            method: "POST",
+            headers: vHeaders,
+            body: vAction,
+            redirect: "follow"
+        })
+        .then(response => response.json())
+        .then(objResult => {
+            if(objResult.status === "success"){
+                resolve({ status: "success", data: objResult.data?.result || objResult.data });
+            }
+            else{
+                resolve({ status: objResult.status, data: objResult.data });
+            }
+        })
+        .catch(() => resolve({ status: "danger", data: null }));
+    });
+}
+
+function fnEditLiveOrder(pOrderID, pSymbol, pQty, pLimitPrice){
+    return new Promise((resolve, reject) => {
+        const objApiKey = document.getElementById("txtUserAPIKey");
+        const objApiSecret = document.getElementById("txtAPISecret");
+        const vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+        const vAction = JSON.stringify({
+            ApiKey: objApiKey.value,
+            ApiSecret: objApiSecret.value,
+            OrderID: pOrderID,
+            Symbol: pSymbol,
+            Quantity: pQty,
+            LimitPrice: pLimitPrice
+        });
+
+        fetch("/deltaExcFutR/editPendingOrder", {
+            method: "POST",
+            headers: vHeaders,
+            body: vAction,
+            redirect: "follow"
+        })
+        .then(response => response.json())
+        .then(objResult => resolve({ status: objResult.status, data: objResult.data }))
+        .catch(() => resolve({ status: "danger", data: null }));
+    });
+}
+
+function fnCancelLiveOrder(pOrderID, pClientOrdID, pSymbol){
+    return new Promise((resolve, reject) => {
+        const objApiKey = document.getElementById("txtUserAPIKey");
+        const objApiSecret = document.getElementById("txtAPISecret");
+        const vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+        const vAction = JSON.stringify({
+            ApiKey: objApiKey.value,
+            ApiSecret: objApiSecret.value,
+            OrderID: pOrderID,
+            ClientOrdID: pClientOrdID,
+            Symbol: pSymbol
+        });
+
+        fetch("/deltaExcFutR/cancelPendingOrder", {
+            method: "POST",
+            headers: vHeaders,
+            body: vAction,
+            redirect: "follow"
+        })
+        .then(response => response.json())
+        .then(objResult => resolve({ status: objResult.status, data: objResult.data }))
+        .catch(() => resolve({ status: "danger", data: null }));
+    });
+}
+
+async function fnTryFillLimitOrder(pOrderID, pClientOrdID, pSymbol, pQty, pTransType){
+    let objOrd = null;
+    for(let i=0; i<3; i++){
+        await fnSleepMs(3000);
+        const objDet = await fnGetLiveOrderDetails(pOrderID, pClientOrdID);
+        if(objDet.status === "success"){
+            objOrd = objDet.data;
+            const vState = (objOrd?.state || "").toLowerCase();
+            if(vState === "closed" || vState === "filled"){
+                return { status: "success", message: "Limit order filled.", data: objOrd };
+            }
+        }
+
+        const vNewLimit = await fnGetLimitPriceForOpen(pSymbol, pTransType);
+        if(!Number.isFinite(vNewLimit) || vNewLimit <= 0){
+            continue;
+        }
+        const objEdit = await fnEditLiveOrder(pOrderID, pSymbol, pQty, vNewLimit);
+        if(objEdit.status !== "success"){
+            break;
+        }
+    }
+
+    const objFinalDet = await fnGetLiveOrderDetails(pOrderID, pClientOrdID);
+    if(objFinalDet.status === "success"){
+        objOrd = objFinalDet.data;
+        const vState = (objOrd?.state || "").toLowerCase();
+        if(vState === "closed" || vState === "filled"){
+            return { status: "success", message: "Limit order filled.", data: objOrd };
+        }
+    }
+
+    await fnCancelLiveOrder(pOrderID, pClientOrdID, pSymbol);
+    return { status: "warning", message: "Limit order not filled after 3 retries. Order canceled.", data: objOrd };
 }
 
 function fnPlaceRealOrder(pOrdId, pSymbol, pOrderType, pQty, pTransType, pLimitPrice){
