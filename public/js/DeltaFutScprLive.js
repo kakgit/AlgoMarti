@@ -412,11 +412,12 @@ async function fnHandleRenkoSellSignal(pMsg){
             }
         }
 
-        if(objPrev && objPrev.Color === "red" && objBox.Color === "green" && !gRenkoSellState.Pending){
+        if(objBox.Color === "green" && !gRenkoSellState.Pending){
             const objFutDDL = document.getElementById("ddlFuturesSymbols");
             const objQty = document.getElementById("txtFuturesQty");
             const vQty = Math.floor(fnParsePositiveNumber(objQty?.value, 0));
-            const vLimitPrice = Number(objPrev.Close);
+            const vDiff = Number(objBox.Close) - Number(objBox.Open);
+            const vLimitPrice = Number(objBox.Open) - (2 * vDiff);
             if(!objFutDDL?.value || vQty < 1 || !Number.isFinite(vLimitPrice) || vLimitPrice <= 0){
                 fnGenMessage("Renko SELL setup skipped due to invalid symbol/qty/price.", `badge bg-warning`, "spnGenMsg");
                 return;
@@ -431,9 +432,9 @@ async function fnHandleRenkoSellSignal(pMsg){
                     Symbol: objFutDDL.value,
                     Qty: vQty,
                     LimitPrice: vLimitPrice,
-                    RefBox: objPrev
+                    RefBox: objBox
                 };
-                fnGenMessage(`Renko SELL limit placed @ ${fnFmtNum(vLimitPrice)} (red close).`, `badge bg-info`, "spnGenMsg");
+                fnGenMessage(`Renko SELL limit placed @ ${fnFmtNum(vLimitPrice)} (green rule).`, `badge bg-info`, "spnGenMsg");
             }
             else{
                 fnGenMessage(`Renko SELL place failed: ${objPlace.message}`, `badge bg-danger`, "spnGenMsg");
@@ -442,7 +443,8 @@ async function fnHandleRenkoSellSignal(pMsg){
         }
 
         if(gRenkoSellState.Pending && objBox.Color === "green"){
-            const vNextLimit = Number(objBox.Open);
+            const vDiff = Number(objBox.Close) - Number(objBox.Open);
+            const vNextLimit = Number(objBox.Open) - (2 * vDiff);
             if(Number.isFinite(vNextLimit) && vNextLimit > 0 && Number(gRenkoSellState.Pending.LimitPrice) !== vNextLimit){
                 const objEdit = await fnEditPendingOrderById(
                     gRenkoSellState.Pending.OrderID,
@@ -453,7 +455,7 @@ async function fnHandleRenkoSellSignal(pMsg){
                 if(objEdit.status === "success"){
                     gRenkoSellState.Pending.LimitPrice = vNextLimit;
                     gRenkoSellState.Pending.RefBox = objBox;
-                    fnGenMessage(`Renko SELL limit modified @ ${fnFmtNum(vNextLimit)} (green open).`, `badge bg-info`, "spnGenMsg");
+                    fnGenMessage(`Renko SELL limit modified @ ${fnFmtNum(vNextLimit)} (green rule).`, `badge bg-info`, "spnGenMsg");
                 }
                 else{
                     fnGenMessage(`Renko SELL modify failed: ${objEdit.message}`, `badge bg-danger`, "spnGenMsg");
