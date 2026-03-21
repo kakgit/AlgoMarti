@@ -19,9 +19,14 @@ let gForceCloseDFL = false;
 let g50Perc1Time = true;
 let gExchangeClosedOrderRows = [];
 let gClosedHistoryLoaded = false;
-let gRenkoBoxes = [];
-let gRenkoPendingEntry = null;
-let gRenkoEntryOpBusy = false;
+let gRenkoSellState = {
+    LastBox: null,
+    LastBoxSize: 0,
+    Pending: null,
+    Busy: false,
+    LastDiagMsg: "",
+    LastDiagTs: 0
+};
 
 window.addEventListener("DOMContentLoaded", function(){
     fnInitClosedPosDateTimeFilters();
@@ -76,19 +81,29 @@ window.addEventListener("DOMContentLoaded", function(){
     });
 
     socket.on("cdlOHLC", (pMsg) => {
-        let objRenko = pMsg;
-        if(typeof pMsg === "string"){
-            try{
-                objRenko = JSON.parse(pMsg);
+        let vTradeSide = localStorage.getItem("DFSL_TradeSideSwtS");
+
+        const objRenko = fnParseRenkoMsg(pMsg);
+        if(!objRenko){
+            return;
+        }
+
+        if(objRenko.Indc === parseInt(objIncType.value)){
+            if(vTradeSide === "true"){
+                // Buy-side Renko logic is intentionally disabled for now.
             }
-            catch(_err){
-                return;
+            else if(vTradeSide === "false"){
+                //Lets focus on only Sell Msgs
+                console.log("[Renko/Sell] message received", objRenko);
+                fnHandleRenkoSellSignal(objRenko);
+            }
+            else{
+                console.log("No Side is Selected to Trade!");
             }
         }
-    	if(objRenko?.Indc === parseInt(objIncType.value)){
-            console.log("[Renko/Open] cdlOHLC received:", objRenko);
-    		fnCaptureRenkoBoxAndCheckClose(objRenko);
-    	}
+        else{
+            console.log("Other Signal Received!");
+        }
     });
 
     socket.on("tv-AutoTrade", (pMsg) => {
@@ -96,6 +111,21 @@ window.addEventListener("DOMContentLoaded", function(){
     	fnGetSetAutoTraderStatus();
     });
 });
+
+function fnParseRenkoMsg(pMsg){
+    if(!pMsg){
+        return null;
+    }
+    if(typeof pMsg === "string"){
+        try{
+            return JSON.parse(pMsg);
+        }
+        catch(_err){
+            return null;
+        }
+    }
+    return pMsg;
+}
 
 function fnGetRenkoBoxColor(pBox){
     const vOpen = Number(pBox?.Open);
@@ -122,107 +152,56 @@ function fnIsSameRenkoBox(pA, pB){
         Number(pA.Close) === Number(pB.Close);
 }
 
-function fnCaptureRenkoBoxAndCheckClose(pMsg){
-    let objBox = pMsg;
-    if(typeof pMsg === "string"){
-        try{
-            objBox = JSON.parse(pMsg);
-        }
-        catch(_err){
-            return;
-        }
+function fnBuildRenkoBox(pMsg){
+    const vOpen = Number(pMsg?.Open);
+    const vHigh = Number(pMsg?.High);
+    const vLow = Number(pMsg?.Low);
+    const vClose = Number(pMsg?.Close);
+    if(!Number.isFinite(vOpen) || !Number.isFinite(vClose)){
+        return null;
     }
-    if(!objBox){
-        return;
-    }
-
-    const vBox = {
-        Open: Number(objBox.Open),
-        High: Number(objBox.High),
-        Low: Number(objBox.Low),
-        Close: Number(objBox.Close),
+    return {
+        Open: vOpen,
+        High: Number.isFinite(vHigh) ? vHigh : vOpen,
+        Low: Number.isFinite(vLow) ? vLow : vOpen,
+        Close: vClose,
+        Color: fnGetRenkoBoxColor({ Open: vOpen, Close: vClose }),
         Ts: Date.now()
     };
-    if(!Number.isFinite(vBox.Open) || !Number.isFinite(vBox.Close)){
-        return;
-    }
-
-    const objLast = gRenkoBoxes.length > 0 ? gRenkoBoxes[gRenkoBoxes.length - 1] : null;
-    if(fnIsSameRenkoBox(objLast, vBox)){
-        return;
-    }
-
-    gRenkoBoxes.push(vBox);
-    if(gRenkoBoxes.length > 3){
-        gRenkoBoxes.shift();
-    }
-
-    if(gRenkoBoxes.length < 3){
-        return;
-    }
-
-    const objBox2 = gRenkoBoxes[gRenkoBoxes.length - 2];
-    const objBox3 = gRenkoBoxes[gRenkoBoxes.length - 1];
-    const vBox2Color = fnGetRenkoBoxColor(objBox2);
-    const vBox3Color = fnGetRenkoBoxColor(objBox3);
-
-    if(vBox2Color === "green" && vBox3Color === "red"){
-        fnGenMessage("Renko reversal detected (green -> red). Closing BUY position.", `badge bg-warning`, "spnGenMsg");
-        fnCloseManualFutures("buy");
-    }
-    else if(vBox2Color === "red" && vBox3Color === "green"){
-        fnGenMessage("Renko reversal detected (red -> green). Closing SELL position.", `badge bg-warning`, "spnGenMsg");
-        fnCloseManualFutures("sell");
-    }
-
-    fnHandleRenkoEntryOrders();
 }
 
-function fnGetRenkoDesiredEntry(){
-    if(gRenkoBoxes.length < 3){
-        return null;
+function fnFmtNum(pNum, pD = 2){
+    const vNum = Number(pNum);
+    if(!Number.isFinite(vNum)){
+        return "";
     }
-
-    const objBox1 = gRenkoBoxes[gRenkoBoxes.length - 3];
-    const objBox2 = gRenkoBoxes[gRenkoBoxes.length - 2];
-    const vBox2Color = fnGetRenkoBoxColor(objBox2);
-    const vLimitPrice = Number(objBox1?.Open);
-    const vStopPrice = Number(objBox1?.Close);
-
-    if(!Number.isFinite(vLimitPrice) || !Number.isFinite(vStopPrice) || vLimitPrice <= 0 || vStopPrice <= 0){
-        return null;
-    }
-
-    if(vBox2Color === "red"){
-        return { Side: "buy", LimitPrice: vLimitPrice, StopPrice: vStopPrice, Box2Color: vBox2Color };
-    }
-    if(vBox2Color === "green"){
-        return { Side: "sell", LimitPrice: vLimitPrice, StopPrice: vStopPrice, Box2Color: vBox2Color };
-    }
-    return null;
+    return vNum.toFixed(pD);
 }
 
-function fnGetRenkoStopOrderType(pTransType, pStopPrice){
-    const vSpot = Number(document.getElementById("txtSpotPrice")?.value);
-    if(!Number.isFinite(vSpot) || vSpot <= 0){
-        return "stop_loss_order";
+function fnRenkoDiag(pMsg, pCls = "badge bg-secondary"){
+    const vNow = Date.now();
+    if(gRenkoSellState.LastDiagMsg === pMsg && (vNow - gRenkoSellState.LastDiagTs) < 5000){
+        return;
     }
-    const vStop = Number(pStopPrice);
-    if(!Number.isFinite(vStop) || vStop <= 0){
-        return "stop_loss_order";
-    }
+    gRenkoSellState.LastDiagMsg = pMsg;
+    gRenkoSellState.LastDiagTs = vNow;
+    fnGenMessage(pMsg, pCls, "spnGenMsg");
+}
 
-    if(pTransType === "buy"){
-        return vStop >= vSpot ? "stop_loss_order" : "take_profit_order";
+function fnGetRenkoSellBoxSize(pBox){
+    const vSize = Math.abs(Number(pBox?.Close) - Number(pBox?.Open));
+    if(Number.isFinite(vSize) && vSize > 0){
+        return vSize;
     }
-    if(pTransType === "sell"){
-        return vStop <= vSpot ? "stop_loss_order" : "take_profit_order";
+    const vLast = Number(gRenkoSellState.LastBoxSize);
+    if(Number.isFinite(vLast) && vLast > 0){
+        return vLast;
     }
-    return "stop_loss_order";
+    return 0;
 }
 
 function fnGetOrderDetailsById(pOrderID, pClientOrdID){
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         const objApiKey = document.getElementById("txtUserAPIKey");
         const objApiSecret = document.getElementById("txtAPISecret");
         const vHeaders = new Headers();
@@ -243,18 +222,18 @@ function fnGetOrderDetailsById(pOrderID, pClientOrdID){
         .then(response => response.json())
         .then(objResult => {
             if(objResult.status === "success"){
-                resolve({ status: "success", data: objResult.data?.result || objResult.data });
+                resolve({ status: "success", data: objResult.data?.result || objResult.data, message: objResult.message || "" });
             }
             else{
-                resolve({ status: objResult.status, data: objResult.data });
+                resolve({ status: objResult.status, data: objResult.data, message: objResult.message || "order detail failed" });
             }
         })
-        .catch(() => resolve({ status: "danger", data: null }));
+        .catch(() => resolve({ status: "danger", data: null, message: "order detail network error" }));
     });
 }
 
-function fnEditPendingOrderById(pOrderID, pSymbol, pQty, pLimitPrice, pStopPrice){
-    return new Promise((resolve, reject) => {
+function fnEditPendingOrderById(pOrderID, pSymbol, pQty, pLimitPrice){
+    return new Promise((resolve) => {
         const objApiKey = document.getElementById("txtUserAPIKey");
         const objApiSecret = document.getElementById("txtAPISecret");
         const vHeaders = new Headers();
@@ -266,7 +245,6 @@ function fnEditPendingOrderById(pOrderID, pSymbol, pQty, pLimitPrice, pStopPrice
             Symbol: pSymbol,
             Quantity: pQty,
             LimitPrice: pLimitPrice,
-            StopPrice: pStopPrice,
             PostOnly: true
         });
 
@@ -277,232 +255,220 @@ function fnEditPendingOrderById(pOrderID, pSymbol, pQty, pLimitPrice, pStopPrice
             redirect: "follow"
         })
         .then(response => response.json())
-        .then(objResult => resolve({ status: objResult.status, message: objResult.message, data: objResult.data }))
-        .catch(err => resolve({ status: "danger", message: err?.message || "Network error", data: null }));
+        .then(objResult => resolve({ status: objResult.status, data: objResult.data, message: objResult.message || "" }))
+        .catch(() => resolve({ status: "danger", data: null, message: "pending modify network error" }));
     });
 }
 
-async function fnCancelRenkoPendingEntry(pReasonMsg = ""){
-    if(!gRenkoPendingEntry){
+async function fnCancelRenkoSellPending(pMsg = ""){
+    if(!gRenkoSellState.Pending){
         return;
     }
-    await fnCancelLiveOrder(gRenkoPendingEntry.OrderID, gRenkoPendingEntry.ClientOrderID, gRenkoPendingEntry.Symbol);
-    if(pReasonMsg){
-        fnGenMessage(pReasonMsg, `badge bg-warning`, "spnGenMsg");
+    const objPending = gRenkoSellState.Pending;
+    await fnCancelLiveOrder(objPending.OrderID, objPending.ClientOrderID, objPending.Symbol);
+    gRenkoSellState.Pending = null;
+    if(pMsg){
+        fnGenMessage(pMsg, `badge bg-warning`, "spnGenMsg");
     }
-    gRenkoPendingEntry = null;
 }
 
-async function fnSetOpenPosFromRenkoFill(pOrd, pPending){
-    const vExecPrice = Number(pOrd?.average_fill_price || pOrd?.limit_price);
+async function fnCreateSellPositionFromFilledRenkoOrder(pOrderData, pPending){
+    const vExecPrice = Number(pOrderData?.average_fill_price || pOrderData?.limit_price);
     if(!Number.isFinite(vExecPrice) || vExecPrice <= 0){
         return false;
     }
 
     const objLotSize = document.getElementById("txtLotSize");
     const objQty = document.getElementById("txtFuturesQty");
-    const vSLPoints = fnParsePositiveNumber(document.getElementById("txtPointsSL")?.value, 200);
+    const objSymbol = document.getElementById("ddlFuturesSymbols");
+    const vQty = Math.floor(fnParsePositiveNumber(objQty?.value, 0));
     const vTPPoints1 = fnParsePositiveNumber(document.getElementById("txtPointsTP1")?.value, 1000);
     const objTPAmount = document.getElementById("txtAmountTP") || document.getElementById("txtPointsTP");
-    const vTPAmount = fnParsePositiveNumber(objTPAmount ? objTPAmount.value : NaN, 0);
+    const vTPAmount = fnParsePositiveNumber(objTPAmount ? objTPAmount.value : NaN, 1000);
+    const vBoxSize = fnGetRenkoSellBoxSize(pPending?.RefBox || gRenkoSellState.LastBox);
+    const vSLPoints = (vBoxSize > 0) ? (2 * vBoxSize) : fnParsePositiveNumber(document.getElementById("txtPointsSL")?.value, 200);
+    const vSLPrice = vExecPrice + vSLPoints;
     const vDate = new Date();
     const vToday = vDate.getDate() + "-" + (vDate.getMonth() + 1) + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
 
-    gByorSl = pPending.Side;
-    if(gByorSl === "buy"){
-        gAmtSL = (vExecPrice - vSLPoints).toFixed(2);
-        gAmtTP1 = (vExecPrice + vTPPoints1).toFixed(2);
-    }
-    else{
-        gAmtSL = (vExecPrice + vSLPoints).toFixed(2);
-        gAmtTP1 = (vExecPrice - vTPPoints1).toFixed(2);
-    }
-    gAmtTP = Number.isFinite(vTPAmount) ? vTPAmount : 0;
+    gByorSl = "sell";
+    gAmtSL = vSLPrice.toFixed(2);
+    gAmtTP1 = (vExecPrice - vTPPoints1).toFixed(2);
+    gAmtTP = Number.isFinite(vTPAmount) ? vTPAmount : 1000;
 
     const vExcTradeDtls = {
         TradeData: [{
-            OrderID: pOrd.id,
+            OrderID: pOrderData.id,
             ClientOrderID: pPending.ClientOrderID,
             OpenDT: vToday,
-            FutSymbol: pPending.Symbol,
-            TransType: pPending.Side,
+            FutSymbol: objSymbol?.value || pPending.Symbol,
+            TransType: "sell",
             LotSize: objLotSize?.value || "0",
-            Qty: pPending.Qty,
+            Qty: vQty || pPending.Qty,
             BuyPrice: vExecPrice,
             SellPrice: vExecPrice,
             AmtSL: gAmtSL,
             AmtTP1: gAmtTP1,
             AmtTP: gAmtTP,
             StopLossPts: vSLPoints,
-            TakeProfitAmt: vTPAmount,
+            TakeProfitAmt: gAmtTP,
             OpenDTVal: pPending.ClientOrderID,
-            OrderType: pOrd.order_type,
-            OrderState: pOrd.state,
-            ProductID: pOrd.product_id,
+            OrderType: pOrderData.order_type,
+            OrderState: pOrderData.state,
+            ProductID: pOrderData.product_id,
             BuyCommission: 0,
             SellCommission: 0
         }]
     };
-
     gCurrPos = vExcTradeDtls;
     localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(vExcTradeDtls));
-    localStorage.setItem("DFSL_QtyMul", pPending.Qty);
+    localStorage.setItem("DFSL_QtyMul", String(vQty || pPending.Qty));
+    g50Perc1Time = true;
+
     fnSetInitFutTrdDtls();
-    fnGenMessage("Renko entry order filled. Position opened.", `badge bg-success`, "spnGenMsg");
+    fnSubscribe();
+
+    const vSLOrderId = Date.now();
+    const objSL = await fnPlaceRealOrder(
+        vSLOrderId,
+        objSymbol?.value || pPending.Symbol,
+        "market_order",
+        vQty || pPending.Qty,
+        "buy",
+        0,
+        "stop_loss_order",
+        vSLPrice,
+        false
+    );
+    if(objSL.status === "success"){
+        fnGenMessage(`SELL filled. SL placed at ${fnFmtNum(vSLPrice)} (2-box rule).`, `badge bg-success`, "spnGenMsg");
+    }
+    else{
+        fnGenMessage(`SELL filled but SL place failed: ${objSL.message}`, `badge bg-danger`, "spnGenMsg");
+    }
     return true;
 }
 
-async function fnHandleRenkoEntryOrders(){
-    if(gRenkoEntryOpBusy){
+async function fnHandleRenkoSellSignal(pMsg){
+    if(gRenkoSellState.Busy){
         return;
     }
-    gRenkoEntryOpBusy = true;
+    gRenkoSellState.Busy = true;
     try{
         const vAuto = localStorage.getItem("isDFSLAutoTrader");
-        const objFutDDL = document.getElementById("ddlFuturesSymbols");
-        const objQty = document.getElementById("txtFuturesQty");
-        if(!objFutDDL || !objQty || !objFutDDL.value){
+        const objBox = fnBuildRenkoBox(pMsg);
+        if(!objBox){
             return;
         }
 
+        const objPrev = gRenkoSellState.LastBox;
+        if(fnIsSameRenkoBox(objPrev, objBox)){
+            return;
+        }
+        gRenkoSellState.LastBox = objBox;
+        const vCurrBoxSize = Math.abs(objBox.Close - objBox.Open);
+        if(Number.isFinite(vCurrBoxSize) && vCurrBoxSize > 0){
+            gRenkoSellState.LastBoxSize = vCurrBoxSize;
+        }
+
         if(vAuto !== "true"){
-            if(gRenkoPendingEntry){
-                await fnCancelRenkoPendingEntry("Renko pending entry canceled because Auto Trade is OFF.");
+            if(gRenkoSellState.Pending){
+                await fnCancelRenkoSellPending("Renko SELL pending canceled (Auto Trade OFF).");
+            }
+            else{
+                fnRenkoDiag("Renko SELL skipped: Auto Trade OFF.", "badge bg-warning");
             }
             return;
         }
 
         if(gCurrPos !== null){
-            if(gRenkoPendingEntry){
-                await fnCancelRenkoPendingEntry("Renko pending entry canceled because an open position exists.");
+            if(gRenkoSellState.Pending){
+                await fnCancelRenkoSellPending("Renko SELL pending canceled (position already open).");
+            }
+            else{
+                fnRenkoDiag("Renko SELL skipped: existing open position.", "badge bg-warning");
             }
             return;
         }
 
-        const objDesired = fnGetRenkoDesiredEntry();
-        if(!objDesired){
-            return;
-        }
-        console.log("[Renko/Open] desired entry:", objDesired);
-
-        if(gRenkoPendingEntry){
-            const objDet = await fnGetOrderDetailsById(gRenkoPendingEntry.OrderID, gRenkoPendingEntry.ClientOrderID);
+        if(gRenkoSellState.Pending){
+            const objDet = await fnGetOrderDetailsById(gRenkoSellState.Pending.OrderID, gRenkoSellState.Pending.ClientOrderID);
             if(objDet.status === "success"){
-                const vState = (objDet.data?.state || "").toLowerCase();
-                console.log("[Renko/Open] pending order state:", vState, objDet.data);
+                const vState = String(objDet.data?.state || "").toLowerCase();
                 if(vState === "closed" || vState === "filled"){
-                    const bOpened = await fnSetOpenPosFromRenkoFill(objDet.data, gRenkoPendingEntry);
-                    gRenkoPendingEntry = null;
-                    if(bOpened){
-                        console.log("[Renko/Open] order filled -> position opened.");
+                    const bFilled = await fnCreateSellPositionFromFilledRenkoOrder(objDet.data, gRenkoSellState.Pending);
+                    gRenkoSellState.Pending = null;
+                    if(bFilled){
                         return;
                     }
                 }
                 else if(vState === "cancelled" || vState === "rejected"){
-                    console.log("[Renko/Open] pending order terminal state:", vState);
-                    gRenkoPendingEntry = null;
+                    gRenkoSellState.Pending = null;
+                    fnRenkoDiag(`Renko SELL pending ${vState}.`, "badge bg-warning");
                 }
+            }
+            else{
+                fnRenkoDiag(`Renko SELL pending check failed: ${objDet.message}`, "badge bg-danger");
             }
         }
 
-        if(gRenkoPendingEntry && gRenkoPendingEntry.Side !== objDesired.Side){
-            await fnCancelRenkoPendingEntry("Renko side changed. Opposite pending entry canceled.");
-        }
-
-        const vQty = Math.floor(fnParsePositiveNumber(objQty.value, 0));
-        if(vQty < 1){
-            return;
-        }
-
-        if(!gRenkoPendingEntry){
+        if(objPrev && objPrev.Color === "red" && objBox.Color === "green" && !gRenkoSellState.Pending){
+            const objFutDDL = document.getElementById("ddlFuturesSymbols");
+            const objQty = document.getElementById("txtFuturesQty");
+            const vQty = Math.floor(fnParsePositiveNumber(objQty?.value, 0));
+            const vLimitPrice = Number(objPrev.Close);
+            if(!objFutDDL?.value || vQty < 1 || !Number.isFinite(vLimitPrice) || vLimitPrice <= 0){
+                fnGenMessage("Renko SELL setup skipped due to invalid symbol/qty/price.", `badge bg-warning`, "spnGenMsg");
+                return;
+            }
             const vClientOrdID = Date.now();
-            const vStopOrderType = fnGetRenkoStopOrderType(objDesired.Side, objDesired.StopPrice);
-            const objPlace = await fnPlaceRealOrder(
-                vClientOrdID,
-                objFutDDL.value,
-                "limit_order",
-                vQty,
-                objDesired.Side,
-                objDesired.LimitPrice,
-                vStopOrderType,
-                objDesired.StopPrice,
-                true
-            );
-
+            const objPlace = await fnPlaceRealOrder(vClientOrdID, objFutDDL.value, "limit_order", vQty, "sell", vLimitPrice, "", 0, true);
             if(objPlace.status === "success"){
                 const objRes = objPlace.data?.result;
-                console.log("[Renko/Open] stop-limit placed:", objRes);
-                gRenkoPendingEntry = {
+                gRenkoSellState.Pending = {
                     OrderID: objRes.id,
                     ClientOrderID: vClientOrdID,
                     Symbol: objFutDDL.value,
-                    Side: objDesired.Side,
                     Qty: vQty,
-                    LimitPrice: objDesired.LimitPrice,
-                    StopPrice: objDesired.StopPrice
+                    LimitPrice: vLimitPrice,
+                    RefBox: objPrev
                 };
-                fnGenMessage(`Renko ${objDesired.Side.toUpperCase()} stop-limit placed.`, `badge bg-info`, "spnGenMsg");
+                fnGenMessage(`Renko SELL limit placed @ ${fnFmtNum(vLimitPrice)} (red close).`, `badge bg-info`, "spnGenMsg");
             }
             else{
-                // Retry once with alternate stop order type if initial type is rejected.
-                const vAltType = (vStopOrderType === "stop_loss_order") ? "take_profit_order" : "stop_loss_order";
-                const objAltPlace = await fnPlaceRealOrder(
-                    vClientOrdID,
-                    objFutDDL.value,
-                    "limit_order",
-                    vQty,
-                    objDesired.Side,
-                    objDesired.LimitPrice,
-                    vAltType,
-                    objDesired.StopPrice,
-                    true
+                fnGenMessage(`Renko SELL place failed: ${objPlace.message}`, `badge bg-danger`, "spnGenMsg");
+            }
+            return;
+        }
+
+        if(gRenkoSellState.Pending && objBox.Color === "green"){
+            const vNextLimit = Number(objBox.Open);
+            if(Number.isFinite(vNextLimit) && vNextLimit > 0 && Number(gRenkoSellState.Pending.LimitPrice) !== vNextLimit){
+                const objEdit = await fnEditPendingOrderById(
+                    gRenkoSellState.Pending.OrderID,
+                    gRenkoSellState.Pending.Symbol,
+                    gRenkoSellState.Pending.Qty,
+                    vNextLimit
                 );
-                if(objAltPlace.status === "success"){
-                    const objRes = objAltPlace.data?.result;
-                    console.log("[Renko/Open] stop-limit placed (alt trigger type):", objRes);
-                    gRenkoPendingEntry = {
-                        OrderID: objRes.id,
-                        ClientOrderID: vClientOrdID,
-                        Symbol: objFutDDL.value,
-                        Side: objDesired.Side,
-                        Qty: vQty,
-                        LimitPrice: objDesired.LimitPrice,
-                        StopPrice: objDesired.StopPrice
-                    };
-                    fnGenMessage(`Renko ${objDesired.Side.toUpperCase()} stop-limit placed (alt trigger type).`, `badge bg-info`, "spnGenMsg");
+                if(objEdit.status === "success"){
+                    gRenkoSellState.Pending.LimitPrice = vNextLimit;
+                    gRenkoSellState.Pending.RefBox = objBox;
+                    fnGenMessage(`Renko SELL limit modified @ ${fnFmtNum(vNextLimit)} (green open).`, `badge bg-info`, "spnGenMsg");
                 }
                 else{
-                    fnGenMessage(`Renko entry place failed: ${fnToReadableMsg(objAltPlace.message || objPlace.message, objAltPlace.data || objPlace.data)}`, `badge bg-danger`, "spnGenMsg");
+                    fnGenMessage(`Renko SELL modify failed: ${objEdit.message}`, `badge bg-danger`, "spnGenMsg");
                 }
             }
             return;
         }
 
-        if(gRenkoPendingEntry.Side === objDesired.Side){
-            const bLimitChanged = Number(gRenkoPendingEntry.LimitPrice) !== Number(objDesired.LimitPrice);
-            const bStopChanged = Number(gRenkoPendingEntry.StopPrice) !== Number(objDesired.StopPrice);
-            if(bLimitChanged || bStopChanged){
-                const objEdit = await fnEditPendingOrderById(
-                    gRenkoPendingEntry.OrderID,
-                    gRenkoPendingEntry.Symbol,
-                    gRenkoPendingEntry.Qty,
-                    objDesired.LimitPrice,
-                    objDesired.StopPrice
-                );
-                if(objEdit.status === "success"){
-                    console.log("[Renko/Open] pending order modified:", { LimitPrice: objDesired.LimitPrice, StopPrice: objDesired.StopPrice });
-                    gRenkoPendingEntry.LimitPrice = objDesired.LimitPrice;
-                    gRenkoPendingEntry.StopPrice = objDesired.StopPrice;
-                    fnGenMessage(`Renko ${gRenkoPendingEntry.Side.toUpperCase()} stop-limit modified.`, `badge bg-info`, "spnGenMsg");
-                }
-                else{
-                    fnGenMessage(`Renko pending modify failed: ${fnToReadableMsg(objEdit.message, objEdit.data)}`, `badge bg-danger`, "spnGenMsg");
-                }
-            }
-        }
+        fnRenkoDiag(`Renko SELL wait: prev=${objPrev?.Color || "-"} curr=${objBox.Color}.`, "badge bg-secondary");
+    }
+    catch(err){
+        fnGenMessage(`Renko SELL runtime error: ${err?.message || err}`, `badge bg-danger`, "spnGenMsg");
     }
     finally{
-        gRenkoEntryOpBusy = false;
+        gRenkoSellState.Busy = false;
     }
 }
 
@@ -730,34 +696,6 @@ function fnSetTextByPL(pEl, pValue){
     pEl.textContent = Number(pValue).toFixed(2);
     pEl.style.color = Number(pValue) < 0 ? "red" : "green";
     pEl.style.fontWeight = "bold";
-}
-
-function fnToReadableMsg(pMsg, pData){
-    if(typeof pMsg === "string" && pMsg.trim() !== ""){
-        return pMsg;
-    }
-    if(pMsg && typeof pMsg === "object"){
-        const vCode = pMsg.code || pMsg.error_code;
-        const vMessage = pMsg.message || pMsg.error || pMsg.reason;
-        if(vCode && vMessage){
-            return `${vCode}: ${vMessage}`;
-        }
-        if(vMessage){
-            return String(vMessage);
-        }
-        try{
-            return JSON.stringify(pMsg);
-        }
-        catch(_err){
-            return String(pMsg);
-        }
-    }
-
-    const vErrObj = pData?.response?.body?.error || pData?.error || pData?.result?.error;
-    if(vErrObj){
-        return fnToReadableMsg(vErrObj);
-    }
-    return "unknown error";
 }
 
 function fnPickWalletMetric(pWalletRows, pFieldList){
@@ -2606,11 +2544,13 @@ function fnGetTradePL(pSellPrice, pBuyPrice, pLotSize, pQty, pCharges){
 }
 
 function fnClearLocalStorageTemp(){
-    if(gRenkoPendingEntry){
-        fnCancelRenkoPendingEntry("Renko pending entry canceled due to Clear All.");
+    if(gRenkoSellState.Pending){
+        fnCancelRenkoSellPending("Renko SELL pending canceled due to Clear All.");
     }
-    gRenkoBoxes = [];
-    gRenkoPendingEntry = null;
+    gRenkoSellState.LastBox = null;
+    gRenkoSellState.LastBoxSize = 0;
+    gRenkoSellState.Pending = null;
+    gRenkoSellState.Busy = false;
     localStorage.removeItem("DFSL_CurrFutPos");
 	localStorage.removeItem("DFSL_TrdBkFut");
 	localStorage.removeItem("DFSL_StartQtyNo");
