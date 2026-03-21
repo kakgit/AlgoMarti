@@ -813,11 +813,9 @@ function fnLoadOrderType(){
         return;
     }
 
-    const vOrderType = "market_order";
+    const vOrderType = localStorage.getItem("DFSL_OrderType") || "market_order";
     const vLimitPrice = localStorage.getItem("DFSL_LimitPrice");
-    localStorage.setItem("DFSL_OrderType", vOrderType);
     objOrderType.value = vOrderType;
-    objOrderType.disabled = true;
     if(vLimitPrice !== null){
         objLimitPrice.value = vLimitPrice;
     }
@@ -831,10 +829,9 @@ function fnChangeOrderType(pOrderType){
         return;
     }
 
-    const vOrderType = "market_order";
+    const vOrderType = pOrderType || objOrderType.value;
     localStorage.setItem("DFSL_OrderType", vOrderType);
     objOrderType.value = vOrderType;
-    objOrderType.disabled = true;
     if(vOrderType === "market_order"){
         objLimitPrice.disabled = true;
         objLimitPrice.placeholder = "Not required for market";
@@ -1607,6 +1604,7 @@ async function fnInitiateManualFutures(pTransType){
     const objFutDDL = document.getElementById("ddlFuturesSymbols");
     const objQty = document.getElementById("txtFuturesQty");
     const objLotSize = document.getElementById("txtLotSize");
+    const objOrderType = document.getElementById("ddlOrderType");
     const objLimitPrice = document.getElementById("txtLimitPrice");
     const vSLPoints = fnParsePositiveNumber(document.getElementById("txtPointsSL").value, NaN);
     const vTPPoints1 = fnParsePositiveNumber(document.getElementById("txtPointsTP1").value, NaN);
@@ -1631,8 +1629,16 @@ async function fnInitiateManualFutures(pTransType){
         return;
     }
 
-    const vExecOrderType = "market_order";
+    const vExecOrderType = objOrderType?.value || "market_order";
     let vLimitPrice = 0;
+    if(vExecOrderType === "limit_order"){
+        vLimitPrice = fnParsePositiveNumber(objLimitPrice.value, NaN);
+        if(!Number.isFinite(vLimitPrice)){
+            fnGenMessage("Please input valid Limit Price for limit order!", `badge bg-warning`, "spnGenMsg");
+            return;
+        }
+    }
+    localStorage.setItem("DFSL_OrderType", vExecOrderType);
     localStorage.setItem("DFSL_LimitPrice", objLimitPrice.value || "");
 
     const vDate = new Date();
