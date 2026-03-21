@@ -192,6 +192,7 @@ route.post("/deltaExc/getProdBySymbol", deltaLiveController.fnGetProdBySymbol);
 route.post("/deltaExcFutR/validateLogin", deltaFutLiveController.fnValidateUserLogin);
 route.post("/deltaExcFutR/placeRealOrder", deltaFutLiveController.fnPlaceOrderSDK);
 route.post("/deltaExcFutR/getOrderDetails", deltaFutLiveController.fnGetOrderDetails);
+route.post("/deltaExcFutR/editPendingOrder", deltaFutLiveController.fnEditOrderSDK);
 route.post("/deltaExcFutR/cancelPendingOrder", deltaFutLiveController.fnCancelOrderSDK);
 route.post("/deltaExcFutR/getFilledPosById", deltaFutLiveController.fnGetOpenPositionByIdSDK);
 route.post("/deltaExcFutR/getFilledOrderHistory", deltaFutLiveController.fnGetFilledOrderHistory);

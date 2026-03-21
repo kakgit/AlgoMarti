@@ -47,6 +47,9 @@ exports.fnPlaceOrderSDK = async (req, res) => {
     let vLimitPrice = parseFloat(req.body.LimitPrice);
     let vQuantity = req.body.Quantity;
     let vTransType = req.body.TransType;
+    let vStopOrderType = req.body.StopOrderType || "";
+    let vStopPrice = parseFloat(req.body.StopPrice);
+    let vPostOnly = (req.body.PostOnly === true || req.body.PostOnly === "true");
 
     let objCurrRates = await fnGetCurrRates(vApiKey, vApiSecret, vSymbolID);
 
@@ -55,12 +58,12 @@ exports.fnPlaceOrderSDK = async (req, res) => {
         let vBestBuy = objCurrRates.data.result.quotes.best_ask;
         let vBestSell = objCurrRates.data.result.quotes.best_bid;
         let vOrderLimitPrice = "0";
-        let vPostOnly = true;
+        let vUsePostOnly = true;
 
         if(vOrderType === "market_order"){
             vBestBuy = "0";
             vBestSell = "0";
-            vPostOnly = false;
+            vUsePostOnly = false;
             vOrderLimitPrice = "0";
         }
         else if(vOrderType === "limit_order"){
@@ -88,16 +91,26 @@ exports.fnPlaceOrderSDK = async (req, res) => {
         // //******* COMMENT WHEN LIVE */
 
         new DeltaRestClient(vApiKey, vApiSecret).then(client => {
-            client.apis.Orders.placeOrder({
-                order: {
+            let objOrder = {
                 product_symbol: vSymbolID,
                 size: vQuantity,
                 side: vTransType,
                 limit_price: vOrderLimitPrice,
                 order_type: vOrderType,
-                // post_only: vPostOnly,
+                // post_only: vUsePostOnly,
                 client_order_id: (vClientOrdID).toString()
-                }
+            };
+
+            if(vOrderType === "limit_order" && vPostOnly){
+                objOrder.post_only = true;
+            }
+            if(vOrderType === "limit_order" && vStopOrderType && !isNaN(vStopPrice) && vStopPrice > 0){
+                objOrder.stop_order_type = vStopOrderType;
+                objOrder.stop_price = vStopPrice.toString();
+            }
+
+            client.apis.Orders.placeOrder({
+                order: objOrder
             }).then(function (response) {
                 let objResult = JSON.parse(response.data);
 
@@ -163,6 +176,66 @@ exports.fnGetOrderDetails = async (req, res) => {
         res.send({ "status": "danger", "message": objError?.response?.data || objError.message, "data": objError });
     }
     // res.send({ "status": "success", "message": "Order Details Sent!", "data": "" });
+}
+
+exports.fnEditOrderSDK = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+    let vOrderID = parseInt(req.body.OrderID);
+    let vSymbol = req.body.Symbol;
+    let vQuantity = parseInt(req.body.Quantity);
+    let vLimitPrice = parseFloat(req.body.LimitPrice);
+    let vStopPrice = parseFloat(req.body.StopPrice);
+    let vPostOnly = (req.body.PostOnly === true || req.body.PostOnly === "true");
+
+    if(!vOrderID || !vSymbol || !vQuantity || !(vLimitPrice > 0)){
+        res.send({ "status": "warning", "message": "Invalid edit order input.", "data": "" });
+        return;
+    }
+
+    try{
+        const vMethod = "PUT";
+        const vPath = "/v2/orders";
+        const vTimeStamp = Math.floor(new Date().getTime() / 1000);
+        const objBody = {
+            id: vOrderID,
+            product_symbol: vSymbol,
+            size: vQuantity,
+            limit_price: vLimitPrice.toString()
+        };
+        if(vPostOnly){
+            objBody.post_only = true;
+        }
+        if(!isNaN(vStopPrice) && vStopPrice > 0){
+            objBody.stop_price = vStopPrice.toString();
+        }
+        const vBody = JSON.stringify(objBody);
+        const vSignature = fnGetSignature(vApiSecret, vMethod, vPath, "", vTimeStamp, vBody);
+
+        const objResp = await axios.request({
+            method: vMethod,
+            url: gBaseUrl + vPath,
+            data: vBody,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "api-key": vApiKey,
+                "signature": vSignature,
+                "timestamp": vTimeStamp
+            }
+        });
+
+        let objResult = objResp.data;
+        if(objResult.success){
+            res.send({ "status": "success", "message": "Order Edited Successfully!", "data": objResult });
+        }
+        else{
+            res.send({ "status": "warning", "message": "Error editing order.", "data": objResult });
+        }
+    }
+    catch(objError){
+        res.send({ "status": "danger", "message": objError?.response?.data || objError.message, "data": objError });
+    }
 }
 
 exports.fnCancelOrderSDK = async (req, res) => {
