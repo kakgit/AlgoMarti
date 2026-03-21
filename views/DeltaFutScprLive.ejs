@@ -193,7 +193,9 @@
                                     <div class="col-2">Best Buying Price</div>
                                     <div class="col-2">Mark Price</div>
                                     <div class="col-2">Best Selling Price</div>
-                                    <div class="col-6"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2">1st Box Limit</div>
+                                    <div class="col-2"></div>
                                     <div class="col-2">
                                         <input type="number" class="form-control" placeholder="Best Buy Price" id="txtBestBuyPrice" />
                                     </div>
@@ -211,6 +213,12 @@
                                     <div class="col-6 col-md-1">
                                          <div class="d-grid gap-1">
                                             <button class="btn btn-outline-danger action-btn" onclick="fnManualSubStop();" style="display: block;"><b>STOP</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-2 d-flex align-items-center">
+                                        <div class="form-check form-switch fs-6 mb-0" style="white-space: nowrap;">
+                                            <input class="form-check-input me-1" type="checkbox" style="cursor: pointer" id="swtRenkoStrategy" name="swtRenkoStrategy" onchange="fnToggleRenkoStrategy();" />
+                                            <label for="swtRenkoStrategy" style="cursor:pointer;text-wrap:nowrap;"></label>
                                         </div>
                                     </div>
                                     <div style="display: none;">
