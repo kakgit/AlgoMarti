@@ -278,7 +278,7 @@ function fnEditPendingOrderById(pOrderID, pSymbol, pQty, pLimitPrice, pStopPrice
         })
         .then(response => response.json())
         .then(objResult => resolve({ status: objResult.status, message: objResult.message, data: objResult.data }))
-        .catch(() => resolve({ status: "danger", data: null }));
+        .catch(err => resolve({ status: "danger", message: err?.message || "Network error", data: null }));
     });
 }
 
@@ -472,7 +472,7 @@ async function fnHandleRenkoEntryOrders(){
                     fnGenMessage(`Renko ${objDesired.Side.toUpperCase()} stop-limit placed (alt trigger type).`, `badge bg-info`, "spnGenMsg");
                 }
                 else{
-                    fnGenMessage(`Renko entry place failed: ${objAltPlace.message || objPlace.message || "unknown error"}`, `badge bg-danger`, "spnGenMsg");
+                    fnGenMessage(`Renko entry place failed: ${fnToReadableMsg(objAltPlace.message || objPlace.message, objAltPlace.data || objPlace.data)}`, `badge bg-danger`, "spnGenMsg");
                 }
             }
             return;
@@ -496,7 +496,7 @@ async function fnHandleRenkoEntryOrders(){
                     fnGenMessage(`Renko ${gRenkoPendingEntry.Side.toUpperCase()} stop-limit modified.`, `badge bg-info`, "spnGenMsg");
                 }
                 else{
-                    fnGenMessage(`Renko pending modify failed: ${objEdit.message || "unknown error"}`, `badge bg-danger`, "spnGenMsg");
+                    fnGenMessage(`Renko pending modify failed: ${fnToReadableMsg(objEdit.message, objEdit.data)}`, `badge bg-danger`, "spnGenMsg");
                 }
             }
         }
@@ -730,6 +730,34 @@ function fnSetTextByPL(pEl, pValue){
     pEl.textContent = Number(pValue).toFixed(2);
     pEl.style.color = Number(pValue) < 0 ? "red" : "green";
     pEl.style.fontWeight = "bold";
+}
+
+function fnToReadableMsg(pMsg, pData){
+    if(typeof pMsg === "string" && pMsg.trim() !== ""){
+        return pMsg;
+    }
+    if(pMsg && typeof pMsg === "object"){
+        const vCode = pMsg.code || pMsg.error_code;
+        const vMessage = pMsg.message || pMsg.error || pMsg.reason;
+        if(vCode && vMessage){
+            return `${vCode}: ${vMessage}`;
+        }
+        if(vMessage){
+            return String(vMessage);
+        }
+        try{
+            return JSON.stringify(pMsg);
+        }
+        catch(_err){
+            return String(pMsg);
+        }
+    }
+
+    const vErrObj = pData?.response?.body?.error || pData?.error || pData?.result?.error;
+    if(vErrObj){
+        return fnToReadableMsg(vErrObj);
+    }
+    return "unknown error";
 }
 
 function fnPickWalletMetric(pWalletRows, pFieldList){
