@@ -962,15 +962,67 @@ function fnLoadTradeCounter(){
 }
 
 function fnLoadMarti(){
-    let vMartiM = JSON.parse(localStorage.getItem("DFSL_Marti"));
-    let objSwtMarti = document.getElementById("swtMartingale");
+    let objSwtStep = document.getElementById("swtMartingale");
+    let objSwtMarti = document.getElementById("swtMarti");
+    if(!objSwtStep){
+        return;
+    }
 
-    if(vMartiM){
-    	objSwtMarti.checked = true;
+    let vMode = (localStorage.getItem("DFSL_TradeMode") || "").toUpperCase();
+    if(vMode === ""){
+        let vLegacyMarti = JSON.parse(localStorage.getItem("DFSL_Marti"));
+        vMode = vLegacyMarti ? "MARTI" : "STEP";
+    }
+
+    if(objSwtMarti){
+        objSwtStep.checked = (vMode === "STEP");
+        objSwtMarti.checked = (vMode === "MARTI");
+        if(objSwtStep.checked === objSwtMarti.checked){
+            objSwtStep.checked = true;
+            objSwtMarti.checked = false;
+            vMode = "STEP";
+        }
+        localStorage.setItem("DFSL_TradeMode", vMode);
+        localStorage.setItem("DFSL_Marti", JSON.stringify(objSwtMarti.checked));
     }
     else{
-    	objSwtMarti.checked = false;
+        objSwtStep.checked = (vMode === "MARTI");
+        localStorage.setItem("DFSL_Marti", JSON.stringify(objSwtStep.checked));
     }
+}
+
+function fnChangeTradeMode(pMode){
+    let objSwtStep = document.getElementById("swtMartingale");
+    let objSwtMarti = document.getElementById("swtMarti");
+    if(!objSwtStep){
+        return;
+    }
+
+    if(!objSwtMarti){
+        localStorage.setItem("DFSL_Marti", JSON.stringify(objSwtStep.checked));
+        return;
+    }
+
+    if(pMode === "step"){
+        if(objSwtStep.checked){
+            objSwtMarti.checked = false;
+        }
+        else if(!objSwtMarti.checked){
+            objSwtStep.checked = true;
+        }
+    }
+    else if(pMode === "marti"){
+        if(objSwtMarti.checked){
+            objSwtStep.checked = false;
+        }
+        else if(!objSwtStep.checked){
+            objSwtMarti.checked = true;
+        }
+    }
+
+    let vMode = objSwtMarti.checked ? "MARTI" : "STEP";
+    localStorage.setItem("DFSL_TradeMode", vMode);
+    localStorage.setItem("DFSL_Marti", JSON.stringify(objSwtMarti.checked));
 }
 
 function fnLoadYetToRec(){
@@ -2093,9 +2145,12 @@ function fnSetNextOptTradeSettings(){
 
     let vOldQtyMul = JSON.parse(localStorage.getItem("DFSL_QtyMul"));
     let vStartLots = JSON.parse(localStorage.getItem("DFSL_StartQtyNo"));
-    let objSwtMarti = document.getElementById("swtMartingale");
+    let objSwtMarti = document.getElementById("swtMarti");
+    if(!objSwtMarti){
+        objSwtMarti = document.getElementById("swtMartingale");
+    }
 
-    if(objSwtMarti.checked){
+    if(objSwtMarti && objSwtMarti.checked){
 		if(parseFloat(vNewLossAmt) < 0){
 	        let vNextQty = parseInt(vOldQtyMul) + parseInt(vStartLots);
 	        localStorage.setItem("DFSL_QtyMul", vNextQty);
@@ -2138,11 +2193,7 @@ function fnSetNextOptTradeSettings(){
 }
 
 function fnChangeMartingale(){
-    // let vMartiM = JSON.parse(localStorage.getItem("DFSL_Marti"));
-    let objSwtMarti = document.getElementById("swtMartingale");
-
-    localStorage.setItem("DFSL_Marti", JSON.stringify(objSwtMarti.checked));
-    // alert(objSwtMarti.checked);
+    fnChangeTradeMode("step");
 }
 
 function fnSetLotsByQtyMulLossAmt(){
@@ -2467,6 +2518,7 @@ function fnClearLocalStorageTemp(){
     localStorage.removeItem("DFSL_LossRecM");
     localStorage.removeItem("DFSL_MultiplierX");
 	localStorage.removeItem("DFSL_Marti");
+    localStorage.removeItem("DFSL_TradeMode");
 	localStorage.setItem("DFSL_QtyMul", 0);
 	localStorage.setItem("DFSL_TotLossAmt", 0);
 	localStorage.removeItem("DFSL_CurrFutSlTp");

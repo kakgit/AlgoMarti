@@ -276,8 +276,14 @@
                             </div>
                             <div class="col-12 col-lg-2">
                                 <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                    <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtMartingale" name="swtMartingale" onchange="fnChangeMartingale();" />
+                                    <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtMartingale" name="swtMartingale" onchange="fnChangeTradeMode('step');" />
                                     <label for="swtMartingale" style="cursor:pointer;text-wrap:nowrap;">Step</label>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-2">
+                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                                    <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtMarti" name="swtMarti" onchange="fnChangeTradeMode('marti');" />
+                                    <label for="swtMarti" style="cursor:pointer;text-wrap:nowrap;">Marti</label>
                                 </div>
                             </div>
                             <div class="col-6 col-lg-1 text-lg-end">
