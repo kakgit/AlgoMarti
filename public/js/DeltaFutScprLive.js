@@ -178,6 +178,47 @@ function fnFmtNum(pNum, pD = 2){
     return vNum.toFixed(pD);
 }
 
+function fnIsPostOnlyImmediateError(pMsg){
+    const vTxt = String(pMsg || "").toLowerCase();
+    return vTxt.includes("immediate_execution_post_only");
+}
+
+async function fnGetMakerSafeSellPrice(pDesiredPrice){
+    let vPrice = Number(pDesiredPrice);
+    if(!Number.isFinite(vPrice) || vPrice <= 0){
+        return NaN;
+    }
+
+    // Prefer latest book data; fallback to current UI values.
+    try{
+        const objRates = await fnGetFutBestRates();
+        if(objRates?.status === "success"){
+            const vBestAsk = Number(objRates?.data?.BestBuy);
+            const vBestBid = Number(objRates?.data?.BestSell);
+            if(Number.isFinite(vBestAsk) && vBestAsk > 0){
+                vPrice = Math.max(vPrice, vBestAsk);
+            }
+            else if(Number.isFinite(vBestBid) && vBestBid > 0){
+                vPrice = Math.max(vPrice, vBestBid + 1);
+            }
+            return vPrice;
+        }
+    }
+    catch(_err){
+        // ignore and use UI fallback
+    }
+
+    const vUiBestAsk = Number(document.getElementById("txtBestBuyPrice")?.value);
+    const vUiBestBid = Number(document.getElementById("txtBestSellPrice")?.value);
+    if(Number.isFinite(vUiBestAsk) && vUiBestAsk > 0){
+        return Math.max(vPrice, vUiBestAsk);
+    }
+    if(Number.isFinite(vUiBestBid) && vUiBestBid > 0){
+        return Math.max(vPrice, vUiBestBid + 1);
+    }
+    return vPrice;
+}
+
 function fnRenkoDiag(pMsg, pCls = "badge bg-secondary"){
     const vNow = Date.now();
     if(gRenkoSellState.LastDiagMsg === pMsg && (vNow - gRenkoSellState.LastDiagTs) < 5000){
@@ -423,7 +464,20 @@ async function fnHandleRenkoSellSignal(pMsg){
                 return;
             }
             const vClientOrdID = Date.now();
-            const objPlace = await fnPlaceRealOrder(vClientOrdID, objFutDDL.value, "limit_order", vQty, "sell", vLimitPrice, "", 0, true);
+            let vPlacePrice = vLimitPrice;
+            let objPlace = await fnPlaceRealOrder(vClientOrdID, objFutDDL.value, "limit_order", vQty, "sell", vPlacePrice, "", 0, true);
+
+            if(objPlace.status !== "success" && fnIsPostOnlyImmediateError(objPlace.message)){
+                const vMakerSafePrice = await fnGetMakerSafeSellPrice(vPlacePrice);
+                if(Number.isFinite(vMakerSafePrice) && vMakerSafePrice > 0 && vMakerSafePrice !== vPlacePrice){
+                    vPlacePrice = vMakerSafePrice;
+                    objPlace = await fnPlaceRealOrder(vClientOrdID, objFutDDL.value, "limit_order", vQty, "sell", vPlacePrice, "", 0, true);
+                    if(objPlace.status === "success"){
+                        fnGenMessage(`Renko SELL re-priced for maker @ ${fnFmtNum(vPlacePrice)}.`, `badge bg-warning`, "spnGenMsg");
+                    }
+                }
+            }
+
             if(objPlace.status === "success"){
                 const objRes = objPlace.data?.result;
                 gRenkoSellState.Pending = {
@@ -431,10 +485,10 @@ async function fnHandleRenkoSellSignal(pMsg){
                     ClientOrderID: vClientOrdID,
                     Symbol: objFutDDL.value,
                     Qty: vQty,
-                    LimitPrice: vLimitPrice,
+                    LimitPrice: vPlacePrice,
                     RefBox: objBox
                 };
-                fnGenMessage(`Renko SELL limit placed @ ${fnFmtNum(vLimitPrice)} (green rule).`, `badge bg-info`, "spnGenMsg");
+                fnGenMessage(`Renko SELL limit placed @ ${fnFmtNum(vPlacePrice)} (green rule).`, `badge bg-info`, "spnGenMsg");
             }
             else{
                 fnGenMessage(`Renko SELL place failed: ${objPlace.message}`, `badge bg-danger`, "spnGenMsg");
@@ -452,13 +506,31 @@ async function fnHandleRenkoSellSignal(pMsg){
                     gRenkoSellState.Pending.Qty,
                     vNextLimit
                 );
-                if(objEdit.status === "success"){
-                    gRenkoSellState.Pending.LimitPrice = vNextLimit;
+                let vFinalLimit = vNextLimit;
+                let objEditFinal = objEdit;
+                if(objEdit.status !== "success" && fnIsPostOnlyImmediateError(objEdit.message)){
+                    const vMakerSafePrice = await fnGetMakerSafeSellPrice(vNextLimit);
+                    if(Number.isFinite(vMakerSafePrice) && vMakerSafePrice > 0 && vMakerSafePrice !== vNextLimit){
+                        objEditFinal = await fnEditPendingOrderById(
+                            gRenkoSellState.Pending.OrderID,
+                            gRenkoSellState.Pending.Symbol,
+                            gRenkoSellState.Pending.Qty,
+                            vMakerSafePrice
+                        );
+                        if(objEditFinal.status === "success"){
+                            vFinalLimit = vMakerSafePrice;
+                            fnGenMessage(`Renko SELL modify re-priced for maker @ ${fnFmtNum(vMakerSafePrice)}.`, `badge bg-warning`, "spnGenMsg");
+                        }
+                    }
+                }
+
+                if(objEditFinal.status === "success"){
+                    gRenkoSellState.Pending.LimitPrice = vFinalLimit;
                     gRenkoSellState.Pending.RefBox = objBox;
-                    fnGenMessage(`Renko SELL limit modified @ ${fnFmtNum(vNextLimit)} (green rule).`, `badge bg-info`, "spnGenMsg");
+                    fnGenMessage(`Renko SELL limit modified @ ${fnFmtNum(vFinalLimit)} (green rule).`, `badge bg-info`, "spnGenMsg");
                 }
                 else{
-                    fnGenMessage(`Renko SELL modify failed: ${objEdit.message}`, `badge bg-danger`, "spnGenMsg");
+                    fnGenMessage(`Renko SELL modify failed: ${objEditFinal.message}`, `badge bg-danger`, "spnGenMsg");
                 }
             }
             return;
