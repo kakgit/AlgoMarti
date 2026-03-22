@@ -1418,7 +1418,7 @@ function fnConnectWS(){
 				console.log("#######################");
 				break;
 			case "subscriptions":
-	            fnGenMessage("Streaming Subscribed and Started!", `badge bg-success`, "spnGenMsg");
+	            // Suppressed to avoid overwriting strategy/runtime messages too frequently.
 	            objSub.className = "badge rounded-pill text-bg-success ws-dot blink";
 				break;
 			case "unsubscribed":
@@ -2520,7 +2520,8 @@ function fnGetRenkoMidPrice(pBox){
     if(!Number.isFinite(vOpen) || !Number.isFinite(vClose)){
         return NaN;
     }
-    return Number(((vOpen + vClose) / 2).toFixed(2));
+    // 10% from open toward close (works for both green and red boxes).
+    return Number((vOpen + ((vClose - vOpen) * 0.1)).toFixed(2));
 }
 
 async function fnCreatePositionFromFilledRenkoBySide(pSide, pOrderData, pPending){
