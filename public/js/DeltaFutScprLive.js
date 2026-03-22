@@ -9,6 +9,9 @@ let gTimerID = 0;
 let gTimeDiff = 900;
 let gLossRecPerct = 100;
 let gMultiplierX = 1.0;
+let gMakerFeePct = 0.02;
+let gTakerFeePct = 0.05;
+let gLiveExitFeeMode = "taker";
 let gOldPLAmt = 0;
 let gNewPLAmt = 0;
 let gPL = 0;
@@ -426,6 +429,7 @@ async function fnCreateSellPositionFromFilledRenkoOrder(pOrderData, pPending){
     if(!Number.isFinite(vExecPrice) || vExecPrice <= 0){
         return false;
     }
+    const vEntryCommission = Number(pOrderData?.paid_commission || 0);
 
     const objLotSize = document.getElementById("txtLotSize");
     const objQty = document.getElementById("txtFuturesQty");
@@ -462,7 +466,7 @@ async function fnCreateSellPositionFromFilledRenkoOrder(pOrderData, pPending){
             OrderState: pOrderData.state,
             ProductID: pOrderData.product_id,
             BuyCommission: 0,
-            SellCommission: 0,
+            SellCommission: Number.isFinite(vEntryCommission) ? vEntryCommission : 0,
             EntryRule: vEntryRule
         }]
     };
@@ -552,6 +556,7 @@ async function fnCreateBuyPositionFromFilledRenkoOrder(pOrderData, pPending){
     if(!Number.isFinite(vExecPrice) || vExecPrice <= 0){
         return false;
     }
+    const vEntryCommission = Number(pOrderData?.paid_commission || 0);
 
     const objLotSize = document.getElementById("txtLotSize");
     const objQty = document.getElementById("txtFuturesQty");
@@ -587,7 +592,7 @@ async function fnCreateBuyPositionFromFilledRenkoOrder(pOrderData, pPending){
             OrderType: pOrderData.order_type,
             OrderState: pOrderData.state,
             ProductID: pOrderData.product_id,
-            BuyCommission: 0,
+            BuyCommission: Number.isFinite(vEntryCommission) ? vEntryCommission : 0,
             SellCommission: 0,
             EntryRule: vEntryRule
         }]
@@ -1020,6 +1025,7 @@ function fnGetAllStatus(){
 		fnLoadYetToRec();
 		fnLoadDefQty();
 		fnLoadLossRecoveryMultiplier();
+        fnLoadFeeModel();
 		fnLoadCurrentTradePos();
 		// UNCOMMENT for LIVE TRADING in DEMO
 		fnSubscribe();
@@ -1181,6 +1187,96 @@ function fnUpdateMultiplierX(pThisVal){
 	localStorage.setItem("DFSL_MultiplierX", vMultiplier);
 	gMultiplierX = vMultiplier;
     fnUpdateMartiDebugStatus();
+}
+
+function fnLoadFeeModel(){
+    const objMaker = document.getElementById("txtMakerFeePct");
+    const objTaker = document.getElementById("txtTakerFeePct");
+    const objMode = document.getElementById("ddlLiveExitFeeMode");
+    if(!objMaker || !objTaker || !objMode){
+        return;
+    }
+
+    const vMaker = Number(localStorage.getItem("DFSL_MakerFeePct"));
+    const vTaker = Number(localStorage.getItem("DFSL_TakerFeePct"));
+    const vMode = String(localStorage.getItem("DFSL_LiveExitFeeMode") || "taker").toLowerCase();
+
+    gMakerFeePct = Number.isFinite(vMaker) && vMaker >= 0 ? vMaker : 0.02;
+    gTakerFeePct = Number.isFinite(vTaker) && vTaker >= 0 ? vTaker : 0.05;
+    gLiveExitFeeMode = (vMode === "maker" || vMode === "auto") ? vMode : "taker";
+
+    objMaker.value = gMakerFeePct;
+    objTaker.value = gTakerFeePct;
+    objMode.value = gLiveExitFeeMode;
+
+    localStorage.setItem("DFSL_MakerFeePct", gMakerFeePct);
+    localStorage.setItem("DFSL_TakerFeePct", gTakerFeePct);
+    localStorage.setItem("DFSL_LiveExitFeeMode", gLiveExitFeeMode);
+}
+
+function fnUpdateMakerFeePct(pThisVal){
+    const vMaker = fnParsePositiveNumber(pThisVal.value, 0.02);
+    pThisVal.value = vMaker;
+    gMakerFeePct = vMaker;
+    localStorage.setItem("DFSL_MakerFeePct", vMaker);
+}
+
+function fnUpdateTakerFeePct(pThisVal){
+    const vTaker = fnParsePositiveNumber(pThisVal.value, 0.05);
+    pThisVal.value = vTaker;
+    gTakerFeePct = vTaker;
+    localStorage.setItem("DFSL_TakerFeePct", vTaker);
+}
+
+function fnUpdateLiveExitFeeMode(pThisVal){
+    const vMode = String(pThisVal?.value || "taker").toLowerCase();
+    gLiveExitFeeMode = (vMode === "maker" || vMode === "auto") ? vMode : "taker";
+    localStorage.setItem("DFSL_LiveExitFeeMode", gLiveExitFeeMode);
+}
+
+function fnCalcCommByPct(pNotional, pPct){
+    const vNotional = Number(pNotional);
+    const vPct = Number(pPct);
+    if(!Number.isFinite(vNotional) || vNotional <= 0 || !Number.isFinite(vPct) || vPct < 0){
+        return 0;
+    }
+    return (vNotional * vPct) / 100;
+}
+
+function fnGetLiveOpenCharges(pTrade, pBuyPrice, pSellPrice){
+    if(!pTrade){
+        return 0;
+    }
+    const vQty = Number(pTrade.Qty);
+    const vLot = Number(pTrade.LotSize);
+    const vBuy = Number(pBuyPrice);
+    const vSell = Number(pSellPrice);
+    if(!Number.isFinite(vQty) || vQty <= 0 || !Number.isFinite(vLot) || vLot <= 0){
+        return 0;
+    }
+
+    const vEntryStored = Number(pTrade.BuyCommission || 0) + Number(pTrade.SellCommission || 0);
+    let vEntryComm = Number.isFinite(vEntryStored) && vEntryStored > 0 ? vEntryStored : 0;
+
+    if(vEntryComm <= 0){
+        const vEntryNotional = (String(pTrade.TransType).toLowerCase() === "buy" ? vBuy : vSell) * vLot * vQty;
+        const vEntryRate = (String(pTrade.OrderType).toLowerCase() === "market_order") ? gTakerFeePct : gMakerFeePct;
+        vEntryComm = fnCalcCommByPct(vEntryNotional, vEntryRate);
+    }
+
+    const vExitNotional = (String(pTrade.TransType).toLowerCase() === "buy" ? vSell : vBuy) * vLot * vQty;
+    let vExitRate = gTakerFeePct;
+    if(gLiveExitFeeMode === "maker"){
+        vExitRate = gMakerFeePct;
+    }
+    else if(gLiveExitFeeMode === "auto"){
+        // Current close flow is market close by default, so auto maps to taker.
+        vExitRate = gTakerFeePct;
+    }
+
+    const vExitComm = fnCalcCommByPct(vExitNotional, vExitRate);
+    const vTotal = vEntryComm + vExitComm;
+    return Number.isFinite(vTotal) ? vTotal : 0;
 }
 
 function fnLoadTradeCounter(){
@@ -1617,7 +1713,7 @@ function fnUpdateOpnPosStatus(){
 
 		objSellPrice.innerHTML = "<span class='blink'>" + gSellPrice + "</span>";
 
-		gCharges = fnGetTradeCharges(gOrderDT, vCurrDT, gLotSize, gQty, gBuyPrice, gSellPrice, gByorSl);
+		gCharges = fnGetLiveOpenCharges(gCurrPos?.TradeData?.[0], gBuyPrice, gSellPrice);
 		gPL = fnGetTradePL(gSellPrice, gBuyPrice, gLotSize, gQty, gCharges);
 
 		objCharges.innerText = (gCharges).toFixed(3);
@@ -1637,7 +1733,7 @@ function fnUpdateOpnPosStatus(){
 
 		objBuyPrice.innerHTML = "<span class='blink'>" + gBuyPrice + "</span>";
 
-		gCharges = fnGetTradeCharges(gOrderDT, vCurrDT, gLotSize, gQty, gBuyPrice, gSellPrice, gByorSl);
+		gCharges = fnGetLiveOpenCharges(gCurrPos?.TradeData?.[0], gBuyPrice, gSellPrice);
 		gPL = fnGetTradePL(gSellPrice, gBuyPrice, gLotSize, gQty, gCharges);
 
 		objCharges.innerText = (gCharges).toFixed(3);
@@ -1994,6 +2090,7 @@ async function fnInitiateManualFutures(pTransType){
     const vOrderTypeVal = vRes.order_type;
     const vProductID = vRes.product_id;
     const vExecPrice = (vState === "closed") ? parseFloat(vRes.average_fill_price) : parseFloat(vRes.limit_price);
+    const vEntryCommission = Number(vRes.paid_commission || 0);
 
     gByorSl = pTransType;
     if(gByorSl === "buy"){
@@ -2032,8 +2129,8 @@ async function fnInitiateManualFutures(pTransType){
             OrderType: vOrderTypeVal,
             OrderState: vState,
             ProductID: vProductID,
-            BuyCommission: 0,
-            SellCommission: 0
+            BuyCommission: (pTransType === "buy" && Number.isFinite(vEntryCommission)) ? vEntryCommission : 0,
+            SellCommission: (pTransType === "sell" && Number.isFinite(vEntryCommission)) ? vEntryCommission : 0
         }]
     };
     gCurrPos = vExcTradeDtls;
@@ -2165,7 +2262,7 @@ function fnSetInitFutTrdDtls(){
 		objQty.innerText = gQty;
 		gCapital = fnGetTradeCapital(gByorSl, gBuyPrice, gSellPrice, gLotSize, gQty);
 		objCapital.innerText = (gCapital).toFixed(2);
-		gCharges = fnGetTradeCharges(gOrderDT, vCurrDT, gLotSize, gQty, gBuyPrice, gSellPrice, gByorSl);
+		gCharges = fnGetLiveOpenCharges(gCurrPos?.TradeData?.[0], gBuyPrice, gSellPrice);
 		objCharges.innerText = (gCharges).toFixed(3);
 		let vPL = fnGetTradePL(gSellPrice, gBuyPrice, gLotSize, gQty, gCharges);
 		objProfitLoss.innerText = (vPL).toFixed(2);
@@ -2486,6 +2583,16 @@ async function fnInnitiateClsFutTrade(pQty){
     }
 
     const vFillPrice = parseFloat(objResult.data.result.average_fill_price);
+    const vCloseCommission = Number(objResult?.data?.result?.paid_commission || 0);
+    const vEntryBuyCommRaw = Number(gCurrPos.TradeData[0].BuyCommission || 0);
+    const vEntrySellCommRaw = Number(gCurrPos.TradeData[0].SellCommission || 0);
+    const vExecRatio = (vCurrQty > 0) ? (vExecQty / vCurrQty) : 1;
+    const vEntryBuyCommForClose = vEntryBuyCommRaw * vExecRatio;
+    const vEntrySellCommForClose = vEntrySellCommRaw * vExecRatio;
+    const vCloseBuyComm = (vTransType === "buy" && Number.isFinite(vCloseCommission)) ? vCloseCommission : 0;
+    const vCloseSellComm = (vTransType === "sell" && Number.isFinite(vCloseCommission)) ? vCloseCommission : 0;
+    const vBuyCommission = vEntryBuyCommForClose + vCloseBuyComm;
+    const vSellCommission = vEntrySellCommForClose + vCloseSellComm;
     gCurrPos.TradeData[0].CloseDT = vToday;
     gCurrPos.TradeData[0].CloseDTVal = vDate.valueOf();
     gCurrPos.TradeData[0].Qty = vExecQty;
@@ -2497,11 +2604,17 @@ async function fnInnitiateClsFutTrade(pQty){
     }
 
     const vCapital = fnGetTradeCapital(gCurrPos.TradeData[0].TransType, gCurrPos.TradeData[0].BuyPrice, gCurrPos.TradeData[0].SellPrice, gCurrPos.TradeData[0].LotSize, vExecQty);
-    const vCharges = fnGetTradeCharges(gCurrPos.TradeData[0].OrderID, vDate.valueOf(), gCurrPos.TradeData[0].LotSize, vExecQty, gCurrPos.TradeData[0].BuyPrice, gCurrPos.TradeData[0].SellPrice, gCurrPos.TradeData[0].TransType);
+    const vOpenMs = Number(gCurrPos.TradeData[0].OpenDTVal) || Number(gCurrPos.TradeData[0].ClientOrderID) || vDate.valueOf();
+    let vCharges = vBuyCommission + vSellCommission;
+    if(!Number.isFinite(vCharges) || vCharges <= 0){
+        vCharges = fnGetTradeCharges(vOpenMs, vDate.valueOf(), gCurrPos.TradeData[0].LotSize, vExecQty, gCurrPos.TradeData[0].BuyPrice, gCurrPos.TradeData[0].SellPrice, gCurrPos.TradeData[0].TransType);
+    }
     const vTradePL = fnGetTradePL(gCurrPos.TradeData[0].SellPrice, gCurrPos.TradeData[0].BuyPrice, gCurrPos.TradeData[0].LotSize, vExecQty, vCharges);
     gCurrPos.TradeData[0].Capital = vCapital;
     gCurrPos.TradeData[0].Charges = vCharges;
     gCurrPos.TradeData[0].ProfitLoss = vTradePL;
+    gCurrPos.TradeData[0].BuyCommission = vBuyCommission;
+    gCurrPos.TradeData[0].SellCommission = vSellCommission;
 
     gOldPLAmt = JSON.parse(localStorage.getItem("DFSL_TotLossAmt")) || 0;
     gNewPLAmt = vTradePL;
@@ -2526,6 +2639,9 @@ async function fnInnitiateClsFutTrade(pQty){
         fnGenMessage("No Open Position", `badge bg-success`, "btnPositionStatus");
     }
     else{
+        // Keep remaining entry-side commission with the open balance quantity.
+        gCurrPos.TradeData[0].BuyCommission = Math.max(0, vEntryBuyCommRaw - vEntryBuyCommForClose);
+        gCurrPos.TradeData[0].SellCommission = Math.max(0, vEntrySellCommRaw - vEntrySellCommForClose);
         gCurrPos.TradeData[0].Qty = vToCntuQty;
         localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(gCurrPos));
     }
@@ -2962,9 +3078,23 @@ function fnLoadTodayTrades(){
             }
             vHasRowsInRange = true;
 
-			let vCharges = fnGetTradeCharges(vTrade.OpenDTVal, vTrade.CloseDTVal, vTrade.LotSize, vTrade.Qty, vTrade.BuyPrice, vTrade.SellPrice, vTrade.TransType);
+            let vCharges = Number(vTrade.Charges);
+            if(!Number.isFinite(vCharges)){
+                const vBuyComm = Number(vTrade.BuyCommission || 0);
+                const vSellComm = Number(vTrade.SellCommission || 0);
+                const vCommTot = vBuyComm + vSellComm;
+                if(Number.isFinite(vCommTot) && vCommTot > 0){
+                    vCharges = vCommTot;
+                }
+                else{
+                    vCharges = fnGetTradeCharges(vTrade.OpenDTVal, vTrade.CloseDTVal, vTrade.LotSize, vTrade.Qty, vTrade.BuyPrice, vTrade.SellPrice, vTrade.TransType);
+                }
+            }
     		let vCapital = fnGetTradeCapital(vTrade.TransType, vTrade.BuyPrice, vTrade.SellPrice, vTrade.LotSize, vTrade.Qty);
-    		let vPL = fnGetTradePL(vTrade.SellPrice, vTrade.BuyPrice, vTrade.LotSize, vTrade.Qty, vCharges);
+            let vPL = Number(vTrade.ProfitLoss);
+            if(!Number.isFinite(vPL)){
+                vPL = fnGetTradePL(vTrade.SellPrice, vTrade.BuyPrice, vTrade.LotSize, vTrade.Qty, vCharges);
+            }
             vTotalTrades += 1;
             vTotalCharges += parseFloat(vCharges);
             vNetProfit += vPL;
