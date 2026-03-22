@@ -1036,6 +1036,7 @@ function fnGetAllStatus(){
         fnLoadRenkoBoxFilters();
 
 		fnLoadTradeSide();
+        fnUpdateMartiDebugStatus();
 	}
 }
 
@@ -1125,6 +1126,7 @@ function fnLoadDefQty(){
     	objQty.value = objQtyMul;
     	objStartQty.value = objStartQtyM;
     }
+    fnUpdateMartiDebugStatus();
 }
 
 function fnLoadLossRecoveryMultiplier(){
@@ -1170,6 +1172,7 @@ function fnUpdateLossRecPrct(pThisVal){
     pThisVal.value = vLossPct;
 	localStorage.setItem("DFSL_LossRecM", vLossPct);
 	gLossRecPerct = vLossPct;
+    fnUpdateMartiDebugStatus();
 }
 
 function fnUpdateMultiplierX(pThisVal){
@@ -1177,6 +1180,7 @@ function fnUpdateMultiplierX(pThisVal){
     pThisVal.value = vMultiplier;
 	localStorage.setItem("DFSL_MultiplierX", vMultiplier);
 	gMultiplierX = vMultiplier;
+    fnUpdateMartiDebugStatus();
 }
 
 function fnLoadTradeCounter(){
@@ -1280,6 +1284,7 @@ function fnLoadMarti(){
         objSwtStep.checked = (vMode === "MARTI");
         localStorage.setItem("DFSL_Marti", JSON.stringify(objSwtStep.checked));
     }
+    fnUpdateMartiDebugStatus();
 }
 
 function fnChangeTradeMode(pMode){
@@ -1314,6 +1319,7 @@ function fnChangeTradeMode(pMode){
     let vMode = objSwtMarti.checked ? "MARTI" : "STEP";
     localStorage.setItem("DFSL_TradeMode", vMode);
     localStorage.setItem("DFSL_Marti", JSON.stringify(objSwtMarti.checked));
+    fnUpdateMartiDebugStatus();
 }
 
 function fnLoadYetToRec(){
@@ -1370,6 +1376,7 @@ function fnChangeStartQty(pThisVal){
             localStorage.setItem("DFSL_QtyMul", vSafeQty);
         // }
     }
+    fnUpdateMartiDebugStatus();
 }
 
 function fnLoadCurrentTradePos(){
@@ -1645,6 +1652,7 @@ function fnUpdateOpnPosStatus(){
 	else{
 		fnGenMessage("No Open Position!", `badge bg-warning`, "spnGenMsg");
 	}
+    fnUpdateMartiDebugStatus();
 }
 
 function fnGetCurrentRateTesting(){
@@ -1674,6 +1682,8 @@ function fnCheckBuySLTP(pCurrPrice){
     let vNewProfit = Math.abs(parseFloat(localStorage.getItem("DFSL_TotLossAmt")) * parseFloat(gMultiplierX));
 	let objCounterSwt = document.getElementById("swtTradeCounter");
 	let objBrkRec = document.getElementById("tdHeadBrkRec");
+    const vMode = String(localStorage.getItem("DFSL_TradeMode") || "").toUpperCase();
+    const bIsMarti = (vMode === "MARTI");
     const objOpenTrade = gCurrPos?.TradeData?.[0] || {};
     const vEntryRule = String(objOpenTrade.EntryRule || "").toUpperCase();
     const vEntryPrice = Number(objOpenTrade.BuyPrice || gBuyPrice);
@@ -1699,6 +1709,14 @@ function fnCheckBuySLTP(pCurrPrice){
 	}
 	else if(pCurrPrice <= gAmtSL){
 		fnCloseManualFutures(gByorSl);
+	}
+	else if(bIsMarti && (parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) >= parseFloat(vNewProfit))){
+        if(fnParsePositiveNumber(gLossRecPerct, 100) >= 100 || Number(gCurrPos?.TradeData?.[0]?.Qty || 0) <= 1){
+            fnCloseManualFutures(gByorSl);
+        }
+        else{
+            fnClosePrctTrade();
+        }
 	}
 	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit)) && (parseInt(gQty) > 10)){
 		// console.log("50 Profit Taken.............");
@@ -1737,6 +1755,8 @@ function fnCheckSellSLTP(pCurrPrice){
     let vNewProfit = Math.abs(parseFloat(localStorage.getItem("DFSL_TotLossAmt")) * parseFloat(gMultiplierX));
 	let objCounterSwt = document.getElementById("swtTradeCounter");
 	let objBrkRec = document.getElementById("tdHeadBrkRec");
+    const vMode = String(localStorage.getItem("DFSL_TradeMode") || "").toUpperCase();
+    const bIsMarti = (vMode === "MARTI");
     const objOpenTrade = gCurrPos?.TradeData?.[0] || {};
     const vEntryRule = String(objOpenTrade.EntryRule || "").toUpperCase();
     const vEntryPrice = Number(objOpenTrade.SellPrice || gSellPrice);
@@ -1763,6 +1783,14 @@ function fnCheckSellSLTP(pCurrPrice){
 	else if(pCurrPrice >= gAmtSL){
 		// console.log("SL Hit");
 		fnCloseManualFutures(gByorSl);
+	}
+	else if(bIsMarti && (parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) >= parseFloat(vNewProfit))){
+        if(fnParsePositiveNumber(gLossRecPerct, 100) >= 100 || Number(gCurrPos?.TradeData?.[0]?.Qty || 0) <= 1){
+            fnCloseManualFutures(gByorSl);
+        }
+        else{
+            fnClosePrctTrade();
+        }
 	}
 	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit)) && (parseInt(gQty) > 10)){
 		// console.log("50 Profit Taken.............");
@@ -2307,7 +2335,7 @@ function fnStartRenkoPendingPoller(){
     }
     gRenkoPendingPollId = setInterval(() => {
         fnPollRenkoPendingFills();
-    }, 1000);
+    }, 10000);
 }
 
 function fnStopRenkoPendingPoller(){
@@ -2542,13 +2570,16 @@ function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = 0){
 
     if(bIsMarti){
 		if(vNewLossAmt < 0){
-	        let vNextQty = Math.floor(vOldQtyMul + vStartLots);
+	        let vNextQty = Math.floor(vOldQtyMul * 2);
+            if(!Number.isFinite(vNextQty) || vNextQty < vStartLots){
+                vNextQty = vStartLots;
+            }
 	        localStorage.setItem("DFSL_QtyMul", vNextQty);
 	        objQty.value = vNextQty;
 		}
 		else if(vTotLossAmt < 0 && vOldLossAmt < 0){
-	        let vDivAmt = vTotLossAmt / vOldLossAmt;
-	        let vNextQty = Math.round(vDivAmt * vOldQtyMul);
+	        const vRemainRatio = Math.abs(vTotLossAmt) / Math.abs(vOldLossAmt);
+	        let vNextQty = Math.ceil(vOldQtyMul * vRemainRatio);
 
 	        if(!Number.isFinite(vNextQty) || vNextQty < vStartLots){
                 vNextQty = vStartLots;
@@ -2588,7 +2619,37 @@ function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = 0){
         localStorage.setItem("DFSL_QtyMul", vStartLots);
         objQty.value = vStartLots;
     }
+    fnUpdateMartiDebugStatus();
 	// console.log(localStorage.getItem("DFSL_TotLossAmt"))
+}
+
+function fnUpdateMartiDebugStatus(){
+    const objDbg = document.getElementById("divMartiDbg");
+    if(!objDbg){
+        return;
+    }
+
+    const vMode = String(localStorage.getItem("DFSL_TradeMode") || "STEP").toUpperCase();
+    const vLossBucketRaw = Number(localStorage.getItem("DFSL_TotLossAmt"));
+    const vLossBucket = Number.isFinite(vLossBucketRaw) ? vLossBucketRaw : 0;
+    const vXRaw = Number(gMultiplierX);
+    const vX = Number.isFinite(vXRaw) && vXRaw > 0 ? vXRaw : 1;
+    const vTargetProfit = Math.abs(vLossBucket) * vX;
+    const vStartRaw = Number(JSON.parse(localStorage.getItem("DFSL_StartQtyNo")));
+    const vStartQty = Number.isFinite(vStartRaw) && vStartRaw >= 1 ? vStartRaw : 1;
+    const objQty = document.getElementById("txtFuturesQty");
+    const vQtyRaw = Number(objQty?.value);
+    const vCurrQty = Number.isFinite(vQtyRaw) && vQtyRaw >= 1 ? Math.floor(vQtyRaw) : vStartQty;
+
+    let vNextQty = vStartQty;
+    if(vMode === "MARTI"){
+        vNextQty = vLossBucket < 0 ? Math.max(vStartQty, Math.floor(vCurrQty * 2)) : vStartQty;
+    }
+    else{
+        vNextQty = vLossBucket < 0 ? Math.max(vStartQty, Math.floor(vCurrQty + vStartQty)) : vStartQty;
+    }
+
+    objDbg.textContent = `Mode: ${vMode} | LossBucket: ${vLossBucket.toFixed(2)} | X: ${vX.toFixed(2)} | Target@X: ${vTargetProfit.toFixed(2)} | Qty: ${vCurrQty} | NextQty: ${vNextQty}`;
 }
 
 function fnGetRenkoMidPrice(pBox){
