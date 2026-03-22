@@ -19,6 +19,8 @@ let gForceCloseDFL = false;
 let g50Perc1Time = true;
 let gExchangeClosedOrderRows = [];
 let gClosedHistoryLoaded = false;
+let gRenkoPendingPollId = 0;
+let gRenkoPendingPollBusy = false;
 let gRenkoSellState = {
     LastBox: null,
     LastBoxSize: 0,
@@ -103,8 +105,15 @@ window.addEventListener("DOMContentLoaded", function(){
 
         if(objRenko.Indc === parseInt(objIncType.value)){
             console.log("[Renko] message received", objRenko);
-            await fnHandleRenkoSellSignal(objRenko);
-            await fnHandleRenkoBuySignal(objRenko);
+            const objBox = fnBuildRenkoBox(objRenko);
+            if(objBox?.Color === "red"){
+                await fnHandleRenkoBuySignal(objRenko);
+                await fnHandleRenkoSellSignal(objRenko);
+            }
+            else{
+                await fnHandleRenkoSellSignal(objRenko);
+                await fnHandleRenkoBuySignal(objRenko);
+            }
         }
         else{
             console.log("Other Signal Received!");
@@ -393,6 +402,7 @@ async function fnCancelRenkoSellPending(pMsg = ""){
     const objPending = gRenkoSellState.Pending;
     await fnCancelLiveOrder(objPending.OrderID, objPending.ClientOrderID, objPending.Symbol);
     gRenkoSellState.Pending = null;
+    fnSyncRenkoPendingPoller();
     if(pMsg){
         fnGenMessage(pMsg, `badge bg-warning`, "spnGenMsg");
     }
@@ -405,6 +415,7 @@ async function fnCancelRenkoBuyPending(pMsg = ""){
     const objPending = gRenkoBuyState.Pending;
     await fnCancelLiveOrder(objPending.OrderID, objPending.ClientOrderID, objPending.Symbol);
     gRenkoBuyState.Pending = null;
+    fnSyncRenkoPendingPoller();
     if(pMsg){
         fnGenMessage(pMsg, `badge bg-warning`, "spnGenMsg");
     }
@@ -489,7 +500,7 @@ async function fnHandleRenkoSellSignal(pMsg){
             const objOpenTrade = gCurrPos?.TradeData?.[0] || {};
             if(objOpenTrade.TransType === "sell" && objBox.Color === "green"){
                 fnGenMessage("R-Box exit: red position closed on green box.", `badge bg-warning`, "spnGenMsg");
-                fnCloseManualFutures("sell");
+                await fnCloseManualFutures("sell");
             }
             if(gRenkoSellState.Pending){
                 await fnCancelRenkoSellPending("Renko SELL pending cancelled (position already open).");
@@ -611,7 +622,7 @@ async function fnHandleRenkoBuySignal(pMsg){
             const objOpenTrade = gCurrPos?.TradeData?.[0] || {};
             if(objOpenTrade.TransType === "buy" && objBox.Color === "red"){
                 fnGenMessage("G-Box exit: green position closed on red box.", `badge bg-warning`, "spnGenMsg");
-                fnCloseManualFutures("buy");
+                await fnCloseManualFutures("buy");
             }
             if(gRenkoBuyState.Pending){
                 await fnCancelRenkoBuyPending("Renko BUY pending canceled (position already open).");
@@ -2257,10 +2268,13 @@ function fnGetFutBestRates(){
 
 async function fnCloseManualFutures(pTransType){
 	if(gCurrPos === null){
-        fnGenMessage("No Open Position to Close!", `badge bg-warning`, "spnGenMsg");		
+        fnGenMessage("No Open Position to Close!", `badge bg-warning`, "spnGenMsg");
+        return { status: "warning", message: "No Open Position to Close!" };
 	}
 	else if(gCurrPos.TradeData[0].TransType !== pTransType){
-        fnGenMessage("No " + pTransType + " Position to Close!", `badge bg-warning`, "spnGenMsg");		
+        const vMsg = "No " + pTransType + " Position to Close!";
+        fnGenMessage(vMsg, `badge bg-warning`, "spnGenMsg");
+        return { status: "warning", message: vMsg };
 	}
 	else{
 		let objClsTrd = await fnInnitiateClsFutTrade(0);
@@ -2273,7 +2287,58 @@ async function fnCloseManualFutures(pTransType){
 		else{
             fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
 		}
+        return objClsTrd;
 	}
+}
+
+function fnStartRenkoPendingPoller(){
+    if(gRenkoPendingPollId){
+        return;
+    }
+    gRenkoPendingPollId = setInterval(() => {
+        fnPollRenkoPendingFills();
+    }, 1000);
+}
+
+function fnStopRenkoPendingPoller(){
+    if(!gRenkoPendingPollId){
+        return;
+    }
+    clearInterval(gRenkoPendingPollId);
+    gRenkoPendingPollId = 0;
+}
+
+function fnSyncRenkoPendingPoller(){
+    if(gRenkoSellState.Pending || gRenkoBuyState.Pending){
+        fnStartRenkoPendingPoller();
+    }
+    else{
+        fnStopRenkoPendingPoller();
+    }
+}
+
+async function fnPollRenkoPendingFills(){
+    if(gRenkoPendingPollBusy){
+        return;
+    }
+    gRenkoPendingPollBusy = true;
+    try{
+        await fnRefreshRenkoPendingFill("sell", gRenkoSellState);
+        await fnRefreshRenkoPendingFill("buy", gRenkoBuyState);
+
+        if(gCurrPos !== null){
+            if(gCurrPos?.TradeData?.[0]?.TransType === "sell" && gRenkoBuyState.Pending){
+                await fnCancelRenkoBuyPending("Renko BUY pending cancelled (SELL already open).");
+            }
+            else if(gCurrPos?.TradeData?.[0]?.TransType === "buy" && gRenkoSellState.Pending){
+                await fnCancelRenkoSellPending("Renko SELL pending cancelled (BUY already open).");
+            }
+        }
+    }
+    finally{
+        gRenkoPendingPollBusy = false;
+        fnSyncRenkoPendingPoller();
+    }
 }
 
 function fnSet50PrctQty(){
@@ -2541,14 +2606,16 @@ async function fnRefreshRenkoPendingFill(pSide, pStateObj){
         return false;
     }
     const vState = String(objDet.data?.state || "").toLowerCase();
-    if(vState === "closed" || vState === "filled"){
-        pStateObj.Pending = null;
-        return await fnCreatePositionFromFilledRenkoBySide(pSide, objDet.data, objPending);
-    }
-    if(vState === "cancelled" || vState === "rejected"){
-        pStateObj.Pending = null;
-    }
-    return false;
+            if(vState === "closed" || vState === "filled"){
+                pStateObj.Pending = null;
+                fnSyncRenkoPendingPoller();
+                return await fnCreatePositionFromFilledRenkoBySide(pSide, objDet.data, objPending);
+            }
+            if(vState === "cancelled" || vState === "rejected"){
+                pStateObj.Pending = null;
+                fnSyncRenkoPendingPoller();
+            }
+            return false;
 }
 
 async function fnUpsertRenkoMidLimit(pSide, pBox, pStateObj, pEntryRule){
@@ -2607,6 +2674,7 @@ async function fnUpsertRenkoMidLimit(pSide, pBox, pStateObj, pEntryRule){
         LimitPrice: vLimitPrice,
         EntryRule: pEntryRule
     };
+    fnSyncRenkoPendingPoller();
     fnGenMessage(`Renko ${vSide.toUpperCase()} limit active @ ${fnFmtNum(vLimitPrice)} (${pEntryRule}).`, `badge bg-info`, "spnGenMsg");
 }
 
@@ -2942,6 +3010,7 @@ function fnClearLocalStorageTemp(){
     gRenkoBuyState.Pending = null;
     gRenkoBuyState.SecondChance = null;
     gRenkoBuyState.OppExitCount = 0;
+    fnStopRenkoPendingPoller();
     gRenkoBuyState.Busy = false;
     localStorage.removeItem("DFSL_CurrFutPos");
 	localStorage.removeItem("DFSL_TrdBkFut");
