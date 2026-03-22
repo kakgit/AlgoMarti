@@ -2520,8 +2520,8 @@ function fnGetRenkoMidPrice(pBox){
     if(!Number.isFinite(vOpen) || !Number.isFinite(vClose)){
         return NaN;
     }
-    // 10% from open toward close (works for both green and red boxes).
-    return Number((vOpen + ((vClose - vOpen) * 0.1)).toFixed(2));
+    // 80% from open toward close (works for both green and red boxes).
+    return Number((vOpen + ((vClose - vOpen) * 0.8)).toFixed(2));
 }
 
 async function fnCreatePositionFromFilledRenkoBySide(pSide, pOrderData, pPending){
