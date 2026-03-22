@@ -195,7 +195,14 @@
                                     <div class="col-2">Best Selling Price</div>
                                     <div class="col-2"></div>
                                     <div class="col-2">1st Box Limit</div>
-                                    <div class="col-2"></div>
+                                    <div class="col-2 d-flex align-items-start justify-content-around">
+                                        <div class="text-center">
+                                            <div title="BUY filter: first green after red where Open equals Low; exits on first red box.">G-O=L</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div title="SELL filter: first red after green where Open equals High; exits on first green box.">R-O=H</div>
+                                        </div>
+                                    </div>
                                     <div class="col-2">
                                         <input type="number" class="form-control" placeholder="Best Buy Price" id="txtBestBuyPrice" />
                                     </div>
@@ -221,6 +228,17 @@
                                             <label for="swtRenkoStrategy" style="cursor:pointer;text-wrap:nowrap;"></label>
                                         </div>
                                     </div>
+                                    <div class="col-12 col-md-1 d-flex align-items-center">
+                                        <div class="form-check form-switch d-inline-flex justify-content-center mt-1 mb-0">
+                                            <input class="form-check-input" type="checkbox" id="chkRenkoGOL" onchange="fnToggleRenkoBoxFilters();" />
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-1 d-flex align-items-center">
+                                        <div class="form-check form-switch d-inline-flex justify-content-center mt-1 mb-0">
+                                            <input class="form-check-input" type="checkbox" id="chkRenkoROH" onchange="fnToggleRenkoBoxFilters();" />
+                                        </div>
+                                    </div>
+
                                     <div style="display: none;">
                                         <div class="col-2">Open</div>
                                         <div class="col-2">High</div>
