@@ -100,7 +100,7 @@ window.addEventListener("DOMContentLoaded", function(){
         if(objRenko.Indc === parseInt(objIncType.value)){
             console.log("[Renko] message received", objRenko);
             fnHandleRenkoSellSignal(objRenko);
-            fnHandleRenkoBuySignal(objRenko);
+            // fnHandleRenkoBuySignal(objRenko);
         }
         else{
             console.log("Other Signal Received!");
@@ -331,14 +331,14 @@ async function fnHandleRenkoSellSignal(pMsg){
                 fnCloseManualFutures("sell");
             }
             else if(gRenkoSellState.Pending){
-                await fnCancelRenkoSellPending("Renko SELL pending canceled (position already open).");
+                await fnCancelRenkoSellPending("Renko SELL pending cancelled (position already open).");
             }
             return;
         }
 
         if(vAuto !== "true"){
             if(gRenkoSellState.Pending){
-                await fnCancelRenkoSellPending("Renko SELL pending canceled (Auto Trade OFF).");
+                await fnCancelRenkoSellPending("Renko SELL pending cancelled (Auto Trade OFF).");
             }
             else{
                 fnRenkoDiag("Renko SELL skipped: Auto Trade OFF.", "badge bg-warning");
@@ -368,7 +368,7 @@ async function fnHandleRenkoSellSignal(pMsg){
             if(gRenkoSellState.Pending && objBox.Color === "red"){
                 gRenkoSellState.Pending.RedBoxesAfterPlace = Number(gRenkoSellState.Pending.RedBoxesAfterPlace || 0) + 1;
                 if(gRenkoSellState.Pending.RedBoxesAfterPlace >= 1){
-                    await fnCancelRenkoSellPending("Renko SELL canceled: not filled by next red box.");
+                    await fnCancelRenkoSellPending("Renko SELL cancelled: not filled by next red box.");
                 }
             }
             return;
