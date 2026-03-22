@@ -23,6 +23,7 @@ let gRenkoSellState = {
     LastBox: null,
     LastBoxSize: 0,
     Pending: null,
+    SecondChance: null,
     Busy: false,
     LastDiagMsg: "",
     LastDiagTs: 0
@@ -31,6 +32,7 @@ let gRenkoBuyState = {
     LastBox: null,
     LastBoxSize: 0,
     Pending: null,
+    SecondChance: null,
     Busy: false,
     LastDiagMsg: "",
     LastDiagTs: 0
@@ -180,7 +182,7 @@ function fnFmtNum(pNum, pD = 2){
 }
 
 function fnIsRenkoStrategyOn(){
-    return JSON.parse(localStorage.getItem("DFSL_RenkoStrategyOn")) === true;
+    return fnIsRenkoFilterGOLOn() || fnIsRenkoFilterROHOn();
 }
 
 function fnIsRenkoFilterGOLOn(){
@@ -226,6 +228,97 @@ function fnRenkoDiag(pMsg, pCls = "badge bg-secondary"){
     gRenkoSellState.LastDiagMsg = pMsg;
     gRenkoSellState.LastDiagTs = vNow;
     fnGenMessage(pMsg, pCls, "spnGenMsg");
+}
+
+async function fnPromoteRenkoPendingToMarket(pSide, pPending, pMsgPrefix = ""){
+    if(!pPending){
+        return false;
+    }
+
+    const vSide = (pSide === "sell") ? "sell" : "buy";
+    const vPrefix = pMsgPrefix || `Renko ${vSide.toUpperCase()}`;
+    const objDet = await fnGetOrderDetailsById(pPending.OrderID, pPending.ClientOrderID);
+    if(objDet.status === "success"){
+        const vState = String(objDet.data?.state || "").toLowerCase();
+        if(vState === "closed" || vState === "filled"){
+            if(vSide === "sell"){
+                return await fnCreateSellPositionFromFilledRenkoOrder(objDet.data, pPending);
+            }
+            return await fnCreateBuyPositionFromFilledRenkoOrder(objDet.data, pPending);
+        }
+    }
+
+    const objCancel = await fnCancelLiveOrder(pPending.OrderID, pPending.ClientOrderID, pPending.Symbol);
+    if(objCancel.status !== "success"){
+        fnGenMessage(`${vPrefix}: pending cancel failed, market fallback skipped.`, `badge bg-warning`, "spnGenMsg");
+        return false;
+    }
+
+    const vMktClientOrdID = Date.now() + 5;
+    const objMkt = await fnPlaceRealOrder(vMktClientOrdID, pPending.Symbol, "market_order", pPending.Qty, vSide, 0, "", 0, false);
+    if(objMkt.status !== "success"){
+        fnGenMessage(`${vPrefix}: market fallback failed (${objMkt.message}).`, `badge bg-danger`, "spnGenMsg");
+        return false;
+    }
+
+    let objMktOrder = objMkt.data?.result;
+    if(!Number.isFinite(Number(objMktOrder?.average_fill_price || objMktOrder?.limit_price))){
+        const objDetMkt = await fnGetOrderDetailsById(objMktOrder?.id, vMktClientOrdID);
+        if(objDetMkt.status === "success"){
+            objMktOrder = objDetMkt.data;
+        }
+    }
+
+    if(vSide === "sell"){
+        const bFilledSell = await fnCreateSellPositionFromFilledRenkoOrder(objMktOrder, { ...pPending, ClientOrderID: vMktClientOrdID });
+        if(!bFilledSell){
+            fnGenMessage(`${vPrefix}: market fallback placed, fill price not available yet.`, `badge bg-warning`, "spnGenMsg");
+        }
+        return bFilledSell;
+    }
+    const bFilledBuy = await fnCreateBuyPositionFromFilledRenkoOrder(objMktOrder, { ...pPending, ClientOrderID: vMktClientOrdID });
+    if(!bFilledBuy){
+        fnGenMessage(`${vPrefix}: market fallback placed, fill price not available yet.`, `badge bg-warning`, "spnGenMsg");
+    }
+    return bFilledBuy;
+}
+
+async function fnPlaceRenkoDirectMarket(pSide, pSymbol, pQty, pEntryRule, pMsgPrefix = ""){
+    const vSide = (pSide === "sell") ? "sell" : "buy";
+    const vPrefix = pMsgPrefix || `Renko ${vSide.toUpperCase()} market`;
+    const vClientOrdID = Date.now() + 7;
+    const objMkt = await fnPlaceRealOrder(vClientOrdID, pSymbol, "market_order", pQty, vSide, 0, "", 0, false);
+    if(objMkt.status !== "success"){
+        fnGenMessage(`${vPrefix} failed: ${objMkt.message}`, `badge bg-danger`, "spnGenMsg");
+        return false;
+    }
+
+    let objMktOrder = objMkt.data?.result;
+    if(!Number.isFinite(Number(objMktOrder?.average_fill_price || objMktOrder?.limit_price))){
+        const objDet = await fnGetOrderDetailsById(objMktOrder?.id, vClientOrdID);
+        if(objDet.status === "success"){
+            objMktOrder = objDet.data;
+        }
+    }
+
+    const objPending = {
+        ClientOrderID: vClientOrdID,
+        Symbol: pSymbol,
+        Qty: pQty,
+        EntryRule: pEntryRule
+    };
+    if(vSide === "sell"){
+        const bFilledSell = await fnCreateSellPositionFromFilledRenkoOrder(objMktOrder, objPending);
+        if(!bFilledSell){
+            fnGenMessage(`${vPrefix} placed, fill price not available yet.`, `badge bg-warning`, "spnGenMsg");
+        }
+        return bFilledSell;
+    }
+    const bFilledBuy = await fnCreateBuyPositionFromFilledRenkoOrder(objMktOrder, objPending);
+    if(!bFilledBuy){
+        fnGenMessage(`${vPrefix} placed, fill price not available yet.`, `badge bg-warning`, "spnGenMsg");
+    }
+    return bFilledBuy;
 }
 
 function fnGetOrderDetailsById(pOrderID, pClientOrdID){
@@ -394,6 +487,7 @@ async function fnHandleRenkoSellSignal(pMsg){
         }
 
         if(gCurrPos !== null){
+            gRenkoSellState.SecondChance = null;
             const objOpenTrade = gCurrPos?.TradeData?.[0] || {};
             const vExitColor = fnGetRenkoExitColorByEntryRule(objOpenTrade);
             if(objOpenTrade.TransType === "sell" && objBox.Color === vExitColor && objPrev && objPrev.Color !== vExitColor){
@@ -407,6 +501,7 @@ async function fnHandleRenkoSellSignal(pMsg){
         }
 
         if(vAuto !== "true"){
+            gRenkoSellState.SecondChance = null;
             if(gRenkoSellState.Pending){
                 await fnCancelRenkoSellPending("Renko SELL pending cancelled (Auto Trade OFF).");
             }
@@ -417,6 +512,7 @@ async function fnHandleRenkoSellSignal(pMsg){
         }
 
         if(gRenkoSellState.Pending){
+            gRenkoSellState.SecondChance = null;
             const objDet = await fnGetOrderDetailsById(gRenkoSellState.Pending.OrderID, gRenkoSellState.Pending.ClientOrderID);
             if(objDet.status === "success"){
                 const vState = String(objDet.data?.state || "").toLowerCase();
@@ -438,28 +534,56 @@ async function fnHandleRenkoSellSignal(pMsg){
             if(gRenkoSellState.Pending && objBox.Color === "red"){
                 gRenkoSellState.Pending.RedBoxesAfterPlace = Number(gRenkoSellState.Pending.RedBoxesAfterPlace || 0) + 1;
                 if(gRenkoSellState.Pending.RedBoxesAfterPlace >= 1){
-                    await fnCancelRenkoSellPending("Renko SELL cancelled: not filled by next red box.");
+                    const objPendingSell = gRenkoSellState.Pending;
+                    gRenkoSellState.Pending = null;
+                    await fnPromoteRenkoPendingToMarket("sell", objPendingSell, "Renko SELL not filled by next red");
                 }
             }
             return;
         }
 
+        if(gRenkoSellState.SecondChance){
+            const objSecond = gRenkoSellState.SecondChance;
+            if(objBox.Color === "red"){
+                gRenkoSellState.SecondChance = null;
+                if(!fnIsNumEqual(objBox.Open, objBox.High)){
+                    fnRenkoDiag("Renko SELL second red skipped: O!=H.", "badge bg-warning");
+                    return;
+                }
+                await fnPlaceRenkoDirectMarket("sell", objSecond.Symbol, objSecond.Qty, objSecond.EntryRule || "ROH", "Renko SELL second red O=H");
+                return;
+            }
+            gRenkoSellState.SecondChance = null;
+        }
+
         if(objPrev && objPrev.Color === "green" && objBox.Color === "red"){
             if(!fnIsRenkoFilterROHOn()){
                 fnRenkoDiag("Renko SELL skipped: R-O=H strategy is OFF.", "badge bg-secondary");
+                gRenkoSellState.SecondChance = null;
                 return;
             }
             if(gRenkoBuyState.Pending){
                 fnRenkoDiag("Renko SELL wait: BUY pending order exists.", "badge bg-warning");
                 return;
             }
-            if(!fnIsNumEqual(objBox.Open, objBox.High)){
-                fnRenkoDiag("Renko SELL skipped: R-O=H filter not matched.", "badge bg-warning");
-                return;
-            }
             const objFutDDL = document.getElementById("ddlFuturesSymbols");
             const objQty = document.getElementById("txtFuturesQty");
             const vQty = Math.floor(fnParsePositiveNumber(objQty?.value, 0));
+            if(!objFutDDL?.value || vQty < 1){
+                fnGenMessage("Renko SELL setup skipped due to invalid symbol/qty.", `badge bg-warning`, "spnGenMsg");
+                gRenkoSellState.SecondChance = null;
+                return;
+            }
+            if(!fnIsNumEqual(objBox.Open, objBox.High)){
+                gRenkoSellState.SecondChance = {
+                    Symbol: objFutDDL.value,
+                    Qty: vQty,
+                    EntryRule: "ROH"
+                };
+                fnRenkoDiag("Renko SELL first red skipped: O!=H. Waiting for second red (market if O=H).", "badge bg-warning");
+                return;
+            }
+            gRenkoSellState.SecondChance = null;
             const vLimitPrice = Number(objBox.Open);
             const vEntryRule = fnGetRenkoEntryRule("sell", objBox.Open, objBox.High, objBox.Low);
             if(!objFutDDL?.value || vQty < 1 || !Number.isFinite(vLimitPrice) || vLimitPrice <= 0){
@@ -595,6 +719,7 @@ async function fnHandleRenkoBuySignal(pMsg){
         }
 
         if(gCurrPos !== null){
+            gRenkoBuyState.SecondChance = null;
             const objOpenTrade = gCurrPos?.TradeData?.[0] || {};
             const vExitColor = fnGetRenkoExitColorByEntryRule(objOpenTrade);
             if(objOpenTrade.TransType === "buy" && objBox.Color === vExitColor && objPrev && objPrev.Color !== vExitColor){
@@ -608,6 +733,7 @@ async function fnHandleRenkoBuySignal(pMsg){
         }
 
         if(vAuto !== "true"){
+            gRenkoBuyState.SecondChance = null;
             if(gRenkoBuyState.Pending){
                 await fnCancelRenkoBuyPending("Renko BUY pending canceled (Auto Trade OFF).");
             }
@@ -618,6 +744,7 @@ async function fnHandleRenkoBuySignal(pMsg){
         }
 
         if(gRenkoBuyState.Pending){
+            gRenkoBuyState.SecondChance = null;
             const objDet = await fnGetOrderDetailsById(gRenkoBuyState.Pending.OrderID, gRenkoBuyState.Pending.ClientOrderID);
             if(objDet.status === "success"){
                 const vState = String(objDet.data?.state || "").toLowerCase();
@@ -640,28 +767,56 @@ async function fnHandleRenkoBuySignal(pMsg){
             if(gRenkoBuyState.Pending && objBox.Color === "green"){
                 gRenkoBuyState.Pending.GreenBoxesAfterPlace = Number(gRenkoBuyState.Pending.GreenBoxesAfterPlace || 0) + 1;
                 if(gRenkoBuyState.Pending.GreenBoxesAfterPlace >= 1){
-                    await fnCancelRenkoBuyPending("Renko BUY canceled: not filled by next green box.");
+                    const objPendingBuy = gRenkoBuyState.Pending;
+                    gRenkoBuyState.Pending = null;
+                    await fnPromoteRenkoPendingToMarket("buy", objPendingBuy, "Renko BUY not filled by next green");
                 }
             }
             return;
         }
 
+        if(gRenkoBuyState.SecondChance){
+            const objSecond = gRenkoBuyState.SecondChance;
+            if(objBox.Color === "green"){
+                gRenkoBuyState.SecondChance = null;
+                if(!fnIsNumEqual(objBox.Open, objBox.Low)){
+                    fnRenkoDiag("Renko BUY second green skipped: O!=L.", "badge bg-warning");
+                    return;
+                }
+                await fnPlaceRenkoDirectMarket("buy", objSecond.Symbol, objSecond.Qty, objSecond.EntryRule || "GOL", "Renko BUY second green O=L");
+                return;
+            }
+            gRenkoBuyState.SecondChance = null;
+        }
+
         if(objPrev && objPrev.Color === "red" && objBox.Color === "green"){
             if(!fnIsRenkoFilterGOLOn()){
                 fnRenkoDiag("Renko BUY skipped: G-O=L strategy is OFF.", "badge bg-secondary");
+                gRenkoBuyState.SecondChance = null;
                 return;
             }
             if(gRenkoSellState.Pending){
                 fnRenkoDiag("Renko BUY wait: SELL pending order exists.", "badge bg-warning");
                 return;
             }
-            if(!fnIsNumEqual(objBox.Open, objBox.Low)){
-                fnRenkoDiag("Renko BUY skipped: G-O=L filter not matched.", "badge bg-warning");
-                return;
-            }
             const objFutDDL = document.getElementById("ddlFuturesSymbols");
             const objQty = document.getElementById("txtFuturesQty");
             const vQty = Math.floor(fnParsePositiveNumber(objQty?.value, 0));
+            if(!objFutDDL?.value || vQty < 1){
+                fnGenMessage("Renko BUY setup skipped due to invalid symbol/qty.", `badge bg-warning`, "spnGenMsg");
+                gRenkoBuyState.SecondChance = null;
+                return;
+            }
+            if(!fnIsNumEqual(objBox.Open, objBox.Low)){
+                gRenkoBuyState.SecondChance = {
+                    Symbol: objFutDDL.value,
+                    Qty: vQty,
+                    EntryRule: "GOL"
+                };
+                fnRenkoDiag("Renko BUY first green skipped: O!=L. Waiting for second green (market if O=L).", "badge bg-warning");
+                return;
+            }
+            gRenkoBuyState.SecondChance = null;
             const vLimitPrice = Number(objBox.Open);
             const vEntryRule = fnGetRenkoEntryRule("buy", objBox.Open, objBox.High, objBox.Low);
             if(!objFutDDL?.value || vQty < 1 || !Number.isFinite(vLimitPrice) || vLimitPrice <= 0){
@@ -1078,7 +1233,6 @@ function fnGetAllStatus(){
 		fnLoadTodayTrades();
         fnRefreshClosedPositionsFromExchange();
 		fnLoadTradeCounter();
-        fnLoadRenkoStrategySwitch();
         fnLoadRenkoBoxFilters();
 
 		fnLoadTradeSide();
@@ -2862,10 +3016,12 @@ function fnClearLocalStorageTemp(){
     gRenkoSellState.LastBox = null;
     gRenkoSellState.LastBoxSize = 0;
     gRenkoSellState.Pending = null;
+    gRenkoSellState.SecondChance = null;
     gRenkoSellState.Busy = false;
     gRenkoBuyState.LastBox = null;
     gRenkoBuyState.LastBoxSize = 0;
     gRenkoBuyState.Pending = null;
+    gRenkoBuyState.SecondChance = null;
     gRenkoBuyState.Busy = false;
     localStorage.removeItem("DFSL_CurrFutPos");
 	localStorage.removeItem("DFSL_TrdBkFut");

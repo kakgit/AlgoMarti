@@ -198,9 +198,15 @@
                                     <div class="col-2 d-flex align-items-start justify-content-around">
                                         <div class="text-center">
                                             <div title="BUY strategy: first green after red where Open equals Low; exits on first red box.">G-O=L</div>
+                                            <div class="form-check form-switch d-inline-flex justify-content-center mt-1 mb-0">
+                                                <input class="form-check-input" type="checkbox" id="chkRenkoGOL" onchange="fnToggleRenkoBoxFilters();" />
+                                            </div>
                                         </div>
                                         <div class="text-center">
                                             <div title="SELL strategy: first red after green where Open equals High; exits on first green box.">R-O=H</div>
+                                            <div class="form-check form-switch d-inline-flex justify-content-center mt-1 mb-0">
+                                                <input class="form-check-input" type="checkbox" id="chkRenkoROH" onchange="fnToggleRenkoBoxFilters();" />
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-2">
@@ -222,23 +228,6 @@
                                             <button class="btn btn-outline-danger action-btn" onclick="fnManualSubStop();" style="display: block;"><b>STOP</b></button>
                                         </div>
                                     </div>
-                                    <div class="col-12 col-md-2 d-flex align-items-center">
-                                        <div class="form-check form-switch fs-6 mb-0" style="white-space: nowrap;">
-                                            <input class="form-check-input me-1" type="checkbox" style="cursor: pointer" id="swtRenkoStrategy" name="swtRenkoStrategy" onchange="fnToggleRenkoStrategy();" />
-                                            <label for="swtRenkoStrategy" style="cursor:pointer;text-wrap:nowrap;"></label>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 col-md-1 d-flex align-items-center">
-                                        <div class="form-check form-switch d-inline-flex justify-content-center mt-1 mb-0">
-                                            <input class="form-check-input" type="checkbox" id="chkRenkoGOL" onchange="fnToggleRenkoBoxFilters();" />
-                                        </div>
-                                    </div>
-                                    <div class="col-12 col-md-1 d-flex align-items-center">
-                                        <div class="form-check form-switch d-inline-flex justify-content-center mt-1 mb-0">
-                                            <input class="form-check-input" type="checkbox" id="chkRenkoROH" onchange="fnToggleRenkoBoxFilters();" />
-                                        </div>
-                                    </div>
-
                                     <div style="display: none;">
                                         <div class="col-2">Open</div>
                                         <div class="col-2">High</div>
