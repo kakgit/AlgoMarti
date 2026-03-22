@@ -92,7 +92,7 @@ window.addEventListener("DOMContentLoaded", function(){
     	}
     });
 
-    socket.on("cdlOHLC", (pMsg) => {
+    socket.on("cdlOHLC", async (pMsg) => {
         const objRenko = fnParseRenkoMsg(pMsg);
         if(!objRenko){
             return;
@@ -103,8 +103,8 @@ window.addEventListener("DOMContentLoaded", function(){
 
         if(objRenko.Indc === parseInt(objIncType.value)){
             console.log("[Renko] message received", objRenko);
-            fnHandleRenkoSellSignal(objRenko);
-            fnHandleRenkoBuySignal(objRenko);
+            await fnHandleRenkoSellSignal(objRenko);
+            await fnHandleRenkoBuySignal(objRenko);
         }
         else{
             console.log("Other Signal Received!");
@@ -515,6 +515,10 @@ async function fnHandleRenkoSellSignal(pMsg){
             return;
         }
 
+        await fnRefreshRenkoPendingFill("buy", gRenkoBuyState);
+        if(gCurrPos !== null){
+            return;
+        }
         if(gRenkoBuyState.Pending){
             await fnCancelRenkoBuyPending("Renko BUY pending cancelled (R-Box active on red box).");
         }
@@ -633,6 +637,10 @@ async function fnHandleRenkoBuySignal(pMsg){
             return;
         }
 
+        await fnRefreshRenkoPendingFill("sell", gRenkoSellState);
+        if(gCurrPos !== null){
+            return;
+        }
         if(gRenkoSellState.Pending){
             await fnCancelRenkoSellPending("Renko SELL pending cancelled (G-Box active on green box).");
         }
@@ -2428,7 +2436,6 @@ function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = 0){
     if(!pIsFullClose){
         return;
     }
-	let objSwtYet2Rec = document.getElementById("swtYetToRec");
     let objQty = document.getElementById("txtFuturesQty");
     let vOldLossAmt = Number(localStorage.getItem("DFSL_OldPLAmt"));
 	let vNewLossAmt = Number(localStorage.getItem("DFSL_NewPLAmt"));
@@ -2496,17 +2503,8 @@ function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = 0){
         }
     }
 
-	// console.log(gCharges);
-    //************* for Brokerage and any loss as minimum target
-	if((Number(pTradePL) > 0) && (objSwtYet2Rec.checked)){
-		let vBalLossAmt = Number(localStorage.getItem("DFSL_TotLossAmt"));
-        if(!Number.isFinite(vBalLossAmt)){
-            vBalLossAmt = 0;
-        }
-		let vNewTarget = vBalLossAmt - Number(gCharges || 0);
-		localStorage.setItem("DFSL_TotLossAmt", vNewTarget);
-		// console.log("ADD Brokerage");
-	}
+	// Keep loss-recovery math strictly based on closed-trade P&L.
+    // vTradePL already includes charges, so don't adjust loss bucket again.
 
     if(Number(localStorage.getItem("DFSL_TotLossAmt")) >= 0){
         localStorage.setItem("DFSL_TotLossAmt", 0);
