@@ -100,7 +100,7 @@ window.addEventListener("DOMContentLoaded", function(){
         if(objRenko.Indc === parseInt(objIncType.value)){
             console.log("[Renko] message received", objRenko);
             fnHandleRenkoSellSignal(objRenko);
-            // fnHandleRenkoBuySignal(objRenko);
+            fnHandleRenkoBuySignal(objRenko);
         }
         else{
             console.log("Other Signal Received!");
