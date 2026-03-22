@@ -496,6 +496,7 @@ async function fnHandleRenkoSellSignal(pMsg){
         }
         gRenkoSellState.LastBox = objBox;
         await fnRefreshRenkoPendingFill("sell", gRenkoSellState);
+        await fnExpireRenkoPendingOnNextBox("sell", gRenkoSellState);
         if(gCurrPos !== null){
             const objOpenTrade = gCurrPos?.TradeData?.[0] || {};
             if(objOpenTrade.TransType === "sell" && objBox.Color === "green"){
@@ -523,6 +524,9 @@ async function fnHandleRenkoSellSignal(pMsg){
         }
 
         if(objBox.Color !== "red"){
+            return;
+        }
+        if(!(objPrev && objPrev.Color === "green")){
             return;
         }
 
@@ -618,6 +622,7 @@ async function fnHandleRenkoBuySignal(pMsg){
         }
         gRenkoBuyState.LastBox = objBox;
         await fnRefreshRenkoPendingFill("buy", gRenkoBuyState);
+        await fnExpireRenkoPendingOnNextBox("buy", gRenkoBuyState);
         if(gCurrPos !== null){
             const objOpenTrade = gCurrPos?.TradeData?.[0] || {};
             if(objOpenTrade.TransType === "buy" && objBox.Color === "red"){
@@ -645,6 +650,9 @@ async function fnHandleRenkoBuySignal(pMsg){
         }
 
         if(objBox.Color !== "green"){
+            return;
+        }
+        if(!(objPrev && objPrev.Color === "red")){
             return;
         }
 
@@ -2280,7 +2288,9 @@ async function fnCloseManualFutures(pTransType){
 		let objClsTrd = await fnInnitiateClsFutTrade(0);
 		if(objClsTrd.status === "success"){
             fnSetInitFutTrdDtls();
+            gClosedHistoryLoaded = false;
 		    fnLoadTodayTrades();
+            await fnRefreshClosedPositionsFromExchange();
 
             fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
 		}
@@ -2374,7 +2384,9 @@ async function fnClosePrctTrade(){
 
             if(objClsTrd.status === "success"){
                 fnSetInitFutTrdDtls();
+                gClosedHistoryLoaded = false;
 			    fnLoadTodayTrades();
+                await fnRefreshClosedPositionsFromExchange();
                 fnGenMessage("Partial Qty Closed!", `badge bg-${objClsTrd.status}`, "spnGenMsg");   
             }
             else{
@@ -2586,7 +2598,7 @@ function fnGetRenkoMidPrice(pBox){
         return NaN;
     }
     // 80% from open toward close (works for both green and red boxes).
-    return Number((vOpen + ((vClose - vOpen) * 0.9)).toFixed(2));
+    return Number((vOpen + ((vClose - vOpen) * 0.8)).toFixed(2));
 }
 
 async function fnCreatePositionFromFilledRenkoBySide(pSide, pOrderData, pPending){
@@ -2616,6 +2628,23 @@ async function fnRefreshRenkoPendingFill(pSide, pStateObj){
                 fnSyncRenkoPendingPoller();
             }
             return false;
+}
+
+async function fnExpireRenkoPendingOnNextBox(pSide, pStateObj){
+    if(!pStateObj?.Pending){
+        return;
+    }
+    pStateObj.Pending.BoxesAfterPlace = Number(pStateObj.Pending.BoxesAfterPlace || 0) + 1;
+    if(pStateObj.Pending.BoxesAfterPlace < 1){
+        return;
+    }
+
+    if(pSide === "sell"){
+        await fnCancelRenkoSellPending("Renko SELL pending cancelled: not filled by next box.");
+    }
+    else{
+        await fnCancelRenkoBuyPending("Renko BUY pending cancelled: not filled by next box.");
+    }
 }
 
 async function fnUpsertRenkoMidLimit(pSide, pBox, pStateObj, pEntryRule){
@@ -2659,7 +2688,7 @@ async function fnUpsertRenkoMidLimit(pSide, pBox, pStateObj, pEntryRule){
     }
 
     const vClientOrdID = Date.now();
-    const objPlace = await fnPlaceRealOrder(vClientOrdID, objFutDDL.value, "limit_order", vQty, vSide, vLimitPrice, "", 0, false);
+    const objPlace = await fnPlaceRealOrder(vClientOrdID, objFutDDL.value, "limit_order", vQty, vSide, vLimitPrice, "", 0, true);
     if(objPlace.status !== "success"){
         fnGenMessage(`Renko ${vSide.toUpperCase()} limit place/modify failed: ${objPlace.message}`, `badge bg-danger`, "spnGenMsg");
         return;
@@ -2672,6 +2701,7 @@ async function fnUpsertRenkoMidLimit(pSide, pBox, pStateObj, pEntryRule){
         Symbol: objFutDDL.value,
         Qty: vQty,
         LimitPrice: vLimitPrice,
+        BoxesAfterPlace: 0,
         EntryRule: pEntryRule
     };
     fnSyncRenkoPendingPoller();
