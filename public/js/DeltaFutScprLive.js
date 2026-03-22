@@ -24,6 +24,7 @@ let gRenkoSellState = {
     LastBoxSize: 0,
     Pending: null,
     SecondChance: null,
+    OppExitCount: 0,
     Busy: false,
     LastDiagMsg: "",
     LastDiagTs: 0
@@ -33,6 +34,7 @@ let gRenkoBuyState = {
     LastBoxSize: 0,
     Pending: null,
     SecondChance: null,
+    OppExitCount: 0,
     Busy: false,
     LastDiagMsg: "",
     LastDiagTs: 0
@@ -454,6 +456,7 @@ async function fnCreateSellPositionFromFilledRenkoOrder(pOrderData, pPending){
         }]
     };
     gCurrPos = vExcTradeDtls;
+    gRenkoSellState.OppExitCount = 0;
     localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(vExcTradeDtls));
     localStorage.setItem("DFSL_QtyMul", String(vQty || pPending.Qty));
     g50Perc1Time = true;
@@ -490,9 +493,19 @@ async function fnHandleRenkoSellSignal(pMsg){
             gRenkoSellState.SecondChance = null;
             const objOpenTrade = gCurrPos?.TradeData?.[0] || {};
             const vExitColor = fnGetRenkoExitColorByEntryRule(objOpenTrade);
-            if(objOpenTrade.TransType === "sell" && objBox.Color === vExitColor && objPrev && objPrev.Color !== vExitColor){
-                fnGenMessage(`Renko first ${vExitColor} after sell fill (${objOpenTrade.EntryRule || "STD"}). Closing SELL position.`, `badge bg-warning`, "spnGenMsg");
-                fnCloseManualFutures("sell");
+            if(objOpenTrade.TransType === "sell"){
+                if(objBox.Color === vExitColor){
+                    gRenkoSellState.OppExitCount = Number(gRenkoSellState.OppExitCount || 0) + 1;
+                }
+                else if(gRenkoSellState.OppExitCount !== 0){
+                    gRenkoSellState.OppExitCount = 0;
+                }
+                if(gRenkoSellState.OppExitCount >= 3){
+                    gRenkoSellState.OppExitCount = 0;
+                    fnGenMessage(`Renko SELL third ${vExitColor} box reached (${objOpenTrade.EntryRule || "STD"}). Closing SELL position.`, `badge bg-warning`, "spnGenMsg");
+                    fnCloseManualFutures("sell");
+                    return;
+                }
             }
             else if(gRenkoSellState.Pending){
                 await fnCancelRenkoSellPending("Renko SELL pending cancelled (position already open).");
@@ -686,6 +699,7 @@ async function fnCreateBuyPositionFromFilledRenkoOrder(pOrderData, pPending){
         }]
     };
     gCurrPos = vExcTradeDtls;
+    gRenkoBuyState.OppExitCount = 0;
     localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(vExcTradeDtls));
     localStorage.setItem("DFSL_QtyMul", String(vQty || pPending.Qty));
     g50Perc1Time = true;
@@ -722,9 +736,19 @@ async function fnHandleRenkoBuySignal(pMsg){
             gRenkoBuyState.SecondChance = null;
             const objOpenTrade = gCurrPos?.TradeData?.[0] || {};
             const vExitColor = fnGetRenkoExitColorByEntryRule(objOpenTrade);
-            if(objOpenTrade.TransType === "buy" && objBox.Color === vExitColor && objPrev && objPrev.Color !== vExitColor){
-                fnGenMessage(`Renko first ${vExitColor} after buy fill (${objOpenTrade.EntryRule || "STD"}). Closing BUY position.`, `badge bg-warning`, "spnGenMsg");
-                fnCloseManualFutures("buy");
+            if(objOpenTrade.TransType === "buy"){
+                if(objBox.Color === vExitColor){
+                    gRenkoBuyState.OppExitCount = Number(gRenkoBuyState.OppExitCount || 0) + 1;
+                }
+                else if(gRenkoBuyState.OppExitCount !== 0){
+                    gRenkoBuyState.OppExitCount = 0;
+                }
+                if(gRenkoBuyState.OppExitCount >= 3){
+                    gRenkoBuyState.OppExitCount = 0;
+                    fnGenMessage(`Renko BUY third ${vExitColor} box reached (${objOpenTrade.EntryRule || "STD"}). Closing BUY position.`, `badge bg-warning`, "spnGenMsg");
+                    fnCloseManualFutures("buy");
+                    return;
+                }
             }
             else if(gRenkoBuyState.Pending){
                 await fnCancelRenkoBuyPending("Renko BUY pending canceled (position already open).");
@@ -1874,6 +1898,9 @@ function fnCheckBuySLTP(pCurrPrice){
     let vNewProfit = Math.abs(parseFloat(localStorage.getItem("DFSL_TotLossAmt")) * parseFloat(gMultiplierX));
 	let objCounterSwt = document.getElementById("swtTradeCounter");
 	let objBrkRec = document.getElementById("tdHeadBrkRec");
+    const objOpenTrade = gCurrPos?.TradeData?.[0] || {};
+    const vEntryRule = String(objOpenTrade.EntryRule || "").toUpperCase();
+    const vEntryPrice = Number(objOpenTrade.BuyPrice || gBuyPrice);
 
     if(vTotLossAmt === null || isNaN(vTotLossAmt)){
     	vTotLossAmt = 0;
@@ -1890,7 +1917,11 @@ function fnCheckBuySLTP(pCurrPrice){
 	// console.log("vBrokTotLossRec: " + vBrokTotLossRec);
 	// console.log("gPL: " + gPL);
 
-	if(pCurrPrice <= gAmtSL){
+	if((vEntryRule === "GOL" || vEntryRule === "ROH") && Number.isFinite(vEntryPrice) && Number(pCurrPrice) <= (vEntryPrice - 30)){
+        fnGenMessage("Strict SL hit for BUY (-30 points).", `badge bg-danger`, "spnGenMsg");
+		fnCloseManualFutures(gByorSl);
+	}
+	else if(pCurrPrice <= gAmtSL){
 		fnCloseManualFutures(gByorSl);
 	}
 	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit)) && (parseInt(gQty) > 10)){
@@ -1930,6 +1961,9 @@ function fnCheckSellSLTP(pCurrPrice){
     let vNewProfit = Math.abs(parseFloat(localStorage.getItem("DFSL_TotLossAmt")) * parseFloat(gMultiplierX));
 	let objCounterSwt = document.getElementById("swtTradeCounter");
 	let objBrkRec = document.getElementById("tdHeadBrkRec");
+    const objOpenTrade = gCurrPos?.TradeData?.[0] || {};
+    const vEntryRule = String(objOpenTrade.EntryRule || "").toUpperCase();
+    const vEntryPrice = Number(objOpenTrade.SellPrice || gSellPrice);
 
     if(vTotLossAmt === null || isNaN(vTotLossAmt)){
     	vTotLossAmt = 0;
@@ -1946,7 +1980,11 @@ function fnCheckSellSLTP(pCurrPrice){
 	// console.log("vBrokTotLossRec: " + vBrokTotLossRec);
 	// console.log("gPL: " + gPL);
 
-	if(pCurrPrice >= gAmtSL){
+	if((vEntryRule === "GOL" || vEntryRule === "ROH") && Number.isFinite(vEntryPrice) && Number(pCurrPrice) >= (vEntryPrice + 30)){
+        fnGenMessage("Strict SL hit for SELL (+30 points).", `badge bg-danger`, "spnGenMsg");
+		fnCloseManualFutures(gByorSl);
+	}
+	else if(pCurrPrice >= gAmtSL){
 		// console.log("SL Hit");
 		fnCloseManualFutures(gByorSl);
 	}
@@ -2639,56 +2677,89 @@ async function fnInnitiateClsFutTrade(pQty){
 function fnSetNextOptTradeSettings(){
 	let objSwtYet2Rec = document.getElementById("swtYetToRec");
     let objQty = document.getElementById("txtFuturesQty");
-    let vOldLossAmt = localStorage.getItem("DFSL_OldPLAmt");
-	let vNewLossAmt = localStorage.getItem("DFSL_NewPLAmt");
-	let vTotLossAmt = localStorage.getItem("DFSL_TotLossAmt");
+    let vOldLossAmt = Number(localStorage.getItem("DFSL_OldPLAmt"));
+	let vNewLossAmt = Number(localStorage.getItem("DFSL_NewPLAmt"));
+	let vTotLossAmt = Number(localStorage.getItem("DFSL_TotLossAmt"));
 
-    let vOldQtyMul = JSON.parse(localStorage.getItem("DFSL_QtyMul"));
-    let vStartLots = JSON.parse(localStorage.getItem("DFSL_StartQtyNo"));
-    let objSwtMarti = document.getElementById("swtMarti");
-    if(!objSwtMarti){
-        objSwtMarti = document.getElementById("swtMartingale");
+    let vOldQtyMul = Number(JSON.parse(localStorage.getItem("DFSL_QtyMul")));
+    let vStartLots = Number(JSON.parse(localStorage.getItem("DFSL_StartQtyNo")));
+    const vMode = String(localStorage.getItem("DFSL_TradeMode") || "").toUpperCase();
+    const bIsMarti = (vMode === "MARTI");
+    const bIsStep = !bIsMarti;
+
+    if(!Number.isFinite(vStartLots) || vStartLots < 1){
+        vStartLots = 1;
+    }
+    if(!Number.isFinite(vOldQtyMul) || vOldQtyMul < 1){
+        vOldQtyMul = vStartLots;
+    }
+    if(!Number.isFinite(vOldLossAmt)){
+        vOldLossAmt = 0;
+    }
+    if(!Number.isFinite(vNewLossAmt)){
+        vNewLossAmt = 0;
+    }
+    if(!Number.isFinite(vTotLossAmt)){
+        vTotLossAmt = 0;
     }
 
-    if(objSwtMarti && objSwtMarti.checked){
-		if(parseFloat(vNewLossAmt) < 0){
-	        let vNextQty = parseInt(vOldQtyMul) + parseInt(vStartLots);
+    if(bIsMarti){
+		if(vNewLossAmt < 0){
+	        let vNextQty = Math.floor(vOldQtyMul + vStartLots);
 	        localStorage.setItem("DFSL_QtyMul", vNextQty);
 	        objQty.value = vNextQty;
 		}
-		else if(parseFloat(vTotLossAmt) < 0){
-	        let vDivAmt = parseFloat(vTotLossAmt) / parseFloat(vOldLossAmt);
-	        let vNextQty = Math.round(vDivAmt * parseInt(vOldQtyMul));
+		else if(vTotLossAmt < 0 && vOldLossAmt < 0){
+	        let vDivAmt = vTotLossAmt / vOldLossAmt;
+	        let vNextQty = Math.round(vDivAmt * vOldQtyMul);
 
-	        if(vNextQty < vStartLots)
-	        vNextQty += vStartLots;
+	        if(!Number.isFinite(vNextQty) || vNextQty < vStartLots){
+                vNextQty = vStartLots;
+            }
 
 	        localStorage.setItem("DFSL_QtyMul", vNextQty);
 	        objQty.value = vNextQty;
 		}
 	    else {
 	        localStorage.setItem("DFSL_TotLossAmt", 0);
-	        localStorage.removeItem("DFSL_QtyMul");
-	        // localStorage.setItem("TradeStep", 0);
-	        fnSetLotsByQtyMulLossAmt();
+	        localStorage.setItem("DFSL_QtyMul", vStartLots);
+	        objQty.value = vStartLots;
 	    }
     }
-    else{
-    	if(parseFloat(vTotLossAmt) > 0){
-			localStorage.setItem("DFSL_TotLossAmt", 0);
-    	}
-    	
-        fnSetLotsByQtyMulLossAmt();
+    else if(bIsStep){
+        if(vNewLossAmt < 0){
+            const vNextQty = Math.floor(vOldQtyMul + vStartLots);
+            localStorage.setItem("DFSL_QtyMul", vNextQty);
+            objQty.value = vNextQty;
+        }
+        else if(vTotLossAmt >= 0){
+            localStorage.setItem("DFSL_TotLossAmt", 0);
+            localStorage.setItem("DFSL_QtyMul", vStartLots);
+            objQty.value = vStartLots;
+        }
+        else{
+            localStorage.setItem("DFSL_QtyMul", vOldQtyMul);
+            objQty.value = vOldQtyMul;
+        }
     }
 
 	// console.log(gCharges);
     //************* for Brokerage and any loss as minimum target
 	if((gPL > 0) && (objSwtYet2Rec.checked)){
-		let vBalLossAmt = localStorage.getItem("DFSL_TotLossAmt");
-		let vNewTarget = parseFloat(vBalLossAmt) - parseFloat(gCharges);
+		let vBalLossAmt = Number(localStorage.getItem("DFSL_TotLossAmt"));
+        if(!Number.isFinite(vBalLossAmt)){
+            vBalLossAmt = 0;
+        }
+		let vNewTarget = vBalLossAmt - Number(gCharges || 0);
 		localStorage.setItem("DFSL_TotLossAmt", vNewTarget);
 		// console.log("ADD Brokerage");
 	}
+
+    if(Number(localStorage.getItem("DFSL_TotLossAmt")) >= 0){
+        localStorage.setItem("DFSL_TotLossAmt", 0);
+        localStorage.setItem("DFSL_QtyMul", vStartLots);
+        objQty.value = vStartLots;
+    }
 	// console.log(localStorage.getItem("DFSL_TotLossAmt"))
 }
 
@@ -3017,11 +3088,13 @@ function fnClearLocalStorageTemp(){
     gRenkoSellState.LastBoxSize = 0;
     gRenkoSellState.Pending = null;
     gRenkoSellState.SecondChance = null;
+    gRenkoSellState.OppExitCount = 0;
     gRenkoSellState.Busy = false;
     gRenkoBuyState.LastBox = null;
     gRenkoBuyState.LastBoxSize = 0;
     gRenkoBuyState.Pending = null;
     gRenkoBuyState.SecondChance = null;
+    gRenkoBuyState.OppExitCount = 0;
     gRenkoBuyState.Busy = false;
     localStorage.removeItem("DFSL_CurrFutPos");
 	localStorage.removeItem("DFSL_TrdBkFut");
