@@ -445,11 +445,15 @@ async function fnHandleRenkoSellSignal(pMsg){
         }
 
         if(objPrev && objPrev.Color === "green" && objBox.Color === "red"){
+            if(!fnIsRenkoFilterROHOn()){
+                fnRenkoDiag("Renko SELL skipped: R-O=H strategy is OFF.", "badge bg-secondary");
+                return;
+            }
             if(gRenkoBuyState.Pending){
                 fnRenkoDiag("Renko SELL wait: BUY pending order exists.", "badge bg-warning");
                 return;
             }
-            if(fnIsRenkoFilterROHOn() && !fnIsNumEqual(objBox.Open, objBox.High)){
+            if(!fnIsNumEqual(objBox.Open, objBox.High)){
                 fnRenkoDiag("Renko SELL skipped: R-O=H filter not matched.", "badge bg-warning");
                 return;
             }
@@ -643,11 +647,15 @@ async function fnHandleRenkoBuySignal(pMsg){
         }
 
         if(objPrev && objPrev.Color === "red" && objBox.Color === "green"){
+            if(!fnIsRenkoFilterGOLOn()){
+                fnRenkoDiag("Renko BUY skipped: G-O=L strategy is OFF.", "badge bg-secondary");
+                return;
+            }
             if(gRenkoSellState.Pending){
                 fnRenkoDiag("Renko BUY wait: SELL pending order exists.", "badge bg-warning");
                 return;
             }
-            if(fnIsRenkoFilterGOLOn() && !fnIsNumEqual(objBox.Open, objBox.Low)){
+            if(!fnIsNumEqual(objBox.Open, objBox.Low)){
                 fnRenkoDiag("Renko BUY skipped: G-O=L filter not matched.", "badge bg-warning");
                 return;
             }
