@@ -340,6 +340,11 @@ async function fnPlaceSellActStopLimitForGreenBox(pBox){
         return;
     }
 
+    const vHadOldPending = Array.isArray(gSellActState.PendingOrders) && gSellActState.PendingOrders.length > 0;
+    if(vHadOldPending){
+        await fnCancelAllSellActPending();
+    }
+
     const vClientOrdID = Date.now() + Math.floor(Math.random() * 1000);
     const objPlace = await fnPlaceRealOrder(vClientOrdID, objFutDDL.value, "limit_order", vQty, "sell", vEntry, "stop_loss_order", vActivation, false);
     if(objPlace.status !== "success"){
@@ -355,15 +360,95 @@ async function fnPlaceSellActStopLimitForGreenBox(pBox){
         Qty: vQty,
         EntryRule: "SACT",
         EntryPrice: vEntry,
+        LimitPrice: vEntry,
         ActivationPrice: vActivation,
         SLPts: fnGetSellActSLPts(),
         TPPts: fnGetSellActTPPts()
     });
-    if(gSellActState.PendingOrders.length > 25){
-        gSellActState.PendingOrders.shift();
-    }
     fnSyncRenkoPendingPoller();
-    fnGenMessage(`Sell-only stop-limit armed @ ${fnFmtNum(vEntry)} (activate <= ${fnFmtNum(vActivation)}).`, `badge bg-info`, "spnGenMsg");
+    fnGenMessage(`Sell-only stop-limit ${vHadOldPending ? "replaced" : "armed"} @ ${fnFmtNum(vEntry)} (activate <= ${fnFmtNum(vActivation)}).`, `badge bg-info`, "spnGenMsg");
+}
+
+async function fnPlaceSellActProtectionOrders(pTrade){
+    if(!pTrade || String(pTrade.EntryRule || "").toUpperCase() !== "SACT"){
+        return;
+    }
+
+    const vSymbol = pTrade.FutSymbol;
+    const vQty = Math.floor(fnParsePositiveNumber(pTrade.Qty, 0));
+    const vSL = Number(pTrade.AmtSL);
+    const vTP = Number(pTrade.AmtTP1);
+    if(!vSymbol || vQty < 1 || !Number.isFinite(vSL) || !Number.isFinite(vTP)){
+        return;
+    }
+
+    const vSLClientID = Date.now() + 21;
+    const objSL = await fnPlaceRealOrder(vSLClientID, vSymbol, "limit_order", vQty, "buy", vSL, "stop_loss_order", vSL, false, true);
+    if(objSL.status === "success"){
+        pTrade.SACTSLOrderID = objSL.data?.result?.id || 0;
+        pTrade.SACTSLClientOrderID = vSLClientID;
+    }
+    else{
+        fnGenMessage(`Sell-only SL order placement failed: ${objSL.message}`, `badge bg-warning`, "spnGenMsg");
+    }
+
+    const vTPClientID = Date.now() + 37;
+    const objTP = await fnPlaceRealOrder(vTPClientID, vSymbol, "limit_order", vQty, "buy", vTP, "take_profit_order", vTP, false, true);
+    if(objTP.status === "success"){
+        pTrade.SACTTPOrderID = objTP.data?.result?.id || 0;
+        pTrade.SACTTPClientOrderID = vTPClientID;
+    }
+    else{
+        fnGenMessage(`Sell-only TP order placement failed: ${objTP.message}`, `badge bg-warning`, "spnGenMsg");
+    }
+}
+
+async function fnCancelSellActProtectionOrders(pTrade, pMsg = ""){
+    if(!pTrade || String(pTrade.EntryRule || "").toUpperCase() !== "SACT"){
+        return;
+    }
+
+    const vSymbol = pTrade.FutSymbol;
+    const objCancels = [];
+    if(Number(pTrade.SACTSLOrderID) > 0 && Number(pTrade.SACTSLClientOrderID) > 0){
+        objCancels.push(fnCancelLiveOrder(pTrade.SACTSLOrderID, pTrade.SACTSLClientOrderID, vSymbol));
+    }
+    if(Number(pTrade.SACTTPOrderID) > 0 && Number(pTrade.SACTTPClientOrderID) > 0){
+        objCancels.push(fnCancelLiveOrder(pTrade.SACTTPOrderID, pTrade.SACTTPClientOrderID, vSymbol));
+    }
+    if(objCancels.length){
+        await Promise.all(objCancels);
+    }
+    pTrade.SACTSLOrderID = 0;
+    pTrade.SACTSLClientOrderID = 0;
+    pTrade.SACTTPOrderID = 0;
+    pTrade.SACTTPClientOrderID = 0;
+    if(pMsg){
+        fnGenMessage(pMsg, `badge bg-warning`, "spnGenMsg");
+    }
+}
+
+async function fnTrailSellActPendingToRedOpen(pBox){
+    if(!Array.isArray(gSellActState.PendingOrders) || gSellActState.PendingOrders.length === 0){
+        return;
+    }
+    const vRedOpen = Number(pBox?.Open);
+    if(!Number.isFinite(vRedOpen) || vRedOpen <= 0){
+        return;
+    }
+
+    const objOrd = gSellActState.PendingOrders[0];
+    const vCurrLimit = Number(objOrd?.LimitPrice || objOrd?.EntryPrice);
+    if(Number.isFinite(vCurrLimit) && vRedOpen >= vCurrLimit){
+        return;
+    }
+
+    const objEdit = await fnEditLiveOrder(objOrd.OrderID, objOrd.Symbol, objOrd.Qty, vRedOpen, objOrd.ActivationPrice);
+    if(objEdit.status === "success"){
+        objOrd.LimitPrice = vRedOpen;
+        objOrd.EntryPrice = vRedOpen;
+        fnGenMessage(`Sell-only pending trailed to red open @ ${fnFmtNum(vRedOpen)}.`, `badge bg-secondary`, "spnGenMsg");
+    }
 }
 
 async function fnHandleSellActSignal(pMsg){
@@ -383,6 +468,11 @@ async function fnHandleSellActSignal(pMsg){
         gSellActState.LastBox = objBox;
 
         await fnRefreshSellActPendingFills();
+
+        if(objBox.Color === "red"){
+            await fnTrailSellActPendingToRedOpen(objBox);
+            await fnRefreshSellActPendingFills();
+        }
 
         if(gCurrPos !== null){
             const objTrade = gCurrPos?.TradeData?.[0] || {};
@@ -652,7 +742,11 @@ async function fnCreateSellPositionFromFilledRenkoOrder(pOrderData, pPending){
             ProductID: pOrderData.product_id,
             BuyCommission: 0,
             SellCommission: Number.isFinite(vEntryCommission) ? vEntryCommission : 0,
-            EntryRule: vEntryRule
+            EntryRule: vEntryRule,
+            SACTSLOrderID: 0,
+            SACTSLClientOrderID: 0,
+            SACTTPOrderID: 0,
+            SACTTPClientOrderID: 0
         }]
     };
     gCurrPos = vExcTradeDtls;
@@ -660,6 +754,11 @@ async function fnCreateSellPositionFromFilledRenkoOrder(pOrderData, pPending){
     localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(vExcTradeDtls));
     localStorage.setItem("DFSL_QtyMul", String(vQty || pPending.Qty));
     g50Perc1Time = true;
+
+    if(vEntryRule === "SACT"){
+        await fnPlaceSellActProtectionOrders(gCurrPos.TradeData[0]);
+        localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(gCurrPos));
+    }
 
     fnSetInitFutTrdDtls();
     fnSubscribe();
@@ -2420,7 +2519,7 @@ async function fnInitiateManualFutures(pTransType){
     document.getElementById("spnLossTrd").className = "badge rounded-pill text-bg-success";
 }
 
-function fnPlaceRealOrder(pOrdId, pSymbol, pOrderType, pQty, pTransType, pLimitPrice, pStopOrderType = "", pStopPrice = 0, pPostOnly = false){
+function fnPlaceRealOrder(pOrdId, pSymbol, pOrderType, pQty, pTransType, pLimitPrice, pStopOrderType = "", pStopPrice = 0, pPostOnly = false, pReduceOnly = false){
     return new Promise((resolve, reject) => {
         if(localStorage.getItem("isDFSLAutoTrader") !== "true"){
             resolve({ status: "warning", message: "Trade blocked: Auto Trade is OFF.", data: "" });
@@ -2443,7 +2542,8 @@ function fnPlaceRealOrder(pOrdId, pSymbol, pOrderType, pQty, pTransType, pLimitP
             LimitPrice: pLimitPrice,
             StopOrderType: pStopOrderType,
             StopPrice: pStopPrice,
-            PostOnly: pPostOnly
+            PostOnly: pPostOnly,
+            ReduceOnly: pReduceOnly
         });
 
         fetch("/deltaExcFutR/placeRealOrder", {
@@ -2494,6 +2594,35 @@ function fnCancelLiveOrder(pOrderID, pClientOrdID, pSymbol){
         .then(response => response.json())
         .then(objResult => resolve({ status: objResult.status, data: objResult.data }))
         .catch(() => resolve({ status: "danger", data: null }));
+    });
+}
+
+function fnEditLiveOrder(pOrderID, pSymbol, pQty, pLimitPrice, pStopPrice = 0, pPostOnly = false){
+    return new Promise((resolve) => {
+        const objApiKey = document.getElementById("txtUserAPIKey");
+        const objApiSecret = document.getElementById("txtAPISecret");
+        const vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+        const vAction = JSON.stringify({
+            ApiKey: objApiKey?.value || "",
+            ApiSecret: objApiSecret?.value || "",
+            OrderID: pOrderID,
+            Symbol: pSymbol,
+            Quantity: pQty,
+            LimitPrice: pLimitPrice,
+            StopPrice: pStopPrice,
+            PostOnly: pPostOnly
+        });
+
+        fetch("/deltaExcFutR/editPendingOrder", {
+            method: "POST",
+            headers: vHeaders,
+            body: vAction,
+            redirect: "follow"
+        })
+        .then(response => response.json())
+        .then(objResult => resolve({ status: objResult.status, data: objResult.data, message: objResult.message || "" }))
+        .catch(() => resolve({ status: "danger", data: null, message: "edit pending network error" }));
     });
 }
 
@@ -2686,6 +2815,11 @@ async function fnCloseManualFutures(pTransType){
         return { status: "warning", message: vMsg };
 	}
 	else{
+        const objTrade = gCurrPos?.TradeData?.[0] || {};
+        if(String(objTrade.EntryRule || "").toUpperCase() === "SACT"){
+            await fnCancelSellActProtectionOrders(objTrade);
+            localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(gCurrPos));
+        }
 		let objClsTrd = await fnInnitiateClsFutTrade(0);
 		if(objClsTrd.status === "success"){
             fnSetInitFutTrdDtls();
@@ -3491,6 +3625,10 @@ function fnGetTradePL(pSellPrice, pBuyPrice, pLotSize, pQty, pCharges){
 }
 
 function fnClearLocalStorageTemp(){
+    const objOpenTrade = gCurrPos?.TradeData?.[0] || null;
+    if(objOpenTrade && String(objOpenTrade.EntryRule || "").toUpperCase() === "SACT"){
+        fnCancelSellActProtectionOrders(objOpenTrade);
+    }
     fnCancelAllSellActPending();
     gSellActState.LastBox = null;
     gSellActState.PendingOrders = [];

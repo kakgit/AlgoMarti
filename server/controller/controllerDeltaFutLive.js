@@ -50,6 +50,7 @@ exports.fnPlaceOrderSDK = async (req, res) => {
     let vStopOrderType = req.body.StopOrderType || "";
     let vStopPrice = parseFloat(req.body.StopPrice);
     let vPostOnly = (req.body.PostOnly === true || req.body.PostOnly === "true");
+    let vReduceOnly = (req.body.ReduceOnly === true || req.body.ReduceOnly === "true");
 
     let objCurrRates = await fnGetCurrRates(vApiKey, vApiSecret, vSymbolID);
 
@@ -103,6 +104,9 @@ exports.fnPlaceOrderSDK = async (req, res) => {
 
             if(vOrderType === "limit_order" && vPostOnly){
                 objOrder.post_only = true;
+            }
+            if(vReduceOnly){
+                objOrder.reduce_only = true;
             }
             if(vOrderType === "limit_order" && vStopOrderType && !isNaN(vStopPrice) && vStopPrice > 0){
                 objOrder.stop_order_type = vStopOrderType;
