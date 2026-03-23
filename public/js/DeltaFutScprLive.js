@@ -819,9 +819,6 @@ async function fnHandleRenkoSellSignal(pMsg){
         if(objBox.Color !== "red"){
             return;
         }
-        if(!(objPrev && objPrev.Color === "green")){
-            return;
-        }
 
         await fnRefreshRenkoPendingFill("buy", gRenkoBuyState);
         if(gCurrPos !== null){
@@ -944,9 +941,6 @@ async function fnHandleRenkoBuySignal(pMsg){
         }
 
         if(objBox.Color !== "green"){
-            return;
-        }
-        if(!(objPrev && objPrev.Color === "red")){
             return;
         }
 
