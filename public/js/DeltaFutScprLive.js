@@ -287,12 +287,37 @@ function fnApplyLastOpenBrokerageOnFullRecovery(){
     const vOpen = (Number.isFinite(vLastOpenBrok) && vLastOpenBrok > 0) ? vLastOpenBrok : 0;
     const vClose = (Number.isFinite(vLastCloseBrok) && vLastCloseBrok > 0) ? vLastCloseBrok : 0;
     const vDeduct = vOpen + vClose;
-    if(vDeduct > 0){
-        localStorage.setItem("DFSL_TotLossAmt", -Math.abs(vDeduct));
-        return -Math.abs(vDeduct);
-    }
+    localStorage.setItem("DFSL_Y2RBrokerCarry", vDeduct > 0 ? vDeduct : 0);
     localStorage.setItem("DFSL_TotLossAmt", 0);
+    return vDeduct > 0 ? -Math.abs(vDeduct) : 0;
+}
+
+function fnGetY2RDisplayAmt(){
+    const vCore = Number(localStorage.getItem("DFSL_TotLossAmt"));
+    if(Number.isFinite(vCore) && vCore < 0){
+        return vCore;
+    }
+    const vCarry = Number(localStorage.getItem("DFSL_Y2RBrokerCarry"));
+    if(Number.isFinite(vCarry) && vCarry > 0){
+        return -Math.abs(vCarry);
+    }
     return 0;
+}
+
+function fnGetY2RTargetAmt(){
+    const vCore = Number(localStorage.getItem("DFSL_TotLossAmt"));
+    if(Number.isFinite(vCore) && vCore < 0){
+        return Math.abs(vCore);
+    }
+    const vCarry = Number(localStorage.getItem("DFSL_Y2RBrokerCarry"));
+    return (Number.isFinite(vCarry) && vCarry > 0) ? vCarry : 0;
+}
+
+function fnClearY2RCarryOnRealLoss(){
+    const vCore = Number(localStorage.getItem("DFSL_TotLossAmt"));
+    if(Number.isFinite(vCore) && vCore < 0){
+        localStorage.setItem("DFSL_Y2RBrokerCarry", 0);
+    }
 }
 
 async function fnCancelAllSellActPending(pMsg = ""){
@@ -2179,8 +2204,8 @@ function fnCheckBuySLTP(pCurrPrice){
     // Common rule across all strategies:
     // If Y2R is ON and current running net P&L fully recovers the loss bucket,
     // force full close (no partial close).
-    const vY2RTarget = Math.abs(Number(vTotLossAmt));
-    if(objSwtYet2Rec?.checked && Number(vTotLossAmt) < 0 && Number(gPL) >= vY2RTarget){
+    const vY2RTarget = fnGetY2RTargetAmt();
+    if(objSwtYet2Rec?.checked && vY2RTarget > 0 && Number(gPL) >= vY2RTarget){
         fnGenMessage(`Y2R target hit (${vY2RTarget.toFixed(2)}). Closing full trade.`, `badge bg-success`, "spnGenMsg");
         fnCloseManualFutures(gByorSl);
         return;
@@ -2272,8 +2297,8 @@ function fnCheckSellSLTP(pCurrPrice){
     // Common rule across all strategies:
     // If Y2R is ON and current running net P&L fully recovers the loss bucket,
     // force full close (no partial close).
-    const vY2RTarget = Math.abs(Number(vTotLossAmt));
-    if(objSwtYet2Rec?.checked && Number(vTotLossAmt) < 0 && Number(gPL) >= vY2RTarget){
+    const vY2RTarget = fnGetY2RTargetAmt();
+    if(objSwtYet2Rec?.checked && vY2RTarget > 0 && Number(gPL) >= vY2RTarget){
         fnGenMessage(`Y2R target hit (${vY2RTarget.toFixed(2)}). Closing full trade.`, `badge bg-success`, "spnGenMsg");
         fnCloseManualFutures(gByorSl);
         return;
@@ -3131,6 +3156,7 @@ function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = 0){
 
     if(bIsMarti){
 		if(vNewLossAmt < 0){
+            fnClearY2RCarryOnRealLoss();
 	        let vNextQty = Math.floor(vOldQtyMul * 2);
             if(!Number.isFinite(vNextQty) || vNextQty < vStartLots){
                 vNextQty = vStartLots;
@@ -3157,6 +3183,7 @@ function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = 0){
     }
     else if(bIsStep){
         if(vNewLossAmt < 0){
+            fnClearY2RCarryOnRealLoss();
             const vNextQty = Math.floor(vOldQtyMul + vStartLots);
             localStorage.setItem("DFSL_QtyMul", vNextQty);
             objQty.value = vNextQty;
@@ -3418,7 +3445,7 @@ function fnLoadTodayTrades(){
             vRow.appendChild(vCell);
             objTodayTradeList.appendChild(vRow);
             fnSetTextByPL(objHeadPL, 0);
-            objYtRL.innerText = fnGetLsNumber("DFSL_TotLossAmt", 0).toFixed(2);
+            objYtRL.innerText = fnGetY2RDisplayAmt().toFixed(2);
             return;
         }
 
@@ -3489,7 +3516,7 @@ function fnLoadTodayTrades(){
         }
         objTodayTradeList.appendChild(vTotalRow);
         fnSetTextByPL(objHeadPL, vNetProfit);
-        objYtRL.innerText = fnGetLsNumber("DFSL_TotLossAmt", 0).toFixed(2);
+        objYtRL.innerText = fnGetY2RDisplayAmt().toFixed(2);
         return;
     }
 
@@ -3503,7 +3530,7 @@ function fnLoadTodayTrades(){
         vRow.appendChild(vCell);
         objTodayTradeList.appendChild(vRow);
         fnSetTextByPL(objHeadPL, 0);
-        objYtRL.innerText = fnGetLsNumber("DFSL_TotLossAmt", 0).toFixed(2);
+        objYtRL.innerText = fnGetY2RDisplayAmt().toFixed(2);
     }
     else{
         let vTotalTrades = 0;
@@ -3589,7 +3616,7 @@ function fnLoadTodayTrades(){
             vRow.appendChild(vCell);
             objTodayTradeList.appendChild(vRow);
             fnSetTextByPL(objHeadPL, 0);
-            objYtRL.innerText = fnGetLsNumber("DFSL_TotLossAmt", 0).toFixed(2);
+            objYtRL.innerText = fnGetY2RDisplayAmt().toFixed(2);
             return;
         }
 
@@ -3606,7 +3633,7 @@ function fnLoadTodayTrades(){
         objTodayTradeList.appendChild(vTotalRow);
 
         fnSetTextByPL(objHeadPL, vNetProfit);
-        objYtRL.innerText = fnGetLsNumber("DFSL_TotLossAmt", 0).toFixed(2);
+        objYtRL.innerText = fnGetY2RDisplayAmt().toFixed(2);
     }
 }
 
@@ -3697,6 +3724,7 @@ function fnClearLocalStorageTemp(){
     localStorage.removeItem("DFSL_RenkoFilterROH");
     localStorage.removeItem("DFSL_LastOpenBrokerage");
     localStorage.removeItem("DFSL_LastCloseBrokerage");
+    localStorage.removeItem("DFSL_Y2RBrokerCarry");
     localStorage.removeItem("DFSL_SellActOn");
     localStorage.removeItem("DFSL_SellActBelow");
     localStorage.removeItem("DFSL_SellActSL");
