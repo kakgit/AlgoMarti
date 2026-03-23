@@ -269,6 +269,32 @@ function fnGetSellActTPPts(){
     return fnParsePositiveNumber(localStorage.getItem("DFSL_SellActTP"), 200);
 }
 
+function fnSetLastOpenBrokerage(pVal){
+    const v = Number(pVal);
+    const vSafe = (Number.isFinite(v) && v > 0) ? v : 0;
+    localStorage.setItem("DFSL_LastOpenBrokerage", vSafe);
+}
+
+function fnSetLastCloseBrokerage(pVal){
+    const v = Number(pVal);
+    const vSafe = (Number.isFinite(v) && v > 0) ? v : 0;
+    localStorage.setItem("DFSL_LastCloseBrokerage", vSafe);
+}
+
+function fnApplyLastOpenBrokerageOnFullRecovery(){
+    const vLastOpenBrok = Number(localStorage.getItem("DFSL_LastOpenBrokerage"));
+    const vLastCloseBrok = Number(localStorage.getItem("DFSL_LastCloseBrokerage"));
+    const vOpen = (Number.isFinite(vLastOpenBrok) && vLastOpenBrok > 0) ? vLastOpenBrok : 0;
+    const vClose = (Number.isFinite(vLastCloseBrok) && vLastCloseBrok > 0) ? vLastCloseBrok : 0;
+    const vDeduct = vOpen + vClose;
+    if(vDeduct > 0){
+        localStorage.setItem("DFSL_TotLossAmt", -Math.abs(vDeduct));
+        return -Math.abs(vDeduct);
+    }
+    localStorage.setItem("DFSL_TotLossAmt", 0);
+    return 0;
+}
+
 async function fnCancelAllSellActPending(pMsg = ""){
     if(!Array.isArray(gSellActState.PendingOrders) || gSellActState.PendingOrders.length === 0){
         if(pMsg){
@@ -753,6 +779,7 @@ async function fnCreateSellPositionFromFilledRenkoOrder(pOrderData, pPending){
     gRenkoSellState.OppExitCount = 0;
     localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(vExcTradeDtls));
     localStorage.setItem("DFSL_QtyMul", String(vQty || pPending.Qty));
+    fnSetLastOpenBrokerage(Number.isFinite(vEntryCommission) ? vEntryCommission : 0);
     g50Perc1Time = true;
 
     if(vEntryRule === "SACT"){
@@ -887,6 +914,7 @@ async function fnCreateBuyPositionFromFilledRenkoOrder(pOrderData, pPending){
     gRenkoBuyState.OppExitCount = 0;
     localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(vExcTradeDtls));
     localStorage.setItem("DFSL_QtyMul", String(vQty || pPending.Qty));
+    fnSetLastOpenBrokerage(Number.isFinite(vEntryCommission) ? vEntryCommission : 0);
     g50Perc1Time = true;
 
     fnSetInitFutTrdDtls();
@@ -2525,6 +2553,7 @@ async function fnInitiateManualFutures(pTransType){
     gCurrPos = vExcTradeDtls;
     localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(vExcTradeDtls));
     localStorage.setItem("DFSL_QtyMul", objQty.value);
+    fnSetLastOpenBrokerage(Number.isFinite(vEntryCommission) ? vEntryCommission : 0);
     g50Perc1Time = true;
 
     fnSetInitFutTrdDtls();
@@ -3009,6 +3038,7 @@ async function fnInnitiateClsFutTrade(pQty){
 
     const vFillPrice = parseFloat(objResult.data.result.average_fill_price);
     const vCloseCommission = Number(objResult?.data?.result?.paid_commission || 0);
+    fnSetLastCloseBrokerage(vCloseCommission);
     const vEntryBuyCommRaw = Number(gCurrPos.TradeData[0].BuyCommission || 0);
     const vEntrySellCommRaw = Number(gCurrPos.TradeData[0].SellCommission || 0);
     const vExecRatio = (vCurrQty > 0) ? (vExecQty / vCurrQty) : 1;
@@ -3130,7 +3160,7 @@ function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = 0){
 	        objQty.value = vNextQty;
 		}
 	    else {
-	        localStorage.setItem("DFSL_TotLossAmt", 0);
+	        fnApplyLastOpenBrokerageOnFullRecovery();
 	        localStorage.setItem("DFSL_QtyMul", vStartLots);
 	        objQty.value = vStartLots;
 	    }
@@ -3142,7 +3172,7 @@ function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = 0){
             objQty.value = vNextQty;
         }
         else if(vTotLossAmt >= 0){
-            localStorage.setItem("DFSL_TotLossAmt", 0);
+            fnApplyLastOpenBrokerageOnFullRecovery();
             localStorage.setItem("DFSL_QtyMul", vStartLots);
             objQty.value = vStartLots;
         }
@@ -3156,7 +3186,7 @@ function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = 0){
     // vTradePL already includes charges, so don't adjust loss bucket again.
 
     if(Number(localStorage.getItem("DFSL_TotLossAmt")) >= 0){
-        localStorage.setItem("DFSL_TotLossAmt", 0);
+        fnApplyLastOpenBrokerageOnFullRecovery();
         localStorage.setItem("DFSL_QtyMul", vStartLots);
         objQty.value = vStartLots;
     }
@@ -3675,6 +3705,8 @@ function fnClearLocalStorageTemp(){
     localStorage.removeItem("DFSL_TradeMode");
     localStorage.removeItem("DFSL_RenkoFilterGOL");
     localStorage.removeItem("DFSL_RenkoFilterROH");
+    localStorage.removeItem("DFSL_LastOpenBrokerage");
+    localStorage.removeItem("DFSL_LastCloseBrokerage");
     localStorage.removeItem("DFSL_SellActOn");
     localStorage.removeItem("DFSL_SellActBelow");
     localStorage.removeItem("DFSL_SellActSL");
