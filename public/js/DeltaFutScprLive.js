@@ -2160,9 +2160,19 @@ function fnCheckBuySLTP(pCurrPrice){
 	// objBrkRec.innerText = (vBrokTotLossRec).toFixed(2);
 
     // console.log("vTotLossAmt: " + vTotLossAmt);
-	// console.log("gCharges: " + gCharges);
+    // console.log("gCharges: " + gCharges);
 	// console.log("vBrokTotLossRec: " + vBrokTotLossRec);
 	// console.log("gPL: " + gPL);
+
+    // Common rule across all strategies:
+    // If Y2R is ON and current running net P&L fully recovers the loss bucket,
+    // force full close (no partial close).
+    const vY2RTarget = Math.abs(Number(vTotLossAmt));
+    if(objSwtYet2Rec?.checked && Number(vTotLossAmt) < 0 && Number(gPL) >= vY2RTarget){
+        fnGenMessage(`Y2R target hit (${vY2RTarget.toFixed(2)}). Closing full trade.`, `badge bg-success`, "spnGenMsg");
+        fnCloseManualFutures(gByorSl);
+        return;
+    }
 
 	if((vEntryRule === "GOL" || vEntryRule === "ROH") && Number.isFinite(vEntryPrice) && Number(pCurrPrice) <= (vEntryPrice - 30)){
         fnGenMessage("Strict SL hit for BUY (-30 points).", `badge bg-danger`, "spnGenMsg");
@@ -2246,6 +2256,16 @@ function fnCheckSellSLTP(pCurrPrice){
 	// console.log("gCharges: " + gCharges);
 	// console.log("vBrokTotLossRec: " + vBrokTotLossRec);
 	// console.log("gPL: " + gPL);
+
+    // Common rule across all strategies:
+    // If Y2R is ON and current running net P&L fully recovers the loss bucket,
+    // force full close (no partial close).
+    const vY2RTarget = Math.abs(Number(vTotLossAmt));
+    if(objSwtYet2Rec?.checked && Number(vTotLossAmt) < 0 && Number(gPL) >= vY2RTarget){
+        fnGenMessage(`Y2R target hit (${vY2RTarget.toFixed(2)}). Closing full trade.`, `badge bg-success`, "spnGenMsg");
+        fnCloseManualFutures(gByorSl);
+        return;
+    }
 
 	if((vEntryRule === "GOL" || vEntryRule === "ROH") && Number.isFinite(vEntryPrice) && Number(pCurrPrice) >= (vEntryPrice + 30)){
         fnGenMessage("Strict SL hit for SELL (+30 points).", `badge bg-danger`, "spnGenMsg");
