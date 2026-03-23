@@ -1576,19 +1576,9 @@ function fnGetLiveOpenCharges(pTrade, pBuyPrice, pSellPrice){
         vEntryComm = fnCalcCommByPct(vEntryNotional, vEntryRate);
     }
 
-    const vExitNotional = (String(pTrade.TransType).toLowerCase() === "buy" ? vSell : vBuy) * vLot * vQty;
-    let vExitRate = gTakerFeePct;
-    if(gLiveExitFeeMode === "maker"){
-        vExitRate = gMakerFeePct;
-    }
-    else if(gLiveExitFeeMode === "auto"){
-        // Current close flow is market close by default, so auto maps to taker.
-        vExitRate = gTakerFeePct;
-    }
-
-    const vExitComm = fnCalcCommByPct(vExitNotional, vExitRate);
-    const vTotal = vEntryComm + vExitComm;
-    return Number.isFinite(vTotal) ? vTotal : 0;
+    // Open Positions should show only entry-side brokerage (already paid on open order).
+    // Exit-side brokerage is accounted at close time.
+    return Number.isFinite(vEntryComm) ? vEntryComm : 0;
 }
 
 function fnLoadTradeCounter(){
