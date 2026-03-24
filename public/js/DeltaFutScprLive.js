@@ -454,6 +454,116 @@ async function fnPlaceSellActProtectionOrders(pTrade){
     }
 }
 
+function fnHasSellActProtectionOpen(){
+    const objTrade = gCurrPos?.TradeData?.[0] || null;
+    if(!objTrade || String(objTrade.EntryRule || "").toUpperCase() !== "SACT"){
+        return false;
+    }
+    return (Number(objTrade.SACTSLOrderID) > 0 && Number(objTrade.SACTSLClientOrderID) > 0) ||
+        (Number(objTrade.SACTTPOrderID) > 0 && Number(objTrade.SACTTPClientOrderID) > 0);
+}
+
+async function fnFinalizeClosedByExchange(pFillPrice, pCloseCommission = 0, pReason = ""){
+    if(gCurrPos === null){
+        return;
+    }
+
+    const vTrade = gCurrPos.TradeData[0];
+    const vDate = new Date();
+    const vToday = vDate.getDate() + "-" + (vDate.getMonth() + 1) + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
+    const vQty = Number(vTrade.Qty);
+    const vFill = Number(pFillPrice);
+    if(!Number.isFinite(vQty) || vQty <= 0 || !Number.isFinite(vFill) || vFill <= 0){
+        return;
+    }
+
+    vTrade.CloseDT = vToday;
+    vTrade.CloseDTVal = vDate.valueOf();
+    if(vTrade.TransType === "buy"){
+        vTrade.SellPrice = vFill;
+    }
+    else{
+        vTrade.BuyPrice = vFill;
+    }
+
+    const vEntryBuyCommRaw = Number(vTrade.BuyCommission || 0);
+    const vEntrySellCommRaw = Number(vTrade.SellCommission || 0);
+    const vCloseComm = Number(pCloseCommission || 0);
+    const vCloseSide = (vTrade.TransType === "buy") ? "sell" : "buy";
+    const vBuyCommission = vEntryBuyCommRaw + (vCloseSide === "buy" ? vCloseComm : 0);
+    const vSellCommission = vEntrySellCommRaw + (vCloseSide === "sell" ? vCloseComm : 0);
+    const vCharges = (Number.isFinite(vBuyCommission) ? vBuyCommission : 0) + (Number.isFinite(vSellCommission) ? vSellCommission : 0);
+    const vCapital = fnGetTradeCapital(vTrade.TransType, vTrade.BuyPrice, vTrade.SellPrice, vTrade.LotSize, vQty);
+    const vTradePL = fnGetTradePL(vTrade.SellPrice, vTrade.BuyPrice, vTrade.LotSize, vQty, vCharges);
+
+    vTrade.Capital = vCapital;
+    vTrade.Charges = vCharges;
+    vTrade.ProfitLoss = vTradePL;
+    vTrade.BuyCommission = vBuyCommission;
+    vTrade.SellCommission = vSellCommission;
+
+    gOldPLAmt = JSON.parse(localStorage.getItem("DFSL_TotLossAmt")) || 0;
+    gNewPLAmt = vTradePL;
+    localStorage.setItem("DFSL_OldPLAmt", gOldPLAmt);
+    localStorage.setItem("DFSL_NewPLAmt", gNewPLAmt);
+    localStorage.setItem("DFSL_TotLossAmt", gOldPLAmt + gNewPLAmt);
+
+    const objTodayTrades = JSON.parse(localStorage.getItem("DFSL_TrdBkFut"));
+    if(objTodayTrades === null){
+        localStorage.setItem("DFSL_TrdBkFut", JSON.stringify(gCurrPos));
+    }
+    else{
+        const vExistingData = objTodayTrades;
+        vExistingData.TradeData.push(vTrade);
+        localStorage.setItem("DFSL_TrdBkFut", JSON.stringify(vExistingData));
+    }
+
+    localStorage.removeItem("DFSL_CurrFutPos");
+    gCurrPos = null;
+    fnSetNextOptTradeSettings(true, vTradePL);
+    document.getElementById("spnLossTrd").className = "badge rounded-pill text-bg-danger";
+    clearInterval(gTimerID);
+    gClosedHistoryLoaded = false;
+    fnSetInitFutTrdDtls();
+    fnLoadTodayTrades();
+    await fnRefreshClosedPositionsFromExchange();
+    fnGenMessage(pReason || "Position closed by exchange protection order.", `badge bg-success`, "spnGenMsg");
+}
+
+async function fnSyncSellActProtectionFill(){
+    const vTrade = gCurrPos?.TradeData?.[0] || null;
+    if(!vTrade || String(vTrade.EntryRule || "").toUpperCase() !== "SACT"){
+        return;
+    }
+
+    const vSLID = Number(vTrade.SACTSLOrderID);
+    const vSLCID = Number(vTrade.SACTSLClientOrderID);
+    if(vSLID > 0 && vSLCID > 0){
+        const objSL = await fnGetOrderDetailsById(vSLID, vSLCID);
+        const vState = String(objSL?.data?.state || "").toLowerCase();
+        if(vState === "closed" || vState === "filled"){
+            const vPx = Number(objSL?.data?.average_fill_price || objSL?.data?.limit_price);
+            const vComm = Number(objSL?.data?.paid_commission || 0);
+            await fnCancelSellActProtectionOrders(vTrade);
+            await fnFinalizeClosedByExchange(vPx, vComm, "Sell-only SL executed on exchange. Local position synced.");
+            return;
+        }
+    }
+
+    const vTPID = Number(vTrade.SACTTPOrderID);
+    const vTPCID = Number(vTrade.SACTTPClientOrderID);
+    if(vTPID > 0 && vTPCID > 0){
+        const objTP = await fnGetOrderDetailsById(vTPID, vTPCID);
+        const vState = String(objTP?.data?.state || "").toLowerCase();
+        if(vState === "closed" || vState === "filled"){
+            const vPx = Number(objTP?.data?.average_fill_price || objTP?.data?.limit_price);
+            const vComm = Number(objTP?.data?.paid_commission || 0);
+            await fnCancelSellActProtectionOrders(vTrade);
+            await fnFinalizeClosedByExchange(vPx, vComm, "Sell-only TP executed on exchange. Local position synced.");
+        }
+    }
+}
+
 async function fnCancelSellActProtectionOrders(pTrade, pMsg = ""){
     if(!pTrade || String(pTrade.EntryRule || "").toUpperCase() !== "SACT"){
         return;
@@ -810,6 +920,7 @@ async function fnCreateSellPositionFromFilledRenkoOrder(pOrderData, pPending){
     if(vEntryRule === "SACT"){
         await fnPlaceSellActProtectionOrders(gCurrPos.TradeData[0]);
         localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(gCurrPos));
+        fnSyncRenkoPendingPoller();
     }
 
     fnSetInitFutTrdDtls();
@@ -2912,7 +3023,7 @@ function fnStopRenkoPendingPoller(){
 }
 
 function fnSyncRenkoPendingPoller(){
-    if(gRenkoSellState.Pending || gRenkoBuyState.Pending || (Array.isArray(gSellActState.PendingOrders) && gSellActState.PendingOrders.length > 0)){
+    if(gRenkoSellState.Pending || gRenkoBuyState.Pending || (Array.isArray(gSellActState.PendingOrders) && gSellActState.PendingOrders.length > 0) || fnHasSellActProtectionOpen()){
         fnStartRenkoPendingPoller();
     }
     else{
@@ -2929,6 +3040,7 @@ async function fnPollRenkoPendingFills(){
         await fnRefreshRenkoPendingFill("sell", gRenkoSellState);
         await fnRefreshRenkoPendingFill("buy", gRenkoBuyState);
         await fnRefreshSellActPendingFills();
+        await fnSyncSellActProtectionFill();
 
         if(gCurrPos !== null){
             if(gCurrPos?.TradeData?.[0]?.TransType === "sell" && gRenkoBuyState.Pending){
