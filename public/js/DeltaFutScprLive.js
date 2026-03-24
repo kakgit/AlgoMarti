@@ -3300,6 +3300,24 @@ function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = 0){
             localStorage.setItem("DFSL_QtyMul", vNextQty);
             objQty.value = vNextQty;
         }
+        else if(vTotLossAmt < 0 && vOldLossAmt < 0){
+            // Step mode: on partial recovery, reduce qty proportionally
+            // to remaining loss bucket instead of keeping qty unchanged.
+            let vRemainRatio = Math.abs(vTotLossAmt) / Math.abs(vOldLossAmt);
+            if(!Number.isFinite(vRemainRatio)){
+                vRemainRatio = 1;
+            }
+            vRemainRatio = Math.max(0, Math.min(1, vRemainRatio));
+            let vNextQty = Math.ceil(vOldQtyMul * vRemainRatio);
+            if(!Number.isFinite(vNextQty) || vNextQty < vStartLots){
+                vNextQty = vStartLots;
+            }
+            if(vNextQty > vOldQtyMul){
+                vNextQty = vOldQtyMul;
+            }
+            localStorage.setItem("DFSL_QtyMul", vNextQty);
+            objQty.value = vNextQty;
+        }
         else if(vTotLossAmt >= 0){
             fnApplyLastOpenBrokerageOnFullRecovery();
             localStorage.setItem("DFSL_QtyMul", vStartLots);
