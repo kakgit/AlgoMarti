@@ -536,31 +536,79 @@ async function fnSyncSellActProtectionFill(){
         return;
     }
 
-    const vSLID = Number(vTrade.SACTSLOrderID);
-    const vSLCID = Number(vTrade.SACTSLClientOrderID);
-    if(vSLID > 0 && vSLCID > 0){
+    const fnHasIdentity = (pOrderID, pClientID) => {
+        const vOID = String(pOrderID || "").trim();
+        const vCID = String(pClientID || "").trim();
+        return (vOID !== "" && vOID !== "0" && vCID !== "" && vCID !== "0");
+    };
+    const fnIsFilledFromOrder = (pOrder) => {
+        const vState = String(pOrder?.state || pOrder?.order_state || pOrder?.status || "").toLowerCase();
+        if(vState === "closed" || vState === "filled" || vState === "completed" || vState === "executed"){
+            return true;
+        }
+        const vFilledSize = Number(pOrder?.filled_size ?? pOrder?.executed_size ?? 0);
+        const vUnfilledSize = Number(pOrder?.unfilled_size ?? pOrder?.remaining_size ?? NaN);
+        if(vFilledSize > 0 && (!Number.isFinite(vUnfilledSize) || vUnfilledSize <= 0)){
+            return true;
+        }
+        return false;
+    };
+    const fnCloseFromOrder = async (pOrderData, pReason) => {
+        const vPx = Number(pOrderData?.average_fill_price || pOrderData?.limit_price || pOrderData?.stop_price || 0);
+        const vComm = Number(pOrderData?.paid_commission || 0);
+        await fnCancelSellActProtectionOrders(vTrade);
+        await fnFinalizeClosedByExchange(vPx, vComm, pReason);
+    };
+
+    const vSLID = vTrade.SACTSLOrderID;
+    const vSLCID = vTrade.SACTSLClientOrderID;
+    if(fnHasIdentity(vSLID, vSLCID)){
         const objSL = await fnGetOrderDetailsById(vSLID, vSLCID);
-        const vState = String(objSL?.data?.state || "").toLowerCase();
-        if(vState === "closed" || vState === "filled"){
-            const vPx = Number(objSL?.data?.average_fill_price || objSL?.data?.limit_price);
-            const vComm = Number(objSL?.data?.paid_commission || 0);
-            await fnCancelSellActProtectionOrders(vTrade);
-            await fnFinalizeClosedByExchange(vPx, vComm, "Sell-only SL executed on exchange. Local position synced.");
+        if(objSL.status === "success" && fnIsFilledFromOrder(objSL.data)){
+            await fnCloseFromOrder(objSL.data, "Sell-only SL executed on exchange. Local position synced.");
             return;
         }
     }
 
-    const vTPID = Number(vTrade.SACTTPOrderID);
-    const vTPCID = Number(vTrade.SACTTPClientOrderID);
-    if(vTPID > 0 && vTPCID > 0){
+    const vTPID = vTrade.SACTTPOrderID;
+    const vTPCID = vTrade.SACTTPClientOrderID;
+    if(fnHasIdentity(vTPID, vTPCID)){
         const objTP = await fnGetOrderDetailsById(vTPID, vTPCID);
-        const vState = String(objTP?.data?.state || "").toLowerCase();
-        if(vState === "closed" || vState === "filled"){
-            const vPx = Number(objTP?.data?.average_fill_price || objTP?.data?.limit_price);
-            const vComm = Number(objTP?.data?.paid_commission || 0);
-            await fnCancelSellActProtectionOrders(vTrade);
-            await fnFinalizeClosedByExchange(vPx, vComm, "Sell-only TP executed on exchange. Local position synced.");
+        if(objTP.status === "success" && fnIsFilledFromOrder(objTP.data)){
+            await fnCloseFromOrder(objTP.data, "Sell-only TP executed on exchange. Local position synced.");
+            return;
         }
+    }
+
+    // Fallback: if direct order-details miss transient state, confirm from filled history.
+    const objApiKey = document.getElementById("txtUserAPIKey");
+    const objApiSecret = document.getElementById("txtAPISecret");
+    if(!objApiKey?.value || !objApiSecret?.value){
+        return;
+    }
+    const vOpenTs = Number(vTrade?.OpenDTVal || 0);
+    const vFrom = Number.isFinite(vOpenTs) && vOpenTs > 0 ? Math.max(vOpenTs - (60 * 1000), Date.now() - (24 * 60 * 60 * 1000)) : (Date.now() - (24 * 60 * 60 * 1000));
+    const objHist = await fnGetFilledOrderHistory(objApiKey.value, objApiSecret.value, vFrom, Date.now());
+    if(objHist.status !== "success" || !Array.isArray(objHist.data) || objHist.data.length === 0){
+        return;
+    }
+
+    const vSLIDTxt = String(vSLID || "");
+    const vSLCIDTxt = String(vSLCID || "");
+    const vTPIDTxt = String(vTPID || "");
+    const vTPCIDTxt = String(vTPCID || "");
+    const objHit = objHist.data.find((objRow) => {
+        const vRowID = String(objRow?.id || "");
+        const vRowCID = String(objRow?.client_order_id || "");
+        const bSL = (vSLIDTxt !== "" && vSLCIDTxt !== "" && (vRowID === vSLIDTxt || vRowCID === vSLCIDTxt));
+        const bTP = (vTPIDTxt !== "" && vTPCIDTxt !== "" && (vRowID === vTPIDTxt || vRowCID === vTPCIDTxt));
+        return bSL || bTP;
+    });
+    if(objHit){
+        const vReason = (String(objHit?.stop_order_type || "").toLowerCase() === "take_profit_order")
+            ? "Sell-only TP executed on exchange. Local position synced (history fallback)."
+            : "Sell-only SL executed on exchange. Local position synced (history fallback).";
+        await fnCloseFromOrder(objHit, vReason);
     }
 }
 

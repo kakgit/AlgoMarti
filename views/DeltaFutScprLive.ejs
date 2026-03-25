@@ -176,26 +176,35 @@
 
                                     <div class="col-2">Loss Recovery %</div>
                                     <div class="col-2">X-Multiplier</div>
-                                    <div class="col-2">Total Margin</div>
-                                    <div class="col-2">Blocked Margin</div>
-                                    <div class="col-2">Available Balance</div>
-                                    <div class="col-2"></div>
+                                    <div class="col-2">Best Buying Price</div>
+                                    <div class="col-2">Mark Price</div>
+                                    <div class="col-2">Best Selling Price</div>
+                                    <div class="col-2">Actions</div>
                                     <div class="col-2">
                                         <input type="number" class="form-control" placeholder="Candle Open Price" id="txtLossRecvPerct" value="100" onchange="fnUpdateLossRecPrct(this);" />
                                     </div>
                                     <div class="col-2">
                                         <input type="number" class="form-control" placeholder="Candle Open Price" id="txtMultiplierX" value="1" onchange="fnUpdateMultiplierX(this);" />
                                     </div>
-                                    <div class="col-2" id="divTotalMargin">-</div>
-                                    <div class="col-2" id="divBlockedMargin">-</div>
-                                    <div class="col-2" id="divBalanceMargin">-</div>
-                                    <div class="col-2"></div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Best Buy Price" id="txtBestBuyPrice" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Spot Price" id="txtSpotPrice" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Best Sell Price" id="txtBestSellPrice" />
+                                    </div>
+                                    <div class="col-2 d-flex align-items-center gap-2">
+                                        <button class="btn btn-outline-success action-btn flex-fill" onclick="fnManualSubStart();" style="display: block;"><b>START</b></button>
+                                        <button class="btn btn-outline-danger action-btn flex-fill" onclick="fnManualSubStop();" style="display: block;"><b>STOP</b></button>
+                                    </div>
                                     <div class="col-2">Maker Fee %</div>
                                     <div class="col-2">Taker Fee %</div>
                                     <div class="col-2">Live Exit Fee</div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
+                                    <div class="col-2">Sell-Act: Below Open (pts)</div>
+                                    <div class="col-2">Sell-Act: SL (pts)</div>
+                                    <div class="col-2">Sell-Act: TP (pts)</div>
                                     <div class="col-2">
                                         <input type="number" class="form-control" id="txtMakerFeePct" value="0.02" step="0.001" min="0" onchange="fnUpdateMakerFeePct(this);" />
                                     </div>
@@ -209,12 +218,18 @@
                                             <option value="auto">Auto</option>
                                         </select>
                                     </div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2">Best Buying Price</div>
-                                    <div class="col-2">Mark Price</div>
-                                    <div class="col-2">Best Selling Price</div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" id="txtSellActBelowOpen" value="10" min="1" onchange="fnUpdateSellActBelowOpen(this);" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" id="txtSellActSL" value="200" min="1" onchange="fnUpdateSellActSL(this);" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" id="txtSellActTP" value="200" min="1" onchange="fnUpdateSellActTP(this);" />
+                                    </div>
+                                    <div class="col-2">Total Margin</div>
+                                    <div class="col-2">Blocked Margin</div>
+                                    <div class="col-2">Available Balance</div>
                                     <div class="col-2"></div>
                                     <div class="col-2"></div>
                                     <div class="col-2 d-flex align-items-start justify-content-around">
@@ -237,40 +252,13 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Best Buy Price" id="txtBestBuyPrice" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Spot Price" id="txtSpotPrice" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Best Sell Price" id="txtBestSellPrice" />
-                                    </div>
-                                    <div class="col-6 col-md-1">
-                                        <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success action-btn" onclick="fnManualSubStart();" style="display: block;"><b>START</b></button>
-                                        </div>
-                                    </div>
-                                    <div class="col-6 col-md-1">
-                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-danger action-btn" onclick="fnManualSubStop();" style="display: block;"><b>STOP</b></button>
-                                        </div>
-                                    </div>
+                                    <div class="col-2" id="divTotalMargin">-</div>
+                                    <div class="col-2" id="divBlockedMargin">-</div>
+                                    <div class="col-2" id="divBalanceMargin">-</div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
                                     <div class="col-12 my-1"><hr class="my-1"/></div>
-                                    <div class="col-12 col-md-2">Sell-Act: Below Open (pts)</div>
-                                    <div class="col-12 col-md-2">Sell-Act: SL (pts)</div>
-                                    <div class="col-12 col-md-2">Sell-Act: TP (pts)</div>
-                                    <div class="col-12 col-md-6"></div>
-                                    <div class="col-12 col-md-2">
-                                        <input type="number" class="form-control" id="txtSellActBelowOpen" value="10" min="1" onchange="fnUpdateSellActBelowOpen(this);" />
-                                    </div>
-                                    <div class="col-12 col-md-2">
-                                        <input type="number" class="form-control" id="txtSellActSL" value="200" min="1" onchange="fnUpdateSellActSL(this);" />
-                                    </div>
-                                    <div class="col-12 col-md-2">
-                                        <input type="number" class="form-control" id="txtSellActTP" value="200" min="1" onchange="fnUpdateSellActTP(this);" />
-                                    </div>
-                                    <div class="col-12 col-md-6"></div>
                                     <div class="col-12">
                                         <div id="divMartiDbg" class="small text-muted" style="white-space: nowrap; overflow-x: auto;"></div>
                                     </div>

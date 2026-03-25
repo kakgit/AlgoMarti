@@ -151,7 +151,12 @@ exports.fnGetOrderDetails = async (req, res) => {
 
     try{
         const vMethod = "GET";
-        const vPath = "/v2/orders/" + parseInt(vOrderID);
+        const vOID = String(vOrderID || "").trim();
+        if(!/^\d+$/.test(vOID)){
+            res.send({ "status": "warning", "message": "Invalid Order ID.", "data": "" });
+            return;
+        }
+        const vPath = "/v2/orders/" + vOID;
         const vTimeStamp = Math.floor(new Date().getTime() / 1000);
         const vQueryStr = "";
         const vBody = "";
