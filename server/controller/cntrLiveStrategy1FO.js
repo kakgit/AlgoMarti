@@ -405,6 +405,7 @@ exports.fnCloseLeg = async (req, res) => {
     let vOptionType = req.body.OptionType;
     let vLotSize = Number(req.body.LotSize);
     let vLotQty = Number(req.body.LotQty);
+    let vReqOrderType = (req.body.OrderType || "market_order").toString();
 
     let vCloseSide = (vOpenTransType === "sell") ? "buy" : "sell";
     let vOrderSize = vLotQty;
@@ -418,14 +419,37 @@ exports.fnCloseLeg = async (req, res) => {
     }
 
     try {
-        let objOrdRes = await fnPlaceLiveOrder(vApiKey, vApiSecret, {
-            symbol: vSymbol,
-            size: vOrderSize,
-            side: vCloseSide,
-            orderType: "market_order",
-            limitPrice: 0,
-            reduceOnly: true
-        });
+        let objOrdRes = null;
+        if(vOptionType === "F" && vReqOrderType === "limit_order"){
+            let vLimitPrice = 0;
+            let objTicker = await fnGetTickerBySymbol(vSymbol);
+            if(objTicker.status === "success"){
+                let objQ = objTicker?.data?.result?.quotes || {};
+                vLimitPrice = (vCloseSide === "buy") ? Number(objQ.best_ask) : Number(objQ.best_bid);
+            }
+            if(!(vLimitPrice > 0)){
+                vLimitPrice = 1;
+            }
+
+            objOrdRes = await fnPlaceFutPostOnlyLimitUntilFilled(vApiKey, vApiSecret, {
+                symbol: vSymbol,
+                side: vCloseSide,
+                size: vOrderSize,
+                initialLimitPrice: vLimitPrice,
+                loopKey: fnGetFutLoopKey(vApiKey, vSymbol, vCloseSide + "_close"),
+                reduceOnly: true
+            });
+        }
+        else{
+            objOrdRes = await fnPlaceLiveOrder(vApiKey, vApiSecret, {
+                symbol: vSymbol,
+                size: vOrderSize,
+                side: vCloseSide,
+                orderType: "market_order",
+                limitPrice: 0,
+                reduceOnly: true
+            });
+        }
 
         if(objOrdRes.status !== "success"){
             res.send({ "status": objOrdRes.status, "message": objOrdRes.message, "data": objOrdRes.data });
@@ -815,7 +839,7 @@ const fnPlaceFutPostOnlyLimitUntilFilled = async (pApiKey, pApiSecret, pInput) =
             side: vSide,
             orderType: "limit_order",
             limitPrice: vLastKnownLimit,
-            reduceOnly: false,
+            reduceOnly: !!pInput?.reduceOnly,
             postOnly: true
         });
         if(objPlace.status === "success"){
@@ -911,7 +935,7 @@ const fnPlaceFutPostOnlyLimitUntilFilled = async (pApiKey, pApiSecret, pInput) =
             side: vSide,
             orderType: "market_order",
             limitPrice: 0,
-            reduceOnly: false
+            reduceOnly: !!pInput?.reduceOnly
         });
         if(objMkt.status !== "success"){
             fnSendTelegramAlert(`LiveStrategy1FO Futures Market Fallback Failed\nSymbol: ${vSymbol}\nSide: ${vSide}\nRemainQty: ${vMarketRemain}\nReason: ${objMkt.message || objMkt.status}`, pInput?.alertCfg);

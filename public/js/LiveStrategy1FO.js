@@ -3746,6 +3746,8 @@ function fnCloseLiveLeg(pApiKey, pApiSecret, pSymbol, pTransType, pOptionType, p
     const objPromise = new Promise((resolve, reject) => {
         let vHeaders = new Headers();
         vHeaders.append("Content-Type", "application/json");
+        let objOrderType = document.getElementById("ddlOrderType");
+        let vOrderType = objOrderType?.value || "market_order";
 
         let vAction = JSON.stringify({
             "ApiKey" : pApiKey,
@@ -3754,7 +3756,8 @@ function fnCloseLiveLeg(pApiKey, pApiSecret, pSymbol, pTransType, pOptionType, p
             "TransType" : pTransType,
             "OptionType" : pOptionType,
             "LotSize" : pLotSize,
-            "LotQty" : pLotQty
+            "LotQty" : pLotQty,
+            "OrderType" : vOrderType
         });
 
         let requestOptions = {
