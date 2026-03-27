@@ -243,6 +243,11 @@ exports.fnEditOrderSDK = async (req, res) => {
         }
     }
     catch(objError){
+        const vErrCode = objError?.response?.body?.error?.code || objError?.response?.obj?.error?.code || objError?.response?.data?.error?.code || "";
+        if(vErrCode === "open_order_not_found"){
+            res.send({ "status": "success", "message": "Order already closed/cancelled on exchange.", "data": { success: true, ignored: true, error_code: vErrCode } });
+            return;
+        }
         res.send({ "status": "danger", "message": objError?.response?.data || objError.message, "data": objError });
     }
 }
@@ -278,8 +283,13 @@ exports.fnCancelOrderSDK = async (req, res) => {
             }
         })
         .catch(function(objError) {
+            const vErrCode = objError?.response?.body?.error?.code || objError?.response?.obj?.error?.code || objError?.response?.data?.error?.code || "";
+            if(vErrCode === "open_order_not_found"){
+                res.send({ "status": "success", "message": "Order already closed/cancelled on exchange.", "data": { success: true, ignored: true, error_code: vErrCode } });
+                return;
+            }
             console.log(objError);
-            res.send({ "status": "danger", "message": objError.response.text, "data": objError });
+            res.send({ "status": "danger", "message": objError?.response?.text || objError?.message || "Cancel order failed", "data": objError });
         });
     });
     // res.send({ "status": "success", "message": "Pending Order Cancelled!", "data": "" });
@@ -417,6 +427,33 @@ exports.fnCloseRealPoistion = async (req, res) => {
     }
     else{
         res.send({ "status": "danger", "message": "Error: Contact Admin!", "data": objPosDets });
+    }
+}
+
+exports.fnGetNetPositionByProductSDK = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
+    let vProductID = Number(req.body.ProductID);
+
+    if(!vApiKey || !vApiSecret || !Number.isFinite(vProductID) || vProductID <= 0){
+        res.send({ "status": "warning", "message": "Invalid input for net position lookup.", "data": "" });
+        return;
+    }
+
+    try{
+        const client = await new DeltaRestClient(vApiKey, vApiSecret);
+        const response = await client.apis.Positions.getPositions({ product_id: vProductID });
+        let objResult = JSON.parse(response.data);
+
+        if(objResult.success){
+            res.send({ "status": "success", "message": "Net position fetched successfully.", "data": objResult.result || {} });
+        }
+        else{
+            res.send({ "status": "warning", "message": "Unable to fetch net position.", "data": objResult });
+        }
+    }
+    catch(objError){
+        res.send({ "status": "danger", "message": objError?.response?.text || objError.message, "data": objError });
     }
 }
 

@@ -2,8 +2,12 @@
 function fnLoadLoginCred(){
     let objApiKey = document.getElementById("txtUserAPIKey");
     let objApiSecret = document.getElementById("txtAPISecret");
+    let objTgBotToken = document.getElementById("txtTelegramBotToken");
+    let objTgChatId = document.getElementById("txtTelegramChatId");
     let vApiKey = JSON.parse(localStorage.getItem("lsApiKeyDSSLIVE1"));
     let vApiSecret = JSON.parse(localStorage.getItem("lsApiSecretDSSLIVE1"));
+    let vTgBotToken = JSON.parse(localStorage.getItem("lsTgBotTokenDSSLIVE1"));
+    let vTgChatId = JSON.parse(localStorage.getItem("lsTgChatIdDSSLIVE1"));
 
     if(vApiKey === null || vApiKey === ""){
         objApiKey.value = "";
@@ -12,6 +16,13 @@ function fnLoadLoginCred(){
     else{
         objApiKey.value = vApiKey;
         objApiSecret.value = vApiSecret;        
+    }
+
+    if(objTgBotToken){
+        objTgBotToken.value = vTgBotToken || "";
+    }
+    if(objTgChatId){
+        objTgChatId.value = vTgChatId || "";
     }
 }
 
@@ -45,6 +56,8 @@ function fnShowTraderLoginMdl(objThis){
 function fnValidateDeltaLogin(){
     let objApiKey = document.getElementById("txtUserAPIKey");
     let objApiSecret = document.getElementById("txtAPISecret");
+    let objTgBotToken = document.getElementById("txtTelegramBotToken");
+    let objTgChatId = document.getElementById("txtTelegramChatId");
 
     if(objApiKey.value === ""){
         objApiKey.focus();
@@ -77,6 +90,8 @@ function fnValidateDeltaLogin(){
                 // console.log(objResult.data);
                 localStorage.setItem("lsApiKeyDSSLIVE1", JSON.stringify(objApiKey.value));
                 localStorage.setItem("lsApiSecretDSSLIVE1", JSON.stringify(objApiSecret.value));
+                localStorage.setItem("lsTgBotTokenDSSLIVE1", JSON.stringify(objTgBotToken?.value || ""));
+                localStorage.setItem("lsTgChatIdDSSLIVE1", JSON.stringify(objTgChatId?.value || ""));
                 localStorage.removeItem("DFL_SUPPRESS_STREAM_MSG");
 
                 // let objBalances = { Acc1BalINR: objResult.data[0].available_balance_inr, Acc1BalUSD: objResult.data[0].available_balance };
@@ -168,6 +183,7 @@ function fnToggleAutoTrader(){
             fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
             fnGenMessage("Auto Trading Mode is OFF!", `badge bg-danger`, "spnGenMsg");
             localStorage.setItem("isAutoTraderDSSLIVE1", "false");
+            fnAbortPendingFutOrders();
         }
     }
     else{
@@ -176,11 +192,42 @@ function fnToggleAutoTrader(){
 }
 
 function fnClearLoginStatus(){
+    fnAbortPendingFutOrders();
     localStorage.removeItem("lsLoginValidDSSLIVE1");
     localStorage.removeItem("isAutoTraderDSSLIVE1");
     localStorage.removeItem("DFL_SUPPRESS_STREAM_MSG");
 
     fnGetSetTraderLoginStatus();
+}
+
+function fnAbortPendingFutOrders(){
+    let objApiKey = document.getElementById("txtUserAPIKey");
+    let objApiSecret = document.getElementById("txtAPISecret");
+    let vApiKey = objApiKey?.value || "";
+    let vApiSecret = objApiSecret?.value || "";
+
+    if(!vApiKey || !vApiSecret){
+        return;
+    }
+
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    let vAction = JSON.stringify({
+        "ApiKey": vApiKey
+    });
+
+    let requestOptions = {
+        method: "POST",
+        headers: vHeaders,
+        body: vAction,
+        redirect: "follow"
+    };
+
+    fetch("/liveStrategy1fo/abortPendingFutOrders", requestOptions)
+    .catch(() => {
+        // silent abort helper
+    });
 }
 
 function fnGetSetAutoTraderStatus(){

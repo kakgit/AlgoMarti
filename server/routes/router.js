@@ -195,6 +195,7 @@ route.post("/deltaExcFutR/getOrderDetails", deltaFutLiveController.fnGetOrderDet
 route.post("/deltaExcFutR/editPendingOrder", deltaFutLiveController.fnEditOrderSDK);
 route.post("/deltaExcFutR/cancelPendingOrder", deltaFutLiveController.fnCancelOrderSDK);
 route.post("/deltaExcFutR/getFilledPosById", deltaFutLiveController.fnGetOpenPositionByIdSDK);
+route.post("/deltaExcFutR/getNetPositionByProduct", deltaFutLiveController.fnGetNetPositionByProductSDK);
 route.post("/deltaExcFutR/getFilledOrderHistory", deltaFutLiveController.fnGetFilledOrderHistory);
 route.post("/deltaExcFutR/getProductsList", deltaFutLiveController.fnGetProductsList);
 route.post("/deltaExcFutR/closeRealPosition", deltaFutLiveController.fnCloseRealPoistion);
@@ -234,6 +235,7 @@ route.post("/liveStrategy1fo/getOptChnSDKByAstOptTypExp", liveStrategy1FOCtrler.
 route.post("/liveStrategy1fo/execOption", liveStrategy1FOCtrler.fnExecOptionByOptTypeExpTransType);
 route.post("/liveStrategy1fo/execOptionLeg", liveStrategy1FOCtrler.fnExecOptByOTypExpTType);
 route.post("/liveStrategy1fo/execFutureLeg", liveStrategy1FOCtrler.fnExecFutByTType);
+route.post("/liveStrategy1fo/abortPendingFutOrders", liveStrategy1FOCtrler.fnAbortPendingFutOrders);
 route.post("/liveStrategy1fo/closeLeg", liveStrategy1FOCtrler.fnCloseLeg);
 route.post("/liveStrategy1fo/getLiveOpenPositions", liveStrategy1FOCtrler.fnGetLiveOpenPositions);
 route.post("/liveStrategy1fo/getBestRatesBySymb", liveStrategy1FOCtrler.fnGetBestRatesBySymbol);

@@ -24,7 +24,7 @@
     <div class="page-heading">
         <div class="row">
             <div class="col-4">
-                <h3>LiveStrategy1FO</h3>
+                <h3>Strategy1FO LIVE</h3>
             </div>
             <div class="col-4 text-center">
                 <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
@@ -294,8 +294,7 @@
                                             <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtFutOpDN" name="swtFutOpDN" onchange="fnUpdHidFldSettings(this.checked, 'SwtFutOpDN', 'Open Opp Fut Leg for Delta Neutral!');" />
                                         </div>
                                     </div>
-                                    <div class="col-2">Open Opp Fut Leg for Delta Neutral</div>
-                                    <div class="col-1"></div>
+                                    <div class="col-3">Open Opp Fut Leg for Delta Neutral</div>
                                     <div class="col-2"></div>
                                     <div class="col-2"></div>
                                     <div class="col-2"></div>
@@ -503,6 +502,52 @@
                                     </table>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" id="cardStrategyScore">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-6">
+                                <h4>Strategy Scorecard</h4>
+                            </div>
+                            <div class="col-6" style="text-align: right;">
+                                <span class="badge bg-secondary" id="spnScoreRange">Based on closed trades</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <td>Total Trades</td><td id="scTotalTrades" style="text-align:right;">0</td>
+                                        <td>Win Rate</td><td id="scWinRate" style="text-align:right;">0.00%</td>
+                                        <td>Net PnL</td><td id="scNetPnl" style="text-align:right;">0.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Gross Profit</td><td id="scGrossProfit" style="text-align:right;">0.00</td>
+                                        <td>Gross Loss</td><td id="scGrossLoss" style="text-align:right;">0.00</td>
+                                        <td>Profit Factor</td><td id="scProfitFactor" style="text-align:right;">0.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Expectancy/Trade</td><td id="scExpectancy" style="text-align:right;">0.00</td>
+                                        <td>Avg Win</td><td id="scAvgWin" style="text-align:right;">0.00</td>
+                                        <td>Avg Loss</td><td id="scAvgLoss" style="text-align:right;">0.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Max Drawdown</td><td id="scMaxDD" style="text-align:right;">0.00</td>
+                                        <td>Max Loss Trade</td><td id="scMaxLossTrade" style="text-align:right;">0.00</td>
+                                        <td>Max Win Trade</td><td id="scMaxWinTrade" style="text-align:right;">0.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Longest Losing Streak</td><td id="scLoseStreak" style="text-align:right;">0</td>
+                                        <td>Worst Day PnL</td><td id="scWorstDay" style="text-align:right;">0.00</td>
+                                        <td>Worst Day Date</td><td id="scWorstDayDate" style="text-align:right;">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

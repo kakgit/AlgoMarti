@@ -46,6 +46,7 @@ let gOtherFlds = [{ SwtActiveMsgs : false, BrokerageAmt : 0, Yet2RecvrAmt : 0, S
 
 window.addEventListener("DOMContentLoaded", function(){
     fnInitClosedPosDateTimeFilters();
+    fnInitOrderTypeSetting();
     fnGetAllStatus();
 
     // socket.on("CdlEmaTrend", (pMsg) => {
@@ -70,6 +71,7 @@ window.addEventListener("DOMContentLoaded", function(){
 
     socket.on("tv-Msg-SSDemo-Open", (pMsg) => {
         let isLsAutoTrader = localStorage.getItem("isAutoTraderDSSLIVE1");
+        let vTraderStatus = localStorage.getItem("lsLoginValidDSSLIVE1");
         let vCallSide = localStorage.getItem("CallSideSwtDSSLIVE1");
         let vPutSide = localStorage.getItem("PutSideSwtDSSLIVE1");
         let objSwtActiveMsgs = document.getElementById("swtActiveMsgs");
@@ -77,7 +79,10 @@ window.addEventListener("DOMContentLoaded", function(){
 
         // fnChangeSymbol(objMsg.symbolName);
 
-        if(isLsAutoTrader === "false"){
+        if(vTraderStatus !== "true"){
+            fnGenMessage("Trade signal ignored because Trader is disconnected.", "badge bg-warning", "spnGenMsg");
+        }
+        else if(isLsAutoTrader !== "true"){
             fnGenMessage("Trade Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
         }
         else{
@@ -99,6 +104,50 @@ window.addEventListener("DOMContentLoaded", function(){
         }
     });
 });
+
+function fnInitOrderTypeSetting(){
+    let objOrderType = document.getElementById("ddlOrderType");
+    if(!objOrderType){
+        return;
+    }
+
+    let vSavedOrderType = localStorage.getItem("OrderTypeDSSLIVE1");
+    if(vSavedOrderType === "limit_order" || vSavedOrderType === "market_order"){
+        objOrderType.value = vSavedOrderType;
+    }
+    else{
+        localStorage.setItem("OrderTypeDSSLIVE1", objOrderType.value);
+    }
+
+    objOrderType.addEventListener("change", function(){
+        localStorage.setItem("OrderTypeDSSLIVE1", objOrderType.value);
+    });
+}
+
+function fnCanPlaceLiveOrders(pMsgTarget){
+    let vTraderStatus = localStorage.getItem("lsLoginValidDSSLIVE1");
+    let vAutoTrader = localStorage.getItem("isAutoTraderDSSLIVE1");
+    let vMsgTarget = pMsgTarget || "spnGenMsg";
+
+    if(vTraderStatus !== "true"){
+        fnGenMessage("Trader is disconnected. Please login Trader first.", "badge bg-warning", vMsgTarget);
+        return false;
+    }
+    if(vAutoTrader !== "true"){
+        fnGenMessage("Auto Trader is OFF. Turn it ON to place new orders.", "badge bg-warning", vMsgTarget);
+        return false;
+    }
+    return true;
+}
+
+function fnGetTelegramConfig(){
+    let objTgBotToken = document.getElementById("txtTelegramBotToken");
+    let objTgChatId = document.getElementById("txtTelegramChatId");
+    return {
+        botToken: (objTgBotToken?.value || "").trim(),
+        chatId: (objTgChatId?.value || "").trim()
+    };
+}
 
 window.addEventListener("resize", function(){
     if(gPayoffGraphLastData){
@@ -2307,6 +2356,10 @@ function fnExecAllLegs(){
 }
 
 async function fnCheckOptionLeg(){
+    if(!fnCanPlaceLiveOrders("spnGenMsg")){
+        return;
+    }
+
     let objChkIds = [{ ID : 'chkSellCE', TransType : 'sell', OptType : 'C' }, { ID : 'chkSellPE', TransType : 'sell', OptType : 'P' }, { ID : 'chkBuyCE', TransType : 'buy', OptType : 'C' }, { ID : 'chkBuyPE', TransType : 'buy', OptType : 'P' }];
     let vIsRecExists = false;
     let objBrokAmt = document.getElementById("txtBrok2Rec");
@@ -2440,6 +2493,7 @@ function fnExecOptionLeg(pApiKey, pSecret, pOrderType, pUndrAsst, pExpiry, pOpti
         let vHeaders = new Headers();
         vHeaders.append("Content-Type", "application/json");
 
+        let objTgCfg = fnGetTelegramConfig();
         let vAction = JSON.stringify({
             "ApiKey" : pApiKey,
             "ApiSecret" : pSecret,
@@ -2453,7 +2507,9 @@ function fnExecOptionLeg(pApiKey, pSecret, pOrderType, pUndrAsst, pExpiry, pOpti
             "DeltaPos" : pDeltaPos,
             "DeltaRePos" : pDeltaRePos,
             "DeltaTP" : pDeltaTP,
-            "DeltaSL" : pDeltaSL
+            "DeltaSL" : pDeltaSL,
+            "TelegramBotToken" : objTgCfg.botToken,
+            "TelegramChatId" : objTgCfg.chatId
         });
 
         let requestOptions = {
@@ -2517,6 +2573,10 @@ function fnPreInitTrade(pOptionType, pTransType){
 }
 
 async function fnPreInitAutoTrade(pOptionType, pTransType){
+    if(!fnCanPlaceLiveOrders("spnGenMsg")){
+        return;
+    }
+
     let vIsRecExists = false;
     let objBrokAmt = document.getElementById("txtBrok2Rec");
     let vExpiryNewPos = "";
@@ -2643,6 +2703,10 @@ async function fnPreInitAutoTrade(pOptionType, pTransType){
 }
 
 async function fnPreInitAutoFutTrade(pOptionType, pTransType){
+    if(!fnCanPlaceLiveOrders("spnGenMsg")){
+        return;
+    }
+
     let objBrokAmt = document.getElementById("txtBrok2Rec");
     let objApiKey = document.getElementById("txtUserAPIKey");
     let objApiSecret = document.getElementById("txtAPISecret");
@@ -2672,8 +2736,28 @@ async function fnPreInitAutoFutTrade(pOptionType, pTransType){
     }
 
     let vUndrAsst = objSymbol.value + "USD";
+    let vRetryProgressTimer = null;
+    if(objOrderType.value === "limit_order"){
+        let vRetryAttempt = 0;
+        fnGenMessage(`Futures ${pTransType.toUpperCase()} limit in progress: retry 0/5`, "badge bg-info", "spnGenMsg");
+        vRetryProgressTimer = setInterval(() => {
+            vRetryAttempt += 1;
+            if(vRetryAttempt > 5){
+                vRetryAttempt = 5;
+            }
+            fnGenMessage(`Futures ${pTransType.toUpperCase()} limit in progress: retry ${vRetryAttempt}/5`, "badge bg-info", "spnGenMsg");
+        }, 8000);
+    }
 
-    let objTradeDtls = await fnExecFuturesLeg(objApiKey.value, objApiSecret.value, objOrderType.value, vUndrAsst, pOptionType, pTransType, objLotSize.value, objLotQty.value, objPointsTP.value, objPointsSL.value);
+    let objTradeDtls = null;
+    try{
+        objTradeDtls = await fnExecFuturesLeg(objApiKey.value, objApiSecret.value, objOrderType.value, vUndrAsst, pOptionType, pTransType, objLotSize.value, objLotQty.value, objPointsTP.value, objPointsSL.value);
+    }
+    finally{
+        if(vRetryProgressTimer !== null){
+            clearInterval(vRetryProgressTimer);
+        }
+    }
 
     if(objTradeDtls.status === "success"){
         let vDate = new Date();
@@ -2731,6 +2815,7 @@ function fnExecFuturesLeg(pApiKey, pSecret, pOrderType, pUndrAsst, pOptionType, 
         let vHeaders = new Headers();
         vHeaders.append("Content-Type", "application/json");
 
+        let objTgCfg = fnGetTelegramConfig();
         let vAction = JSON.stringify({
             "ApiKey" : pApiKey,
             "ApiSecret" : pSecret,
@@ -2741,7 +2826,9 @@ function fnExecFuturesLeg(pApiKey, pSecret, pOrderType, pUndrAsst, pOptionType, 
             "LotQty" : parseFloat(pLotQty),
             "OrderType" : pOrderType,
             "PointsTP" : pPointsTP,
-            "PointsSL" : pPointsSL
+            "PointsSL" : pPointsSL,
+            "TelegramBotToken" : objTgCfg.botToken,
+            "TelegramChatId" : objTgCfg.chatId
         });
 
         let requestOptions = {
@@ -2984,6 +3071,7 @@ function fnExecOption(pApiKey, pApiSecret, pUndAsst, pExpiry, pOptionType, pTran
         let vHeaders = new Headers();
         vHeaders.append("Content-Type", "application/json");
 
+        let objTgCfg = fnGetTelegramConfig();
         let vAction = JSON.stringify({
             "ApiKey" : pApiKey,
             "ApiSecret" : pApiSecret,
@@ -2995,7 +3083,9 @@ function fnExecOption(pApiKey, pApiSecret, pUndAsst, pExpiry, pOptionType, pTran
             "DeltaNPos" : pDeltaNPos,
             "OrderType" : pOrderType,
             "LotQty" : pQty,
-            "ClientID" : pClientID
+            "ClientID" : pClientID,
+            "TelegramBotToken" : objTgCfg.botToken,
+            "TelegramChatId" : objTgCfg.chatId
         });
 
         let requestOptions = {
@@ -3204,6 +3294,7 @@ function fnDispClosedPositions(){
     }
 
     objAllClosedRows.sort((a, b) => fnGetClosedStartTs(a, vUseExchangeRows) - fnGetClosedStartTs(b, vUseExchangeRows));
+    fnRenderStrategyScorecard(objAllClosedRows, vUseExchangeRows);
 
     if(objAllClosedRows.length === 0){
         objClosedTradeList.innerHTML = '<tr><td colspan="10"><div class="col-sm-12" style="border:0px solid red;width:100%;text-align: center; font-weight: Bold; font-size: 32px;">No Closed Trades for Selected Date Range</div></td></tr>';
@@ -3261,6 +3352,198 @@ function fnDispClosedPositions(){
     vTempHtml += '<td style="text-wrap: nowrap; text-align:right; color: white; font-weight:bold;">' + (vNetPL).toFixed(2) + "</td>";
     vTempHtml += '</tr>';
     objClosedTradeList.innerHTML = vTempHtml;
+}
+
+function fnRenderStrategyScorecard(pRows, pUseExchangeRows){
+    const objStats = fnBuildStrategyStats(pRows, pUseExchangeRows);
+    fnSetScoreCell("scTotalTrades", objStats.totalTrades.toString());
+    fnSetScoreCell("scWinRate", objStats.winRate.toFixed(2) + "%");
+    fnSetScoreCell("scNetPnl", objStats.netPnl.toFixed(2));
+    fnSetScoreCell("scGrossProfit", objStats.grossProfit.toFixed(2));
+    fnSetScoreCell("scGrossLoss", objStats.grossLoss.toFixed(2));
+    fnSetScoreCell("scProfitFactor", objStats.profitFactorTxt);
+    fnSetScoreCell("scExpectancy", objStats.expectancy.toFixed(2));
+    fnSetScoreCell("scAvgWin", objStats.avgWin.toFixed(2));
+    fnSetScoreCell("scAvgLoss", objStats.avgLoss.toFixed(2));
+    fnSetScoreCell("scMaxDD", objStats.maxDrawdown.toFixed(2));
+    fnSetScoreCell("scMaxLossTrade", objStats.maxLossTrade.toFixed(2));
+    fnSetScoreCell("scMaxWinTrade", objStats.maxWinTrade.toFixed(2));
+    fnSetScoreCell("scLoseStreak", objStats.longestLosingStreak.toString());
+    fnSetScoreCell("scWorstDay", objStats.worstDayPnl.toFixed(2));
+    fnSetScoreCell("scWorstDayDate", objStats.worstDayDate || "-");
+}
+
+function fnSetScoreCell(pId, pVal){
+    let objCell = document.getElementById(pId);
+    if(objCell){
+        objCell.innerText = pVal;
+    }
+}
+
+function fnBuildStrategyStats(pRows, pUseExchangeRows){
+    let objStats = {
+        totalTrades: 0,
+        wins: 0,
+        losses: 0,
+        netPnl: 0,
+        grossProfit: 0,
+        grossLoss: 0,
+        avgWin: 0,
+        avgLoss: 0,
+        expectancy: 0,
+        winRate: 0,
+        maxDrawdown: 0,
+        maxLossTrade: 0,
+        maxWinTrade: 0,
+        longestLosingStreak: 0,
+        worstDayPnl: 0,
+        worstDayDate: "",
+        profitFactorTxt: "0.00"
+    };
+
+    if(!Array.isArray(pRows) || pRows.length === 0){
+        return objStats;
+    }
+
+    const objTradeRows = [];
+    const objDayPnL = {};
+    let vCumPnl = 0;
+    let vPeak = 0;
+    let vCurrLoseStreak = 0;
+    let vMaxLoseStreak = 0;
+
+    for(let i=0; i<pRows.length; i++){
+        let objLeg = pRows[i];
+        let vPnl = fnGetClosedRowPnl(objLeg, pUseExchangeRows);
+        let vCloseTs = fnGetClosedEndTs(objLeg, pUseExchangeRows);
+        let vCloseDate = fnGetClosedDayKey(vCloseTs);
+
+        objTradeRows.push({ pnl: vPnl, closeTs: vCloseTs, closeDate: vCloseDate });
+    }
+
+    objTradeRows.sort((a, b) => a.closeTs - b.closeTs);
+    objStats.totalTrades = objTradeRows.length;
+
+    for(let i=0; i<objTradeRows.length; i++){
+        let vPnl = Number(objTradeRows[i].pnl || 0);
+        let vDay = objTradeRows[i].closeDate;
+
+        objStats.netPnl += vPnl;
+        if(vPnl > 0){
+            objStats.wins += 1;
+            objStats.grossProfit += vPnl;
+            vCurrLoseStreak = 0;
+        }
+        else if(vPnl < 0){
+            objStats.losses += 1;
+            objStats.grossLoss += Math.abs(vPnl);
+            vCurrLoseStreak += 1;
+            if(vCurrLoseStreak > vMaxLoseStreak){
+                vMaxLoseStreak = vCurrLoseStreak;
+            }
+        }
+        else{
+            vCurrLoseStreak = 0;
+        }
+
+        if(vPnl < objStats.maxLossTrade){
+            objStats.maxLossTrade = vPnl;
+        }
+        if(vPnl > objStats.maxWinTrade){
+            objStats.maxWinTrade = vPnl;
+        }
+
+        vCumPnl += vPnl;
+        if(vCumPnl > vPeak){
+            vPeak = vCumPnl;
+        }
+        let vDD = vPeak - vCumPnl;
+        if(vDD > objStats.maxDrawdown){
+            objStats.maxDrawdown = vDD;
+        }
+
+        if(!objDayPnL[vDay]){
+            objDayPnL[vDay] = 0;
+        }
+        objDayPnL[vDay] += vPnl;
+    }
+
+    objStats.longestLosingStreak = vMaxLoseStreak;
+    objStats.avgWin = (objStats.wins > 0) ? (objStats.grossProfit / objStats.wins) : 0;
+    objStats.avgLoss = (objStats.losses > 0) ? (objStats.grossLoss / objStats.losses) : 0;
+    objStats.expectancy = (objStats.totalTrades > 0) ? (objStats.netPnl / objStats.totalTrades) : 0;
+    objStats.winRate = (objStats.totalTrades > 0) ? ((objStats.wins / objStats.totalTrades) * 100) : 0;
+    objStats.profitFactorTxt = (objStats.grossLoss > 0) ? (objStats.grossProfit / objStats.grossLoss).toFixed(2) : (objStats.grossProfit > 0 ? "INF" : "0.00");
+
+    let vWorstDay = 0;
+    let vWorstDayDate = "";
+    Object.keys(objDayPnL).forEach((vDay) => {
+        if(vWorstDayDate === "" || objDayPnL[vDay] < vWorstDay){
+            vWorstDay = objDayPnL[vDay];
+            vWorstDayDate = vDay;
+        }
+    });
+    objStats.worstDayPnl = vWorstDay;
+    objStats.worstDayDate = vWorstDayDate;
+
+    return objStats;
+}
+
+function fnGetClosedRowPnl(pLeg, pUseExchangeRows){
+    if(pUseExchangeRows){
+        return Number(pLeg?.meta_data?.pnl || 0);
+    }
+
+    let vOptionType = pLeg.OptionType || "";
+    let vStrikePrice = parseFloat(pLeg.StrikePrice || 0);
+    let vLotSize = parseFloat(pLeg.LotSize || 0);
+    let vQty = parseFloat(pLeg.LotQty || 0);
+    let vBuyPrice = parseFloat(pLeg.BuyPrice || 0);
+    let vSellPrice = parseFloat(pLeg.SellPrice || 0);
+    let vCharges = fnGetTradeCharges(vStrikePrice, vLotSize, vQty, vBuyPrice, vSellPrice, vOptionType);
+    return fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
+}
+
+function fnGetClosedEndTs(pLeg, pUseExchangeRows){
+    if(pUseExchangeRows){
+        let vTs = new Date(pLeg?.updated_at || pLeg?.created_at || "").getTime();
+        return Number.isFinite(vTs) ? vTs : 0;
+    }
+
+    let vCloseDT = (pLeg?.CloseDT || pLeg?.OpenDT || "").toString().trim();
+    if(vCloseDT === ""){
+        return 0;
+    }
+    let vTs = new Date(vCloseDT).getTime();
+    if(Number.isFinite(vTs)){
+        return vTs;
+    }
+
+    let objParts = vCloseDT.split(" ");
+    let objDate = (objParts[0] || "").split("-");
+    let objTime = (objParts[1] || "00:00:00").split(":");
+    if(objDate.length < 3){
+        return 0;
+    }
+    let vDD = Number(objDate[0]);
+    let vMM = Number(objDate[1]) - 1;
+    let vYYYY = Number(objDate[2]);
+    let vHH = Number(objTime[0] || 0);
+    let vMI = Number(objTime[1] || 0);
+    let vSS = Number(objTime[2] || 0);
+    let vTs2 = new Date(vYYYY, vMM, vDD, vHH, vMI, vSS).getTime();
+    return Number.isFinite(vTs2) ? vTs2 : 0;
+}
+
+function fnGetClosedDayKey(pTs){
+    let vDate = new Date(Number(pTs || 0));
+    if(Number.isNaN(vDate.getTime())){
+        return "Unknown";
+    }
+    let vYYYY = vDate.getFullYear();
+    let vMM = String(vDate.getMonth() + 1).padStart(2, "0");
+    let vDD = String(vDate.getDate()).padStart(2, "0");
+    return `${vYYYY}-${vMM}-${vDD}`;
 }
 
 function fnGetClosedStartTs(pLeg, pUseExchangeRows){
