@@ -16,6 +16,14 @@ let gExchangeClosedOrderRows = [];
 let gClosedHistoryLoaded = false;
 let gLastAuthErrKey = "";
 let gLastAuthErrTs = 0;
+let gTelegramHeartbeatTimer = null;
+let gAppConnDown = false;
+let gAppConnDownSince = 0;
+let gAppConnDownReason = "";
+let gLastTgErrAlertKey = "";
+let gLastTgErrAlertTs = 0;
+let gLastTgConnAlertTs = 0;
+let gFnGenMessageWrapped = false;
 
 let gUpdPos = true;
 let gSymbBRateList = {};
@@ -47,6 +55,7 @@ let gOtherFlds = [{ SwtActiveMsgs : false, BrokerageAmt : 0, Yet2RecvrAmt : 0, S
 window.addEventListener("DOMContentLoaded", function(){
     fnInitClosedPosDateTimeFilters();
     fnInitOrderTypeSetting();
+    fnInitRuntimeTelegramWatchers();
     fnGetAllStatus();
 
     // socket.on("CdlEmaTrend", (pMsg) => {
@@ -103,6 +112,13 @@ window.addEventListener("DOMContentLoaded", function(){
             fnPreInitTradeClose(objMsg.OptionType, objMsg.TransType);
         }
     });
+
+    window.addEventListener("offline", function(){
+        fnMarkAppDisconnected("Browser offline");
+    });
+    window.addEventListener("online", function(){
+        fnMarkAppReconnected("Browser online");
+    });
 });
 
 function fnInitOrderTypeSetting(){
@@ -147,6 +163,138 @@ function fnGetTelegramConfig(){
         botToken: (objTgBotToken?.value || "").trim(),
         chatId: (objTgChatId?.value || "").trim()
     };
+}
+
+function fnInitRuntimeTelegramWatchers(){
+    if(!gFnGenMessageWrapped && typeof window.fnGenMessage === "function"){
+        const fnOrigGenMessage = window.fnGenMessage;
+        window.fnGenMessage = function(pMsg, pStyle, pSpnId){
+            try{
+                fnOrigGenMessage(pMsg, pStyle, pSpnId);
+            }
+            finally{
+                try{
+                    const vStyle = String(pStyle || "").toLowerCase();
+                    const vMsg = String(pMsg || "");
+                    if(vStyle.includes("bg-danger")){
+                        fnNotifyStrategyErrorToTelegram(vMsg);
+                    }
+                }
+                catch(objErr){
+                    // no-op
+                }
+            }
+        };
+        gFnGenMessageWrapped = true;
+    }
+
+    fnStartHourlyTelegramHeartbeat();
+}
+
+function fnStartHourlyTelegramHeartbeat(){
+    if(gTelegramHeartbeatTimer !== null){
+        clearInterval(gTelegramHeartbeatTimer);
+    }
+    // Send one startup pulse after a short delay.
+    setTimeout(() => {
+        fnSendHeartbeatToTelegram();
+    }, 15000);
+
+    gTelegramHeartbeatTimer = setInterval(() => {
+        fnSendHeartbeatToTelegram();
+    }, 3600000);
+}
+
+function fnSendHeartbeatToTelegram(){
+    const vNetPnl = fnGetNetPnlValue();
+    const vBrokRec = fnGetBrokerageRecoverValue();
+    const vMsg = `LiveStrategy1FO\nApp is Up and Running\nNet PnL: ${vNetPnl.toFixed(2)}\nTotal Brokerage to Recvr: ${vBrokRec.toFixed(2)}\nTime: ${new Date().toLocaleString("en-GB")}`;
+    fnSendTelegramRuntimeAlert(vMsg);
+}
+
+function fnGetNetPnlValue(){
+    const objNet = document.getElementById("divNetPL");
+    if(objNet){
+        const vTxt = String(objNet.innerText || objNet.textContent || "").replace(/,/g, "").trim();
+        const vNum = Number(vTxt);
+        if(Number.isFinite(vNum)){
+            return vNum;
+        }
+    }
+    return Number.isFinite(Number(gPL)) ? Number(gPL) : 0;
+}
+
+function fnGetBrokerageRecoverValue(){
+    const objBrok = document.getElementById("txtBrok2Rec");
+    const vNum = Number(objBrok?.value || 0);
+    return Number.isFinite(vNum) ? vNum : 0;
+}
+
+function fnNotifyStrategyErrorToTelegram(pMsg){
+    const vMsg = String(pMsg || "").trim();
+    if(!vMsg){
+        return;
+    }
+    const vNow = Date.now();
+    const vKey = vMsg.slice(0, 180);
+    if(vKey === gLastTgErrAlertKey && (vNow - gLastTgErrAlertTs) < 30000){
+        return;
+    }
+    gLastTgErrAlertKey = vKey;
+    gLastTgErrAlertTs = vNow;
+    fnSendTelegramRuntimeAlert(`LiveStrategy1FO ERROR\n${vMsg}`);
+}
+
+function fnMarkAppDisconnected(pReason){
+    const vNow = Date.now();
+    if(!gAppConnDown){
+        gAppConnDown = true;
+        gAppConnDownSince = vNow;
+        gAppConnDownReason = String(pReason || "Connection lost");
+        if(vNow - gLastTgConnAlertTs > 30000){
+            gLastTgConnAlertTs = vNow;
+            fnSendTelegramRuntimeAlert(`LiveStrategy1FO\nConnection Disconnected\nReason: ${gAppConnDownReason}\nTime: ${new Date(vNow).toLocaleString("en-GB")}`);
+        }
+    }
+}
+
+function fnMarkAppReconnected(pSource){
+    const vNow = Date.now();
+    if(!gAppConnDown){
+        return;
+    }
+    const vDownMs = Math.max(0, vNow - gAppConnDownSince);
+    const vDownSec = Math.round(vDownMs / 1000);
+    const vMsg = `LiveStrategy1FO\nConnection Reconnected\nSource: ${String(pSource || "Recovered")}\nDowntime: ${vDownSec}s\nPrevious Reason: ${gAppConnDownReason || "-"}`;
+    gAppConnDown = false;
+    gAppConnDownSince = 0;
+    gAppConnDownReason = "";
+    fnSendTelegramRuntimeAlert(vMsg);
+}
+
+function fnSendTelegramRuntimeAlert(pMsg){
+    const objTgCfg = fnGetTelegramConfig();
+    if(!objTgCfg.botToken || !objTgCfg.chatId){
+        return;
+    }
+
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+    let vAction = JSON.stringify({
+        "TelegramBotToken": objTgCfg.botToken,
+        "TelegramChatId": objTgCfg.chatId,
+        "Message": String(pMsg || "")
+    });
+
+    let requestOptions = {
+        method: "POST",
+        headers: vHeaders,
+        body: vAction,
+        redirect: "follow"
+    };
+    fetch("/liveStrategy1fo/sendTelegramAlert", requestOptions).catch(() => {
+        // no-op
+    });
 }
 
 window.addEventListener("resize", function(){
@@ -3954,15 +4102,18 @@ function fnConnectDFL(){
     obj_WS_DFL = new WebSocket(vUrl);
 
     obj_WS_DFL.onopen = function (){
+        fnMarkAppReconnected("WebSocket open");
         if(!fnSuppressStreamStatusMsgs()){
             fnGenMessage("Streaming Connection Started and Open!", `badge bg-success`, "spnGenMsg");
         }
         // console.log("WS is Open!");
     }
     obj_WS_DFL.onerror = function (){
+        fnMarkAppDisconnected("WebSocket error");
         setTimeout(fnSubscribeDFL, 3000);
     }
     obj_WS_DFL.onclose = function (){
+        fnMarkAppDisconnected("WebSocket closed");
         if(gForceCloseDFL){
             gForceCloseDFL = false;
             // console.log("WS Disconnected & Closed!!!!!!");

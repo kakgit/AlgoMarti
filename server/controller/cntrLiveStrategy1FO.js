@@ -397,6 +397,27 @@ exports.fnAbortPendingFutOrders = async (req, res) => {
     res.send({ "status": "success", "message": "Abort signal sent to pending futures loops.", "data": { aborted: vAborted } });
 }
 
+exports.fnSendTelegramAlertMsg = async (req, res) => {
+    try{
+        const objTgCfg = fnGetTelegramConfigFromReq(req);
+        const vMsg = String(req.body.Message || "").trim();
+        if(!vMsg){
+            res.send({ "status": "warning", "message": "Message is required.", "data": "" });
+            return;
+        }
+
+        const bSent = await fnSendTelegramAlert(vMsg, objTgCfg);
+        if(bSent){
+            res.send({ "status": "success", "message": "Telegram alert sent.", "data": "" });
+            return;
+        }
+        res.send({ "status": "warning", "message": "Telegram not configured (token/chat id missing).", "data": "" });
+    }
+    catch(error){
+        res.send({ "status": "danger", "message": error.message || "Error sending Telegram alert.", "data": error });
+    }
+}
+
 exports.fnCloseLeg = async (req, res) => {
     let vApiKey = req.body.ApiKey;
     let vApiSecret = req.body.ApiSecret;
@@ -1235,19 +1256,21 @@ const fnSendTelegramAlert = async (pText, pCfg) => {
         const vBotToken = (pCfg?.botToken || gTelegramBotToken || "").trim();
         const vChatId = (pCfg?.chatId || gTelegramChatId || "").trim();
         if(!vBotToken || !vChatId){
-            return;
+            return false;
         }
         const vText = String(pText || "").trim();
         if(!vText){
-            return;
+            return false;
         }
         await axios.post(`https://api.telegram.org/bot${vBotToken}/sendMessage`, {
             chat_id: vChatId,
             text: vText
         }, { timeout: 5000 });
+        return true;
     }
     catch(objErr){
         // silent: alerts must not block trade execution path
+        return false;
     }
 }
 

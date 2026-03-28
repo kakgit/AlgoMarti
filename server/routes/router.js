@@ -236,6 +236,7 @@ route.post("/liveStrategy1fo/execOption", liveStrategy1FOCtrler.fnExecOptionByOp
 route.post("/liveStrategy1fo/execOptionLeg", liveStrategy1FOCtrler.fnExecOptByOTypExpTType);
 route.post("/liveStrategy1fo/execFutureLeg", liveStrategy1FOCtrler.fnExecFutByTType);
 route.post("/liveStrategy1fo/abortPendingFutOrders", liveStrategy1FOCtrler.fnAbortPendingFutOrders);
+route.post("/liveStrategy1fo/sendTelegramAlert", liveStrategy1FOCtrler.fnSendTelegramAlertMsg);
 route.post("/liveStrategy1fo/closeLeg", liveStrategy1FOCtrler.fnCloseLeg);
 route.post("/liveStrategy1fo/getLiveOpenPositions", liveStrategy1FOCtrler.fnGetLiveOpenPositions);
 route.post("/liveStrategy1fo/getBestRatesBySymb", liveStrategy1FOCtrler.fnGetBestRatesBySymbol);
