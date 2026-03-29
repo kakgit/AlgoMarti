@@ -55,6 +55,7 @@ let gVegaAdjBusy = false;
 let gVegaAdjLastActionTs = 0;
 let gVegaAdjHourBucket = "";
 let gVegaAdjHourCount = 0;
+let gGammaTrimLastTs = 0;
 let gVegaCalStrat = {
     active: false,
     optionType: "P",
@@ -2776,70 +2777,105 @@ async function fnRunVegaCalendarRebalance(){
         return;
     }
 
-    let objTol = fnGetAutoVegaTolerances();
-    let vTolLower = objTol.lower;
-    let vTolUpper = objTol.upper;
-    let vNetVega = fnComputeNetVega();
-    if(vNetVega > -vTolLower && vNetVega < vTolUpper){
-        return;
-    }
-
     let vNow = Date.now();
     const vCooldownMs = 5000;
     if(gVegaAdjBusy || (vNow - gVegaAdjLastActionTs) < vCooldownMs){
         return;
     }
 
+    let objTol = fnGetAutoVegaTolerances();
+    let vTolLower = objTol.lower;
+    let vTolUpper = objTol.upper;
+    let vNetVega = fnComputeNetVega();
+
     let vShortUnitAbs = Math.abs(fnParseNum(gVegaCalStrat.shortUnitVega));
     if(!(vShortUnitAbs > 0)){
         return;
     }
 
-    let vNeedQty = Math.max(1, Math.ceil(Math.abs(vNetVega) / vShortUnitAbs));
-    let vSide = (vNetVega > 0) ? "sell" : "buy";
-    if(vSide === "sell"){
-        let vGammaBufPct = fnGetEntryGammaBufferPct();
-        let vGammaBufMult = 1 + (vGammaBufPct / 100);
-        let vLongGammaBudget = 0;
-        let vShortGammaUsed = 0;
-        let vShortGammaUnitAbs = 0;
+    let vGammaBufPct = fnGetEntryGammaBufferPct();
+    let vGammaBufMult = 1 + (vGammaBufPct / 100);
+    let vLongGammaBudget = 0;
+    let vShortGammaUsed = 0;
+    let vShortGammaUnitAbs = 0;
+    let vShortQtyAvail = 0;
 
+    for(let i=0; i<gCurrPosDSS3FO.TradeData.length; i++){
+        let objLeg = gCurrPosDSS3FO.TradeData[i];
+        if(objLeg.Status !== "OPEN" || objLeg.OptionType === "F"){
+            continue;
+        }
+        let vLegQty = Math.max(0, fnParseNum(objLeg.LotQty));
+        let vLegGammaUnit = Math.abs(fnParseNum(objLeg.GammaC || objLeg.Gamma));
+        if(!(vLegQty > 0) || !(vLegGammaUnit > 0)){
+            continue;
+        }
+
+        if(objLeg.TransType === "buy"){
+            vLongGammaBudget += (vLegGammaUnit * vLegQty);
+        }
+        else if(objLeg.TransType === "sell"){
+            vShortGammaUsed += (vLegGammaUnit * vLegQty);
+            if((objLeg.OptionType === gVegaCalStrat.optionType) && (objLeg.StrategyRole === "SHORT_TERM")){
+                vShortQtyAvail += vLegQty;
+                if(!(vShortGammaUnitAbs > 0)){
+                    vShortGammaUnitAbs = vLegGammaUnit;
+                }
+            }
+        }
+    }
+
+    if(!(vShortGammaUnitAbs > 0)){
         for(let i=0; i<gCurrPosDSS3FO.TradeData.length; i++){
             let objLeg = gCurrPosDSS3FO.TradeData[i];
-            if(objLeg.Status !== "OPEN" || objLeg.OptionType === "F"){
+            if(objLeg.Status !== "OPEN" || objLeg.OptionType !== gVegaCalStrat.optionType || objLeg.TransType !== "sell"){
                 continue;
             }
-            let vLegQty = Math.max(0, fnParseNum(objLeg.LotQty));
             let vLegGammaUnit = Math.abs(fnParseNum(objLeg.GammaC || objLeg.Gamma));
-            if(!(vLegQty > 0) || !(vLegGammaUnit > 0)){
-                continue;
-            }
-
-            if(objLeg.TransType === "buy"){
-                vLongGammaBudget += (vLegGammaUnit * vLegQty);
-            }
-            else if(objLeg.TransType === "sell"){
-                vShortGammaUsed += (vLegGammaUnit * vLegQty);
-                if((objLeg.OptionType === gVegaCalStrat.optionType) && (objLeg.StrategyRole === "SHORT_TERM") && !(vShortGammaUnitAbs > 0)){
-                    vShortGammaUnitAbs = vLegGammaUnit;
-                }
+            if(vLegGammaUnit > 0){
+                vShortGammaUnitAbs = vLegGammaUnit;
+                break;
             }
         }
+    }
 
-        if(!(vShortGammaUnitAbs > 0)){
-            for(let i=0; i<gCurrPosDSS3FO.TradeData.length; i++){
-                let objLeg = gCurrPosDSS3FO.TradeData[i];
-                if(objLeg.Status !== "OPEN" || objLeg.OptionType !== gVegaCalStrat.optionType || objLeg.TransType !== "sell"){
-                    continue;
+    if(vLongGammaBudget > 0 && vShortGammaUnitAbs > 0){
+        let vMaxShortGamma = vLongGammaBudget * vGammaBufMult;
+        let vGammaExcess = vShortGammaUsed - vMaxShortGamma;
+        if(vGammaExcess > 0){
+            let vTrimQty = Math.ceil(vGammaExcess / vShortGammaUnitAbs);
+            const vMaxTrimPerCycle = 10;
+            vTrimQty = Math.min(vTrimQty, vMaxTrimPerCycle);
+            vTrimQty = Math.max(1, Math.min(vTrimQty, Math.floor(vShortQtyAvail)));
+            if(vTrimQty > 0){
+                gVegaAdjBusy = true;
+                try{
+                    let vClosedQty = await fnGammaTrimCloseShortQty(vTrimQty);
+                    if(vClosedQty > 0){
+                        gGammaTrimLastTs = Date.now();
+                        gVegaAdjLastActionTs = Date.now();
+                        fnGenMessage(`Gamma trim executed: closed SELL qty ${vClosedQty} (Buf ${vGammaBufPct}%).`, "badge bg-info", "spnGenMsg");
+                    }
                 }
-                let vLegGammaUnit = Math.abs(fnParseNum(objLeg.GammaC || objLeg.Gamma));
-                if(vLegGammaUnit > 0){
-                    vShortGammaUnitAbs = vLegGammaUnit;
-                    break;
+                finally{
+                    gVegaAdjBusy = false;
                 }
+                return;
             }
         }
+    }
 
+    if(vNetVega > -vTolLower && vNetVega < vTolUpper){
+        return;
+    }
+
+    let vNeedQty = Math.max(1, Math.ceil(Math.abs(vNetVega) / vShortUnitAbs));
+    let vSide = (vNetVega > 0) ? "sell" : "buy";
+    const vPostTrimSellCooldownMs = 30000;
+    if(vSide === "sell" && (Date.now() - gGammaTrimLastTs) < vPostTrimSellCooldownMs){
+        return;
+    }
+    if(vSide === "sell"){
         if(vLongGammaBudget > 0 && vShortGammaUnitAbs > 0){
             let vMaxShortGamma = vLongGammaBudget * vGammaBufMult;
             let vGammaRemain = vMaxShortGamma - vShortGammaUsed;
@@ -2873,6 +2909,112 @@ async function fnRunVegaCalendarRebalance(){
     finally{
         gVegaAdjBusy = false;
     }
+}
+
+async function fnGammaTrimCloseShortQty(pTargetQty){
+    let vRemain = Math.max(0, Math.floor(fnParseNum(pTargetQty)));
+    let vClosed = 0;
+    if(vRemain <= 0){
+        return 0;
+    }
+
+    while(vRemain > 0){
+        let objCandidates = [];
+        for(let i=0; i<gCurrPosDSS3FO.TradeData.length; i++){
+            let objLeg = gCurrPosDSS3FO.TradeData[i];
+            if(objLeg.Status !== "OPEN"){
+                continue;
+            }
+            if(objLeg.OptionType !== gVegaCalStrat.optionType || objLeg.TransType !== "sell"){
+                continue;
+            }
+            if((objLeg.StrategyRole || "") !== "SHORT_TERM"){
+                continue;
+            }
+            if(String(objLeg.Expiry || "") !== String(gVegaCalStrat.shortExpiry || "")){
+                continue;
+            }
+            let vLegQty = Math.max(0, Math.floor(fnParseNum(objLeg.LotQty)));
+            if(vLegQty > 0){
+                objCandidates.push({
+                    tradeId: objLeg.TradeID,
+                    symbol: objLeg.Symbol,
+                    optionType: objLeg.OptionType,
+                    transType: objLeg.TransType,
+                    qty: vLegQty
+                });
+            }
+        }
+
+        if(objCandidates.length === 0){
+            break;
+        }
+
+        // Prefer nearest qty <= remain; fallback to smallest overshoot.
+        let objPick = null;
+        let vBestFit = -1;
+        for(let i=0; i<objCandidates.length; i++){
+            let q = objCandidates[i].qty;
+            if(q <= vRemain && q > vBestFit){
+                vBestFit = q;
+                objPick = objCandidates[i];
+            }
+        }
+        if(!objPick){
+            objCandidates.sort((a, b) => a.qty - b.qty);
+            objPick = objCandidates[0];
+        }
+
+        let vCloseQty = Math.min(vRemain, objPick.qty);
+        if(vCloseQty <= 0){
+            break;
+        }
+
+        let vTradeIdToClose = objPick.tradeId;
+        if(vCloseQty < objPick.qty){
+            vTradeIdToClose = fnSplitLegForPartialClose(objPick.tradeId, vCloseQty);
+            if(!vTradeIdToClose){
+                break;
+            }
+        }
+
+        await fnCloseOptPosition(vTradeIdToClose, objPick.transType, objPick.optionType, objPick.symbol, "CLOSED");
+        vClosed += vCloseQty;
+        vRemain -= vCloseQty;
+    }
+
+    return vClosed;
+}
+
+function fnSplitLegForPartialClose(pTradeId, pCloseQty){
+    let vCloseQty = Math.max(0, Math.floor(fnParseNum(pCloseQty)));
+    if(vCloseQty <= 0){
+        return 0;
+    }
+
+    for(let i=0; i<gCurrPosDSS3FO.TradeData.length; i++){
+        let objLeg = gCurrPosDSS3FO.TradeData[i];
+        if(!objLeg || objLeg.TradeID !== pTradeId || objLeg.Status !== "OPEN"){
+            continue;
+        }
+        let vOrigQty = Math.max(0, Math.floor(fnParseNum(objLeg.LotQty)));
+        if(vOrigQty <= vCloseQty){
+            return pTradeId;
+        }
+
+        let vSplitTradeId = Date.now() + Math.floor(Math.random() * 1000);
+        let objSplitLeg = { ...objLeg };
+        objSplitLeg.TradeID = vSplitTradeId;
+        objSplitLeg.LotQty = vCloseQty;
+        objSplitLeg.OpenDTVal = Date.now();
+        objSplitLeg.Status = "OPEN";
+
+        objLeg.LotQty = vOrigQty - vCloseQty;
+        gCurrPosDSS3FO.TradeData.push(objSplitLeg);
+        localStorage.setItem("CurrPosDSS3FO", JSON.stringify(gCurrPosDSS3FO));
+        return vSplitTradeId;
+    }
+    return 0;
 }
 
 async function fnRunVegaStrategyRiskChecks(pNetPnl){
