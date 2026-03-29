@@ -24,6 +24,7 @@ const deltaFundingLiveCtrler = require("../controller/controllerDeltaFundingLive
 const deltaSStraddleLiveCtrler = require("../controller/cntrDeltaSStraddleL.js");
 const strategy1FOCtrler = require("../controller/cntrStrategy1FO.js");
 const strategy2FOCtrler = require("../controller/cntrStrategy2FO.js");
+const strategy3FOCtrler = require("../controller/cntrStrategy3FO.js");
 const liveStrategy1FOCtrler = require("../controller/cntrLiveStrategy1FO.js");
 const deltaSStrangleLiveCtrler = require("../controller/cntrDeltaSStrangleL.js");
 const ctrlCryptoFunding = require("../controller/controllerCryptoFunding.js");
@@ -76,6 +77,7 @@ route.get("/deltaSStraddleLive", deltaSStraddleLiveCtrler.defaultRoute);
 //Strategy1FO Route
 route.get("/Strategy1FO", strategy1FOCtrler.defaultRoute);
 route.get("/Strategy2FO", strategy2FOCtrler.defaultRoute);
+route.get("/Strategy3FO", strategy3FOCtrler.defaultRoute);
 route.get("/LiveStrategy1FO", liveStrategy1FOCtrler.defaultRoute);
 
 //Delta Short Strangle Live Route
@@ -230,6 +232,17 @@ route.post("/strategy2fo/execOption", strategy2FOCtrler.fnExecOptionByOptTypeExp
 route.post("/strategy2fo/execOptionLeg", strategy2FOCtrler.fnExecOptByOTypExpTType);
 route.post("/strategy2fo/execFutureLeg", strategy2FOCtrler.fnExecFutByTType);
 route.post("/strategy2fo/getBestRatesBySymb", strategy2FOCtrler.fnGetBestRatesBySymbol);
+route.post("/strategy3fo/validateLogin", strategy3FOCtrler.fnValidateUserLogin);
+route.post("/strategy3fo/getOptChnSDKByAstOptTypExp", strategy3FOCtrler.fnGetOptChnSDKByAstOptTypExp);
+route.post("/strategy3fo/execOption", strategy3FOCtrler.fnExecOptionByOptTypeExpTransType);
+route.post("/strategy3fo/execOptionLeg", strategy3FOCtrler.fnExecOptByOTypExpTType);
+route.post("/strategy3fo/execFutureLeg", strategy3FOCtrler.fnExecFutByTType);
+route.post("/strategy3fo/abortPendingFutOrders", strategy3FOCtrler.fnAbortPendingFutOrders);
+route.post("/strategy3fo/sendTelegramAlert", strategy3FOCtrler.fnSendTelegramAlertMsg);
+route.post("/strategy3fo/closeLeg", strategy3FOCtrler.fnCloseLeg);
+route.post("/strategy3fo/getLiveOpenPositions", strategy3FOCtrler.fnGetLiveOpenPositions);
+route.post("/strategy3fo/getBestRatesBySymb", strategy3FOCtrler.fnGetBestRatesBySymbol);
+route.post("/strategy3fo/getFilledOrderHistory", strategy3FOCtrler.fnGetFilledOrderHistory);
 route.post("/liveStrategy1fo/validateLogin", liveStrategy1FOCtrler.fnValidateUserLogin);
 route.post("/liveStrategy1fo/getOptChnSDKByAstOptTypExp", liveStrategy1FOCtrler.fnGetOptChnSDKByAstOptTypExp);
 route.post("/liveStrategy1fo/execOption", liveStrategy1FOCtrler.fnExecOptionByOptTypeExpTransType);
