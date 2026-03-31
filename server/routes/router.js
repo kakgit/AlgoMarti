@@ -29,6 +29,7 @@ const liveStrategy1FOCtrler = require("../controller/cntrLiveStrategy1FO.js");
 const deltaSStrangleLiveCtrler = require("../controller/cntrDeltaSStrangleL.js");
 const ctrlCryptoFunding = require("../controller/controllerCryptoFunding.js");
 const ctrlCryptoFundingV2 = require("../controller/controllerCryptoFundingV2.js");
+const renkoDualBacktestCtrler = require("../controller/controllerRenkoDualBacktest.js");
 
 //home Routes
 route.get("/", homeServices.defaultRoute);
@@ -61,6 +62,7 @@ route.get("/deltaLive", deltaLiveController.defaultRoute);
 route.get("/deltaFutures-Demo", deltaFutDemoController.defaultRoute);
 route.get("/DeltaFutScprDemo", deltaFutScprDemoController.defaultRoute);
 route.get("/DeltaFutScprLive", deltaFutScprLiveController.defaultRoute);
+route.get("/RenkoDualBacktest", renkoDualBacktestCtrler.defaultRoute);
 
 //Delta Futures Live Route
 route.get("/deltaFutures-Live", deltaFutScprLiveController.defaultRoute);
@@ -293,6 +295,7 @@ route.post("/deltaFutScprDemo/validateLogin", deltaFutScprDemoController.fnValid
 route.post("/deltaFutScprDemo/getHistOHLC", deltaFutScprDemoController.fnHistoricalOHLCAPI);
 route.post("/deltaFutScprDemo/getCurrBSRates", deltaFutScprDemoController.fnGetCurrBuySellRates);
 route.post("/deltaFutScprDemo/placeLimitOrder", deltaFutScprDemoController.fnPlaceLimitOrderSDK);
+route.post("/renkoDualBacktest/run", renkoDualBacktestCtrler.fnRunBacktest);
 
 //Delta Options Routes
 route.post("/deltaExcOpt/getOptionChainSDK", deltaOptDemoController.fnGetOptionChainSDK);

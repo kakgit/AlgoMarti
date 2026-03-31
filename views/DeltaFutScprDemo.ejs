@@ -54,6 +54,31 @@
         .dfs-phase3 .ws-dot {
             font-weight: 700;
         }
+
+        .dfs-phase3 .renko-feed-log {
+            min-height: 220px;
+            max-height: 280px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: rgba(0, 0, 0, 0.15);
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 0.85rem;
+            line-height: 1.35;
+        }
+
+        .dfs-phase3 .renko-feed-item {
+            padding: 0.15rem 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dfs-phase3 .renko-feed-item:last-child {
+            border-bottom: 0;
+        }
     </style>
     <div class="dfs-phase3">
     <div class="page-heading">
@@ -107,6 +132,11 @@
                                     </form>
                                     <span class="text-muted">Start Qty</span>
                                     <input type="number" class="form-control start-qty-input" min="1" step="1" value="1" id="txtStartQty" onchange="fnChangeStartQty(this);" />
+                                    <div class="form-check form-switch mb-0 ms-2">
+                                        <input class="form-check-input" type="checkbox" id="swtRenkoFeed" onchange="fnToggleRenkoFeedSwitch();" />
+                                        <label class="form-check-label" for="swtRenkoFeed" style="cursor:pointer;">Delta Renko Feed</label>
+                                    </div>
+                                    <span id="spnRenkoFeedStatus" class="badge bg-secondary">OFF</span>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-5">
@@ -181,10 +211,10 @@
                                     <div class="col-2">Best Selling Price</div>
                                     <div class="col-2"></div>
                                     <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtLossRecvPerct" value="50" onchange="fnUpdateLossRecPrct(this);" />
+                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtLossRecvPerct" value="100" onchange="fnUpdateLossRecPrct(this);" />
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtMultiplierX" value="2.0" onchange="fnUpdateMultiplierX(this);" />
+                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtMultiplierX" value="1.0" onchange="fnUpdateMultiplierX(this);" />
                                     </div>
                                     <div class="col-2">
                                         <input type="number" class="form-control" placeholder="Best Buy Price" id="txtBestBuyPrice" />
@@ -258,10 +288,10 @@
                 <div class="card" id="cardOpenPosition">
                     <div class="card-header">
                         <div class="row align-items-center row-tight">
-                            <div class="col-12 col-lg-3">
+                            <div class="col-12 col-lg-2">
                                 <h4>Open Position(s)</h4>
                             </div>
-                            <div class="col-12 col-lg-3">
+                            <div class="col-12 col-lg-2">
                                 <div class="form-check form-switch fs-6" style="white-space: nowrap;">
                                     <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtTradeCounter" name="swtAutoChkPosition" onchange="fnUpdateTrdSwtCounter();" />
                                     <label id="divTimer" for="swtAutoChkPosition" style="cursor:pointer;text-wrap:nowrap;">Trade closes in <span id="time"></span> minutes!</label>
@@ -269,8 +299,14 @@
                             </div>
                             <div class="col-12 col-lg-2">
                                 <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                    <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtMartingale" name="swtMartingale" onchange="fnChangeMartingale();" />
+                                    <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtMartingale" name="swtMartingale" onchange="fnChangeTradeMode('step');" />
                                     <label for="swtMartingale" style="cursor:pointer;text-wrap:nowrap;">Step</label>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-2">
+                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                                    <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtMarti" name="swtMarti" onchange="fnChangeTradeMode('marti');" />
+                                    <label for="swtMarti" style="cursor:pointer;text-wrap:nowrap;">Marti</label>
                                 </div>
                             </div>
                             <div class="col-6 col-lg-1 text-lg-end">
@@ -325,9 +361,10 @@
                             <div class="row row-tight align-items-center">
                                 <div class="col-5"></div>
                                 <div class="col-1">SL Points</div>
+                                <div class="col-1">T-SL Points</div>
                                 <div class="col-1">TP Points</div>
                                 <div class="col-1">TP Amount</div>
-                                <div class="col-4"></div>
+                                <div class="col-3"></div>
                                 <div class="col-1">
                                     <input type="number" class="form-control" placeholder="Trade Exit Max Time" id="txtTrdExitTime" value="30" />
                                 </div>
@@ -343,12 +380,15 @@
                                     <input type="number" class="form-control" placeholder="SL Points" id="txtPointsSL" />
                                 </div>
                                 <div class="col-1">
+                                    <input type="number" class="form-control" placeholder="T-SL Points" id="txtPointsTSL" value="0" />
+                                </div>
+                                <div class="col-1">
                                     <input type="number" class="form-control" placeholder="TP1 Points" id="txtPointsTP1" />
                                 </div>
                                 <div class="col-1">
                                     <input type="number" class="form-control" placeholder="TP Amount" id="txtPointsTP" />
                                 </div>
-                                <div class="col-4">
+                                <div class="col-3">
                                     <div class="d-grid gap-1">
                                         <button class="btn btn-outline-warning" onclick="fnUpdateSlTp();"><b>UPDATE</b></button>
                                     </div>
@@ -435,6 +475,38 @@
                                     </table>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="cardDeltaRenkoFeed">
+                    <div class="card-header">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <h5 class="mb-0 me-2">Delta Renko-style Feed</h5>
+
+                            <label for="txtRenkoFeedPts" class="mb-0 small text-muted">Point</label>
+                            <input type="number" class="form-control form-control-sm" id="txtRenkoFeedPts" value="100" min="1" onchange="fnUpdateRenkoFeedStep(this);" style="width: 90px;" />
+
+                            <label for="ddlRenkoFeedPriceSrc" class="mb-0 small text-muted">Source</label>
+                            <select id="ddlRenkoFeedPriceSrc" class="form-select form-select-sm" onchange="fnUpdateRenkoFeedPriceSource(this);" style="width: 130px;">
+                                <option value="mark_price" selected>Mark Price</option>
+                                <option value="spot_price">Spot Price</option>
+                                <option value="best_bid">Best Bid</option>
+                                <option value="best_ask">Best Ask</option>
+                            </select>
+
+                            <label for="txtRenkoBuyPatterns" class="mb-0 small text-muted">Buy</label>
+                            <input type="text" id="txtRenkoBuyPatterns" class="form-control form-control-sm" placeholder="GGR,GRRG" onchange="fnUpdateRenkoPatterns(this, 'buy');" style="width: 190px;" />
+
+                            <label for="txtRenkoSellPatterns" class="mb-0 small text-muted">Sell</label>
+                            <input type="text" id="txtRenkoSellPatterns" class="form-control form-control-sm" placeholder="RRGRR,RGRR" onchange="fnUpdateRenkoPatterns(this, 'sell');" style="width: 190px;" />
+
+                            <span class="small text-muted ms-2" id="spnRenkoFeedMeta">Symbol: -</span>
+                            <button class="btn btn-outline-secondary btn-sm ms-auto" type="button" onclick="fnClearRenkoFeedLog();">Clear</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="divRenkoFeedMsgs" class="renko-feed-log">
+                            <div class="renko-feed-item text-muted">Feed is idle. Turn on "Delta Renko Feed" switch in Manual Trader header.</div>
                         </div>
                     </div>
                 </div>

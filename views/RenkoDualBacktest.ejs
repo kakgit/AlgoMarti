@@ -1,0 +1,149 @@
+<div id="main" class="container-xxl">
+    <div class="page-heading">
+        <div class="row align-items-center g-2">
+            <div class="col-12 col-md-8">
+                <h3>Renko Dual Pattern Backtest</h3>
+            </div>
+            <div class="col-12 col-md-4 text-md-end">
+                <span id="spnRunStatus" class="badge bg-secondary">Idle</span>
+            </div>
+        </div>
+    </div>
+    <div class="page-content">
+        <section class="row g-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Inputs</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="frmRenkoDualBacktest">
+                            <div class="row g-2">
+                                <div class="col-6 col-lg-2">
+                                    <label for="txtSymbol" class="form-label">Symbol</label>
+                                    <input id="txtSymbol" name="symbol" class="form-control" value="BTCUSD" />
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <label for="txtResolution" class="form-label">Resolution</label>
+                                    <input id="txtResolution" name="resolution" class="form-control" value="1m" />
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <label for="ddlSource" class="form-label">Source</label>
+                                    <select id="ddlSource" name="source" class="form-select">
+                                        <option value="ohlc" selected>OHLC</option>
+                                        <option value="close">Close</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <label for="txtDays" class="form-label">Days</label>
+                                    <input id="txtDays" name="days" type="number" class="form-control" value="90" />
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <label for="txtChunkDays" class="form-label">Chunk Days</label>
+                                    <input id="txtChunkDays" name="chunkDays" type="number" class="form-control" value="1" />
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <label for="txtBox" class="form-label">Box</label>
+                                    <input id="txtBox" name="box" type="number" class="form-control" value="50" />
+                                </div>
+
+                                <div class="col-6 col-lg-2">
+                                    <label for="txtSL" class="form-label">SL</label>
+                                    <input id="txtSL" name="sl" type="number" class="form-control" value="150" />
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <label for="txtTP" class="form-label">TP</label>
+                                    <input id="txtTP" name="tp" type="number" class="form-control" value="200" />
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <label for="txtMaxHoldBoxes" class="form-label">Max Hold Boxes</label>
+                                    <input id="txtMaxHoldBoxes" name="maxHoldBoxes" type="number" class="form-control" value="60" />
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <label for="txtStreakGuardSL" class="form-label">Streak Guard SL</label>
+                                    <input id="txtStreakGuardSL" name="streakGuardSL" type="number" class="form-control" value="2" />
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <label for="txtCooldownBoxes" class="form-label">Cooldown Boxes</label>
+                                    <input id="txtCooldownBoxes" name="cooldownBoxes" type="number" class="form-control" value="10" />
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <label for="ddlMartingale" class="form-label">Martingale</label>
+                                    <select id="ddlMartingale" name="martingale" class="form-select">
+                                        <option value="false" selected>OFF</option>
+                                        <option value="true">ON</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-6 col-lg-2">
+                                    <label for="txtBaseQty" class="form-label">Base Qty</label>
+                                    <input id="txtBaseQty" name="baseQty" type="number" class="form-control" value="1" />
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <label for="txtMaxMultiplier" class="form-label">Max Multiplier</label>
+                                    <input id="txtMaxMultiplier" name="maxMultiplier" type="number" class="form-control" value="64" />
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <label for="txtFeePctPerSide" class="form-label">Fee % / Side</label>
+                                    <input id="txtFeePctPerSide" name="feePctPerSide" type="number" step="0.001" class="form-control" value="0" />
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <label for="txtSlipPtsPerSide" class="form-label">Slippage / Side</label>
+                                    <input id="txtSlipPtsPerSide" name="slippagePtsPerSide" type="number" step="0.01" class="form-control" value="0" />
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <label for="txtTimeoutMs" class="form-label">Timeout (ms)</label>
+                                    <input id="txtTimeoutMs" name="timeoutMs" type="number" class="form-control" value="300000" />
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <label class="form-label d-block">&nbsp;</label>
+                                    <button id="btnRunBacktest" type="submit" class="btn btn-primary w-100">Run Backtest</button>
+                                </div>
+
+                                <div class="col-12 col-lg-6">
+                                    <label for="txtLongPatterns" class="form-label">Long Patterns (CSV)</label>
+                                    <input id="txtLongPatterns" name="longPatterns" class="form-control" value="GGRGG" />
+                                </div>
+                                <div class="col-12 col-lg-6">
+                                    <label for="txtShortPatterns" class="form-label">Short Patterns (CSV)</label>
+                                    <input id="txtShortPatterns" name="shortPatterns" class="form-control" value="RRGRR" />
+                                </div>
+                                <div class="col-12 col-lg-6">
+                                    <label for="txtStartIso" class="form-label">Start ISO (optional)</label>
+                                    <input id="txtStartIso" name="startIso" class="form-control" placeholder="2026-01-01T00:00:00Z" />
+                                </div>
+                                <div class="col-12 col-lg-6">
+                                    <label for="txtEndIso" class="form-label">End ISO (optional)</label>
+                                    <input id="txtEndIso" name="endIso" class="form-control" placeholder="2026-03-31T00:00:00Z" />
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Result</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <strong>Run Message:</strong> <span id="spnRunMsg">-</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Duration:</strong> <span id="spnRunDuration">-</span>
+                            <span class="ms-3"><strong>Exit Code:</strong> <span id="spnExitCode">-</span></span>
+                        </div>
+                        <label for="txtStdOut" class="form-label">Output (stdout)</label>
+                        <textarea id="txtStdOut" class="form-control" rows="18" readonly></textarea>
+                        <label for="txtStdErr" class="form-label mt-2">Errors (stderr)</label>
+                        <textarea id="txtStdErr" class="form-control" rows="6" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script src="/js/RenkoDualBacktest.js"></script>
