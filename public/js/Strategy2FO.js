@@ -18,6 +18,8 @@ let gSymbThetaList = {};
 let gSymbVegaList = {};
 let gSpotPrice = 0;
 let gPL = 0;
+let gLossRecPerct = 100;
+let gMultiplierX = 1.0;
 let gPayoffGraphLastData = null;
 let gPayoffGraphRenderTs = 0;
 
@@ -31,11 +33,18 @@ let gReLeg = false;
 let gReLegCfgRow = 0;
 let gClsBuyLeg = false;
 let gSaveUpdBusy = false;
-let gDeltaNtrlBusy = false;
-let gDeltaNtrlLastActionTs = 0;
+let gRenkoFeedWS = null;
+let gRenkoFeedEnabled = false;
+let gRenkoFeedForceClose = false;
+let gRenkoFeedStepPts = 200;
+let gRenkoFeedPriceSource = "mark_price";
+let gRenkoFeedAnchor = null;
+let gRenkoFeedMaxRows = 300;
+let gRenkoPatternSeq = "";
+let gRenkoPatternMaxLen = 0;
 let gCurrStrats = { StratsData : [{StratID : 1, NewSellCE : true, NewSellPE : true, StartQty1 : 75, NewDelta1 : 0.25, ReDelta1 : 0.25, DeltaTP1 : 0.12, DeltaSL1 : 0.42, NewBuyCE : true, NewBuyPE : true, StartQty2 : 50, NewDelta2 : 0.12, ReDelta2 : 0.12, DeltaTP2 : 0.25, DeltaSL2 : 0.06, StartQty3 : 25, NewDelta3 : 0.06, ReDelta3 : 0.06, DeltaTP3 : 0.14, DeltaSL3 : 0.03, SellAction : "sell", SellLegSide : "both", BuyAction : "buy", BuyLegSide : "both", Action3 : "buy", LegSide3 : "both" }]};
-let gCurrFutStrats = { StratsData : [{StratID : 11, StartFutQty : 1, PointsSL : 100, PointsTP : 200 }]};
-let gOtherFlds = [{ SwtActiveMsgs : false, BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtBrokRec : false, BrokX4Profit : 2, ReLegBrok : false, ReLeg1 : true, ReLeg2 : true, ReLeg3 : false, SwtDeltaNtrl : true, DeltaMinusPM : 0.10, DeltaPlusPM : 0.10, DeltaAdjSide : "BOTH" }];
+let gCurrFutStrats = { StratsData : [{StratID : 11, StartFutQty : 1, PointsSL : 100, PointsTP : 200, PointsTSL : 0 }]};
+let gOtherFlds = [{ BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtBrokRec : false, BrokX4Profit : 2, LossRecPerct : 100, MultiplierX : 1.0, ReLegBrok : false, ReLeg1 : true, ReLeg2 : true, ReLeg3 : false }];
 
 window.addEventListener("DOMContentLoaded", function(){
     fnGetAllStatus();
@@ -53,7 +62,7 @@ window.addEventListener("DOMContentLoaded", function(){
     //     else{
     //         objTradeSideVal.value = -1;
     //     }
-    //     fnCallTradeSide();
+    //     fnTradeSideSync();
     // });
 
     socket.on("refreshAllDFL", () => {
@@ -62,33 +71,25 @@ window.addEventListener("DOMContentLoaded", function(){
 
     socket.on("tv-Msg-SSDemo-Open", (pMsg) => {
         let isLsAutoTrader = localStorage.getItem("isAutoTraderDSSDV2");
-        let vCallSide = localStorage.getItem("CallSideSwtDSSDV2");
-        let vPutSide = localStorage.getItem("PutSideSwtDSSDV2");
-        let objSwtActiveMsgs = document.getElementById("swtActiveMsgs");
+        let vTradeSide = localStorage.getItem("S2FO_RenkoSideSwt");
         let objMsg = (pMsg);
-
-        // fnChangeSymbol(objMsg.symbolName);
 
         if(isLsAutoTrader === "false"){
             fnGenMessage("Trade Order Received, But Auto Trader is OFF!", "badge bg-warning", "spnGenMsg");
         }
         else{
-            if((objSwtActiveMsgs.checked) && ((vCallSide === "false") && (objMsg.OptionType === "C") && (objMsg.TransType === "sell") || (vCallSide === "true") && (objMsg.OptionType === "C") && (objMsg.TransType === "buy") || (vPutSide === "false") && (objMsg.OptionType === "P") && (objMsg.TransType === "buy") || (vPutSide === "true") && (objMsg.OptionType === "P") && (objMsg.TransType === "sell"))){
-                fnPreInitAutoTrade(objMsg.OptionType, objMsg.TransType);
+            if(((vTradeSide === "true") && (objMsg.TransType === "buy")) || ((vTradeSide === "false") && (objMsg.TransType === "sell")) || (vTradeSide === "-1") || (vTradeSide === null)){
+                void fnPreInitAutoFutTrade("F", objMsg.TransType);
             }
             else{
-                fnGenMessage("Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
+                fnGenMessage(objMsg.TransType + " Trade Message Received, But Not Executed!", "badge bg-warning", "spnGenMsg");
             }
         }
     });
 
     socket.on("tv-Msg-SSDemo-Close", (pMsg) => {
-        let objSwtActiveMsgs = document.getElementById("swtActiveMsgs");
         let objMsg = (pMsg);
-
-        if(objSwtActiveMsgs.checked){
-            fnPreInitTradeClose(objMsg.OptionType, objMsg.TransType);
-        }
+        fnPreInitTradeClose(objMsg.OptionType, objMsg.TransType);
     });
 });
 
@@ -97,6 +98,527 @@ window.addEventListener("resize", function(){
         fnDrawPayoffGraph(gPayoffGraphLastData);
     }
 });
+
+function fnParsePositiveNumber(pVal, pFallback = 0){
+    const vNum = Number(pVal);
+    return Number.isFinite(vNum) && vNum > 0 ? vNum : pFallback;
+}
+
+function fnShouldUseDeltaRenkoFeedForStrategy(){
+    return gRenkoFeedEnabled === true;
+}
+
+function fnGetRenkoFeedSymbol(){
+    const objSelSymb = document.getElementById("ddlSymbols");
+    const vSymb = String(objSelSymb?.value || "BTC").toUpperCase();
+    if(vSymb === "ETH"){
+        return "ETHUSD";
+    }
+    return "BTCUSD";
+}
+
+function fnSetRenkoFeedStatus(pTxt, pCls = "bg-secondary"){
+    const obj = document.getElementById("spnRenkoFeedStatus");
+    if(!obj){
+        return;
+    }
+    obj.className = `badge ${pCls}`;
+    obj.innerText = pTxt;
+}
+
+function fnSetRenkoFeedMeta(){
+    const objMeta = document.getElementById("spnRenkoFeedMeta");
+    if(!objMeta){
+        return;
+    }
+    const objBuyPatterns = fnGetConfiguredRenkoPatterns("buy");
+    const objSellPatterns = fnGetConfiguredRenkoPatterns("sell");
+    const vBuyPatts = objBuyPatterns.length > 0 ? objBuyPatterns.join(",") : "-";
+    const vSellPatts = objSellPatterns.length > 0 ? objSellPatterns.join(",") : "-";
+    objMeta.innerText = `Symbol: ${fnGetRenkoFeedSymbol()} | Step: ${gRenkoFeedStepPts} | Src: ${gRenkoFeedPriceSource} | B: ${vBuyPatts} | S: ${vSellPatts}`;
+}
+
+function fnAppendRenkoFeedMsg(pMsg){
+    const objWrap = document.getElementById("divRenkoFeedMsgs");
+    if(!objWrap){
+        return;
+    }
+    const vRow = document.createElement("div");
+    vRow.className = "renko-feed-item";
+    vRow.textContent = pMsg;
+    objWrap.insertBefore(vRow, objWrap.firstChild);
+    while(objWrap.children.length > gRenkoFeedMaxRows){
+        objWrap.removeChild(objWrap.lastChild);
+    }
+}
+
+function fnClearRenkoFeedLog(){
+    const objWrap = document.getElementById("divRenkoFeedMsgs");
+    if(!objWrap){
+        return;
+    }
+    objWrap.innerHTML = "";
+    fnAppendRenkoFeedMsg("Feed log cleared.");
+    const objMeta = document.getElementById("spnRenkoFeedMeta");
+    if(objMeta && objMeta.innerText){
+        fnAppendRenkoFeedMsg(objMeta.innerText);
+    }
+}
+
+function fnNormalizeRenkoPattern(pToken){
+    return String(pToken || "").toUpperCase().replace(/[^GR]/g, "");
+}
+
+function fnGetRenkoPatternStorageKey(pSide){
+    return pSide === "sell" ? "S2FO_RenkoSellPatterns" : "S2FO_RenkoBuyPatterns";
+}
+
+function fnGetConfiguredRenkoPatterns(pSide = "buy"){
+    const vRaw = String(localStorage.getItem(fnGetRenkoPatternStorageKey(pSide)) || "");
+    return vRaw
+        .split(",")
+        .map((pToken) => fnNormalizeRenkoPattern(pToken))
+        .filter((pToken) => pToken.length > 0);
+}
+
+function fnSetConfiguredRenkoPatterns(pSide, pPatterns){
+    const objUniq = [];
+    for(let i = 0; i < pPatterns.length; i += 1){
+        if(!objUniq.includes(pPatterns[i])){
+            objUniq.push(pPatterns[i]);
+        }
+    }
+    localStorage.setItem(fnGetRenkoPatternStorageKey(pSide), objUniq.join(","));
+    const objBuyPatterns = fnGetConfiguredRenkoPatterns("buy");
+    const objSellPatterns = fnGetConfiguredRenkoPatterns("sell");
+    gRenkoPatternMaxLen = [...objBuyPatterns, ...objSellPatterns].reduce((pMax, pVal) => Math.max(pMax, pVal.length), 0);
+    if(gRenkoPatternMaxLen <= 0){
+        gRenkoPatternSeq = "";
+    }
+    fnSetRenkoFeedMeta();
+}
+
+function fnUpdateRenkoPatterns(pThis, pSide = "buy"){
+    const vRaw = String(pThis?.value || "");
+    const objPatterns = vRaw
+        .split(",")
+        .map((pToken) => fnNormalizeRenkoPattern(pToken))
+        .filter((pToken) => pToken.length > 0);
+    fnSetConfiguredRenkoPatterns(pSide, objPatterns);
+    if(pThis){
+        pThis.value = localStorage.getItem(fnGetRenkoPatternStorageKey(pSide)) || "";
+    }
+    const vLbl = pSide === "sell" ? "SELL" : "BUY";
+    fnAppendRenkoFeedMsg(`${vLbl} patterns updated: ${localStorage.getItem(fnGetRenkoPatternStorageKey(pSide)) || "none"}`);
+}
+
+function fnLoadRenkoPatternSettings(){
+    const objBuyTxt = document.getElementById("txtRenkoBuyPatterns");
+    const objSellTxt = document.getElementById("txtRenkoSellPatterns");
+
+    if(!localStorage.getItem("S2FO_RenkoBuyPatterns")){
+        localStorage.setItem("S2FO_RenkoBuyPatterns", "RRG,GRG");
+    }
+    if(!localStorage.getItem("S2FO_RenkoSellPatterns")){
+        localStorage.setItem("S2FO_RenkoSellPatterns", "GGR,RGR");
+    }
+
+    fnSetConfiguredRenkoPatterns("buy", fnGetConfiguredRenkoPatterns("buy"));
+    fnSetConfiguredRenkoPatterns("sell", fnGetConfiguredRenkoPatterns("sell"));
+
+    if(objBuyTxt){
+        objBuyTxt.value = localStorage.getItem("S2FO_RenkoBuyPatterns") || "";
+    }
+    if(objSellTxt){
+        objSellTxt.value = localStorage.getItem("S2FO_RenkoSellPatterns") || "";
+    }
+}
+
+function fnUpdateRenkoFeedStep(pThis){
+    const vParsed = Math.floor(fnParsePositiveNumber(pThis?.value, 200));
+    gRenkoFeedStepPts = (Number.isFinite(vParsed) && vParsed > 0) ? vParsed : 200;
+    if(pThis){
+        pThis.value = gRenkoFeedStepPts;
+    }
+    localStorage.setItem("S2FO_RenkoFeedStepPts", String(gRenkoFeedStepPts));
+    gRenkoFeedAnchor = null;
+    fnSetRenkoFeedMeta();
+    fnAppendRenkoFeedMsg(`Step updated to ${gRenkoFeedStepPts} points.`);
+}
+
+function fnUpdateRenkoFeedPriceSource(pThis){
+    const vSel = String(pThis?.value || "mark_price");
+    const objAllowed = ["mark_price", "spot_price", "best_bid", "best_ask"];
+    gRenkoFeedPriceSource = objAllowed.includes(vSel) ? vSel : "mark_price";
+    localStorage.setItem("S2FO_RenkoFeedPriceSrc", gRenkoFeedPriceSource);
+    gRenkoFeedAnchor = null;
+    fnSetRenkoFeedMeta();
+    fnAppendRenkoFeedMsg(`Price source changed to ${gRenkoFeedPriceSource}. Anchor reset.`);
+}
+
+function fnGetTradeSideSwitch(){
+    const vTradeSide = String(localStorage.getItem("S2FO_RenkoSideSwt") || "-1");
+    if(vTradeSide === "true"){
+        return "buy";
+    }
+    if(vTradeSide === "false"){
+        return "sell";
+    }
+    return "both";
+}
+
+function fnTradeSide(){
+    let objTradeSideVal = document["frmSide"]?.["rdoTradeSide"];
+    if(!objTradeSideVal){
+        return;
+    }
+
+    localStorage.setItem("S2FO_RenkoSideSwt", objTradeSideVal.value);
+    fnApplySideSwitchToRow1Legs();
+}
+
+function fnTradeSideSync(){
+    fnTradeSide();
+}
+
+function fnLoadTradeSide(){
+    if(localStorage.getItem("S2FO_RenkoSideSwt") === null){
+        localStorage.setItem("S2FO_RenkoSideSwt", "-1");
+    }
+    let lsTradeSideSwitchS = localStorage.getItem("S2FO_RenkoSideSwt");
+    let objTradeSideVal = document["frmSide"]?.["rdoTradeSide"];
+    if(!objTradeSideVal){
+        return;
+    }
+
+    if(lsTradeSideSwitchS === "true"){
+        objTradeSideVal.value = true;
+    }
+    else if(lsTradeSideSwitchS === "false"){
+        objTradeSideVal.value = false;
+    }
+    else{
+        objTradeSideVal.value = -1;
+    }
+
+    fnApplySideSwitchToRow1Legs();
+}
+
+function fnApplySideSwitchToRow1Legs(pSkipUpdateCall = false){
+    let vTradeSide = String(localStorage.getItem("S2FO_RenkoSideSwt") || "-1");
+    let objAction1 = document.getElementById("ddlAction1");
+    let objLegSide1 = document.getElementById("ddlLegSide1");
+
+    if(!objLegSide1){
+        return;
+    }
+
+    let vAction = String(objAction1?.value || "sell").toLowerCase();
+    let vLegSide = "both";
+    if(vTradeSide !== "-1"){
+        if(vAction === "buy"){
+            if(vTradeSide === "false"){
+                vLegSide = "ce";
+            }
+            else if(vTradeSide === "true"){
+                vLegSide = "pe";
+            }
+        }
+        else{
+            if(vTradeSide === "false"){
+                vLegSide = "pe";
+            }
+            else if(vTradeSide === "true"){
+                vLegSide = "ce";
+            }
+        }
+    }
+
+    objLegSide1.value = vLegSide;
+    if(pSkipUpdateCall){
+        if(gCurrStrats && Array.isArray(gCurrStrats.StratsData) && gCurrStrats.StratsData[0]){
+            gCurrStrats.StratsData[0].SellAction = vAction;
+            gCurrStrats.StratsData[0].SellLegSide = vLegSide;
+            fnApplyLegacyFlagsFromSelector(gCurrStrats.StratsData[0]);
+            localStorage.setItem("StrategyDSSDV2", JSON.stringify(gCurrStrats));
+        }
+        return;
+    }
+    fnUpdateLegSelector("sell");
+}
+
+function fnMatchRenkoPatternsByColor(pColorCode){
+    const objBuyPatterns = fnGetConfiguredRenkoPatterns("buy");
+    const objSellPatterns = fnGetConfiguredRenkoPatterns("sell");
+    if(objBuyPatterns.length === 0 && objSellPatterns.length === 0){
+        return { buy: [], sell: [] };
+    }
+    gRenkoPatternSeq += pColorCode;
+    if(gRenkoPatternSeq.length > gRenkoPatternMaxLen){
+        gRenkoPatternSeq = gRenkoPatternSeq.slice(-gRenkoPatternMaxLen);
+    }
+    return {
+        buy: objBuyPatterns.filter((pPattern) => gRenkoPatternSeq.endsWith(pPattern)),
+        sell: objSellPatterns.filter((pPattern) => gRenkoPatternSeq.endsWith(pPattern))
+    };
+}
+
+async function fnHandleRenkoSignalExecution(pSide, pMatchTxt, pSource, pColorCode){
+    fnAppendRenkoFeedMsg(`[${pSource}] Pattern ${pMatchTxt} hit on ${pColorCode}. ${pSide.toUpperCase()} signal ready.`);
+    fnGenMessage(`Renko ${pSide.toUpperCase()} pattern matched (${pMatchTxt})`, "badge bg-info", "spnGenMsg");
+    await fnPreInitAutoFutTrade("F", pSide);
+}
+
+async function fnProcessRenkoSignal(pRenkoMsg, pSource = "delta"){
+    const vOpen = Number(pRenkoMsg?.Open);
+    const vClose = Number(pRenkoMsg?.Close);
+    if(!Number.isFinite(vOpen) || !Number.isFinite(vClose) || vOpen === vClose){
+        return;
+    }
+
+    const vColorCode = vClose > vOpen ? "G" : "R";
+    const objMatched = fnMatchRenkoPatternsByColor(vColorCode);
+    if(objMatched.buy.length === 0 && objMatched.sell.length === 0){
+        return;
+    }
+
+    const vOpenPosExists = Array.isArray(gCurrPosDSSDV2?.TradeData) && gCurrPosDSSDV2.TradeData.some(objLeg => objLeg?.Status === "OPEN");
+    if(vOpenPosExists){
+        const vAnyMatch = [...objMatched.buy, ...objMatched.sell].join("|");
+        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} matched ${vAnyMatch} but position is open.`);
+        return;
+    }
+
+    const vSideSwt = fnGetTradeSideSwitch();
+    let vSide = "";
+    if(vSideSwt === "buy"){
+        vSide = objMatched.buy.length > 0 ? "buy" : "";
+    }
+    else if(vSideSwt === "sell"){
+        vSide = objMatched.sell.length > 0 ? "sell" : "";
+    }
+    else{
+        if(objMatched.buy.length > 0 && objMatched.sell.length === 0){
+            vSide = "buy";
+        }
+        else if(objMatched.sell.length > 0 && objMatched.buy.length === 0){
+            vSide = "sell";
+        }
+        else if(objMatched.buy.length > 0 && objMatched.sell.length > 0){
+            vSide = vColorCode === "G" ? "buy" : "sell";
+        }
+    }
+    if(vSide === ""){
+        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} matched but filtered by trade-side switch.`);
+        return;
+    }
+
+    const objSideMatches = vSide === "buy" ? objMatched.buy : objMatched.sell;
+    const vMatchTxt = objSideMatches.join("|");
+    const vAuto = String(localStorage.getItem("isAutoTraderDSSDV2") || "false");
+    if(vAuto !== "true"){
+        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} matched ${vSide.toUpperCase()} ${vMatchTxt} but Auto Trader is OFF.`);
+        return;
+    }
+
+    await fnHandleRenkoSignalExecution(vSide, vMatchTxt, pSource, vColorCode);
+}
+
+function fnGetRenkoFeedTickerPrice(pTicData){
+    const vMark = Number(pTicData?.mark_price || 0);
+    const vSpot = Number(pTicData?.spot_price || pTicData?.index_price || 0);
+    const vBid = Number(pTicData?.quotes?.best_bid || pTicData?.best_bid || 0);
+    const vAsk = Number(pTicData?.quotes?.best_ask || pTicData?.best_ask || 0);
+
+    if(gRenkoFeedPriceSource === "spot_price"){
+        if(Number.isFinite(vSpot) && vSpot > 0){
+            return vSpot;
+        }
+        return vMark;
+    }
+    if(gRenkoFeedPriceSource === "best_bid"){
+        if(Number.isFinite(vBid) && vBid > 0){
+            return vBid;
+        }
+        return vMark;
+    }
+    if(gRenkoFeedPriceSource === "best_ask"){
+        if(Number.isFinite(vAsk) && vAsk > 0){
+            return vAsk;
+        }
+        return vMark;
+    }
+    return vMark;
+}
+
+function fnGetSyntheticRenkoOHLC(pOpen, pClose){
+    const vOpen = Number(pOpen);
+    const vClose = Number(pClose);
+    const vHigh = Math.max(vOpen, vClose);
+    const vLow = Math.min(vOpen, vClose);
+    return { Open: vOpen, High: vHigh, Low: vLow, Close: vClose };
+}
+
+async function fnHandleRenkoFeedTicker(pTicData){
+    const vMark = fnGetRenkoFeedTickerPrice(pTicData);
+    if(!Number.isFinite(vMark) || vMark <= 0){
+        return;
+    }
+    if(!Number.isFinite(gRenkoFeedAnchor)){
+        gRenkoFeedAnchor = Math.floor(vMark / gRenkoFeedStepPts) * gRenkoFeedStepPts;
+        fnAppendRenkoFeedMsg(`Anchor set @ ${gRenkoFeedAnchor.toFixed(2)} (${fnGetRenkoFeedSymbol()})`);
+        return;
+    }
+
+    let vGuard = 0;
+    while(Math.abs(vMark - gRenkoFeedAnchor) >= gRenkoFeedStepPts && vGuard < 25){
+        const vDir = vMark > gRenkoFeedAnchor ? 1 : -1;
+        const vOpen = gRenkoFeedAnchor;
+        const vClose = vOpen + (vDir * gRenkoFeedStepPts);
+        gRenkoFeedAnchor = vClose;
+        const objOHLC = fnGetSyntheticRenkoOHLC(vOpen, vClose);
+        const objRenkoMsg = {
+            Open: objOHLC.Open,
+            High: objOHLC.High,
+            Low: objOHLC.Low,
+            Close: objOHLC.Close
+        };
+        fnAppendRenkoFeedMsg(`[delta] O:${objOHLC.Open.toFixed(2)} H:${objOHLC.High.toFixed(2)} L:${objOHLC.Low.toFixed(2)} C:${objOHLC.Close.toFixed(2)}`);
+        if(fnShouldUseDeltaRenkoFeedForStrategy()){
+            await fnProcessRenkoSignal(objRenkoMsg, "delta");
+        }
+        vGuard += 1;
+    }
+}
+
+function fnStartRenkoFeedWS(){
+    if(!gRenkoFeedEnabled){
+        return;
+    }
+    if(gRenkoFeedWS !== null && (gRenkoFeedWS.readyState === WebSocket.OPEN || gRenkoFeedWS.readyState === WebSocket.CONNECTING)){
+        return;
+    }
+
+    gRenkoFeedForceClose = false;
+    const objRenkoWS = new WebSocket("wss://socket.india.delta.exchange");
+    gRenkoFeedWS = objRenkoWS;
+    objRenkoWS.onopen = function(){
+        if(gRenkoFeedWS !== objRenkoWS || objRenkoWS.readyState !== WebSocket.OPEN){
+            return;
+        }
+        const vSymbol = fnGetRenkoFeedSymbol();
+        const vSendData = { type: "subscribe", payload: { channels: [{ name: "v2/ticker", symbols: [vSymbol] }] } };
+        objRenkoWS.send(JSON.stringify(vSendData));
+        gRenkoFeedAnchor = null;
+        fnSetRenkoFeedStatus("ON", "bg-success");
+        fnSetRenkoFeedMeta();
+        fnAppendRenkoFeedMsg(`Feed started for ${vSymbol}. Waiting for ${gRenkoFeedStepPts}-point move...`);
+    };
+    objRenkoWS.onerror = function(){
+        if(gRenkoFeedWS !== objRenkoWS){
+            return;
+        }
+        fnSetRenkoFeedStatus("ERR", "bg-danger");
+    };
+    objRenkoWS.onmessage = function(pMsg){
+        if(gRenkoFeedWS !== objRenkoWS){
+            return;
+        }
+        let vData = null;
+        try{
+            vData = JSON.parse(pMsg.data);
+        }
+        catch(_err){
+            return;
+        }
+        if(vData?.type === "v2/ticker"){
+            void fnHandleRenkoFeedTicker(vData);
+        }
+    };
+    objRenkoWS.onclose = function(){
+        if(gRenkoFeedWS === objRenkoWS){
+            gRenkoFeedWS = null;
+        }
+        if(gRenkoFeedForceClose || !gRenkoFeedEnabled){
+            fnSetRenkoFeedStatus("OFF", "bg-secondary");
+            fnAppendRenkoFeedMsg("Feed stopped.");
+            return;
+        }
+        fnSetRenkoFeedStatus("RETRY", "bg-warning");
+        setTimeout(() => {
+            if(gRenkoFeedEnabled){
+                fnStartRenkoFeedWS();
+            }
+        }, 3000);
+    };
+}
+
+function fnStopRenkoFeedWS(){
+    gRenkoFeedForceClose = true;
+    if(gRenkoFeedWS !== null){
+        try{
+            gRenkoFeedWS.close();
+        }
+        catch(_err){}
+        gRenkoFeedWS = null;
+    }
+    fnSetRenkoFeedStatus("OFF", "bg-secondary");
+}
+
+function fnRestartRenkoFeedWS(){
+    if(!gRenkoFeedEnabled){
+        return;
+    }
+    fnStopRenkoFeedWS();
+    gRenkoFeedForceClose = false;
+    setTimeout(() => {
+        if(gRenkoFeedEnabled){
+            fnStartRenkoFeedWS();
+        }
+    }, 500);
+}
+
+function fnToggleRenkoFeedSwitch(){
+    const objSwt = document.getElementById("swtRenkoFeed");
+    gRenkoFeedEnabled = !!objSwt?.checked;
+    localStorage.setItem("S2FO_RenkoFeedEnabled", JSON.stringify(gRenkoFeedEnabled));
+    if(gRenkoFeedEnabled){
+        fnStartRenkoFeedWS();
+    }
+    else{
+        fnStopRenkoFeedWS();
+    }
+}
+
+function fnLoadRenkoFeedSettings(){
+    const objSwt = document.getElementById("swtRenkoFeed");
+    const objStep = document.getElementById("txtRenkoFeedPts");
+    const objSrc = document.getElementById("ddlRenkoFeedPriceSrc");
+    const vEnabled = JSON.parse(localStorage.getItem("S2FO_RenkoFeedEnabled") || "false");
+    const vStepLs = Math.floor(fnParsePositiveNumber(localStorage.getItem("S2FO_RenkoFeedStepPts"), 200));
+    const vSrcLs = String(localStorage.getItem("S2FO_RenkoFeedPriceSrc") || "mark_price");
+    const objAllowed = ["mark_price", "spot_price", "best_bid", "best_ask"];
+
+    gRenkoFeedStepPts = (Number.isFinite(vStepLs) && vStepLs > 0) ? vStepLs : 200;
+    gRenkoFeedPriceSource = objAllowed.includes(vSrcLs) ? vSrcLs : "mark_price";
+
+    if(objStep){
+        objStep.value = gRenkoFeedStepPts;
+    }
+    if(objSrc){
+        objSrc.value = gRenkoFeedPriceSource;
+    }
+    if(objSwt){
+        objSwt.checked = !!vEnabled;
+    }
+    gRenkoFeedEnabled = !!vEnabled;
+    fnLoadRenkoPatternSettings();
+    fnSetRenkoFeedMeta();
+    fnSetRenkoFeedStatus(gRenkoFeedEnabled ? "ON" : "OFF", gRenkoFeedEnabled ? "bg-success" : "bg-secondary");
+    if(gRenkoFeedEnabled){
+        fnStartRenkoFeedWS();
+    }
+}
 
 function fnFormatPayoffAxisVal(pVal){
     let vVal = Number(pVal || 0);
@@ -463,13 +985,17 @@ function fnGetAllStatus(){
         // fnLoadDefQty();
         fnLoadDefFutStrategy();
         fnLoadDefStrategy();
+        fnInitStartQty();
+        fnLoadTradeSide();
         fnLoadHiddenFlds();
+        fnLoadLossRecoveryMultiplier();
+        fnLoadMultiplierX();
         fnLoadOptStep();
+        fnSetQtyFieldsByQtyMulLossAmt();
         fnGetSetTraderLoginStatus();
 		fnGetSetAutoTraderStatus();
 
         fnLoadNetLimits();
-        fnLoadTradeSide();
         fnLoadDefSymbol();
         fnLoadDefExpiryMode();
 
@@ -484,6 +1010,7 @@ function fnGetAllStatus(){
 
         // fnLoadTotalLossAmtQty();
     }
+    fnLoadRenkoFeedSettings();
 }
 
 function fnLoadDefQty(){
@@ -513,28 +1040,32 @@ function fnLoadDefFutStrategy(){
     let objFutStrat = JSON.parse(localStorage.getItem("FutStratDSSDV2"));
 
     let objFutSL = document.getElementById("txtFutSL");
+    let objFutTSL = document.getElementById("txtFutTSL");
     let objFutTP = document.getElementById("txtFutTP");
     let objFutQty = document.getElementById("txtFutQty");
 
     if(objFutStrat === null || objFutStrat === ""){
         objFutStrat = gCurrFutStrats;
-
-        objFutSL.value = objFutStrat.StratsData[0]["PointsSL"];
-        objFutTP.value = objFutStrat.StratsData[0]["PointsTP"];
-        objFutQty.value = objFutStrat.StratsData[0]["StartFutQty"];
     }
     else{
         gCurrFutStrats = objFutStrat;
-
-        objFutSL.value = gCurrFutStrats.StratsData[0]["PointsSL"];
-        objFutTP.value = gCurrFutStrats.StratsData[0]["PointsTP"];
-        objFutQty.value = gCurrFutStrats.StratsData[0]["StartFutQty"];
     }
+
+    if(gCurrFutStrats?.StratsData?.[0]?.PointsTSL === undefined){
+        gCurrFutStrats.StratsData[0]["PointsTSL"] = 0;
+        localStorage.setItem("FutStratDSSDV2", JSON.stringify(gCurrFutStrats));
+    }
+
+    objFutSL.value = gCurrFutStrats.StratsData[0]["PointsSL"];
+    if(objFutTSL){
+        objFutTSL.value = gCurrFutStrats.StratsData[0]["PointsTSL"];
+    }
+    objFutTP.value = gCurrFutStrats.StratsData[0]["PointsTP"];
+    objFutQty.value = gCurrFutStrats.StratsData[0]["StartFutQty"];
 }
 
 function fnLoadHiddenFlds(){
     let objHidFlds = JSON.parse(localStorage.getItem("HidFldsDSSDV2"));
-    let objSwtActiveMsgs = document.getElementById("swtActiveMsgs");
     let objBrokAmt = document.getElementById("txtBrok2Rec");
     let objYet2Recvr = document.getElementById("txtYet2Recvr");
 
@@ -546,14 +1077,8 @@ function fnLoadHiddenFlds(){
     let objchkReLeg2 = document.getElementById("chkReLeg2");
     let objchkReLeg3 = document.getElementById("chkReLeg3");
 
-    let objChkDeltaNeutral = document.getElementById("swtDeltaNeutral");
-    let objMinusDeltaPM = document.getElementById("txtMinusDeltaPM");
-    let objPlusDeltaPM = document.getElementById("txtPlusDeltaPM");
-    let objDeltaAdjSide = document.getElementById("ddlDeltaAdjSide");
-
     if(objHidFlds === null || objHidFlds === ""){
         objHidFlds = gOtherFlds;
-        objSwtActiveMsgs.checked = objHidFlds[0]["SwtActiveMsgs"];
         objBrokAmt.value = objHidFlds[0]["BrokerageAmt"];
         objYet2Recvr.value = objHidFlds[0]["Yet2RecvrAmt"];
 
@@ -564,33 +1089,9 @@ function fnLoadHiddenFlds(){
         objchkReLeg1.checked = objHidFlds[0]["ReLeg1"]; 
         objchkReLeg2.checked = objHidFlds[0]["ReLeg2"]; 
         objchkReLeg3.checked = objHidFlds[0]["ReLeg3"] || false; 
-
-        objChkDeltaNeutral.checked = objHidFlds[0]["SwtDeltaNtrl"]; 
-        objMinusDeltaPM.value = objHidFlds[0]["DeltaMinusPM"]; 
-        objPlusDeltaPM.value = objHidFlds[0]["DeltaPlusPM"]; 
-        if(objDeltaAdjSide){
-            objDeltaAdjSide.value = objHidFlds[0]["DeltaAdjSide"] || "BOTH";
-        }
     }
     else{
         gOtherFlds = objHidFlds;
-        let bUpdatedDefaults = false;
-        if(!Number.isFinite(parseFloat(gOtherFlds[0]["DeltaMinusPM"]))){
-            gOtherFlds[0]["DeltaMinusPM"] = 0.10;
-            bUpdatedDefaults = true;
-        }
-        if(!Number.isFinite(parseFloat(gOtherFlds[0]["DeltaPlusPM"]))){
-            gOtherFlds[0]["DeltaPlusPM"] = 0.10;
-            bUpdatedDefaults = true;
-        }
-        if(!gOtherFlds[0]["DeltaAdjSide"]){
-            gOtherFlds[0]["DeltaAdjSide"] = "BOTH";
-            bUpdatedDefaults = true;
-        }
-        if(bUpdatedDefaults){
-            localStorage.setItem("HidFldsDSSDV2", JSON.stringify(gOtherFlds));
-        }
-        objSwtActiveMsgs.checked = gOtherFlds[0]["SwtActiveMsgs"];
         objBrokAmt.value = gOtherFlds[0]["BrokerageAmt"];
         objYet2Recvr.value = gOtherFlds[0]["Yet2RecvrAmt"];
 
@@ -601,13 +1102,6 @@ function fnLoadHiddenFlds(){
         objchkReLeg1.checked = gOtherFlds[0]["ReLeg1"]; 
         objchkReLeg2.checked = gOtherFlds[0]["ReLeg2"]; 
         objchkReLeg3.checked = gOtherFlds[0]["ReLeg3"] || false; 
-
-        objChkDeltaNeutral.checked = gOtherFlds[0]["SwtDeltaNtrl"]; 
-        objMinusDeltaPM.value = gOtherFlds[0]["DeltaMinusPM"]; 
-        objPlusDeltaPM.value = gOtherFlds[0]["DeltaPlusPM"]; 
-        if(objDeltaAdjSide){
-            objDeltaAdjSide.value = gOtherFlds[0]["DeltaAdjSide"] || "BOTH";
-        }
     }
 }
 
@@ -634,7 +1128,12 @@ function fnUpdFutStratSettings(pThisVal, pStratParam, pFieldMsg, pIfUpdFut, pOpt
         localStorage.setItem("FutStratDSSDV2", JSON.stringify(gCurrFutStrats));
 
         if(pIfUpdFut){
-            fnUpdCurrPosFutParams(pThisVal, pOptionType, pCurrPosParam);
+            if(pOptionType === "F"){
+                fnSyncOpenFutureRiskFromStrategy();
+            }
+            else if(pCurrPosParam){
+                fnUpdCurrPosFutParams(pThisVal, pOptionType, pCurrPosParam);
+            }
         }
         fnGenMessage("Value Changed Successfully for " + pFieldMsg, `badge bg-success`, "spnGenMsg");
     }
@@ -654,6 +1153,53 @@ function fnUpdCurrPosFutParams(pThisVal, pOptionType, pCurrPosParam){
     localStorage.setItem("CurrPosDSSDV2", objExcTradeDtls);
     fnLoadCurrentTradePos();
 
+    gUpdPos = true;
+}
+
+function fnSyncOpenFutureRiskFromStrategy(){
+    gUpdPos = false;
+
+    let vSLPts = fnParsePositiveNumber(gCurrFutStrats?.StratsData?.[0]?.PointsSL, 0);
+    let vTPPts = fnParsePositiveNumber(gCurrFutStrats?.StratsData?.[0]?.PointsTP, 0);
+    let vTSLPts = Number(gCurrFutStrats?.StratsData?.[0]?.PointsTSL ?? 0);
+    if(!Number.isFinite(vTSLPts) || vTSLPts < 0){
+        vTSLPts = 0;
+    }
+
+    for(let i=0; i<gCurrPosDSSDV2.TradeData.length; i++){
+        let objTrade = gCurrPosDSSDV2.TradeData[i];
+        if(objTrade.Status !== "OPEN" || objTrade.OptionType !== "F"){
+            continue;
+        }
+
+        objTrade.StopLossPts = vSLPts;
+        objTrade.TakeProfitPts = vTPPts;
+        objTrade.TrailSLPts = vTSLPts;
+        objTrade.TakeProfitAmt = 0;
+
+        let vRef = objTrade.TransType === "sell" ? Number(objTrade.SellPrice) : Number(objTrade.BuyPrice);
+        if(!Number.isFinite(vRef) || vRef <= 0){
+            vRef = objTrade.TransType === "sell" ? Number(objTrade.BuyPrice) : Number(objTrade.SellPrice);
+        }
+        if(!Number.isFinite(vRef) || vRef <= 0){
+            continue;
+        }
+
+        if(objTrade.TransType === "sell"){
+            objTrade.AmtSL = Number((vRef + vSLPts).toFixed(2));
+            objTrade.AmtTP1 = Number((vRef - vTPPts).toFixed(2));
+            objTrade.TrailNextTrigger = vTSLPts > 0 ? Number((Number(objTrade.BuyPrice) - vTSLPts).toFixed(2)) : null;
+        }
+        else{
+            objTrade.AmtSL = Number((vRef - vSLPts).toFixed(2));
+            objTrade.AmtTP1 = Number((vRef + vTPPts).toFixed(2));
+            objTrade.TrailNextTrigger = vTSLPts > 0 ? Number((Number(objTrade.SellPrice) + vTSLPts).toFixed(2)) : null;
+        }
+    }
+
+    localStorage.setItem("CurrPosDSSDV2", JSON.stringify(gCurrPosDSSDV2));
+    fnLoadCurrentTradePos();
+    fnUpdateOpenPositions();
     gUpdPos = true;
 }
 
@@ -695,6 +1241,7 @@ function fnUpdateLegSelector(pSection){
             objRow.SellAction = objAction.value;
             objRow.SellLegSide = objLegSide.value;
         }
+        fnApplySideSwitchToRow1Legs(true);
     }
     else if(pSection === "buy"){
         let objAction = document.getElementById("ddlAction2");
@@ -836,6 +1383,94 @@ function fnLoadDefStrategy(){
     localStorage.setItem("StrategyDSSDV2", JSON.stringify(objStrat));
 }
 
+function fnInitStartQty(){
+    let objStartQty = document.getElementById("txtStartQty");
+    if(!objStartQty){
+        return;
+    }
+
+    let vSavedQty = Number(localStorage.getItem("StartQtyNoDSSDV2"));
+    if(Number.isFinite(vSavedQty) && vSavedQty >= 1){
+        let vSafeSavedQty = Math.floor(vSavedQty);
+        objStartQty.value = vSafeSavedQty;
+        fnApplyStartQtyToAll(vSafeSavedQty);
+        return;
+    }
+
+    let vSeedQty = Number(document.getElementById("txtStartQty1")?.value);
+    if(!Number.isFinite(vSeedQty) || vSeedQty < 1){
+        vSeedQty = Number(document.getElementById("txtStartQty2")?.value);
+    }
+    if(!Number.isFinite(vSeedQty) || vSeedQty < 1){
+        vSeedQty = Number(document.getElementById("txtStartQty3")?.value);
+    }
+    if(!Number.isFinite(vSeedQty) || vSeedQty < 1){
+        vSeedQty = Number(document.getElementById("txtFutQty")?.value);
+    }
+    if(!Number.isFinite(vSeedQty) || vSeedQty < 1){
+        vSeedQty = 1;
+    }
+
+    let vSafeSeedQty = Math.floor(vSeedQty);
+    objStartQty.value = vSafeSeedQty;
+    localStorage.setItem("StartQtyNoDSSDV2", vSafeSeedQty);
+}
+
+function fnApplyStartQtyToAll(pQty){
+    let vSafeQty = Math.max(1, Math.floor(Number(pQty)));
+
+    let objFutQty = document.getElementById("txtFutQty");
+    let objStartQty1 = document.getElementById("txtStartQty1");
+    let objStartQty2 = document.getElementById("txtStartQty2");
+    let objStartQty3 = document.getElementById("txtStartQty3");
+
+    if(objFutQty){
+        objFutQty.value = vSafeQty;
+    }
+    if(objStartQty1){
+        objStartQty1.value = vSafeQty;
+    }
+    if(objStartQty2){
+        objStartQty2.value = vSafeQty;
+    }
+    if(objStartQty3){
+        objStartQty3.value = vSafeQty;
+    }
+
+    if(gCurrFutStrats?.StratsData?.[0]){
+        gCurrFutStrats.StratsData[0]["StartFutQty"] = vSafeQty;
+        localStorage.setItem("FutStratDSSDV2", JSON.stringify(gCurrFutStrats));
+    }
+
+    if(gCurrStrats?.StratsData?.[0]){
+        gCurrStrats.StratsData[0]["StartQty1"] = vSafeQty;
+        gCurrStrats.StratsData[0]["StartQty2"] = vSafeQty;
+        gCurrStrats.StratsData[0]["StartQty3"] = vSafeQty;
+        localStorage.setItem("StrategyDSSDV2", JSON.stringify(gCurrStrats));
+    }
+
+    localStorage.setItem("StartQtyBuyDSSDV2", vSafeQty);
+    localStorage.setItem("StartQtySellDSSDV2", vSafeQty);
+    localStorage.setItem("StartQtyNoDSSDV2", vSafeQty);
+    localStorage.setItem("QtyMulDSSDV2", vSafeQty);
+}
+
+function fnChangeStartQty(pThisVal){
+    const vQtyParsed = Number(pThisVal.value);
+
+    if(!Number.isFinite(vQtyParsed) || vQtyParsed < 1){
+        fnGenMessage("Not a Valid Qty No to Start with, Please Check", `badge bg-danger`, "spnGenMsg");
+        pThisVal.value = 1;
+        fnApplyStartQtyToAll(1);
+    }
+    else{
+        const vSafeQty = Math.floor(vQtyParsed);
+        pThisVal.value = vSafeQty;
+        fnGenMessage("No of Qty to Start With is Changed!", `badge bg-success`, "spnGenMsg");
+        fnApplyStartQtyToAll(vSafeQty);
+    }
+}
+
 function fnChangeBuyStartQty(pThisVal){
     if(pThisVal.value === "" || pThisVal.value === "0"){
         fnGenMessage("Not a Valid Qty No to Start with, Please Check", `badge bg-danger`, "spnGenMsg");
@@ -940,6 +1575,11 @@ function fnSetSymbolData(pThisVal){
     else{
         objLotSize.value = 0;
     }
+
+    fnSetRenkoFeedMeta();
+    if(gRenkoFeedEnabled){
+        fnRestartRenkoFeedWS();
+    }
 }
 
 function fnLoadNetLimits(){
@@ -1004,27 +1644,256 @@ function fnSetSymbolTickerList(){
 }
 
 function fnChangeStep(){
-    // let vStepM = JSON.parse(localStorage.getItem("OptStepDSSDV2"));
-    let objSwtStep = document.getElementById("swtStepDFL");
-
-    localStorage.setItem("OptStepDSSDV2", JSON.stringify(objSwtStep.checked));
-    // alert(objSwtStep.checked);
+    fnChangeTradeModeS2("step");
 }
 
 function fnLoadOptStep(){
-    let vStepM = JSON.parse(localStorage.getItem("OptStepDSSDV2"));
-    let objSwtStep = document.getElementById("swtStepDFL");
+    fnLoadMartiModeS2();
+}
 
-    if(vStepM){
-        objSwtStep.checked = true;
+function fnLoadMartiModeS2(){
+    let objSwtStep = document.getElementById("swtStepDFL");
+    let objSwtMarti = document.getElementById("swtMartiDFL");
+    if(!objSwtStep){
+        return;
     }
-    else{
-        objSwtStep.checked = false;
+
+    let vMode = (localStorage.getItem("S2FO_TradeMode") || "").toUpperCase();
+    if(vMode === ""){
+        let vLegacyMarti = JSON.parse(localStorage.getItem("OptStepDSSDV2"));
+        vMode = (vLegacyMarti === false) ? "MARTI" : "STEP";
+    }
+
+    if(objSwtMarti){
+        objSwtStep.checked = (vMode === "STEP");
+        objSwtMarti.checked = (vMode === "MARTI");
+        if(objSwtStep.checked === objSwtMarti.checked){
+            objSwtStep.checked = true;
+            objSwtMarti.checked = false;
+            vMode = "STEP";
+        }
+        localStorage.setItem("S2FO_TradeMode", vMode);
+        localStorage.setItem("OptStepDSSDV2", JSON.stringify(objSwtStep.checked));
     }
 }
 
 function fnLoadTotalLossAmtQty(){
 
+}
+
+function fnChangeTradeModeS2(pMode){
+    let objSwtStep = document.getElementById("swtStepDFL");
+    let objSwtMarti = document.getElementById("swtMartiDFL");
+    if(!objSwtStep){
+        return;
+    }
+    if(!objSwtMarti){
+        localStorage.setItem("S2FO_TradeMode", objSwtStep.checked ? "STEP" : "MARTI");
+        return;
+    }
+
+    if(pMode === "step"){
+        if(objSwtStep.checked){
+            objSwtMarti.checked = false;
+        }
+        else if(!objSwtMarti.checked){
+            objSwtStep.checked = true;
+        }
+    }
+    else if(pMode === "marti"){
+        if(objSwtMarti.checked){
+            objSwtStep.checked = false;
+        }
+        else if(!objSwtStep.checked){
+            objSwtMarti.checked = true;
+        }
+    }
+
+    let vMode = objSwtMarti.checked ? "MARTI" : "STEP";
+    localStorage.setItem("S2FO_TradeMode", vMode);
+    localStorage.setItem("OptStepDSSDV2", JSON.stringify(objSwtStep.checked));
+}
+
+function fnApplyQtyToAllTradeInputs(pQty){
+    let vSafeQty = Math.max(1, Math.floor(Number(pQty)));
+    let objFutQty = document.getElementById("txtFutQty");
+    let objQty1 = document.getElementById("txtStartQty1");
+    let objQty2 = document.getElementById("txtStartQty2");
+    let objQty3 = document.getElementById("txtStartQty3");
+
+    if(objFutQty){
+        objFutQty.value = vSafeQty;
+    }
+    if(objQty1){
+        objQty1.value = vSafeQty;
+    }
+    if(objQty2){
+        objQty2.value = vSafeQty;
+    }
+    if(objQty3){
+        objQty3.value = vSafeQty;
+    }
+
+    if(gCurrFutStrats?.StratsData?.[0]){
+        gCurrFutStrats.StratsData[0]["StartFutQty"] = vSafeQty;
+        localStorage.setItem("FutStratDSSDV2", JSON.stringify(gCurrFutStrats));
+    }
+    if(gCurrStrats?.StratsData?.[0]){
+        gCurrStrats.StratsData[0]["StartQty1"] = vSafeQty;
+        gCurrStrats.StratsData[0]["StartQty2"] = vSafeQty;
+        gCurrStrats.StratsData[0]["StartQty3"] = vSafeQty;
+        localStorage.setItem("StrategyDSSDV2", JSON.stringify(gCurrStrats));
+    }
+}
+
+function fnSetQtyFieldsByQtyMulLossAmt(){
+    let vStartLots = Number(localStorage.getItem("StartQtyNoDSSDV2"));
+    let vQtyMul = Number(localStorage.getItem("QtyMulDSSDV2"));
+    let vTotLossAmt = Number(gOtherFlds?.[0]?.Yet2RecvrAmt);
+
+    if(!Number.isFinite(vStartLots) || vStartLots < 1){
+        vStartLots = 1;
+    }
+    if(!Number.isFinite(vQtyMul) || vQtyMul < 1){
+        vQtyMul = vStartLots;
+    }
+    if(!Number.isFinite(vTotLossAmt) || vTotLossAmt === 0){
+        vQtyMul = vStartLots;
+        localStorage.setItem("QtyMulDSSDV2", vStartLots);
+    }
+
+    fnApplyQtyToAllTradeInputs(vQtyMul);
+}
+
+function fnLoadMultiplierX(){
+    let objMultiplierXTxt = document.getElementById("txtMultiplierX");
+    if(!objMultiplierXTxt){
+        return;
+    }
+
+    let vSaved = Number(localStorage.getItem("S2FO_MultiplierX"));
+    if(!Number.isFinite(vSaved) || vSaved <= 0){
+        vSaved = Number(gOtherFlds?.[0]?.MultiplierX);
+    }
+    if(!Number.isFinite(vSaved) || vSaved <= 0){
+        vSaved = 1.0;
+    }
+
+    gMultiplierX = fnParsePositiveNumber(vSaved, 1.0);
+    objMultiplierXTxt.value = gMultiplierX;
+}
+
+function fnUpdateMultiplierX(pThisVal){
+    const vMultiplier = fnParsePositiveNumber(pThisVal.value, 1.0);
+    pThisVal.value = vMultiplier;
+    gMultiplierX = vMultiplier;
+    localStorage.setItem("S2FO_MultiplierX", String(vMultiplier));
+
+    if(Array.isArray(gOtherFlds) && gOtherFlds[0]){
+        gOtherFlds[0]["MultiplierX"] = vMultiplier;
+        localStorage.setItem("HidFldsDSSDV2", JSON.stringify(gOtherFlds));
+    }
+}
+
+function fnLoadLossRecoveryMultiplier(){
+    let objLossRecvPerctTxt = document.getElementById("txtLossRecvPerct");
+    if(!objLossRecvPerctTxt){
+        return;
+    }
+
+    let vSaved = Number(localStorage.getItem("S2FO_LossRecM"));
+    if(!Number.isFinite(vSaved) || vSaved <= 0){
+        vSaved = Number(gOtherFlds?.[0]?.LossRecPerct);
+    }
+    if(!Number.isFinite(vSaved) || vSaved <= 0){
+        vSaved = 100;
+    }
+
+    gLossRecPerct = fnParsePositiveNumber(vSaved, 100);
+    objLossRecvPerctTxt.value = gLossRecPerct;
+}
+
+function fnUpdateLossRecPrct(pThisVal){
+    const vLossPct = fnParsePositiveNumber(pThisVal.value, 100);
+    pThisVal.value = vLossPct;
+    gLossRecPerct = vLossPct;
+    localStorage.setItem("S2FO_LossRecM", String(vLossPct));
+
+    if(Array.isArray(gOtherFlds) && gOtherFlds[0]){
+        gOtherFlds[0]["LossRecPerct"] = vLossPct;
+        localStorage.setItem("HidFldsDSSDV2", JSON.stringify(gOtherFlds));
+    }
+}
+
+function fnSetNextTradeQtySettings(pIsFullClose = true){
+    if(!pIsFullClose){
+        return;
+    }
+
+    let vTotLossAmt = Number(gOtherFlds?.[0]?.Yet2RecvrAmt);
+    let vOldQtyMul = Number(localStorage.getItem("QtyMulDSSDV2"));
+    let vStartLots = Number(localStorage.getItem("StartQtyNoDSSDV2"));
+    let vMode = String(localStorage.getItem("S2FO_TradeMode") || "").toUpperCase();
+    let bIsMarti = (vMode === "MARTI");
+    let bIsStep = !bIsMarti;
+    let vX = fnParsePositiveNumber(gMultiplierX, 1.0);
+    let vCycleStartLoss = Number(localStorage.getItem("S2FO_CycleStartLossAmt"));
+    let vCycleStartQty = Number(localStorage.getItem("S2FO_CycleStartQty"));
+
+    if(!Number.isFinite(vStartLots) || vStartLots < 1){
+        vStartLots = 1;
+    }
+    if(!Number.isFinite(vOldQtyMul) || vOldQtyMul < 1){
+        vOldQtyMul = vStartLots;
+    }
+    if(!Number.isFinite(vTotLossAmt)){
+        vTotLossAmt = 0;
+    }
+    if(!Number.isFinite(vCycleStartLoss)){
+        vCycleStartLoss = 0;
+    }
+    if(!Number.isFinite(vCycleStartQty) || vCycleStartQty < 1){
+        vCycleStartQty = vOldQtyMul;
+    }
+
+    const vStartDeficit = Math.max(0, -vCycleStartLoss);
+    const vEndDeficit = Math.max(0, -vTotLossAmt);
+    const bRecoveredSome = vEndDeficit < vStartDeficit;
+    const bWorsened = vEndDeficit > vStartDeficit;
+
+    let vNextQty = vOldQtyMul;
+    if(vEndDeficit <= 0){
+        vNextQty = vStartLots;
+    }
+    else if(bRecoveredSome){
+        let vRemainRatio = vStartDeficit > 0 ? (vEndDeficit / vStartDeficit) : 1;
+        if(!Number.isFinite(vRemainRatio)){
+            vRemainRatio = 1;
+        }
+        vRemainRatio = Math.max(0, Math.min(1, vRemainRatio));
+        vNextQty = Math.ceil(vCycleStartQty * vRemainRatio);
+        if(!Number.isFinite(vNextQty) || vNextQty < vStartLots){
+            vNextQty = vStartLots;
+        }
+        if(vNextQty > vCycleStartQty){
+            vNextQty = vCycleStartQty;
+        }
+    }
+    else if(bWorsened){
+        if(bIsMarti){
+            vNextQty = Math.floor(vOldQtyMul * Math.max(2, vX));
+        }
+        else if(bIsStep){
+            vNextQty = Math.floor(vOldQtyMul + Math.max(1, Math.floor(vStartLots * vX)));
+        }
+    }
+
+    if(!Number.isFinite(vNextQty) || vNextQty < vStartLots){
+        vNextQty = vStartLots;
+    }
+
+    localStorage.setItem("QtyMulDSSDV2", String(vNextQty));
+    fnApplyQtyToAllTradeInputs(vNextQty);
 }
 
 function fnChkTodayPosToCls(){
@@ -1087,6 +1956,7 @@ async function fnSaveUpdCurrPos(){
     let vYetRecAmt = parseFloat(document.getElementById("txtYet2Recvr").value);
     let objchkReLeg1 = document.getElementById("chkReLeg1");
     let objchkReLeg2 = document.getElementById("chkReLeg2");
+    let objchkReLeg3 = document.getElementById("chkReLeg3");
     let vTotalPL = 0;
 
     vBrokAmt = parseFloat(vBrokAmt) * parseInt(vBrokXVal);
@@ -1143,8 +2013,31 @@ async function fnSaveUpdCurrPos(){
                 let vDeltaSL = gCurrPosDSSDV2.TradeData[i].DeltaSL;
                 let vDeltaTP = gCurrPosDSSDV2.TradeData[i].DeltaTP;
 
-                // let vCharges = fnGetTradeCharges(vStrikePrice, vLotSize, vQty, vBuyPrice, vSellPrice, vOptionTypeZZ);
-                // let vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vQty, vCharges);
+                if(vOptionTypeZZ === "F"){
+                    let vCurrPriceF = 0;
+                    if(gCurrPosDSSDV2.TradeData[i].TransType === "sell"){
+                        vCurrPriceF = parseFloat(gSymbBRateList[gCurrPosDSSDV2.TradeData[i].Symbol]);
+                        if(Number.isFinite(vCurrPriceF)){
+                            gCurrPosDSSDV2.TradeData[i].BuyPrice = vCurrPriceF;
+                        }
+                    }
+                    else if(gCurrPosDSSDV2.TradeData[i].TransType === "buy"){
+                        vCurrPriceF = parseFloat(gSymbSRateList[gCurrPosDSSDV2.TradeData[i].Symbol]);
+                        if(Number.isFinite(vCurrPriceF)){
+                            gCurrPosDSSDV2.TradeData[i].SellPrice = vCurrPriceF;
+                        }
+                    }
+
+                    fnInitFutureRiskFields(gCurrPosDSSDV2.TradeData[i]);
+                    if(Number.isFinite(vCurrPriceF) && fnShouldCloseFuturePosition(gCurrPosDSSDV2.TradeData[i], vCurrPriceF)){
+                        vLegID = gCurrPosDSSDV2.TradeData[i].TradeID;
+                        vTransType = gCurrPosDSSDV2.TradeData[i].TransType;
+                        vOptionType = gCurrPosDSSDV2.TradeData[i].OptionType;
+                        vSymbol = gCurrPosDSSDV2.TradeData[i].Symbol;
+                        vToPosClose = true;
+                    }
+                    continue;
+                }
 
                 if(gCurrPosDSSDV2.TradeData[i].TransType === "sell"){
                     let vCurrPrice = parseFloat(gSymbBRateList[gCurrPosDSSDV2.TradeData[i].Symbol]);
@@ -1210,145 +2103,19 @@ async function fnSaveUpdCurrPos(){
         fnUpdateOpenPositions();
 
         if(vToPosClose){
-            // if(gClsBuyLeg && vTransType === "sell"){
-            //     gClsBuyLeg = false;
-            //     fnCloseBuyLeg(vTransType, vOptionType);
-            // }
-            // let objTrdCountCE = JSON.parse(localStorage.getItem("CETrdCntDSSDV2"));
-            // let objTrdCountPE = JSON.parse(localStorage.getItem("PETrdCntDSSDV2"));
+            // SL/TP hit on any open leg: close all open legs and wait for fresh signal.
+            gReLeg = false;
+            gReLegCfgRow = 0;
 
-            // if((objTrdCountCE > 1 || objTrdCountPE > 1) && vTransType === "sell"){
-
-            //     fnGetBuyOpenPosAndClose(vTransType, vOptionType);
-            // }
-            await fnCloseOptPosition(vLegID, vTransType, vOptionType, vSymbol, "CLOSED");
-        }
-        else{
-            await fnRunDeltaNeutralFutures();
+            let objOpenLegs = gCurrPosDSSDV2.TradeData.filter(objLeg => objLeg.Status === "OPEN");
+            for(let i=0; i<objOpenLegs.length; i++){
+                await fnCloseOptPosition(objOpenLegs[i].TradeID, objOpenLegs[i].TransType, objOpenLegs[i].OptionType, objOpenLegs[i].Symbol, "CLOSED");
+            }
         }
     }
     }
     finally{
         gSaveUpdBusy = false;
-    }
-}
-
-function fnGetOpenFutureLegBySide(pTransType){
-    for(let i=0; i<gCurrPosDSSDV2.TradeData.length; i++){
-        let objLeg = gCurrPosDSSDV2.TradeData[i];
-        if(objLeg.Status === "OPEN" && objLeg.OptionType === "F" && objLeg.TransType === pTransType){
-            return objLeg;
-        }
-    }
-
-    return null;
-}
-
-async function fnRunDeltaNeutralFutures(){
-    let objSwtDeltaNeutral = document.getElementById("swtDeltaNeutral");
-    let objMinusDeltaPM = document.getElementById("txtMinusDeltaPM");
-    let objPlusDeltaPM = document.getElementById("txtPlusDeltaPM");
-    let objDeltaAdjSide = document.getElementById("ddlDeltaAdjSide");
-
-    if(!objSwtDeltaNeutral || !objSwtDeltaNeutral.checked){
-        return;
-    }
-
-    let vMinusThreshold = Math.abs(parseFloat(objMinusDeltaPM ? objMinusDeltaPM.value : NaN));
-    if(!Number.isFinite(vMinusThreshold)){
-        vMinusThreshold = Math.abs(parseFloat(gOtherFlds[0]["DeltaMinusPM"]));
-    }
-    if(!Number.isFinite(vMinusThreshold) || vMinusThreshold === 0){
-        vMinusThreshold = 0.10;
-    }
-
-    let vPlusThreshold = Math.abs(parseFloat(objPlusDeltaPM ? objPlusDeltaPM.value : NaN));
-    if(!Number.isFinite(vPlusThreshold)){
-        vPlusThreshold = Math.abs(parseFloat(gOtherFlds[0]["DeltaPlusPM"]));
-    }
-    if(!Number.isFinite(vPlusThreshold) || vPlusThreshold === 0){
-        vPlusThreshold = 0.10;
-    }
-
-    let vDeltaAdjSide = (objDeltaAdjSide ? objDeltaAdjSide.value : (gOtherFlds[0]["DeltaAdjSide"] || "BOTH"));
-
-    let vOptionDelta = 0;
-    let vFutureDelta = 0;
-    let vOpenOptionCount = 0;
-
-    for(let i=0; i<gCurrPosDSSDV2.TradeData.length; i++){
-        let objLeg = gCurrPosDSSDV2.TradeData[i];
-        if(objLeg.Status !== "OPEN"){
-            continue;
-        }
-
-        let vDelta = parseFloat(objLeg.DeltaC || objLeg.Delta || 0);
-        if(!Number.isFinite(vDelta)){
-            continue;
-        }
-
-        if(objLeg.OptionType === "F"){
-            vFutureDelta += vDelta;
-        }
-        else{
-            vOptionDelta += vDelta;
-            vOpenOptionCount += 1;
-        }
-    }
-
-    if(vOpenOptionCount === 0){
-        return;
-    }
-
-    let vNetDelta = vOptionDelta + vFutureDelta;
-    if(!Number.isFinite(vNetDelta)){
-        return;
-    }
-
-    vNetDelta = parseFloat(vNetDelta.toFixed(6));
-    vMinusThreshold = parseFloat(vMinusThreshold.toFixed(6));
-    vPlusThreshold = parseFloat(vPlusThreshold.toFixed(6));
-
-    let vNow = Date.now();
-    if(gDeltaNtrlBusy || (vNow - gDeltaNtrlLastActionTs) < 5000){
-        return;
-    }
-
-    gDeltaNtrlBusy = true;
-    try{
-        let bNeedsAdjustment = false;
-        if(vDeltaAdjSide === "+DELTA"){
-            bNeedsAdjustment = (vNetDelta >= vPlusThreshold);
-        }
-        else if(vDeltaAdjSide === "-DELTA"){
-            bNeedsAdjustment = (vNetDelta <= -vMinusThreshold);
-        }
-        else{
-            bNeedsAdjustment = (vNetDelta <= -vMinusThreshold || vNetDelta >= vPlusThreshold);
-        }
-
-        if(!bNeedsAdjustment){
-            return;
-        }
-
-        let vNeedAction = (vNetDelta > 0) ? "sell" : "buy";
-        let vOppositeAction = (vNeedAction === "buy") ? "sell" : "buy";
-        let objOppFuture = fnGetOpenFutureLegBySide(vOppositeAction);
-
-        if(objOppFuture){
-            await fnCloseOptPosition(objOppFuture.TradeID, objOppFuture.TransType, "F", objOppFuture.Symbol, "CLOSED");
-        }
-        else{
-            await fnPreInitAutoFutTrade("F", vNeedAction);
-        }
-
-        gDeltaNtrlLastActionTs = Date.now();
-    }
-    catch (objErr){
-        console.log("Delta Neutral Error", objErr);
-    }
-    finally{
-        gDeltaNtrlBusy = false;
     }
 }
 
@@ -1572,6 +2339,24 @@ function fnLoadDefExpiryMode(){
         }
         fnLoadExpiryDate(objExpiryMode3.value, objExpiry3);
     }
+}
+
+function fnExitAllOpenPositionsByBadge(){
+    if(!gCurrPosDSSDV2 || !Array.isArray(gCurrPosDSSDV2.TradeData)){
+        fnGenMessage("No Open Positions to Close.", `badge bg-warning`, "spnGenMsg");
+        return;
+    }
+
+    const bHasOpenPos = gCurrPosDSSDV2.TradeData.some(objLeg => objLeg && objLeg.Status === "OPEN");
+    if(!bHasOpenPos){
+        fnGenMessage("No Open Positions to Close.", `badge bg-warning`, "spnGenMsg");
+        return;
+    }
+
+    gReLeg = false;
+    gReLegCfgRow = 0;
+    fnExitAllPositions();
+    fnGenMessage("All Open Positions moved to Closed Positions.", `badge bg-success`, "spnGenMsg");
 }
 
 function fnUpdateBuyExpiryMode(){
@@ -2172,6 +2957,179 @@ function fnGetCfgRowContext(pCfgRow){
     return objCtx;
 }
 
+async function fnExecuteOptionRow1BySelections(){
+    let objAction = document.getElementById("ddlAction1");
+    let objLegSide = document.getElementById("ddlLegSide1");
+    let objExpiry = document.getElementById("txtExpiry1");
+    let objQty = document.getElementById("txtStartQty1");
+    let objNewDelta = document.getElementById("txtNewDelta1");
+
+    if(!objAction || !objLegSide || !objExpiry || !objQty || !objNewDelta){
+        return;
+    }
+    if(objAction.value === "none"){
+        return;
+    }
+    if(!objExpiry.value || !objQty.value || !objNewDelta.value){
+        fnGenMessage("Row 1 option not executed. Please set Expiry/Qty/New D.", `badge bg-warning`, "spnGenMsg");
+        return;
+    }
+
+    let objOptTypes = [];
+    if(objLegSide.value === "both" || objLegSide.value === "ce"){
+        objOptTypes.push("C");
+    }
+    if(objLegSide.value === "both" || objLegSide.value === "pe"){
+        objOptTypes.push("P");
+    }
+
+    for(let i=0; i<objOptTypes.length; i++){
+        await fnPreInitAutoTrade(objOptTypes[i], objAction.value, 1);
+    }
+}
+
+function fnHasOpenFuturePosition(){
+    if(!gCurrPosDSSDV2 || !Array.isArray(gCurrPosDSSDV2.TradeData)){
+        return false;
+    }
+    for(let i=0; i<gCurrPosDSSDV2.TradeData.length; i++){
+        let objLeg = gCurrPosDSSDV2.TradeData[i];
+        if(objLeg.Status === "OPEN" && objLeg.OptionType === "F"){
+            return true;
+        }
+    }
+    return false;
+}
+
+function fnInitFutureRiskFields(objTrade){
+    if(!objTrade){
+        return;
+    }
+
+    let vSLPts = fnParsePositiveNumber(objTrade.StopLossPts ?? objTrade.PointsSL, 0);
+    let vTPPts = fnParsePositiveNumber(objTrade.TakeProfitPts ?? objTrade.PointsTP, 0);
+    let vTSLPts = Number(objTrade.TrailSLPts ?? 0);
+    if(!Number.isFinite(vTSLPts) || vTSLPts < 0){
+        vTSLPts = 0;
+    }
+
+    objTrade.StopLossPts = vSLPts;
+    objTrade.TakeProfitPts = vTPPts;
+    objTrade.TrailSLPts = vTSLPts;
+
+    let vSellPrice = Number(objTrade.SellPrice);
+    let vBuyPrice = Number(objTrade.BuyPrice);
+    let vRef = objTrade.TransType === "sell" ? vSellPrice : vBuyPrice;
+    if(!Number.isFinite(vRef) || vRef <= 0){
+        vRef = Number.isFinite(vSellPrice) && vSellPrice > 0 ? vSellPrice : vBuyPrice;
+    }
+    if(!Number.isFinite(vRef) || vRef <= 0){
+        return;
+    }
+
+    if(!Number.isFinite(Number(objTrade.AmtSL))){
+        objTrade.AmtSL = objTrade.TransType === "sell"
+            ? Number((vRef + vSLPts).toFixed(2))
+            : Number((vRef - vSLPts).toFixed(2));
+    }
+    if(!Number.isFinite(Number(objTrade.AmtTP1))){
+        objTrade.AmtTP1 = objTrade.TransType === "sell"
+            ? Number((vRef - vTPPts).toFixed(2))
+            : Number((vRef + vTPPts).toFixed(2));
+    }
+
+    let vTPAmt = Number(objTrade.TakeProfitAmt);
+    objTrade.TakeProfitAmt = (Number.isFinite(vTPAmt) && vTPAmt > 0) ? vTPAmt : 0;
+
+    if(vTSLPts > 0 && !Number.isFinite(Number(objTrade.TrailNextTrigger))){
+        if(objTrade.TransType === "sell"){
+            objTrade.TrailNextTrigger = Number((Number(objTrade.BuyPrice) - vTSLPts).toFixed(2));
+        }
+        else{
+            objTrade.TrailNextTrigger = Number((Number(objTrade.SellPrice) + vTSLPts).toFixed(2));
+        }
+    }
+}
+
+function fnApplyFutureTrailingSL(objTrade, pCurrPrice){
+    if(!objTrade){
+        return;
+    }
+    let vTrailPts = Number(objTrade.TrailSLPts);
+    let vTrigger = Number(objTrade.TrailNextTrigger);
+    let vCurrSL = Number(objTrade.AmtSL);
+    let vCurr = Number(pCurrPrice);
+    if(!Number.isFinite(vTrailPts) || vTrailPts <= 0 || !Number.isFinite(vTrigger) || !Number.isFinite(vCurrSL) || !Number.isFinite(vCurr)){
+        return;
+    }
+
+    if(objTrade.TransType === "buy"){
+        while(vCurr >= vTrigger){
+            vCurrSL += vTrailPts;
+            vTrigger += vTrailPts;
+        }
+    }
+    else if(objTrade.TransType === "sell"){
+        while(vCurr <= vTrigger){
+            vCurrSL -= vTrailPts;
+            vTrigger -= vTrailPts;
+        }
+    }
+
+    objTrade.AmtSL = Number(vCurrSL.toFixed(2));
+    objTrade.TrailNextTrigger = Number(vTrigger.toFixed(2));
+}
+
+function fnShouldCloseFuturePosition(objTrade, pCurrPrice){
+    if(!objTrade){
+        return false;
+    }
+
+    let vCurr = Number(pCurrPrice);
+    let vSL = Number(objTrade.AmtSL);
+    let vTP1 = Number(objTrade.AmtTP1);
+    let vTPAmt = Number(objTrade.TakeProfitAmt || 0);
+    if(!Number.isFinite(vCurr) || !Number.isFinite(vSL) || !Number.isFinite(vTP1)){
+        return false;
+    }
+
+    fnApplyFutureTrailingSL(objTrade, vCurr);
+    vSL = Number(objTrade.AmtSL);
+
+    let vStrikePrice = Number(objTrade.StrikePrice);
+    let vLotSize = Number(objTrade.LotSize);
+    let vQty = Number(objTrade.LotQty);
+    let vBuy = Number(objTrade.BuyPrice);
+    let vSell = Number(objTrade.SellPrice);
+    let vCharges = fnGetTradeCharges(vStrikePrice, vLotSize, vQty, vBuy, vSell, "F");
+    let vPL = fnGetTradePL(vBuy, vSell, vLotSize, vQty, vCharges);
+
+    if(objTrade.TransType === "buy"){
+        if(vCurr <= vSL){
+            return true;
+        }
+        if(vTPAmt > 0 && Number.isFinite(vPL) && vPL >= vTPAmt){
+            return true;
+        }
+        if(vCurr >= vTP1){
+            return true;
+        }
+    }
+    else if(objTrade.TransType === "sell"){
+        if(vCurr >= vSL){
+            return true;
+        }
+        if(vTPAmt > 0 && Number.isFinite(vPL) && vPL >= vTPAmt){
+            return true;
+        }
+        if(vCurr <= vTP1){
+            return true;
+        }
+    }
+
+    return false;
+}
+
 async function fnPreInitAutoTrade(pOptionType, pTransType, pCfgRow){
     let vIsRecExists = false;
     let objBrokAmt = document.getElementById("txtBrok2Rec");
@@ -2207,6 +3165,7 @@ async function fnPreInitAutoTrade(pOptionType, pTransType, pCfgRow){
     }
 
     if(vIsRecExists === false){
+        const bCycleStart = !(gCurrPosDSSDV2 && Array.isArray(gCurrPosDSSDV2.TradeData) && gCurrPosDSSDV2.TradeData.some(objLeg => objLeg.Status === "OPEN"));
         let vUndrAsst = objSymbol.value;
 
         let objTradeDtls = await fnExecOptionLeg(objApiKey.value, objApiSecret.value, objOrderType.value, vUndrAsst, vExpiryNewPos, pOptionType, pTransType, objLotSize.value, vLotQty, vDeltaNPos, vDeltaRePos, vDeltaTP, vDeltaSL);
@@ -2255,6 +3214,10 @@ async function fnPreInitAutoTrade(pOptionType, pTransType, pCfgRow){
             objBrokAmt.value = gOtherFlds[0]["BrokerageAmt"];
 
             localStorage.setItem("HidFldsDSSDV2", JSON.stringify(gOtherFlds));
+            if(bCycleStart){
+                localStorage.setItem("S2FO_CycleStartLossAmt", String(Number(gOtherFlds?.[0]?.Yet2RecvrAmt || 0)));
+                localStorage.setItem("S2FO_CycleStartQty", String(Math.max(1, Math.floor(Number(vLotQty) || 1))));
+            }
 
             console.log("Trade Executed");
 
@@ -2269,6 +3232,11 @@ async function fnPreInitAutoTrade(pOptionType, pTransType, pCfgRow){
 }
 
 async function fnPreInitAutoFutTrade(pOptionType, pTransType){
+    if(fnHasOpenFuturePosition()){
+        fnGenMessage("Futures position already open. Close it before opening a new one.", `badge bg-warning`, "spnGenMsg");
+        return;
+    }
+
     let objBrokAmt = document.getElementById("txtBrok2Rec");
     let objApiKey = document.getElementById("txtUserAPIKey");
     let objApiSecret = document.getElementById("txtAPISecret");
@@ -2279,12 +3247,17 @@ async function fnPreInitAutoFutTrade(pOptionType, pTransType){
 
     let objPointsTP = document.getElementById("txtFutTP");
     let objPointsSL = document.getElementById("txtFutSL");
+    let vPointsTSL = Number(gCurrFutStrats?.StratsData?.[0]?.PointsTSL ?? 0);
+    if(!Number.isFinite(vPointsTSL) || vPointsTSL < 0){
+        vPointsTSL = 0;
+    }
 
     let vUndrAsst = objSymbol.value + "USD";
 
     let objTradeDtls = await fnExecFuturesLeg(objApiKey.value, objApiSecret.value, objOrderType.value, vUndrAsst, pOptionType, pTransType, objLotSize.value, objLotQty.value, objPointsTP.value, objPointsSL.value);
 
     if(objTradeDtls.status === "success"){
+        const bCycleStart = !(gCurrPosDSSDV2 && Array.isArray(gCurrPosDSSDV2.TradeData) && gCurrPosDSSDV2.TradeData.some(objLeg => objLeg.Status === "OPEN"));
         let vDate = new Date();
         let vMonth = vDate.getMonth() + 1;
         let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
@@ -2307,10 +3280,30 @@ async function fnPreInitAutoFutTrade(pOptionType, pTransType){
         let vPointsSL = objTradeDtls.data.PointsSL;
         let vRateTP = objTradeDtls.data.RateTP;
         let vRateSL = objTradeDtls.data.RateSL;
+        let vAmtSL = 0;
+        let vAmtTP1 = 0;
+        let vTrailNextTrigger = null;
+
+        if(vBuyOrSell === "buy"){
+            vAmtSL = Number((vBestBuy - Number(vPointsSL)).toFixed(2));
+            vAmtTP1 = Number((vBestBuy + Number(vPointsTP)).toFixed(2));
+            if(vPointsTSL > 0){
+                vTrailNextTrigger = Number((vBestSell + vPointsTSL).toFixed(2));
+            }
+        }
+        else if(vBuyOrSell === "sell"){
+            vAmtSL = Number((vBestSell + Number(vPointsSL)).toFixed(2));
+            vAmtTP1 = Number((vBestSell - Number(vPointsTP)).toFixed(2));
+            if(vPointsTSL > 0){
+                vTrailNextTrigger = Number((vBestBuy - vPointsTSL).toFixed(2));
+            }
+        }
+
         let vOpenDTVal = vDate.valueOf();
         gUpdPos = false;
 
-        let vExcTradeDtls = { TradeID : vTradeID, ProductID : vProductID, OpenDT : vToday, Symbol : vSymbol, UndrAsstSymb : vUndrAstSymb, ContrctType : vCntrctType, TransType : vBuyOrSell, OptionType : vOptType, StrikePrice : vStrPrice, LotSize : vLotSize, LotQty : vLotQty, BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, DeltaC : vDeltaC, Gamma : 0, GammaC : 0, Theta : 0, ThetaC : 0, Vega : 0, VegaC : 0, PointsTP : vPointsTP, RateTP : vRateTP, PointsSL : vPointsSL, RateSL : vRateSL, OpenDTVal : vOpenDTVal, Status : "OPEN" };
+        let vExcTradeDtls = { TradeID : vTradeID, ProductID : vProductID, OpenDT : vToday, Symbol : vSymbol, UndrAsstSymb : vUndrAstSymb, ContrctType : vCntrctType, TransType : vBuyOrSell, OptionType : vOptType, StrikePrice : vStrPrice, LotSize : vLotSize, LotQty : vLotQty, BuyPrice : vBestBuy, SellPrice : vBestSell, Delta : vDelta, DeltaC : vDeltaC, Gamma : 0, GammaC : 0, Theta : 0, ThetaC : 0, Vega : 0, VegaC : 0, PointsTP : vPointsTP, RateTP : vRateTP, PointsSL : vPointsSL, RateSL : vRateSL, StopLossPts : Number(vPointsSL), TakeProfitPts : Number(vPointsTP), TrailSLPts : vPointsTSL, TrailNextTrigger : vTrailNextTrigger, AmtSL : vAmtSL, AmtTP1 : vAmtTP1, TakeProfitAmt : 0, OpenDTVal : vOpenDTVal, Status : "OPEN" };
+        fnInitFutureRiskFields(vExcTradeDtls);
 
         gCurrPosDSSDV2.TradeData.push(vExcTradeDtls);
         let objExcTradeDtls = JSON.stringify(gCurrPosDSSDV2);
@@ -2323,10 +3316,16 @@ async function fnPreInitAutoFutTrade(pOptionType, pTransType){
 
         localStorage.setItem("HidFldsDSSDV2", JSON.stringify(gOtherFlds));
 
+        if(bCycleStart){
+            localStorage.setItem("S2FO_CycleStartLossAmt", String(Number(gOtherFlds?.[0]?.Yet2RecvrAmt || 0)));
+            localStorage.setItem("S2FO_CycleStartQty", String(Math.max(1, Math.floor(Number(vLotQty) || 1))));
+        }
+
         console.log("Trade Executed");
         gUpdPos = true;
         fnSetSymbolTickerList();
         fnUpdateOpenPositions();
+        await fnExecuteOptionRow1BySelections();
     }
 }
 
@@ -2966,6 +3965,7 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
         let vLotQty = 0;
         let vBuyPrice = 0;
         let vSellPrice = 0;
+        let vLegIdx = -1;
 
         gUpdPos = false;
 
@@ -2977,7 +3977,8 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
         gSymbVegaList = {};
 
         for(let i=0; i<gCurrPosDSSDV2.TradeData.length; i++){
-            if(gCurrPosDSSDV2.TradeData[i].TradeID === pLegID){                
+            if(gCurrPosDSSDV2.TradeData[i].TradeID === pLegID){
+                vLegIdx = i;
                 if(pTransType === "sell"){
                     gCurrPosDSSDV2.TradeData[i].BuyPrice = vBestRate;
                 }
@@ -3027,6 +4028,24 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
             else{
                 // No auto open-buy-leg-on-sell-SL behavior in Strategy2FO.
             }
+
+            if(vLegIdx >= 0){
+                let objClosedLeg = gCurrPosDSSDV2.TradeData[vLegIdx];
+                if(!gClsdPosDSSDV2 || !Array.isArray(gClsdPosDSSDV2.TradeData)){
+                    gClsdPosDSSDV2 = { TradeData : [] };
+                }
+                if(!gClsdPosDSSDV2.TradeData.some(objLeg => String(objLeg.TradeID) === String(objClosedLeg.TradeID))){
+                    gClsdPosDSSDV2.TradeData.push(objClosedLeg);
+                }
+                gCurrPosDSSDV2.TradeData.splice(vLegIdx, 1);
+                localStorage.setItem("CurrPosDSSDV2", JSON.stringify(gCurrPosDSSDV2));
+                localStorage.setItem("ClsdPosDSSDV2", JSON.stringify(gClsdPosDSSDV2));
+            }
+
+            let bHasOpenPos = gCurrPosDSSDV2.TradeData.some(objLeg => objLeg.Status === "OPEN");
+            if(!bHasOpenPos){
+                fnSetNextTradeQtySettings(true);
+            }
         }
         else{
             //This part is not required in Real code
@@ -3044,6 +4063,7 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
         gUpdPos = true;
         fnSetSymbolTickerList();
         fnUpdateOpenPositions();
+        fnDispClosedPositions();
 
         if(gReLeg){
             let vReRow = gReLegCfgRow;
@@ -3222,6 +4242,8 @@ function fnDelLeg(pLegID){
 
 
 function fnClearLocalStorageTemp(){
+    fnStopRenkoFeedWS();
+    gRenkoPatternSeq = "";
     localStorage.removeItem("CurrPosDSSDV2");
     localStorage.removeItem("ClsdPosDSSDV2");
     localStorage.setItem("QtyMulDSSDV2", 0);
@@ -3232,6 +4254,50 @@ function fnClearLocalStorageTemp(){
     // localStorage.removeItem("StartQtyBuyDSSDV2");
     localStorage.removeItem("CETrdCntDSSDV2");
     localStorage.removeItem("PETrdCntDSSDV2");
+    localStorage.removeItem("S2FO_RenkoFeedEnabled");
+    localStorage.removeItem("S2FO_RenkoFeedStepPts");
+    localStorage.removeItem("S2FO_RenkoFeedPriceSrc");
+    localStorage.removeItem("S2FO_RenkoBuyPatterns");
+    localStorage.removeItem("S2FO_RenkoSellPatterns");
+    localStorage.removeItem("S2FO_RenkoSideSwt");
+    localStorage.removeItem("S2FO_LossRecM");
+    localStorage.removeItem("S2FO_MultiplierX");
+    localStorage.removeItem("S2FO_TradeMode");
+    localStorage.removeItem("S2FO_CycleStartLossAmt");
+    localStorage.removeItem("S2FO_CycleStartQty");
+    localStorage.setItem("QtyMulDSSDV2", 0);
+
+    // Reset totals shown in Manual Trader summary.
+    let objBrokAmt = document.getElementById("txtBrok2Rec");
+    let objTotPnl = document.getElementById("txtYet2Recvr");
+    let objNetPnl = document.getElementById("divNetPL");
+    if(objBrokAmt){
+        objBrokAmt.value = 0;
+    }
+    if(objTotPnl){
+        objTotPnl.value = 0;
+    }
+    if(objNetPnl){
+        objNetPnl.innerText = "0.00";
+    }
+    if(Array.isArray(gOtherFlds) && gOtherFlds[0]){
+        gOtherFlds[0]["BrokerageAmt"] = 0;
+        gOtherFlds[0]["Yet2RecvrAmt"] = 0;
+        gOtherFlds[0]["LossRecPerct"] = 100;
+        gOtherFlds[0]["MultiplierX"] = 1.0;
+        localStorage.setItem("HidFldsDSSDV2", JSON.stringify(gOtherFlds));
+    }
+    gLossRecPerct = 100;
+    gMultiplierX = 1.0;
+    let objLossRecv = document.getElementById("txtLossRecvPerct");
+    if(objLossRecv){
+        objLossRecv.value = gLossRecPerct;
+    }
+    let objMultiplierX = document.getElementById("txtMultiplierX");
+    if(objMultiplierX){
+        objMultiplierX.value = gMultiplierX;
+    }
+    gPL = 0;
 
     // fnGetAllStatus();
     console.log("Memory Cleared!!!");
@@ -3401,53 +4467,6 @@ function checkTimeForAlert() {
 //******************* WS Connection and Subscription Fully Updated Version ****************//
 
 //********** Indicators Sections *************//
-
-function fnCallTradeSide(){
-    let objCallSideVal = document["frmSide"]["rdoCallTradeSide"];
-
-    localStorage.setItem("CallSideSwtDSSDV2", objCallSideVal.value);
-}
-
-function fnPutTradeSide(){
-    let objPutSideVal = document["frmSide"]["rdoPutTradeSide"];
-
-    localStorage.setItem("PutSideSwtDSSDV2", objPutSideVal.value);
-}
-
-function fnLoadTradeSide(){
-    if(localStorage.getItem("CallSideSwtDSSDV2") === null){
-        localStorage.setItem("CallSideSwtDSSDV2", "-1");
-    }
-    let lsCallSideSwitchS = localStorage.getItem("CallSideSwtDSSDV2");
-    let objCallSideVal = document["frmSide"]["rdoCallTradeSide"];
-
-    if(lsCallSideSwitchS === "true"){
-        objCallSideVal.value = true;
-    }
-    else if(lsCallSideSwitchS === "false"){
-        objCallSideVal.value = false;
-    }
-    else{
-        objCallSideVal.value = -1;
-    }
-
-
-    if(localStorage.getItem("PutSideSwtDSSDV2") === null){
-        localStorage.setItem("PutSideSwtDSSDV2", "-1");
-    }
-    let lsPutSideSwitchS = localStorage.getItem("PutSideSwtDSSDV2");
-    let objPutSideVal = document["frmSide"]["rdoPutTradeSide"];
-
-    if(lsPutSideSwitchS === "true"){
-        objPutSideVal.value = true;
-    }
-    else if(lsPutSideSwitchS === "false"){
-        objPutSideVal.value = false;
-    }
-    else{
-        objPutSideVal.value = -1;
-    }
-}
 
 //********** Indicators Sections *************//
 
@@ -3670,6 +4689,7 @@ function fnDisplayDeltaDirec(){
     // console.log("Delta Directions");
     // console.log(objDeltas);
 }
+
 
 
 

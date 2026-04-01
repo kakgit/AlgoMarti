@@ -484,7 +484,7 @@
                             <h5 class="mb-0 me-2">Delta Renko-style Feed</h5>
 
                             <label for="txtRenkoFeedPts" class="mb-0 small text-muted">Point</label>
-                            <input type="number" class="form-control form-control-sm" id="txtRenkoFeedPts" value="100" min="1" onchange="fnUpdateRenkoFeedStep(this);" style="width: 90px;" />
+                            <input type="number" class="form-control form-control-sm" id="txtRenkoFeedPts" value="200" min="1" onchange="fnUpdateRenkoFeedStep(this);" style="width: 90px;" />
 
                             <label for="ddlRenkoFeedPriceSrc" class="mb-0 small text-muted">Source</label>
                             <select id="ddlRenkoFeedPriceSrc" class="form-select form-select-sm" onchange="fnUpdateRenkoFeedPriceSource(this);" style="width: 130px;">
@@ -495,10 +495,10 @@
                             </select>
 
                             <label for="txtRenkoBuyPatterns" class="mb-0 small text-muted">Buy</label>
-                            <input type="text" id="txtRenkoBuyPatterns" class="form-control form-control-sm" placeholder="GGR,GRRG" onchange="fnUpdateRenkoPatterns(this, 'buy');" style="width: 190px;" />
+                            <input type="text" id="txtRenkoBuyPatterns" class="form-control form-control-sm" placeholder="GGR,GRRG" value="RRG,GRG" onchange="fnUpdateRenkoPatterns(this, 'buy');" style="width: 190px;" />
 
                             <label for="txtRenkoSellPatterns" class="mb-0 small text-muted">Sell</label>
-                            <input type="text" id="txtRenkoSellPatterns" class="form-control form-control-sm" placeholder="RRGRR,RGRR" onchange="fnUpdateRenkoPatterns(this, 'sell');" style="width: 190px;" />
+                            <input type="text" id="txtRenkoSellPatterns" class="form-control form-control-sm" placeholder="RRGRR,RGRR" value="GGR,RGR" onchange="fnUpdateRenkoPatterns(this, 'sell');" style="width: 190px;" />
 
                             <span class="small text-muted ms-2" id="spnRenkoFeedMeta">Symbol: -</span>
                             <button class="btn btn-outline-secondary btn-sm ms-auto" type="button" onclick="fnClearRenkoFeedLog();">Clear</button>

@@ -20,7 +20,7 @@ let g50Perc1Time = true;
 let gRenkoFeedWS = null;
 let gRenkoFeedEnabled = false;
 let gRenkoFeedForceClose = false;
-let gRenkoFeedStepPts = 100;
+let gRenkoFeedStepPts = 200;
 let gRenkoFeedPriceSource = "mark_price";
 let gRenkoFeedAnchor = null;
 let gRenkoFeedMaxRows = 300;
@@ -234,10 +234,10 @@ function fnLoadRenkoPatternSettings(){
     }
 
     if(!localStorage.getItem("DFSD_RenkoBuyPatterns")){
-        localStorage.setItem("DFSD_RenkoBuyPatterns", "GGR");
+        localStorage.setItem("DFSD_RenkoBuyPatterns", "RRG,GRG");
     }
     if(!localStorage.getItem("DFSD_RenkoSellPatterns")){
-        localStorage.setItem("DFSD_RenkoSellPatterns", "");
+        localStorage.setItem("DFSD_RenkoSellPatterns", "GGR,RGR");
     }
 
     fnSetConfiguredRenkoPatterns("buy", fnGetConfiguredRenkoPatterns("buy"));
@@ -252,8 +252,8 @@ function fnLoadRenkoPatternSettings(){
 }
 
 function fnUpdateRenkoFeedStep(pThis){
-    const vParsed = Math.floor(fnParsePositiveNumber(pThis?.value, 100));
-    gRenkoFeedStepPts = (Number.isFinite(vParsed) && vParsed > 0) ? vParsed : 100;
+    const vParsed = Math.floor(fnParsePositiveNumber(pThis?.value, 200));
+    gRenkoFeedStepPts = (Number.isFinite(vParsed) && vParsed > 0) ? vParsed : 200;
     if(pThis){
         pThis.value = gRenkoFeedStepPts;
     }
@@ -528,11 +528,11 @@ function fnLoadRenkoFeedSettings(){
     const objStep = document.getElementById("txtRenkoFeedPts");
     const objSrc = document.getElementById("ddlRenkoFeedPriceSrc");
     const vEnabled = JSON.parse(localStorage.getItem("DFSD_RenkoFeedEnabled") || "false");
-    const vStepLs = Math.floor(fnParsePositiveNumber(localStorage.getItem("DFSD_RenkoFeedStepPts"), 100));
+    const vStepLs = Math.floor(fnParsePositiveNumber(localStorage.getItem("DFSD_RenkoFeedStepPts"), 200));
     const vSrcLs = String(localStorage.getItem("DFSD_RenkoFeedPriceSrc") || "mark_price");
     const objAllowed = ["mark_price", "spot_price", "best_bid", "best_ask"];
 
-    gRenkoFeedStepPts = (Number.isFinite(vStepLs) && vStepLs > 0) ? vStepLs : 100;
+    gRenkoFeedStepPts = (Number.isFinite(vStepLs) && vStepLs > 0) ? vStepLs : 200;
     gRenkoFeedPriceSource = objAllowed.includes(vSrcLs) ? vSrcLs : "mark_price";
 
     if(objStep){

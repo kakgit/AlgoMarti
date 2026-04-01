@@ -20,6 +20,35 @@
             font-weight: 600;
             padding: 1rem 0;
         }
+
+        .renko-feed-log {
+            min-height: 220px;
+            max-height: 280px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: rgba(0, 0, 0, 0.15);
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 0.85rem;
+            line-height: 1.35;
+        }
+
+        .renko-feed-item {
+            padding: 0.15rem 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .renko-feed-item:last-child {
+            border-bottom: 0;
+        }
+
+        .start-qty-input {
+            max-width: 96px;
+        }
     </style>
     <div class="page-heading">
         <div class="row">
@@ -55,41 +84,34 @@
             <div class="col-12">
                 <div class="card" id="cardManualTrader">
                     <div class="card-header">
-                        <div class="row">
-                            <div class="col-2">
-                                <h4>Manual Trader</h4>
-                            </div>
-                            <div class="col-1">
-                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                    <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtActiveMsgs" name="swtActiveMsgs" onchange="fnUpdHidFldSettings(this.checked, 'SwtActiveMsgs', 'Active Messages!');" />
+                        <div class="row align-items-center">
+                            <div class="col-3">
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <h4 class="mb-0">Manual Trader</h4>
+                                    <form name="frmSide" class="mb-0">
+                                        <div class="tw-toggle" style="white-space: nowrap;">
+                                            <input id="txtBN1" type="radio" name="rdoTradeSide" value="false" onclick="fnTradeSide();" />
+                                            <label class="toggle toggle-yes" for="txtBN1"><i class="fa fa-arrow-down"></i></label>
+                                            <input id="txtBN2" checked type="radio" name="rdoTradeSide" value="-1" onclick="fnTradeSide();" />
+                                            <label class="toggle toggle-yes" for="txtBN2"><i class="fa fa-minus"></i></label>
+                                            <input id="txtBN3" type="radio" name="rdoTradeSide" value="true" onclick="fnTradeSide();" />
+                                            <label class="toggle toggle-yes" for="txtBN3"><i class="fa fa-arrow-up"></i></label>
+                                            <span></span>
+                                            <label for="TradeSide">Side</label>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
-                            <div class="col-3">
-                                <form name="frmSide" id="frmSide">
-                                    <div class="tw-toggle" style="white-space: nowrap;">
-                                        <input id="txtBN1" type="radio" name="rdoCallTradeSide" value="false" onclick="fnCallTradeSide();" />
-                                        <label class="toggle toggle-yes" for="txtBN1"><i class="fa fa-arrow-down"></i></label>
-                                        <input id="txtBN2" checked type="radio" name="rdoCallTradeSide" value="-1" onclick="fnCallTradeSide();" />
-                                        <label class="toggle toggle-yes" for="txtBN2"><i class="fa fa-minus"></i></label>
-                                        <input id="txtBN3" type="radio" name="rdoCallTradeSide" value="true" onclick="fnCallTradeSide();" />
-                                        <label class="toggle toggle-yes" for="txtBN3"><i class="fa fa-arrow-up"></i></label>
-                                        <span></span>
-                                        <label for="txtBN1">Call</label>
+                            <div class="col-4">
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <span class="text-muted">Start Qty</span>
+                                    <input type="number" class="form-control start-qty-input" min="1" step="1" value="1" id="txtStartQty" onchange="fnChangeStartQty(this);" />
+                                    <div class="form-check form-switch mb-0 ms-2">
+                                        <input class="form-check-input" type="checkbox" id="swtRenkoFeed" onchange="fnToggleRenkoFeedSwitch();" />
+                                        <label class="form-check-label" for="swtRenkoFeed" style="cursor:pointer;">Delta Renko Feed</label>
                                     </div>
-                                    <div class="tw-toggle" style="white-space: nowrap;">
-                                        <input id="txtBN11" type="radio" name="rdoPutTradeSide" value="false" onclick="fnPutTradeSide();" />
-                                        <label class="toggle toggle-yes" for="txtBN11"><i class="fa fa-arrow-down"></i></label>
-                                        <input id="txtBN12" checked type="radio" name="rdoPutTradeSide" value="-1" onclick="fnPutTradeSide();" />
-                                        <label class="toggle toggle-yes" for="txtBN12"><i class="fa fa-minus"></i></label>
-                                        <input id="txtBN13" type="radio" name="rdoPutTradeSide" value="true" onclick="fnPutTradeSide();" />
-                                        <label class="toggle toggle-yes" for="txtBN13"><i class="fa fa-arrow-up"></i></label>
-                                        <span></span>
-                                        <label for="txtBN11">Put</label>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="col-1">
-                                
+                                    <span id="spnRenkoFeedStatus" class="badge bg-secondary">OFF</span>
+                                </div>
                             </div>
                             <div class="col-1"></div>
                             <div class="col-1" style="text-align: right;">
@@ -115,9 +137,9 @@
                                     <div class="col-2">Symbols List</div>
                                     <div class="col-2">Lot Size</div>
                                     <div class="col-2">Order Type</div>
-                                    <div class="col-2">Futures SL-Points</div>
-                                    <div class="col-2">Futures TP-Points</div>
-                                    <div class="col-2">BS Futures Qty</div>
+                                    <div class="col-2">BS Fut Qty</div>
+                                    <div class="col-2">Loss Recovery %</div>
+                                    <div class="col-2">X-Multiplier</div>
 
                                     <div class="col-2">
                                         <select id="ddlSymbols" class="form-select" onchange="fnSetSymbolData(this.value);" placeholder="Select Symbol" title="SYMBOL">
@@ -136,17 +158,17 @@
                                         </select>
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" class="form-control" min="1" value="100" id="txtFutSL" onchange="fnUpdFutStratSettings(this.value, 'PointsSL', 'Futures Stop Loss Points!', true, 'F');" title="Futures SL Points" />
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" min="1" value="1000" id="txtFutTP" onchange="fnUpdFutStratSettings(this.value, 'PointsTP', 'Futures Take Profit Points!', true, 'F');" title="Futures TP Points" />
-                                    </div>
-                                    <div class="col-2">
                                         <div class="input-group mb-3">
                                             <button class="btn btn-danger" type="button" onclick="fnPreInitAutoFutTrade('F', 'sell');"><b>S</b></button>
                                             <input type="text" value="100" id="txtFutQty" class="form-control" style="text-align: center;" title="Futures Qty" onchange="fnUpdFutStratSettings(this.value, 'StartFutQty', 'Futures Qty!', false, 'F', 'LotQty');" />
                                             <button class="btn btn-success" type="button" onclick="fnPreInitAutoFutTrade('F', 'buy');"><b>B</b></button>
                                         </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" min="1" value="100" id="txtLossRecvPerct" onchange="fnUpdateLossRecPrct(this);" title="Loss Recovery Percentage" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" min="0.1" step="0.1" value="1.0" id="txtMultiplierX" onchange="fnUpdateMultiplierX(this);" title="Multiplier for next qty progression" />
                                     </div>
 
                                     <div class="col-1" style="text-align: center;">Action</div>
@@ -321,32 +343,23 @@
                                         <input type="checkbox" class="form-check-input" id="chkReLeg3" onchange="fnUpdHidFldSettings(this.checked, 'ReLeg3', 'Re Enter Legs!');" title="Select to Re Enter when Closed" />
                                     </div>
 
-                                    <div class="col-4">
-                                        Manage Delta Neutral Treshold for Options
-                                    </div>
-                                    <div class="col-2"></div>
-                                    <div class="col-4">
+                                    <div class="col-2">Fut SL-Points</div>
+                                    <div class="col-2">Fut T-SL</div>
+                                    <div class="col-2">Fut TP-Points</div>
+                                    <div class="col-2">
                                         Close All when Net Profit is > X of Brokerage
                                     </div>
-                                    <div class="col-2">Re-Enter</div>
+                                    <div class="col-2">Re Enter</div>
+                                    <div class="col-2"></div>
 
                                     <div class="col-2">
-                                        <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                            <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtDeltaNeutral" name="swtDeltaNeutral" onchange="fnUpdHidFldSettings(this.checked, 'SwtDeltaNtrl', 'Delta Neutral !');" />
-                                        </div>
-                                    </div>
-                                    <div class="col-1">
-                                        <input type="number" class="form-control" placeholder="-Delta Threshold" id="txtMinusDeltaPM" value="0.10" min="0" step="0.01" title="Minimum negative net delta threshold to trigger adjustment" onchange="fnUpdHidFldSettings(this.value, 'DeltaMinusPM', 'Delta Change Value!');" />
-                                    </div>
-                                    <div class="col-1">
-                                        <input type="number" class="form-control" placeholder="+Delta Threshold" id="txtPlusDeltaPM" value="0.10" min="0" step="0.01" title="Minimum positive net delta threshold to trigger adjustment" onchange="fnUpdHidFldSettings(this.value, 'DeltaPlusPM', 'Delta Change Value!');" />
+                                        <input type="number" class="form-control" min="1" value="100" id="txtFutSL" onchange="fnUpdFutStratSettings(this.value, 'PointsSL', 'Futures Stop Loss Points!', true, 'F');" title="Futures SL Points" />
                                     </div>
                                     <div class="col-2">
-                                        <select class="form-select" id="ddlDeltaAdjSide" title="Delta side to trigger adjustment" onchange="fnUpdHidFldSettings(this.value, 'DeltaAdjSide', 'Delta Adjustment Side!');">
-                                            <option value="BOTH">BOTH</option>
-                                            <option value="-DELTA">-DELTA</option>
-                                            <option value="+DELTA">+DELTA</option>
-                                        </select>
+                                        <input type="number" class="form-control" min="0" value="0" id="txtFutTSL" onchange="fnUpdFutStratSettings(this.value, 'PointsTSL', 'Futures Trailing SL Points!', true, 'F');" title="Futures Trailing SL Points" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" min="1" value="1000" id="txtFutTP" onchange="fnUpdFutStratSettings(this.value, 'PointsTP', 'Futures Take Profit Points!', true, 'F');" title="Futures TP Points" />
                                     </div>
                                     <div class="col-1">
                                         <div class="form-check form-switch fs-6" style="white-space: nowrap;">
@@ -356,10 +369,10 @@
                                     <div class="col-2">
                                         <input type="number" class="form-control" placeholder="X of Brokerage" id="txtXBrok2Rec" value="1" title="X of Brokerage to Close when in profit" onchange="fnUpdHidFldSettings(this.value, 'BrokX4Profit', 'Brokerage X!');" />
                                     </div>
-                                    <div class="col-1">X</div>
-                                    <div class="col-2">
+                                    <div class="col-1">
                                         <input type="checkbox" class="form-check-input" id="chkReLegBrok" onchange="fnUpdHidFldSettings(this.checked, 'ReLegBrok', 'Re Enter After Profit from Brokerage!');" title="Select to Buy New Call" />
                                     </div>
+                                    <div class="col-2"></div>
 
                                     <div class="col-12">&nbsp;</div>
 
@@ -448,12 +461,17 @@
                             <div class="col-3">
                                 <h4>Open Position(s)</h4>
                             </div>
-                            <div class="col-2"></div>
                             <div class="col-1"></div>
                             <div class="col-2">
                                 <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                    <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtStepDFL" name="swtStepDFL" onchange="fnChangeStep();" />
+                                    <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtStepDFL" name="swtStepDFL" onchange="fnChangeTradeModeS2('step');" />
                                     <label for="swtStepDFL" style="cursor:pointer;text-wrap:nowrap;">Step Qty</label>
+                                </div>
+                            </div>
+                            <div class="col-2">
+                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                                    <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtMartiDFL" name="swtMartiDFL" onchange="fnChangeTradeModeS2('marti');" />
+                                    <label for="swtMartiDFL" style="cursor:pointer;text-wrap:nowrap;">Marti</label>
                                 </div>
                             </div>
                             <div class="col-1" style="text-align: right;">
@@ -461,7 +479,7 @@
                             </div>
                             <div class="col-1"><i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnRefreshAllOpenBrowser();"></i></div>
                             <div class="col-1" style="text-align: right;">
-                                <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px;" onclick="fnTest();">&nbsp;</span>
+                                <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px;" onclick="fnExitAllOpenPositionsByBadge();">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divOpenPosClps" role="button" aria-expanded="true" aria-controls="divOpenPosClps">
@@ -501,6 +519,34 @@
                                     </table>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" id="cardDeltaRenkoFeed">
+                    <div class="card-header">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <h5 class="mb-0 me-2">Delta Renko-style Feed</h5>
+                            <label for="txtRenkoFeedPts" class="mb-0 small text-muted">Point</label>
+                            <input type="number" class="form-control form-control-sm" id="txtRenkoFeedPts" value="200" min="1" onchange="fnUpdateRenkoFeedStep(this);" style="width: 90px;" />
+                            <label for="ddlRenkoFeedPriceSrc" class="mb-0 small text-muted">Source</label>
+                            <select id="ddlRenkoFeedPriceSrc" class="form-select form-select-sm" onchange="fnUpdateRenkoFeedPriceSource(this);" style="width: 130px;">
+                                <option value="mark_price" selected>Mark Price</option>
+                                <option value="spot_price">Spot Price</option>
+                                <option value="best_bid">Best Bid</option>
+                                <option value="best_ask">Best Ask</option>
+                            </select>
+                            <label for="txtRenkoBuyPatterns" class="mb-0 small text-muted">Buy</label>
+                            <input type="text" id="txtRenkoBuyPatterns" class="form-control form-control-sm" placeholder="GGR,GRRG" value="RRG,GRG" onchange="fnUpdateRenkoPatterns(this, 'buy');" style="width: 190px;" />
+                            <label for="txtRenkoSellPatterns" class="mb-0 small text-muted">Sell</label>
+                            <input type="text" id="txtRenkoSellPatterns" class="form-control form-control-sm" placeholder="RRGRR,RGRR" value="GGR,RGR" onchange="fnUpdateRenkoPatterns(this, 'sell');" style="width: 190px;" />
+                            <span class="small text-muted ms-2" id="spnRenkoFeedMeta">Symbol: -</span>
+                            <button class="btn btn-outline-secondary btn-sm ms-auto" type="button" onclick="fnClearRenkoFeedLog();">Clear</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="divRenkoFeedMsgs" class="renko-feed-log">
+                            <div class="renko-feed-item text-muted">Feed is idle. Turn on "Delta Renko Feed" switch in Manual Trader header.</div>
                         </div>
                     </div>
                 </div>
