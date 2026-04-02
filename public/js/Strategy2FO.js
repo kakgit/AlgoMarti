@@ -1896,6 +1896,148 @@ function fnSetNextTradeQtySettings(pIsFullClose = true){
     fnApplyQtyToAllTradeInputs(vNextQty);
 }
 
+function fnGetLossRecoveryTargetAmtS2(pYetRecAmt){
+    let vYet = Number(pYetRecAmt);
+    if(!Number.isFinite(vYet) || vYet >= 0){
+        return 0;
+    }
+    const vX = fnParsePositiveNumber(gMultiplierX, 1.0);
+    return Math.abs(vYet) * vX;
+}
+
+function fnCloseOpenLegByQtyS2(objLegRef, pCloseQty, pNowTxt){
+    const vCloseQty = Math.floor(Number(pCloseQty));
+    const vCurrQty = Math.floor(Number(objLegRef?.LotQty));
+    if(!objLegRef || !Number.isFinite(vCurrQty) || vCurrQty < 1 || !Number.isFinite(vCloseQty) || vCloseQty < 1){
+        return false;
+    }
+    if(vCloseQty >= vCurrQty){
+        return false;
+    }
+
+    const vStrikePrice = parseFloat(objLegRef.StrikePrice || 0);
+    const vLotSize = parseFloat(objLegRef.LotSize || 0);
+    const vBuyPrice = parseFloat(objLegRef.BuyPrice || 0);
+    const vSellPrice = parseFloat(objLegRef.SellPrice || 0);
+    const vOptionType = objLegRef.OptionType || "F";
+    const vCharges = fnGetTradeCharges(vStrikePrice, vLotSize, vCloseQty, vBuyPrice, vSellPrice, vOptionType);
+    const vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vCloseQty, vCharges);
+
+    if(!gClsdPosDSSDV2 || !Array.isArray(gClsdPosDSSDV2.TradeData)){
+        gClsdPosDSSDV2 = { TradeData : [] };
+    }
+
+    let objClosedLeg = { ...objLegRef };
+    objClosedLeg.TradeID = Date.now() + Math.floor(Math.random() * 1000);
+    objClosedLeg.LotQty = vCloseQty;
+    objClosedLeg.CloseDT = pNowTxt;
+    objClosedLeg.Status = "CLOSED";
+    gClsdPosDSSDV2.TradeData.push(objClosedLeg);
+
+    objLegRef.LotQty = vCurrQty - vCloseQty;
+
+    let objBrokAmt = document.getElementById("txtBrok2Rec");
+    let objYet2Recvr = document.getElementById("txtYet2Recvr");
+    let vYet2RecvrAmt = parseFloat(objYet2Recvr?.value);
+    if(!Number.isFinite(vYet2RecvrAmt)){
+        vYet2RecvrAmt = parseFloat(gOtherFlds?.[0]?.Yet2RecvrAmt);
+    }
+    if(!Number.isFinite(vYet2RecvrAmt)){
+        vYet2RecvrAmt = 0;
+    }
+    gOtherFlds[0]["Yet2RecvrAmt"] = vYet2RecvrAmt + vPL;
+    if(objYet2Recvr){
+        objYet2Recvr.value = gOtherFlds[0]["Yet2RecvrAmt"];
+    }
+
+    if(vPL > 0 && objBrokAmt){
+        let vBrok = parseFloat(objBrokAmt.value);
+        if(!Number.isFinite(vBrok)){
+            vBrok = parseFloat(gOtherFlds?.[0]?.BrokerageAmt);
+        }
+        if(!Number.isFinite(vBrok)){
+            vBrok = 0;
+        }
+        if(vBrok >= vCharges){
+            gOtherFlds[0]["BrokerageAmt"] = vBrok - vCharges;
+            objBrokAmt.value = gOtherFlds[0]["BrokerageAmt"];
+        }
+    }
+
+    return true;
+}
+
+function fnTryLossRecoveryPartialCloseS2(){
+    if(!gCurrPosDSSDV2 || !Array.isArray(gCurrPosDSSDV2.TradeData)){
+        return false;
+    }
+
+    let objOpenLegs = gCurrPosDSSDV2.TradeData.filter(objLeg => objLeg && objLeg.Status === "OPEN");
+    if(objOpenLegs.length === 0){
+        return false;
+    }
+
+    let objYet2Recvr = document.getElementById("txtYet2Recvr");
+    let vYetRecAmt = Number(objYet2Recvr?.value);
+    if(!Number.isFinite(vYetRecAmt)){
+        vYetRecAmt = Number(gOtherFlds?.[0]?.Yet2RecvrAmt);
+    }
+    if(!Number.isFinite(vYetRecAmt) || vYetRecAmt >= 0){
+        return false;
+    }
+
+    const vTarget = fnGetLossRecoveryTargetAmtS2(vYetRecAmt);
+    if(!Number.isFinite(vTarget) || vTarget <= 0 || Number(gPL) < vTarget){
+        return false;
+    }
+
+    const vLossPct = fnParsePositiveNumber(gLossRecPerct, 100);
+    if(vLossPct >= 100){
+        fnExitAllPositions();
+        return true;
+    }
+
+    let vDate = new Date();
+    let vMonth = vDate.getMonth() + 1;
+    let vNowTxt = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
+    let bClosedAny = false;
+
+    for(let i=0; i<objOpenLegs.length; i++){
+        const vCurrQty = Math.floor(Number(objOpenLegs[i].LotQty));
+        if(!Number.isFinite(vCurrQty) || vCurrQty <= 1){
+            continue;
+        }
+
+        let vCloseQty = Math.floor((vCurrQty * vLossPct) / 100);
+        if(vCloseQty < 1){
+            vCloseQty = 1;
+        }
+        if(vCloseQty >= vCurrQty){
+            vCloseQty = vCurrQty - 1;
+        }
+        if(vCloseQty < 1){
+            continue;
+        }
+
+        const bLegClosed = fnCloseOpenLegByQtyS2(objOpenLegs[i], vCloseQty, vNowTxt);
+        bClosedAny = bClosedAny || bLegClosed;
+    }
+
+    if(!bClosedAny){
+        fnExitAllPositions();
+        return true;
+    }
+
+    localStorage.setItem("CurrPosDSSDV2", JSON.stringify(gCurrPosDSSDV2));
+    localStorage.setItem("ClsdPosDSSDV2", JSON.stringify(gClsdPosDSSDV2));
+    localStorage.setItem("HidFldsDSSDV2", JSON.stringify(gOtherFlds));
+    fnSetSymbolTickerList();
+    fnUpdateOpenPositions();
+    fnDispClosedPositions();
+    fnGenMessage("Partial loss-recovery close executed.", `badge bg-success`, "spnGenMsg");
+    return true;
+}
+
 function fnChkTodayPosToCls(){
     let vTodayDate = new Date();
     let vDDMMYYYY = fnSetDDMMYYYY(vTodayDate);
@@ -1970,6 +2112,11 @@ async function fnSaveUpdCurrPos(){
     }
 
     document.getElementById("divNetPL").innerText = (vTotalPL).toFixed(2);
+
+    if(fnTryLossRecoveryPartialCloseS2()){
+        gSaveUpdBusy = false;
+        return;
+    }
 
     if((vTotalPL > vBrokAmt) && vBrokSwt){
         console.log("Close All Positions...");
