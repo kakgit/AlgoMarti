@@ -1,8 +1,34 @@
 
+function fnLoadLoginCred(){
+    let objApiKey = document.getElementById("txtUserAPIKey");
+    let objApiSecret = document.getElementById("txtAPISecret");
+    let objTgBotToken = document.getElementById("txtTelegramBotToken");
+    let objTgChatId = document.getElementById("txtTelegramChatId");
+    let vApiKey = JSON.parse(localStorage.getItem("lsApiKeyLS2FOLV"));
+    let vApiSecret = JSON.parse(localStorage.getItem("lsApiSecretLS2FOLV"));
+    let vTgBotToken = JSON.parse(localStorage.getItem("lsTgBotTokenLS2FOLV"));
+    let vTgChatId = JSON.parse(localStorage.getItem("lsTgChatIdLS2FOLV"));
+
+    if(vApiKey === null || vApiKey === ""){
+        objApiKey.value = "";
+        objApiSecret.value = "";
+    }
+    else{
+        objApiKey.value = vApiKey;
+        objApiSecret.value = vApiSecret;        
+    }
+
+    if(objTgBotToken){
+        objTgBotToken.value = vTgBotToken || "";
+    }
+    if(objTgChatId){
+        objTgChatId.value = vTgChatId || "";
+    }
+}
+
 function fnGetSetTraderLoginStatus(){
-    let vTraderStatus = localStorage.getItem("lsDFSDLoginValid");
+    let vTraderStatus = localStorage.getItem("lsLoginValidLS2FOLV");
     let objTraderStatus = document.getElementById("btnTraderStatus");
-    let lsPrevSessionDate = localStorage.getItem("lsDFSDLoginDate");
 
     if(vTraderStatus === "true"){
         fnChangeBtnProps(objTraderStatus.id, "badge bg-success", "Trader - Valid");
@@ -47,7 +73,7 @@ function fnValidateDeltaLogin(){
 
         let vAction = JSON.stringify({
             "ApiKey" : objApiKey.value,
-            "ApiSecret" : objApiSecret.value,
+            "ApiSecret" : objApiSecret.value
         });
 
         let requestOptions = {
@@ -57,40 +83,39 @@ function fnValidateDeltaLogin(){
             redirect: 'follow'
         };
 
-        fetch("/deltaFutScprDemo/validateLogin", requestOptions)
+        fetch("/liveStrategy2fo/validateLogin", requestOptions)
         .then(response => response.json())
         .then(objResult => {
             if(objResult.status === "success"){
-                console.log(objResult.data);
+                // console.log(objResult.data);
+                localStorage.setItem("lsApiKeyLS2FOLV", JSON.stringify(objApiKey.value));
+                localStorage.setItem("lsApiSecretLS2FOLV", JSON.stringify(objApiSecret.value));
+                localStorage.setItem("lsTgBotTokenLS2FOLV", JSON.stringify(objTgBotToken?.value || ""));
+                localStorage.setItem("lsTgChatIdLS2FOLV", JSON.stringify(objTgChatId?.value || ""));
 
-                let objBalances = { BalanceINR: objResult.data.result[0].available_balance_inr, BalanceUSD: objResult.data.result[0].available_balance };
-                localStorage.setItem("DFSD_NetLimit", JSON.stringify(objBalances));
-                console.log(localStorage.getItem("DFSD_NetLimit"));
-                localStorage.setItem("lsTgBotTokenDFSD", JSON.stringify(objTgBotToken?.value || ""));
-                localStorage.setItem("lsTgChatIdDFSD", JSON.stringify(objTgChatId?.value || ""));
+                // let objBalances = { Acc1BalINR: objResult.data[0].available_balance_inr, Acc1BalUSD: objResult.data[0].available_balance };
+                // document.getElementById("spnBal1").innerText = (parseFloat(objBalances.Acc1BalUSD)).toFixed(2);
 
-                const vDate = new Date();
-                let vToday = vDate.getDate();            
-                localStorage.setItem("lsDFSDLoginDate", vToday);
+                // localStorage.setItem("NetLimitLS2FOLV", JSON.stringify(objBalances));
+                // console.log(localStorage.getItem("NetLimitLS2FOLV"));
 
                 $('#mdlDeltaLogin').modal('hide');
-                localStorage.setItem("lsDFSDLoginValid", "true");
-                objApiSecret.value = "";
+                localStorage.setItem("lsLoginValidLS2FOLV", "true");
                 fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-                fnGenMessage("Please Input Login Details", `badge bg-primary`, "spnDeltaLogin");
                 fnGetSetTraderLoginStatus();
+                if(typeof fnRefreshNetLimits === "function"){
+                    fnRefreshNetLimits();
+                }
             }
             else if(objResult.status === "danger"){
                 fnClearLoginStatus();
                 //ip_not_whitelisted_for_api_key
                 //invalid_api_key
-                const vErrCode = objResult?.data?.response?.body?.error?.code || "";
-                const vClientIp = objResult?.data?.response?.body?.error?.context?.client_ip || "";
-                if(vErrCode === "ip_not_whitelisted_for_api_key"){
-                    fnGenMessage(vErrCode + " IP: " + vClientIp, `badge bg-${objResult.status}`, "spnDeltaLogin");
+                if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
+                    fnGenMessage(objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, `badge bg-${objResult.status}`, "spnDeltaLogin");
                 }
                 else{
-                    fnGenMessage((vErrCode || "Login failed") + " Contact Admin!", `badge bg-${objResult.status}`, "spnDeltaLogin");
+                    fnGenMessage(objResult.data.response.body.error.code + " Contact Admin!", `badge bg-${objResult.status}`, "spnDeltaLogin");
                 }
             }
             else if(objResult.status === "warning"){
@@ -104,33 +129,15 @@ function fnValidateDeltaLogin(){
         })
         .catch(error => {
             fnClearLoginStatus();
-            //console.log('error: ', error);
+            console.log('error: ', error);
             fnGenMessage("Error to Fetch with Login Details.", `badge bg-danger`, "spnDeltaLogin");
         });
     }
 }
 
-window.addEventListener("DOMContentLoaded", function(){
-    let objTgBotToken = document.getElementById("txtTelegramBotToken");
-    let objTgChatId = document.getElementById("txtTelegramChatId");
-    let vTgBotToken = JSON.parse(localStorage.getItem("lsTgBotTokenDFSD") || "null");
-    let vTgChatId = JSON.parse(localStorage.getItem("lsTgChatIdDFSD") || "null");
-
-    if(objTgBotToken){
-        objTgBotToken.value = vTgBotToken || "";
-    }
-    if(objTgChatId){
-        objTgChatId.value = vTgChatId || "";
-    }
-});
-
-function fnChangeLater(){
-    $('#mdlDeltaLogin').modal('show');
-}
-
 function fnToggleAutoTrader(){
     let bAppStatus = JSON.parse(localStorage.getItem("AppMsgStatusS"));
-    let isLsAutoTrader = localStorage.getItem("isDFSDAutoTrader");
+    let isLsAutoTrader = localStorage.getItem("isAutoTraderLS2FOLV");
     
     let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
 
@@ -138,12 +145,12 @@ function fnToggleAutoTrader(){
         if(isLsAutoTrader === null || isLsAutoTrader === "false"){
             fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-success", "Auto Trader - ON");
             fnGenMessage("Auto Trading Mode is ON!", `badge bg-success`, "spnGenMsg");
-            localStorage.setItem("isDFSDAutoTrader", "true");
+            localStorage.setItem("isAutoTraderLS2FOLV", "true");
         }
         else{
             fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
             fnGenMessage("Auto Trading Mode is OFF!", `badge bg-danger`, "spnGenMsg");
-            localStorage.setItem("isDFSDAutoTrader", "false");
+            localStorage.setItem("isAutoTraderLS2FOLV", "false");
         }
     }
     else{
@@ -152,7 +159,7 @@ function fnToggleAutoTrader(){
 }
 
 function fnGetSetAutoTraderStatus(){
-    let isLsAutoTrader = localStorage.getItem("isDFSDAutoTrader");
+    let isLsAutoTrader = localStorage.getItem("isAutoTraderLS2FOLV");
     let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
 
     if(isLsAutoTrader === "true")
@@ -162,26 +169,30 @@ function fnGetSetAutoTraderStatus(){
     else
     {
         fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
-        localStorage.setItem("isDFSDAutoTrader", "false");
+        localStorage.setItem("isAutoTraderLS2FOLV", "false");
     }
 }
 
 function fnClearLoginStatus(){
-    localStorage.removeItem("lsDFSDLoginValid");
-    localStorage.removeItem("isDFSDAutoTrader");
+    localStorage.removeItem("lsLoginValidLS2FOLV");
+    localStorage.removeItem("isAutoTraderLS2FOLV");
 
     fnGetSetTraderLoginStatus();
 }
 
-function fnClearPrevLoginSession(){
-    //let objSession = document.getElementById("txtKotakSession");
-    gIsTraderLogin = false;
-    localStorage.removeItem("lsDFSDLoginDate");
-    localStorage.removeItem("isDFSDAutoTrader");
-    localStorage.removeItem("lsDFSDLoginValid");
-    localStorage.removeItem("DFSD_NetLimit");
+function fnGetSetAutoTraderStatus(){
+    let isLsAutoTrader = localStorage.getItem("isAutoTraderLS2FOLV");
+    let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
 
-  //objSession.value = "";
-  //fnChangeBtnProps("btnTraderStatus", "badge bg-danger", "Trader - Disconnected");
+    if(isLsAutoTrader === "true")
+    {
+        fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-success", "Auto Trader - ON");
+    }
+    else
+    {
+        fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
+        localStorage.setItem("isAutoTraderLS2FOLV", "false");
+    }
 }
+
 

@@ -3948,13 +3948,8 @@ function fnClearLocalStorageTemp(){
     gRenkoBuyState.Busy = false;
     localStorage.removeItem("DFSL_CurrFutPos");
 	localStorage.removeItem("DFSL_TrdBkFut");
-	localStorage.removeItem("DFSL_StartQtyNo");
     localStorage.removeItem("DFSL_LossRecM");
     localStorage.removeItem("DFSL_MultiplierX");
-	localStorage.removeItem("DFSL_Marti");
-    localStorage.removeItem("DFSL_TradeMode");
-    localStorage.removeItem("DFSL_RenkoFilterGOL");
-    localStorage.removeItem("DFSL_RenkoFilterROH");
     localStorage.removeItem("DFSL_LastOpenBrokerage");
     localStorage.removeItem("DFSL_LastCloseBrokerage");
     localStorage.removeItem("DFSL_Y2RBrokerCarry");
@@ -3962,9 +3957,7 @@ function fnClearLocalStorageTemp(){
     localStorage.removeItem("DFSL_SellActBelow");
     localStorage.removeItem("DFSL_SellActSL");
     localStorage.removeItem("DFSL_SellActTP");
-	localStorage.setItem("DFSL_QtyMul", 0);
 	localStorage.setItem("DFSL_TotLossAmt", 0);
-	localStorage.removeItem("DFSL_CurrFutSlTp");
     clearInterval(gTimerID);
 
 	fnGetAllStatus();

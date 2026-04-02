@@ -291,10 +291,10 @@
                             <div class="col-12 col-lg-2">
                                 <h4>Open Position(s)</h4>
                             </div>
-                            <div class="col-12 col-lg-2">
-                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                            <div class="col-12 col-lg-3">
+                                <div class="form-check form-switch fs-6" style="white-space: normal;">
                                     <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtTradeCounter" name="swtAutoChkPosition" onchange="fnUpdateTrdSwtCounter();" />
-                                    <label id="divTimer" for="swtAutoChkPosition" style="cursor:pointer;text-wrap:nowrap;">Trade closes in <span id="time"></span> minutes!</label>
+                                    <label id="divTimer" for="swtAutoChkPosition" style="cursor:pointer;white-space:normal;">Trade closes in <span id="time"></span> minutes!</label>
                                 </div>
                             </div>
                             <div class="col-12 col-lg-2">
@@ -312,8 +312,8 @@
                             <div class="col-6 col-lg-1 text-lg-end">
                                 <button class='nav-link' onclick="fnClearLocalStorageTemp();" role="tab" type="button">Clear All</button>
                             </div>
-                            <div class="col-4 col-lg-2 text-center text-lg-end">
-                                <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px;" onclick="fnTest();">&nbsp;</span>
+                            <div class="col-4 col-lg-1 text-center text-lg-end">
+                                <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnCloseAllOpenPositionsDFSD();">&nbsp;</span>
                             </div>
                             <div class="col-2 col-lg-1 text-end">
                                 <a data-bs-toggle="collapse" href="#divOpenPosClps" role="button" aria-expanded="true" aria-controls="divOpenPosClps">
@@ -329,6 +329,7 @@
                                     <table class="table table-sm table-hover">
                                         <thead>
                                             <tr style="text-align:center;">
+                                                <th scope="col" style="text-wrap: nowrap;">Action</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Symbol</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Tr Type</th>
@@ -343,6 +344,7 @@
                                         </thead>
                                         <tbody>
                                             <tr style="text-align:center;">
+                                                <td id="tdAction" style="text-wrap: nowrap; text-align:center;"></td>
                                                 <td id="tdDateTime" style="text-wrap: nowrap;"></td>
                                                 <td id="tdSymbol" style="text-wrap: nowrap;"></td>
                                                 <td id="tdTransType" style="text-wrap: nowrap;"></td>
@@ -456,6 +458,7 @@
                                     <table class="table table-sm table-hover">
                                         <thead>
                                             <tr style="text-align:center;">
+                                                <th scope="col" style="text-wrap: nowrap;">Action</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
                                                 <th scope="col" style="text-wrap: nowrap;">End Date Time</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Symbol</th>

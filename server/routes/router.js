@@ -26,6 +26,7 @@ const strategy1FOCtrler = require("../controller/cntrStrategy1FO.js");
 const strategy2FOCtrler = require("../controller/cntrStrategy2FO.js");
 const strategy3FOCtrler = require("../controller/cntrStrategy3FO.js");
 const liveStrategy1FOCtrler = require("../controller/cntrLiveStrategy1FO.js");
+const liveStrategy2FOCtrler = require("../controller/cntrLiveStrategy2FO.js");
 const deltaSStrangleLiveCtrler = require("../controller/cntrDeltaSStrangleL.js");
 const ctrlCryptoFunding = require("../controller/controllerCryptoFunding.js");
 const ctrlCryptoFundingV2 = require("../controller/controllerCryptoFundingV2.js");
@@ -81,6 +82,7 @@ route.get("/Strategy1FO", strategy1FOCtrler.defaultRoute);
 route.get("/Strategy2FO", strategy2FOCtrler.defaultRoute);
 route.get("/Strategy3FO", strategy3FOCtrler.defaultRoute);
 route.get("/LiveStrategy1FO", liveStrategy1FOCtrler.defaultRoute);
+route.get("/LiveStrategy2FO", liveStrategy2FOCtrler.defaultRoute);
 
 //Delta Short Strangle Live Route
 route.get("/deltaSStrangleLive", deltaSStrangleLiveCtrler.defaultRoute);
@@ -234,6 +236,7 @@ route.post("/strategy2fo/execOption", strategy2FOCtrler.fnExecOptionByOptTypeExp
 route.post("/strategy2fo/execOptionLeg", strategy2FOCtrler.fnExecOptByOTypExpTType);
 route.post("/strategy2fo/execFutureLeg", strategy2FOCtrler.fnExecFutByTType);
 route.post("/strategy2fo/getBestRatesBySymb", strategy2FOCtrler.fnGetBestRatesBySymbol);
+route.post("/strategy2fo/sendTelegramAlert", strategy2FOCtrler.fnSendTelegramAlertMsg);
 route.post("/strategy3fo/validateLogin", strategy3FOCtrler.fnValidateUserLogin);
 route.post("/strategy3fo/getOptChnSDKByAstOptTypExp", strategy3FOCtrler.fnGetOptChnSDKByAstOptTypExp);
 route.post("/strategy3fo/execOption", strategy3FOCtrler.fnExecOptionByOptTypeExpTransType);
@@ -256,6 +259,17 @@ route.post("/liveStrategy1fo/closeLeg", liveStrategy1FOCtrler.fnCloseLeg);
 route.post("/liveStrategy1fo/getLiveOpenPositions", liveStrategy1FOCtrler.fnGetLiveOpenPositions);
 route.post("/liveStrategy1fo/getBestRatesBySymb", liveStrategy1FOCtrler.fnGetBestRatesBySymbol);
 route.post("/liveStrategy1fo/getFilledOrderHistory", liveStrategy1FOCtrler.fnGetFilledOrderHistory);
+route.post("/liveStrategy2fo/validateLogin", liveStrategy2FOCtrler.fnValidateUserLogin);
+route.post("/liveStrategy2fo/getOptChnSDKByAstOptTypExp", liveStrategy2FOCtrler.fnGetOptChnSDKByAstOptTypExp);
+route.post("/liveStrategy2fo/execOption", liveStrategy2FOCtrler.fnExecOptionByOptTypeExpTransType);
+route.post("/liveStrategy2fo/execOptionLeg", liveStrategy2FOCtrler.fnExecOptByOTypExpTType);
+route.post("/liveStrategy2fo/execFutureLeg", liveStrategy2FOCtrler.fnExecFutByTType);
+route.post("/liveStrategy2fo/abortPendingFutOrders", liveStrategy2FOCtrler.fnAbortPendingFutOrders);
+route.post("/liveStrategy2fo/sendTelegramAlert", liveStrategy2FOCtrler.fnSendTelegramAlertMsg);
+route.post("/liveStrategy2fo/closeLeg", liveStrategy2FOCtrler.fnCloseLeg);
+route.post("/liveStrategy2fo/getLiveOpenPositions", liveStrategy2FOCtrler.fnGetLiveOpenPositions);
+route.post("/liveStrategy2fo/getBestRatesBySymb", liveStrategy2FOCtrler.fnGetBestRatesBySymbol);
+route.post("/liveStrategy2fo/getFilledOrderHistory", liveStrategy2FOCtrler.fnGetFilledOrderHistory);
 //Delta Short Strangle Live Routes
 route.post("/deltaSStrangleLive/validateLogin", deltaSStrangleLiveCtrler.fnValidateUserLogin);
 route.post("/deltaSStrangleLive/getWalletDetails", deltaSStrangleLiveCtrler.fnWalletDetails);
@@ -295,6 +309,7 @@ route.post("/deltaFutScprDemo/validateLogin", deltaFutScprDemoController.fnValid
 route.post("/deltaFutScprDemo/getHistOHLC", deltaFutScprDemoController.fnHistoricalOHLCAPI);
 route.post("/deltaFutScprDemo/getCurrBSRates", deltaFutScprDemoController.fnGetCurrBuySellRates);
 route.post("/deltaFutScprDemo/placeLimitOrder", deltaFutScprDemoController.fnPlaceLimitOrderSDK);
+route.post("/deltaFutScprDemo/sendTelegramAlert", deltaFutScprDemoController.fnSendTelegramAlertMsg);
 route.post("/renkoDualBacktest/run", renkoDualBacktestCtrler.fnRunBacktest);
 
 //Delta Options Routes
