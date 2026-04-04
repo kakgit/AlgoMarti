@@ -168,9 +168,11 @@
                                         Lot Size
                                     </div>
                                     <div class="col-12 col-md-2">
-                                        Order Type
+                                        Open Order Type
                                     </div>
-                                    <div class="col-12 col-md-2"></div>
+                                    <div class="col-12 col-md-2">
+                                        Close Order Type
+                                    </div>
 
                                     <div class="col-12 col-md-2">
                                         <select id="ddlIndicatorType" class="form-select" onchange="fnSetIndicatorType(this.value);" title="Select Indicator">
@@ -193,12 +195,17 @@
                                         <input type="text" value="0.001" id="txtLotSize" class="form-control" />
                                     </div>
                                     <div class="col-12 col-md-2">
-                                        <select id="ddlOrderType" class="form-select" placeholder="Select Order Type" onchange="fnChangeOrderType(this.value);">
+                                        <select id="ddlOpenOrderType" class="form-select" placeholder="Select Open Order Type" onchange="fnChangeOpenOrderType(this.value);">
                                             <option value='limit_order'>Limit Order</option>
                                             <option value='market_order' selected>Market Order</option>
                                         </select>
                                     </div>
-                                    <div class="col-12 col-md-2"></div>
+                                    <div class="col-12 col-md-2">
+                                        <select id="ddlCloseOrderType" class="form-select" placeholder="Select Close Order Type" onchange="fnChangeCloseOrderType(this.value);">
+                                            <option value='limit_order'>Limit Order</option>
+                                            <option value='market_order' selected>Market Order</option>
+                                        </select>
+                                    </div>
 
                                     <div class="col-2">Loss Recovery %</div>
                                     <div class="col-2">X-Multiplier</div>
@@ -381,9 +388,10 @@
                             <div class="row row-tight align-items-center">
                                 <div class="col-5"></div>
                                 <div class="col-1">SL Points</div>
+                                <div class="col-1">T-SL Points</div>
                                 <div class="col-1">TP Points</div>
                                 <div class="col-1">TP Amount</div>
-                                <div class="col-4"></div>
+                                <div class="col-3"></div>
                                 <div class="col-1">
                                     <input type="number" class="form-control" placeholder="Trade Exit Max Time" id="txtTrdExitTime" value="30" />
                                 </div>
@@ -399,12 +407,15 @@
                                     <input type="number" class="form-control" placeholder="SL Points" id="txtPointsSL" />
                                 </div>
                                 <div class="col-1">
+                                    <input type="number" class="form-control" placeholder="T-SL Points" id="txtPointsTSL" value="0" />
+                                </div>
+                                <div class="col-1">
                                     <input type="number" class="form-control" placeholder="TP Points" id="txtPointsTP1" />
                                 </div>
                                 <div class="col-1">
                                     <input type="number" class="form-control" placeholder="TP Amount" id="txtPointsTP" />
                                 </div>
-                                <div class="col-4">
+                                <div class="col-3">
                                     <div class="d-grid gap-1">
                                         <button class="btn btn-outline-warning" onclick="fnUpdateSlTp();"><b>UPDATE</b></button>
                                     </div>
@@ -497,33 +508,23 @@
 
                 <div class="card" id="cardDeltaRenkoFeed">
                     <div class="card-header">
-                        <div class="row align-items-center g-2">
-                            <div class="col-12 col-lg-4">
-                                <h5>Delta Renko-style Feed</h5>
-                            </div>
-                            <div class="col-6 col-lg-2">
-                                <label for="txtRenkoFeedPts" class="form-label mb-0">Point Change</label>
-                            </div>
-                            <div class="col-6 col-lg-2">
-                                <input type="number" class="form-control form-control-sm" id="txtRenkoFeedPts" value="100" min="1" onchange="fnUpdateRenkoFeedStep(this);" />
-                            </div>
-                            <div class="col-6 col-lg-2">
-                                <label for="ddlRenkoFeedPriceSrc" class="form-label mb-0">Price Source</label>
-                            </div>
-                            <div class="col-6 col-lg-2">
-                                <select id="ddlRenkoFeedPriceSrc" class="form-select form-select-sm" onchange="fnUpdateRenkoFeedPriceSource(this);">
-                                    <option value="mark_price" selected>Mark Price</option>
-                                    <option value="spot_price">Spot Price</option>
-                                    <option value="best_bid">Best Bid</option>
-                                    <option value="best_ask">Best Ask</option>
-                                </select>
-                            </div>
-                            <div class="col-6 col-lg-2">
-                                <span class="small text-muted" id="spnRenkoFeedMeta">Symbol: -</span>
-                            </div>
-                            <div class="col-6 col-lg-2 text-lg-end">
-                                <button class="btn btn-outline-secondary btn-sm" type="button" onclick="fnClearRenkoFeedLog();">Clear</button>
-                            </div>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <h5 class="mb-0 me-2">Delta Renko-style Feed</h5>
+                            <label for="txtRenkoFeedPts" class="mb-0 small text-muted">Point</label>
+                            <input type="number" class="form-control form-control-sm" id="txtRenkoFeedPts" value="200" min="1" onchange="fnUpdateRenkoFeedStep(this);" style="width: 90px;" />
+                            <label for="ddlRenkoFeedPriceSrc" class="mb-0 small text-muted">Source</label>
+                            <select id="ddlRenkoFeedPriceSrc" class="form-select form-select-sm" onchange="fnUpdateRenkoFeedPriceSource(this);" style="width: 130px;">
+                                <option value="mark_price" selected>Mark Price</option>
+                                <option value="spot_price">Spot Price</option>
+                                <option value="best_bid">Best Bid</option>
+                                <option value="best_ask">Best Ask</option>
+                            </select>
+                            <label for="txtRenkoBuyPatterns" class="mb-0 small text-muted">Buy</label>
+                            <input type="text" id="txtRenkoBuyPatterns" class="form-control form-control-sm" placeholder="GGR,GRRG" value="RRG,GRG" onchange="fnUpdateRenkoPatterns(this, 'buy');" style="width: 190px;" />
+                            <label for="txtRenkoSellPatterns" class="mb-0 small text-muted">Sell</label>
+                            <input type="text" id="txtRenkoSellPatterns" class="form-control form-control-sm" placeholder="RRGRR,RGRR" value="GGR,RGR" onchange="fnUpdateRenkoPatterns(this, 'sell');" style="width: 190px;" />
+                            <span class="small text-muted ms-2" id="spnRenkoFeedMeta">Symbol: -</span>
+                            <button class="btn btn-outline-secondary btn-sm ms-auto" type="button" onclick="fnClearRenkoFeedLog();">Clear</button>
                         </div>
                     </div>
                     <div class="card-body">
