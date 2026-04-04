@@ -312,6 +312,7 @@ route.post("/deltaFutScprDemo/getHistOHLC", deltaFutScprDemoController.fnHistori
 route.post("/deltaFutScprDemo/getCurrBSRates", deltaFutScprDemoController.fnGetCurrBuySellRates);
 route.post("/deltaFutScprDemo/placeLimitOrder", deltaFutScprDemoController.fnPlaceLimitOrderSDK);
 route.post("/deltaFutScprDemo/sendTelegramAlert", deltaFutScprDemoController.fnSendTelegramAlertMsg);
+route.post("/deltaFutScprLive/sendTelegramAlert", deltaFutScprLiveController.fnSendTelegramAlertMsg);
 route.post("/hlFutSclprDemo/validateLogin", hlFutSclprDemoController.fnValidateUserLogin);
 route.post("/hlFutSclprDemo/getHistOHLC", hlFutSclprDemoController.fnHistoricalOHLCAPI);
 route.post("/hlFutSclprDemo/getCurrBSRates", hlFutSclprDemoController.fnGetCurrBuySellRates);

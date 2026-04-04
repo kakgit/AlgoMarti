@@ -35,17 +35,27 @@ function fnExtractWalletRows(pRespData){
 function fnLoadLoginCreds(){
     const objApiKey = document.getElementById("txtUserAPIKey");
     const objApiSecret = document.getElementById("txtAPISecret");
+    const objTgBotToken = document.getElementById("txtTelegramBotToken");
+    const objTgChatId = document.getElementById("txtTelegramChatId");
     if(!objApiKey || !objApiSecret){
         return;
     }
 
     const vApiKey = localStorage.getItem("DFSL_ApiKey");
     const vApiSecret = localStorage.getItem("DFSL_ApiSecret");
+    const vTgBotToken = localStorage.getItem("DFSL_TgBotToken");
+    const vTgChatId = localStorage.getItem("DFSL_TgChatId");
     if(vApiKey){
         objApiKey.value = vApiKey;
     }
     if(vApiSecret){
         objApiSecret.value = vApiSecret;
+    }
+    if(objTgBotToken){
+        objTgBotToken.value = vTgBotToken || "";
+    }
+    if(objTgChatId){
+        objTgChatId.value = vTgChatId || "";
     }
 }
 
@@ -80,6 +90,8 @@ function fnShowTraderLoginMdl(objThis){
 function fnValidateDeltaLogin(){
     let objApiKey = document.getElementById("txtUserAPIKey");
     let objApiSecret = document.getElementById("txtAPISecret");
+    let objTgBotToken = document.getElementById("txtTelegramBotToken");
+    let objTgChatId = document.getElementById("txtTelegramChatId");
 
     if(objApiKey.value === ""){
         objApiKey.focus();
@@ -119,6 +131,8 @@ function fnValidateDeltaLogin(){
                 localStorage.setItem("DFSL_NetLimit", JSON.stringify(objBalances));
                 localStorage.setItem("DFSL_ApiKey", objApiKey.value);
                 localStorage.setItem("DFSL_ApiSecret", objApiSecret.value);
+                localStorage.setItem("DFSL_TgBotToken", String(objTgBotToken?.value || "").trim());
+                localStorage.setItem("DFSL_TgChatId", String(objTgChatId?.value || "").trim());
                 console.log(localStorage.getItem("DFSL_NetLimit"));
                 if(typeof fnLoadNetLimits === "function"){
                     fnLoadNetLimits();

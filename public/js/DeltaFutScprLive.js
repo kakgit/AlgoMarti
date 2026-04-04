@@ -35,6 +35,14 @@ let gCloseInFlight = false;
 let gCloseStartedAt = 0;
 let gLastCloseReason = "";
 const gCloseLockTimeoutMs = 20000;
+let gTelegramHeartbeatTimer = null;
+let gFnGenMessageWrapped = false;
+let gLastTgErrAlertKey = "";
+let gLastTgErrAlertTs = 0;
+let gAppConnDown = false;
+let gAppConnDownSince = 0;
+let gAppConnDownReason = "";
+let gLastTgConnAlertTs = 0;
 let gRenkoSellState = {
     LastBox: null,
     LastBoxSize: 0,
@@ -88,7 +96,239 @@ function fnRequestClose(pReason = "", pMode = "full"){
     return fnCloseManualFutures(gByorSl, pReason);
 }
 
+function fnGetTelegramConfig(){
+    let objTgBotToken = document.getElementById("txtTelegramBotToken");
+    let objTgChatId = document.getElementById("txtTelegramChatId");
+    return {
+        botToken: (objTgBotToken?.value || "").trim(),
+        chatId: (objTgChatId?.value || "").trim()
+    };
+}
+
+function fnInitRuntimeTelegramWatchers(){
+    if(!gFnGenMessageWrapped && typeof window.fnGenMessage === "function"){
+        const fnOrigGenMessage = window.fnGenMessage;
+        window.fnGenMessage = function(pMsg, pStyle, pSpnId){
+            try{
+                fnOrigGenMessage(pMsg, pStyle, pSpnId);
+            }
+            finally{
+                try{
+                    const vStyle = String(pStyle || "").toLowerCase();
+                    const vMsg = String(pMsg || "");
+                    if(vStyle.includes("bg-danger")){
+                        fnNotifyStrategyErrorToTelegram(vMsg);
+                    }
+                }
+                catch(_objErr){
+                    // no-op
+                }
+            }
+        };
+        gFnGenMessageWrapped = true;
+    }
+
+    fnStartHourlyTelegramHeartbeat();
+}
+
+function fnStartHourlyTelegramHeartbeat(){
+    if(gTelegramHeartbeatTimer !== null){
+        clearInterval(gTelegramHeartbeatTimer);
+    }
+    setTimeout(() => {
+        fnSendHeartbeatToTelegram();
+    }, 15000);
+
+    gTelegramHeartbeatTimer = setInterval(() => {
+        fnSendHeartbeatToTelegram();
+    }, 3600000);
+}
+
+function fnSendHeartbeatToTelegram(){
+    const vNetPnl = fnGetNetPnlValue();
+    const vY2R = fnGetYetToRecoverValue();
+    const vMsg = `DeltaFutScprLive\nApp is Up and Running\nNet PnL: ${vNetPnl.toFixed(2)}\nYet to Recover: ${vY2R.toFixed(2)}\nTime: ${new Date().toLocaleString("en-GB")}`;
+    fnSendTelegramRuntimeAlert(vMsg);
+}
+
+function fnGetNetPnlValue(){
+    const objNet = document.getElementById("tdHeadPL");
+    if(objNet){
+        const vTxt = String(objNet.innerText || objNet.textContent || "").replace(/,/g, "").trim();
+        const vNum = Number(vTxt);
+        if(Number.isFinite(vNum)){
+            return vNum;
+        }
+    }
+    return Number.isFinite(Number(gPL)) ? Number(gPL) : 0;
+}
+
+function fnGetYetToRecoverValue(){
+    const objY2R = document.getElementById("spnYtRL");
+    if(objY2R){
+        const vTxt = String(objY2R.innerText || objY2R.textContent || "").replace(/,/g, "").trim();
+        const vNum = Number(vTxt);
+        if(Number.isFinite(vNum)){
+            return vNum;
+        }
+    }
+    return 0;
+}
+
+function fnGetLossToRecoverAmt(){
+    const vAmt = Number(localStorage.getItem("DFSL_LossToRecAmt"));
+    if(Number.isFinite(vAmt) && vAmt > 0){
+        return vAmt;
+    }
+    // Backward-compatibility: migrate from legacy mixed bucket.
+    const vLegacy = Number(localStorage.getItem("DFSL_TotLossAmt"));
+    if(Number.isFinite(vLegacy) && vLegacy < 0){
+        return Math.abs(vLegacy);
+    }
+    return 0;
+}
+
+function fnSetLossToRecoverAmt(pAmt){
+    let vAmt = Number(pAmt);
+    if(!Number.isFinite(vAmt) || vAmt < 0){
+        vAmt = 0;
+    }
+    localStorage.setItem("DFSL_LossToRecAmt", vAmt.toFixed(2));
+    // Keep legacy recovery bucket strictly loss-only: 0 (recovered) or negative (loss pending).
+    localStorage.setItem("DFSL_TotLossAmt", (-vAmt).toFixed(2));
+    return vAmt;
+}
+
+function fnApplyLossToRecoverFromClosedTradePL(pTradePL){
+    const vPL = Number(pTradePL);
+    let vLossToRec = fnGetLossToRecoverAmt();
+    if(Number.isFinite(vPL)){
+        if(vPL < 0){
+            vLossToRec += Math.abs(vPL);
+        }
+        else if(vPL > 0){
+            vLossToRec = Math.max(0, vLossToRec - vPL);
+        }
+    }
+    return fnSetLossToRecoverAmt(vLossToRec);
+}
+
+function fnNotifyStrategyErrorToTelegram(pMsg){
+    const vMsg = String(pMsg || "").trim();
+    if(!vMsg){
+        return;
+    }
+    const vNow = Date.now();
+    const vKey = vMsg.slice(0, 180);
+    if(vKey === gLastTgErrAlertKey && (vNow - gLastTgErrAlertTs) < 30000){
+        return;
+    }
+    gLastTgErrAlertKey = vKey;
+    gLastTgErrAlertTs = vNow;
+    fnSendTelegramRuntimeAlert(`DeltaFutScprLive ERROR\n${vMsg}`);
+}
+
+function fnMarkAppDisconnected(pReason){
+    const vNow = Date.now();
+    if(!gAppConnDown){
+        gAppConnDown = true;
+        gAppConnDownSince = vNow;
+        gAppConnDownReason = String(pReason || "Connection lost");
+        if(vNow - gLastTgConnAlertTs > 30000){
+            gLastTgConnAlertTs = vNow;
+            fnSendTelegramRuntimeAlert(`DeltaFutScprLive\nConnection Disconnected\nReason: ${gAppConnDownReason}\nTime: ${new Date(vNow).toLocaleString("en-GB")}`);
+        }
+    }
+}
+
+function fnMarkAppReconnected(pSource){
+    const vNow = Date.now();
+    if(!gAppConnDown){
+        return;
+    }
+    const vDownMs = Math.max(0, vNow - gAppConnDownSince);
+    const vDownSec = Math.round(vDownMs / 1000);
+    const vMsg = `DeltaFutScprLive\nConnection Reconnected\nSource: ${String(pSource || "Recovered")}\nDowntime: ${vDownSec}s\nPrevious Reason: ${gAppConnDownReason || "-"}`;
+    gAppConnDown = false;
+    gAppConnDownSince = 0;
+    gAppConnDownReason = "";
+    fnSendTelegramRuntimeAlert(vMsg);
+}
+
+function fnSendTelegramRuntimeAlert(pMsg){
+    const objTgCfg = fnGetTelegramConfig();
+    if(!objTgCfg.botToken || !objTgCfg.chatId){
+        return;
+    }
+
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+    let vAction = JSON.stringify({
+        "TelegramBotToken": objTgCfg.botToken,
+        "TelegramChatId": objTgCfg.chatId,
+        "Message": String(pMsg || "")
+    });
+
+    fetch("/deltaFutScprLive/sendTelegramAlert", {
+        method: "POST",
+        headers: vHeaders,
+        body: vAction,
+        redirect: "follow"
+    }).catch(() => {
+        // no-op
+    });
+}
+
+function fnSendOpenTradeTelegramAlert(pTrade, pSource = "MANUAL"){
+    const objTrade = pTrade || {};
+    const vSide = String(objTrade.TransType || "").toUpperCase();
+    const vSym = String(objTrade.FutSymbol || "-");
+    const vQty = Number(objTrade.Qty || 0);
+    const vPxRaw = (String(objTrade.TransType || "").toLowerCase() === "buy") ? objTrade.BuyPrice : objTrade.SellPrice;
+    const vPx = Number(vPxRaw);
+    const vOrderType = String(objTrade.OrderType || "-");
+    const vState = String(objTrade.OrderState || "-");
+    const vRule = String(objTrade.EntryRule || "STD");
+    const vMsg =
+`DeltaFutScprLive
+OPEN ${vSide} ${vSym}
+Qty: ${Number.isFinite(vQty) ? vQty : 0}
+Price: ${Number.isFinite(vPx) ? vPx.toFixed(2) : "-"}
+OrderType: ${vOrderType}
+State: ${vState}
+Rule: ${vRule}
+Source: ${String(pSource || "MANUAL").toUpperCase()}
+Time: ${new Date().toLocaleString("en-GB")}`;
+    fnSendTelegramRuntimeAlert(vMsg);
+}
+
+function fnSendCloseTradeTelegramAlert(pPayload = {}){
+    const vSym = String(pPayload.symbol || "-");
+    const vOpenSide = String(pPayload.openSide || "").toUpperCase();
+    const vClosedQty = Number(pPayload.closedQty || 0);
+    const vPrevQty = Number(pPayload.prevQty || 0);
+    const vRemainingQty = Number(pPayload.remainingQty || 0);
+    const vClosePx = Number(pPayload.closePrice);
+    const vPnl = Number(pPayload.pnl);
+    const vCharges = Number(pPayload.charges);
+    const vReason = String(pPayload.reason || "manual");
+    const bIsFull = !!pPayload.isFullClose;
+    const vMode = bIsFull ? "FULL CLOSE" : "PARTIAL CLOSE";
+    const vMsg =
+`DeltaFutScprLive
+${vMode} ${vOpenSide} ${vSym}
+Closed Qty: ${Number.isFinite(vClosedQty) ? vClosedQty : 0}/${Number.isFinite(vPrevQty) ? vPrevQty : 0}
+Close Price: ${Number.isFinite(vClosePx) ? vClosePx.toFixed(2) : "-"}
+PnL: ${Number.isFinite(vPnl) ? vPnl.toFixed(2) : "-"}
+Charges: ${Number.isFinite(vCharges) ? vCharges.toFixed(3) : "-"}
+Reason: ${vReason}
+Remaining Qty: ${Number.isFinite(vRemainingQty) ? vRemainingQty : 0}
+Time: ${new Date().toLocaleString("en-GB")}`;
+    fnSendTelegramRuntimeAlert(vMsg);
+}
+
 window.addEventListener("DOMContentLoaded", function(){
+    fnInitRuntimeTelegramWatchers();
     fnInitClosedPosDateTimeFilters();
 	fnGetAllStatus();
 
@@ -151,6 +391,13 @@ window.addEventListener("DOMContentLoaded", function(){
     socket.on("tv-AutoTrade", (pMsg) => {
     	localStorage.setItem("isDFSLAutoTrader", pMsg.AutoTrade);
     	fnGetSetAutoTraderStatus();
+    });
+
+    window.addEventListener("offline", function(){
+        fnMarkAppDisconnected("Browser offline");
+    });
+    window.addEventListener("online", function(){
+        fnMarkAppReconnected("Browser online");
     });
 });
 
@@ -397,11 +644,11 @@ async function fnFinalizeClosedByExchange(pFillPrice, pCloseCommission = 0, pRea
     vTrade.BuyCommission = vBuyCommission;
     vTrade.SellCommission = vSellCommission;
 
-    gOldPLAmt = JSON.parse(localStorage.getItem("DFSL_TotLossAmt")) || 0;
+    gOldPLAmt = Number(localStorage.getItem("DFSL_TotLossAmt")) || 0;
     gNewPLAmt = vTradePL;
     localStorage.setItem("DFSL_OldPLAmt", gOldPLAmt);
     localStorage.setItem("DFSL_NewPLAmt", gNewPLAmt);
-    localStorage.setItem("DFSL_TotLossAmt", gOldPLAmt + gNewPLAmt);
+    fnApplyLossToRecoverFromClosedTradePL(vTradePL);
 
     const objTodayTrades = JSON.parse(localStorage.getItem("DFSL_TrdBkFut"));
     if(objTodayTrades === null){
@@ -416,6 +663,7 @@ async function fnFinalizeClosedByExchange(pFillPrice, pCloseCommission = 0, pRea
     localStorage.removeItem("DFSL_CurrFutPos");
     gCurrPos = null;
     fnSetNextOptTradeSettings(true, vTradePL);
+    fnUpdateMartiDebugStatus();
     document.getElementById("spnLossTrd").className = "badge rounded-pill text-bg-danger";
     clearInterval(gTimerID);
     gClosedHistoryLoaded = false;
@@ -776,6 +1024,7 @@ async function fnCreateSellPositionFromFilledRenkoOrder(pOrderData, pPending){
     else{
         fnGenMessage(`Renko SELL order filled (${vEntryRule}). Waiting for red/green exit signal.`, `badge bg-success`, "spnGenMsg");
     }
+    fnSendOpenTradeTelegramAlert(vExcTradeDtls.TradeData[0], "RENKO");
     return true;
 }
 
@@ -928,6 +1177,7 @@ async function fnCreateBuyPositionFromFilledRenkoOrder(pOrderData, pPending){
     fnSetInitFutTrdDtls();
     fnSubscribe();
     fnGenMessage(`Renko BUY order filled (${vEntryRule}). Waiting for red/green exit signal.`, `badge bg-success`, "spnGenMsg");
+    fnSendOpenTradeTelegramAlert(vExcTradeDtls.TradeData[0], "RENKO");
     return true;
 }
 
@@ -1384,38 +1634,54 @@ function fnGetAllStatus(){
 
 function fnLoadOrderType(){
     const objOrderType = document.getElementById("ddlOrderType");
-    const objLimitPrice = document.getElementById("txtLimitPrice");
-    if(!objOrderType || !objLimitPrice){
+    if(!objOrderType){
         return;
     }
 
     const vOrderType = localStorage.getItem("DFSL_OrderType") || "market_order";
-    const vLimitPrice = localStorage.getItem("DFSL_LimitPrice");
     objOrderType.value = vOrderType;
-    if(vLimitPrice !== null){
-        objLimitPrice.value = vLimitPrice;
-    }
     fnChangeOrderType(vOrderType);
 }
 
 function fnChangeOrderType(pOrderType){
     const objOrderType = document.getElementById("ddlOrderType");
-    const objLimitPrice = document.getElementById("txtLimitPrice");
-    if(!objOrderType || !objLimitPrice){
+    if(!objOrderType){
         return;
     }
 
     const vOrderType = pOrderType || objOrderType.value;
     localStorage.setItem("DFSL_OrderType", vOrderType);
     objOrderType.value = vOrderType;
-    if(vOrderType === "market_order"){
-        objLimitPrice.disabled = true;
-        objLimitPrice.placeholder = "Not required for market";
+}
+
+async function fnGetLiveLimitPriceBySide(pTransType){
+    const vSide = String(pTransType || "").toLowerCase();
+    const objBestBuy = document.getElementById("txtBestBuyPrice");
+    const objBestSell = document.getElementById("txtBestSellPrice");
+    let vBestBuy = Number(objBestBuy?.value);
+    let vBestSell = Number(objBestSell?.value);
+
+    if(!Number.isFinite(vBestBuy) || vBestBuy <= 0 || !Number.isFinite(vBestSell) || vBestSell <= 0){
+        try{
+            const objBestRates = await fnGetFutBestRates();
+            if(objBestRates.status === "success"){
+                vBestBuy = Number(objBestRates.data?.BestBuy);
+                vBestSell = Number(objBestRates.data?.BestSell);
+                if(objBestBuy && Number.isFinite(vBestBuy) && vBestBuy > 0){
+                    objBestBuy.value = vBestBuy;
+                }
+                if(objBestSell && Number.isFinite(vBestSell) && vBestSell > 0){
+                    objBestSell.value = vBestSell;
+                }
+            }
+        }
+        catch(_err){}
     }
-    else{
-        objLimitPrice.disabled = false;
-        objLimitPrice.placeholder = "Limit Price";
+
+    if(vSide === "buy"){
+        return (Number.isFinite(vBestBuy) && vBestBuy > 0) ? vBestBuy : NaN;
     }
+    return (Number.isFinite(vBestSell) && vBestSell > 0) ? vBestSell : NaN;
 }
 
 function fnLoadDefSymbol(){
@@ -2078,9 +2344,11 @@ function fnConnectWS(){
 
     objDeltaWS.onopen = function (){
         fnGenMessage("Streaming Connection Started and Open!", `badge bg-success`, "spnGenMsg");
+        fnMarkAppReconnected("WebSocket open");
         // console.log("WS is Open!");
     }
     objDeltaWS.onerror = function (){
+        fnMarkAppDisconnected("WebSocket error");
         console.log("WS Error, Trying to Reconnect.....");
     }
     objDeltaWS.onclose = function (){
@@ -2098,6 +2366,7 @@ function fnConnectWS(){
             fnGenMessage("Streaming Stopped & Disconnected!", `badge bg-warning`, "spnGenMsg");
         }
         else{
+            fnMarkAppDisconnected("WebSocket closed");
             setTimeout(fnSubscribe, 3000);
             // console.log("Restarting WS....");
         }
@@ -2643,7 +2912,6 @@ async function fnInitiateManualFutures(pTransType){
     const objQty = document.getElementById("txtFuturesQty");
     const objLotSize = document.getElementById("txtLotSize");
     const objOrderType = document.getElementById("ddlOrderType");
-    const objLimitPrice = document.getElementById("txtLimitPrice");
     const vSLPoints = fnParsePositiveNumber(document.getElementById("txtPointsSL").value, NaN);
     const vTPPoints1 = fnParsePositiveNumber(document.getElementById("txtPointsTP1").value, NaN);
     const objTPAmount = document.getElementById("txtAmountTP") || document.getElementById("txtPointsTP");
@@ -2670,14 +2938,13 @@ async function fnInitiateManualFutures(pTransType){
     const vExecOrderType = objOrderType?.value || "market_order";
     let vLimitPrice = 0;
     if(vExecOrderType === "limit_order"){
-        vLimitPrice = fnParsePositiveNumber(objLimitPrice.value, NaN);
+        vLimitPrice = Number(await fnGetLiveLimitPriceBySide(pTransType));
         if(!Number.isFinite(vLimitPrice)){
-            fnGenMessage("Please input valid Limit Price for limit order!", `badge bg-warning`, "spnGenMsg");
+            fnGenMessage("Live best bid/ask not available for limit order. Try again in a moment.", `badge bg-warning`, "spnGenMsg");
             return;
         }
     }
     localStorage.setItem("DFSL_OrderType", vExecOrderType);
-    localStorage.setItem("DFSL_LimitPrice", objLimitPrice.value || "");
 
     const vDate = new Date();
     const vClientOrdID = vDate.valueOf();
@@ -2750,6 +3017,7 @@ async function fnInitiateManualFutures(pTransType){
     fnSubscribe();
     fnGenMessage("Live order placed successfully!", `badge bg-success`, "spnGenMsg");
     document.getElementById("spnLossTrd").className = "badge rounded-pill text-bg-success";
+    fnSendOpenTradeTelegramAlert(vExcTradeDtls.TradeData[0], "MANUAL");
 }
 
 function fnPlaceRealOrder(pOrdId, pSymbol, pOrderType, pQty, pTransType, pLimitPrice, pStopOrderType = "", pStopPrice = 0, pPostOnly = false, pReduceOnly = false){
@@ -3304,11 +3572,10 @@ async function fnInnitiateClsFutTrade(pQty){
     gCurrPos.TradeData[0].BuyCommission = vBuyCommission;
     gCurrPos.TradeData[0].SellCommission = vSellCommission;
 
-    gOldPLAmt = JSON.parse(localStorage.getItem("DFSL_TotLossAmt")) || 0;
+    gOldPLAmt = Number(localStorage.getItem("DFSL_TotLossAmt")) || 0;
     gNewPLAmt = vTradePL;
     localStorage.setItem("DFSL_OldPLAmt", gOldPLAmt);
     localStorage.setItem("DFSL_NewPLAmt", gNewPLAmt);
-    localStorage.setItem("DFSL_TotLossAmt", gOldPLAmt + gNewPLAmt);
 
     const objTodayTrades = JSON.parse(localStorage.getItem("DFSL_TrdBkFut"));
     if(objTodayTrades === null){
@@ -3320,7 +3587,23 @@ async function fnInnitiateClsFutTrade(pQty){
         localStorage.setItem("DFSL_TrdBkFut", JSON.stringify(vExistingData));
     }
 
+    fnApplyLossToRecoverFromClosedTradePL(vTradePL);
+    fnUpdateMartiDebugStatus();
+
     const bIsFullClose = (vCloseQty === 0 || vToCntuQty === 0);
+    const vCloseReason = String(gLastCloseReason || "manual");
+    const objCloseAlert = {
+        symbol: vSymbol,
+        openSide: vOpenSide,
+        prevQty: vCurrQty,
+        closedQty: vExecQty,
+        remainingQty: Math.max(0, vToCntuQty),
+        closePrice: vFillPrice,
+        pnl: vTradePL,
+        charges: vCharges,
+        reason: vCloseReason,
+        isFullClose: bIsFullClose
+    };
     if(bIsFullClose){
         localStorage.removeItem("DFSL_CurrFutPos");
         gCurrPos = null;
@@ -3335,6 +3618,7 @@ async function fnInnitiateClsFutTrade(pQty){
     }
 
     fnSetNextOptTradeSettings(bIsFullClose, vTradePL);
+    fnSendCloseTradeTelegramAlert(objCloseAlert);
     document.getElementById("spnLossTrd").className = "badge rounded-pill text-bg-danger";
     localStorage.setItem("DFSL_LastCloseTxnKey", vTxnKey);
     clearInterval(gTimerID);
@@ -3473,8 +3757,10 @@ function fnUpdateMartiDebugStatus(){
     else{
         vNextQty = vLossBucket < 0 ? Math.max(vStartQty, Math.floor(vCurrQty + vStartQty)) : vStartQty;
     }
-
-    objDbg.textContent = `Mode: ${vMode} | LossBucket: ${vLossBucket.toFixed(2)} | X: ${vX.toFixed(2)} | Target@X: ${vTargetProfit.toFixed(2)} | Qty: ${vCurrQty} | NextQty: ${vNextQty}`;
+    const vLossToRec = fnGetLossToRecoverAmt();
+    const vLossToRecColor = (vLossToRec > 0) ? "#b02a37" : "inherit";
+    const vLossToRecTxt = ` | <span style="font-weight:700;color:${vLossToRecColor};">Loss To Rec: ${vLossToRec.toFixed(2)}</span>`;
+    objDbg.innerHTML = `Mode: ${vMode} | LossBucket: ${vLossBucket.toFixed(2)} | X: ${vX.toFixed(2)} | Target@X: ${vTargetProfit.toFixed(2)} | Qty: ${vCurrQty} | NextQty: ${vNextQty}${vLossToRecTxt}`;
 }
 
 function fnGetRenkoMidPrice(pBox){
@@ -3953,6 +4239,7 @@ function fnClearLocalStorageTemp(){
     localStorage.removeItem("DFSL_LastOpenBrokerage");
     localStorage.removeItem("DFSL_LastCloseBrokerage");
     localStorage.removeItem("DFSL_Y2RBrokerCarry");
+    localStorage.removeItem("DFSL_LossToRecAmt");
     localStorage.removeItem("DFSL_SellActOn");
     localStorage.removeItem("DFSL_SellActBelow");
     localStorage.removeItem("DFSL_SellActSL");
