@@ -1,0 +1,526 @@
+<div id="main" class="container-xxl">
+    <style>
+        .dfs-phase3 .card {
+            border: 0;
+            box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
+            margin-bottom: 1rem;
+        }
+
+        .dfs-phase3 .card-header h4,
+        .dfs-phase3 .card-header h5 {
+            margin-bottom: 0;
+        }
+
+        .dfs-phase3 .row-tight {
+            row-gap: 0.5rem;
+        }
+
+        .dfs-phase3 .ws-dot {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 30px;
+            width: 30px;
+            cursor: pointer;
+        }
+
+        .dfs-phase3 .table th,
+        .dfs-phase3 .table td {
+            vertical-align: middle;
+        }
+
+        .dfs-phase3 .action-btn {
+            min-height: 38px;
+        }
+
+        .dfs-phase3 .manual-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+
+        .dfs-phase3 .start-qty-input {
+            max-width: 96px;
+        }
+
+        .dfs-phase3 .ws-controls {
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .dfs-phase3 .ws-dot {
+            font-weight: 700;
+        }
+
+        .dfs-phase3 .renko-feed-log {
+            min-height: 220px;
+            max-height: 280px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: rgba(0, 0, 0, 0.15);
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 0.85rem;
+            line-height: 1.35;
+        }
+
+        .dfs-phase3 .renko-feed-item {
+            padding: 0.15rem 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dfs-phase3 .renko-feed-item:last-child {
+            border-bottom: 0;
+        }
+    </style>
+    <div class="dfs-phase3">
+    <div class="page-heading">
+        <div class="row align-items-center g-2">
+            <div class="col-12 col-md-4">
+                <h3>HLFutSclprDemo</h3>
+            </div>
+            <div class="col-12 col-md-4 text-center">
+                <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
+            </div>
+            <div class="col-12 col-md-4 text-md-end">
+                <a href="javascript: void(null);" class="btn btn-outline-primary" onclick="fnChangeLater();"><i class="fa fa-cogs" aria-hidden="true" style="color: orangered;"></i> Delta Settings</a>
+            </div>
+        </div>
+    </div>
+    <div class="page-content">
+        <section class="row">
+            <div class="col-12">
+                <div class="row text-center g-2 mb-3">
+                    <div class="col-12 col-md-4">
+                        <button class="badge bg-danger" onclick="fnShowTraderLoginMdl(this);" id="btnTraderStatus">Trader - Invalid</button>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <button class="badge bg-danger" onclick="fnToggleAutoTrader();" id="btnAutoTraderStatus">Auto Trader - OFF</button>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <button class="badge bg-success" onclick="fnPositionStatus()" id="btnPositionStatus">No Open Position</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="row">
+            <div class="col-12">
+                <div class="card" id="cardManualTrader">
+                    <div class="card-header">
+                        <div class="row align-items-center g-2">
+                            <div class="col-12 col-xl-7">
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <span class="manual-title">Manual Trader</span>
+                                    <form name="frmSide" class="mb-0">
+                                        <div class="tw-toggle" style="white-space: nowrap;">
+                                            <input id="txtBN1" type="radio" name="rdoTradeSide" value="false" onclick="fnTradeSide();" />
+                                            <label class="toggle toggle-yes" for="txtBN1"><i class="fa fa-arrow-down"></i></label>
+                                            <input id="txtBN2" checked type="radio" name="rdoTradeSide" value="-1" onclick="fnTradeSide();" />
+                                            <label class="toggle toggle-yes" for="txtBN2"><i class="fa fa-minus"></i></label>
+                                            <input id="txtBN3" type="radio" name="rdoTradeSide" value="true" onclick="fnTradeSide();" />
+                                            <label class="toggle toggle-yes" for="txtBN3"><i class="fa fa-arrow-up"></i></label>
+                                            <span></span>
+                                            <label for="TradeSide">Side</label>
+                                        </div>
+                                    </form>
+                                    <span class="text-muted">Start Qty</span>
+                                    <input type="number" class="form-control start-qty-input" min="1" step="1" value="1" id="txtStartQty" onchange="fnChangeStartQty(this);" />
+                                    <div class="form-check form-switch mb-0 ms-2">
+                                        <input class="form-check-input" type="checkbox" id="swtRenkoFeed" onchange="fnToggleRenkoFeedSwitch();" />
+                                        <label class="form-check-label" for="swtRenkoFeed" style="cursor:pointer;">Delta Renko Feed</label>
+                                    </div>
+                                    <span id="spnRenkoFeedStatus" class="badge bg-secondary">OFF</span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-xl-5">
+                                <div class="ws-controls">
+                                    <span class="badge rounded-pill text-bg-primary ws-dot" onclick="fnConnectWS();" title="Connect to WebSocket" aria-label="Connect WebSocket"><i class="fa fa-plug" aria-hidden="true"></i></span>
+                                    <span id="spnSub" class="badge rounded-pill text-bg-success ws-dot" onclick="fnSubscribe();" title="Subscribe to WebSocket" aria-label="Subscribe WebSocket"><i class="fa fa-rss" aria-hidden="true"></i></span>
+                                    <span class="badge rounded-pill text-bg-danger ws-dot" onclick="fnCloseWS();" title="Disconnect WebSocket" aria-label="Disconnect WebSocket"><i class="fa fa-power-off" aria-hidden="true"></i></span>
+                                    <a data-bs-toggle="collapse" href="#divTraderClps" role="button" aria-expanded="true" aria-controls="divTraderClps" class="ms-2">
+                                        <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="collapse show" id="divTraderClps">
+                            <div class="container-fluid">
+                                <div class="row row-tight">
+                                    <div class="col-12 col-md-2">
+                                        Indicator
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        Symbols List
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        Quantity
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        Lot Size
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        Order Type
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        Limit Price
+                                    </div>
+
+                                    <div class="col-12 col-md-2">
+                                        <select id="ddlIndicatorType" class="form-select" onchange="fnSetIndicatorType(this.value);" title="Select Indicator">
+                                            <option value=1>Indicator-1</option>
+                                            <option value=2>Indicator-2</option>
+                                            <option value=3>Indicator-3</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        <select id="ddlFuturesSymbols" class="form-select" onchange="fnSetSymbolData(this.value);" placeholder="Select Symbol">
+                                            <option value=''>Select Symbol</option>
+                                            <option value='BTCUSD' selected>BTCUSD</option>
+                                            <option value='ETHUSD'>ETHUSD</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        <input type="number" min="1" class="form-control" placeholder="Quantity" id="txtFuturesQty" value="1" />
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        <input type="text" value="0.001" id="txtLotSize" class="form-control" />
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        <select id="ddlOrderType" class="form-select" placeholder="Select Order Type">
+                                            <option value='limit_order'>Limit Order</option>
+                                            <option value='market_order' selected>Market Order</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        <input type="text" value="" id="txtLimitPrice" class="form-control" placeholder="Limit Price" />
+                                    </div>
+
+                                    <div class="col-2">Loss Recovery %</div>
+                                    <div class="col-2">X-Multiplier</div>
+                                    <div class="col-2">Best Buying Price</div>
+                                    <div class="col-2">Mark Price</div>
+                                    <div class="col-2">Best Selling Price</div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtLossRecvPerct" value="100" onchange="fnUpdateLossRecPrct(this);" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Candle Open Price" id="txtMultiplierX" value="1.0" onchange="fnUpdateMultiplierX(this);" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Best Buy Price" id="txtBestBuyPrice" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Spot Price" id="txtSpotPrice" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" placeholder="Best Sell Price" id="txtBestSellPrice" />
+                                    </div>
+                                    <div class="col-6 col-md-1">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-success action-btn" onclick="fnManualSubStart();" style="display: block;"><b>START</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-1">
+                                         <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-danger action-btn" onclick="fnManualSubStop();" style="display: block;"><b>STOP</b></button>
+                                        </div>
+                                    </div>
+                                    <div style="display: none;">
+                                        <div class="col-2">Open</div>
+                                        <div class="col-2">High</div>
+                                        <div class="col-2">Low</div>
+                                        <div class="col-2">Close</div>
+                                        <div class="col-4"></div>
+                                        <div class="col-2">
+                                            <input type="number" class="form-control" placeholder="Candle Open Price" id="txtCandleOpen" />
+                                        </div>
+                                        <div class="col-2">
+                                            <input type="number" class="form-control" placeholder="Candle High Price" id="txtCandleHigh" />
+                                        </div>
+                                        <div class="col-2">
+                                            <input type="number" class="form-control" placeholder="Candle Low Price" id="txtCandleLow" />
+                                        </div>
+                                        <div class="col-2">
+                                            <input type="number" class="form-control" placeholder="Candle Close Price" id="txtCandleClose" />
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="d-grid gap-1">
+                                                <button class="btn btn-outline-primary" onclick="fnGetHistoricalOHLC();" style="display: block;"><b>Get Historical OHLC</b></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 my-2"><hr class="my-1"/></div>
+                                    <div class="col-3">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-warning action-btn" onclick="fnCloseManualFutures('sell');"><b>EXIT SELL FUT</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-danger action-btn" onclick="fnInitiateManualFutures('sell');"><b>SELL FUT</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-warning action-btn" onclick="fnCloseManualFutures('buy');"><b>EXIT BUY FUT</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-success action-btn" onclick="fnInitiateManualFutures('buy');"><b>BUY FUT</b></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="cardOpenPosition">
+                    <div class="card-header">
+                        <div class="row align-items-center row-tight">
+                            <div class="col-12 col-lg-2">
+                                <h4>Open Position(s)</h4>
+                            </div>
+                            <div class="col-12 col-lg-3">
+                                <div class="form-check form-switch fs-6" style="white-space: normal;">
+                                    <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtTradeCounter" name="swtAutoChkPosition" onchange="fnUpdateTrdSwtCounter();" />
+                                    <label id="divTimer" for="swtAutoChkPosition" style="cursor:pointer;white-space:normal;">Trade closes in <span id="time"></span> minutes!</label>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-2">
+                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                                    <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtMartingale" name="swtMartingale" onchange="fnChangeTradeMode('step');" />
+                                    <label for="swtMartingale" style="cursor:pointer;text-wrap:nowrap;">Step</label>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-2">
+                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                                    <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtMarti" name="swtMarti" onchange="fnChangeTradeMode('marti');" />
+                                    <label for="swtMarti" style="cursor:pointer;text-wrap:nowrap;">Marti</label>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg-1 text-lg-end">
+                                <button class='nav-link' onclick="fnClearLocalStorageTemp();" role="tab" type="button">Clear All</button>
+                            </div>
+                            <div class="col-4 col-lg-1 text-center text-lg-end">
+                                <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" onclick="fnCloseAllOpenPositionsDFSD();">&nbsp;</span>
+                            </div>
+                            <div class="col-2 col-lg-1 text-end">
+                                <a data-bs-toggle="collapse" href="#divOpenPosClps" role="button" aria-expanded="true" aria-controls="divOpenPosClps">
+                                    <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                                </a>
+                            </div>                       
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="collapse show" id="divOpenPosClps">
+                            <div class="container-fluid">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead>
+                                            <tr style="text-align:center;">
+                                                <th scope="col" style="text-wrap: nowrap;">Action</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Symbol</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Tr Type</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Lot Sz</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Qty</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Capital</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Charges</th>
+                                                <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr style="text-align:center;">
+                                                <td id="tdAction" style="text-wrap: nowrap; text-align:center;"></td>
+                                                <td id="tdDateTime" style="text-wrap: nowrap;"></td>
+                                                <td id="tdSymbol" style="text-wrap: nowrap;"></td>
+                                                <td id="tdTransType" style="text-wrap: nowrap;"></td>
+                                                <td id="tdLotSize" style="text-wrap: nowrap;"></td>
+                                                <td id="tdQty" style="text-wrap: nowrap;"></td>
+                                                <td id="tdBuyPrice" style="text-wrap: nowrap; color:green; text-align:right;"></td>
+                                                <td id="tdSellPrice" style="text-wrap: nowrap; color:red;text-align:right;"></td>
+                                                <td id="tdCapital" style="text-wrap: nowrap; color:orange;text-align:right;"></td>
+                                                <td id="tdCharges" style="text-wrap: nowrap; color:orange;text-align:right;"></td>
+                                                <td id="tdProfitLoss" style="text-wrap: nowrap;"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="row row-tight align-items-center">
+                                <div class="col-5"></div>
+                                <div class="col-1">SL Points</div>
+                                <div class="col-1">T-SL Points</div>
+                                <div class="col-1">TP Points</div>
+                                <div class="col-1">TP Amount</div>
+                                <div class="col-3"></div>
+                                <div class="col-1">
+                                    <input type="number" class="form-control" placeholder="Trade Exit Max Time" id="txtTrdExitTime" value="30" />
+                                </div>
+                                <div class="col-2">
+                                    <input type="number" class="form-control" placeholder="Current Rate" id="txtCurrentRate" value="" onchange="fnGetCurrentRateTesting();" />
+                                </div>
+                                <div class="col-2">
+                                    <div class="d-grid gap-1">
+                                        <button id="btn50PerClose" class="btn btn-outline-warning" onclick="fnClosePrctTrade();"  disabled><b>EXIT 50% QTY</b></button>
+                                    </div>
+                                </div>
+                                <div class="col-1">
+                                    <input type="number" class="form-control" placeholder="SL Points" id="txtPointsSL" />
+                                </div>
+                                <div class="col-1">
+                                    <input type="number" class="form-control" placeholder="T-SL Points" id="txtPointsTSL" value="0" />
+                                </div>
+                                <div class="col-1">
+                                    <input type="number" class="form-control" placeholder="TP1 Points" id="txtPointsTP1" />
+                                </div>
+                                <div class="col-1">
+                                    <input type="number" class="form-control" placeholder="TP Amount" id="txtPointsTP" />
+                                </div>
+                                <div class="col-3">
+                                    <div class="d-grid gap-1">
+                                        <button class="btn btn-outline-warning" onclick="fnUpdateSlTp();"><b>UPDATE</b></button>
+                                    </div>
+                                </div>
+
+                                <div style="display: none;">
+                                    <div class="col-2">
+                                        <input type="text" class="form-control" placeholder="Order Id" id="hidClientOrderId" />
+                                    </div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-primary" onclick="fnPlaceLimitOrder();"><b>Place Limit Order</b></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-6"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="cardClosedPositions">
+                    <div class="card-header">
+                        <div class="row align-items-center row-tight">
+                            <div class="col-12 col-lg-3">
+                                <h4>Closed Position(s)</h4>
+                            </div>
+                            <div class="col-1" style="font-weight: bold;">
+                            </div>
+                            <div class="col-1" style="font-weight: bold;">
+                                P&L: 
+                            </div>
+                            <div class="col-1" id="tdHeadPL">
+                                0.00
+                            </div>
+                            <div class="col-2" style="font-weight: bold;">
+                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                                    <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtYetToRec" name="swtYetToRec" onchange="fnUpdateYet2RecSwt();" />
+                                    <label id="lblYetToRecover" for="swtYetToRec" style="cursor:pointer;text-wrap:nowrap;">Yet to Recover:</label>
+                                </div>
+                            </div>
+                            <div class="col-2">
+                                <span id="spnYtRL" style="text-align:left;font-weight:bold;color:red;">0.00</span>
+                            </div>
+                            <!-- <div class="col-1">
+                                Brk Rec: 
+                            </div>
+                            <div class="col-1" id="tdHeadBrkRec">
+                                0.00
+                            </div> -->
+                            <div class="col-1">
+                                <i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnLoadTodayTrades();"></i>
+                            </div>
+                            <div class="col-1" style="text-align: right;">
+                                <a data-bs-toggle="collapse" href="#divClosedPosClps" role="button" aria-expanded="true" aria-controls="divClosedPosClps">
+                                    <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                                </a>
+                            </div>                            
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="collapse show" id="divClosedPosClps">
+                            <div class="container-fluid">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead>
+                                            <tr style="text-align:center;">
+                                                <th scope="col" style="text-wrap: nowrap;">Action</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
+                                                <th scope="col" style="text-wrap: nowrap;">End Date Time</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Symbol</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Tr Type</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Lot Sz</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Qty</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Capital</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Charges</th>
+                                                <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tBodyTodayPaperTrades">
+                                            
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="cardDeltaRenkoFeed">
+                    <div class="card-header">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <h5 class="mb-0 me-2">Delta Renko-style Feed</h5>
+
+                            <label for="txtRenkoFeedPts" class="mb-0 small text-muted">Point</label>
+                            <input type="number" class="form-control form-control-sm" id="txtRenkoFeedPts" value="200" min="1" onchange="fnUpdateRenkoFeedStep(this);" style="width: 90px;" />
+
+                            <label for="ddlRenkoFeedPriceSrc" class="mb-0 small text-muted">Source</label>
+                            <select id="ddlRenkoFeedPriceSrc" class="form-select form-select-sm" onchange="fnUpdateRenkoFeedPriceSource(this);" style="width: 130px;">
+                                <option value="mark_price" selected>Mark Price</option>
+                                <option value="spot_price">Spot Price</option>
+                                <option value="best_bid">Best Bid</option>
+                                <option value="best_ask">Best Ask</option>
+                            </select>
+
+                            <label for="txtRenkoBuyPatterns" class="mb-0 small text-muted">Buy</label>
+                            <input type="text" id="txtRenkoBuyPatterns" class="form-control form-control-sm" placeholder="GGR,GRRG" value="RRG,GRG" onchange="fnUpdateRenkoPatterns(this, 'buy');" style="width: 190px;" />
+
+                            <label for="txtRenkoSellPatterns" class="mb-0 small text-muted">Sell</label>
+                            <input type="text" id="txtRenkoSellPatterns" class="form-control form-control-sm" placeholder="RRGRR,RGRR" value="GGR,RGR" onchange="fnUpdateRenkoPatterns(this, 'sell');" style="width: 190px;" />
+
+                            <span class="small text-muted ms-2" id="spnRenkoFeedMeta">Symbol: -</span>
+                            <button class="btn btn-outline-secondary btn-sm ms-auto" type="button" onclick="fnClearRenkoFeedLog();">Clear</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="divRenkoFeedMsgs" class="renko-feed-log">
+                            <div class="renko-feed-item text-muted">Feed is idle. Turn on "Delta Renko Feed" switch in Manual Trader header.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+</div>
+
+<%- include('partials/HLFutSclprDemoSettings.ejs') %>
+
+<script src="/js/HLFutSclprDemo.js"></script>
+<script src="/js/HLFutSclprDemoSettings.js"></script>
+

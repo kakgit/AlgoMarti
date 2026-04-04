@@ -17,6 +17,7 @@ const kotakPaperController = require("../controller/controllerKotakPaper.js");
 const deltaLiveController = require("../controller/controllerDeltaLive.js");
 const deltaFutDemoController = require("../controller/controllerDeltaFutDemo.js");
 const deltaFutScprDemoController = require("../controller/controllerDeltaFutScprDemo.js");
+const hlFutSclprDemoController = require("../controller/controllerHLFutSclprDemo.js");
 const deltaFutLiveController = require("../controller/controllerDeltaFutLive.js");
 const deltaFutScprLiveController = require("../controller/controllerDeltaFutScprLive.js");
 const deltaOptDemoController = require("../controller/controllerDeltaOptDemo.js");
@@ -62,6 +63,7 @@ route.get("/deltaLive", deltaLiveController.defaultRoute);
 //Delta Futures Demo Route
 route.get("/deltaFutures-Demo", deltaFutDemoController.defaultRoute);
 route.get("/DeltaFutScprDemo", deltaFutScprDemoController.defaultRoute);
+route.get("/HLFutSclprDemo", hlFutSclprDemoController.defaultRoute);
 route.get("/DeltaFutScprLive", deltaFutScprLiveController.defaultRoute);
 route.get("/RenkoDualBacktest", renkoDualBacktestCtrler.defaultRoute);
 
@@ -310,6 +312,11 @@ route.post("/deltaFutScprDemo/getHistOHLC", deltaFutScprDemoController.fnHistori
 route.post("/deltaFutScprDemo/getCurrBSRates", deltaFutScprDemoController.fnGetCurrBuySellRates);
 route.post("/deltaFutScprDemo/placeLimitOrder", deltaFutScprDemoController.fnPlaceLimitOrderSDK);
 route.post("/deltaFutScprDemo/sendTelegramAlert", deltaFutScprDemoController.fnSendTelegramAlertMsg);
+route.post("/hlFutSclprDemo/validateLogin", hlFutSclprDemoController.fnValidateUserLogin);
+route.post("/hlFutSclprDemo/getHistOHLC", hlFutSclprDemoController.fnHistoricalOHLCAPI);
+route.post("/hlFutSclprDemo/getCurrBSRates", hlFutSclprDemoController.fnGetCurrBuySellRates);
+route.post("/hlFutSclprDemo/placeLimitOrder", hlFutSclprDemoController.fnPlaceLimitOrderSDK);
+route.post("/hlFutSclprDemo/sendTelegramAlert", hlFutSclprDemoController.fnSendTelegramAlertMsg);
 route.post("/renkoDualBacktest/run", renkoDualBacktestCtrler.fnRunBacktest);
 
 //Delta Options Routes
