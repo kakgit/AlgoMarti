@@ -1099,6 +1099,7 @@ function fnGetAllStatus(){
 		fnLoadTradeSide();
 	}
     fnLoadRenkoFeedSettings();
+    fnUpdateMartiDebugStatus();
 }
 
 function fnLoadDefSymbol(){
@@ -1155,6 +1156,7 @@ function fnLoadDefQty(){
     objQty.value = vQtyMul;
     localStorage.setItem("DFSD_StartQtyNo", vStartQty);
     localStorage.setItem("DFSD_QtyMul", vQtyMul);
+    fnUpdateMartiDebugStatus();
 }
 
 function fnLoadLossRecoveryMultiplier(){
@@ -1179,6 +1181,7 @@ function fnLoadLossRecoveryMultiplier(){
 		objMultiplierXTxt.value = objProfitMultiX;
 		gMultiplierX = fnParsePositiveNumber(objProfitMultiX, 1.0);
 	}
+    fnUpdateMartiDebugStatus();
 }
 
 function fnSetIndicatorType(pIndicator){
@@ -1200,6 +1203,7 @@ function fnUpdateLossRecPrct(pThisVal){
     pThisVal.value = vLossPct;
 	localStorage.setItem("DFSD_LossRecM", vLossPct);
 	gLossRecPerct = vLossPct;
+    fnUpdateMartiDebugStatus();
 }
 
 function fnUpdateMultiplierX(pThisVal){
@@ -1207,6 +1211,7 @@ function fnUpdateMultiplierX(pThisVal){
     pThisVal.value = vMultiplier;
 	localStorage.setItem("DFSD_MultiplierX", vMultiplier);
 	gMultiplierX = vMultiplier;
+    fnUpdateMartiDebugStatus();
 }
 
 function fnLoadTradeCounter(){
@@ -1650,6 +1655,37 @@ function fnApplyLossCarryFromPLDemo(pTradePL){
         }
     }
     return fnSetLossCarryAmtDemo(vCarry);
+}
+
+function fnUpdateMartiDebugStatus(){
+    const objDbg = document.getElementById("divMartiDbg");
+    if(!objDbg){
+        return;
+    }
+
+    const vMode = String(localStorage.getItem("DFSD_TradeMode") || "STEP").toUpperCase();
+    const vLossBucketRaw = Number(localStorage.getItem("DFSD_TotLossAmt"));
+    const vLossBucket = Number.isFinite(vLossBucketRaw) ? vLossBucketRaw : 0;
+    const vXRaw = Number(gMultiplierX);
+    const vX = Number.isFinite(vXRaw) && vXRaw > 0 ? vXRaw : 1;
+    const vTargetProfit = Math.abs(vLossBucket) * vX;
+    const vStartRaw = Number(JSON.parse(localStorage.getItem("DFSD_StartQtyNo")));
+    const vStartQty = Number.isFinite(vStartRaw) && vStartRaw >= 1 ? vStartRaw : 1;
+    const objQty = document.getElementById("txtFuturesQty");
+    const vQtyRaw = Number(objQty?.value);
+    const vCurrQty = Number.isFinite(vQtyRaw) && vQtyRaw >= 1 ? Math.floor(vQtyRaw) : vStartQty;
+
+    let vNextQty = vStartQty;
+    if(vMode === "MARTI"){
+        vNextQty = vLossBucket < 0 ? Math.max(vStartQty, Math.floor(vCurrQty * 2)) : vStartQty;
+    }
+    else{
+        vNextQty = vLossBucket < 0 ? Math.max(vStartQty, Math.floor(vCurrQty + vStartQty)) : vStartQty;
+    }
+    const vLossToRec = fnGetLossCarryAmtDemo();
+    const vLossToRecColor = (vLossToRec > 0) ? "#b02a37" : "inherit";
+    const vLossToRecTxt = ` | <span style="font-weight:700;color:${vLossToRecColor};">Loss To Rec: ${vLossToRec.toFixed(2)}</span>`;
+    objDbg.innerHTML = `Mode: ${vMode} | LossBucket: ${vLossBucket.toFixed(2)} | X: ${vX.toFixed(2)} | Target@X: ${vTargetProfit.toFixed(2)} | Qty: ${vCurrQty} | NextQty: ${vNextQty}${vLossToRecTxt}`;
 }
 
 function fnCheckBuySLTP(pCurrPrice){
@@ -2537,6 +2573,7 @@ function fnSetNextOptTradeSettings(pIsFullClose = true){
     }
     localStorage.setItem("DFSD_QtyMul", vNextQty);
     objQty.value = vNextQty;
+    fnUpdateMartiDebugStatus();
 }
 
 function fnChangeTradeMode(pMode){
