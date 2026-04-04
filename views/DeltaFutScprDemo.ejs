@@ -509,10 +509,10 @@
                             </div>
 
                             <label for="txtPrevRenkoGreenClose" class="mb-0 small text-muted">Prev Renko Green Close</label>
-                            <input type="text" id="txtPrevRenkoGreenClose" class="form-control form-control-sm" readonly style="width: 120px;" />
+                            <input type="number" id="txtPrevRenkoGreenClose" class="form-control form-control-sm" onchange="fnUpdatePrevRenkoCloseFromInput(this, 'green');" style="width: 120px;" />
 
                             <label for="txtPrevRenkoRedClose" class="mb-0 small text-muted">Prev Renko Red Close</label>
-                            <input type="text" id="txtPrevRenkoRedClose" class="form-control form-control-sm" readonly style="width: 120px;" />
+                            <input type="number" id="txtPrevRenkoRedClose" class="form-control form-control-sm" onchange="fnUpdatePrevRenkoCloseFromInput(this, 'red');" style="width: 120px;" />
 
                             <span class="small text-muted ms-2" id="spnRenkoFeedMeta">Symbol: -</span>
                             <button class="btn btn-outline-secondary btn-sm ms-auto" type="button" onclick="fnClearRenkoFeedLog();">Clear</button>

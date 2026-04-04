@@ -33,6 +33,8 @@ let gPrevRenkoGreenClose = NaN;
 let gCurrRenkoRedClose = NaN;
 let gPrevRenkoRedClose = NaN;
 let gLastRenkoColorCode = "";
+let gManualPrevGreenSeedActive = false;
+let gManualPrevRedSeedActive = false;
 let gEditTradeSource = "";
 let gCloseAllBusyDFSD = false;
 
@@ -242,6 +244,44 @@ function fnSetPrevRenkoCloseInputs(){
     }
 }
 
+function fnUpdatePrevRenkoCloseFromInput(pThis, pType){
+    const vRaw = String(pThis?.value || "").trim();
+    const vNum = Number(vRaw);
+    const bValid = Number.isFinite(vNum) && vNum > 0;
+
+    if(String(pType).toLowerCase() === "green"){
+        if(bValid){
+            gPrevRenkoGreenClose = vNum;
+            localStorage.setItem(fnGetPrevRenkoStorageKey("PrevGreenClose"), String(vNum));
+            gManualPrevGreenSeedActive = true;
+            localStorage.setItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"), "true");
+        }
+        else{
+            gPrevRenkoGreenClose = NaN;
+            localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevGreenClose"));
+            gManualPrevGreenSeedActive = false;
+            localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"));
+        }
+    }
+    else{
+        if(bValid){
+            gPrevRenkoRedClose = vNum;
+            localStorage.setItem(fnGetPrevRenkoStorageKey("PrevRedClose"), String(vNum));
+            gManualPrevRedSeedActive = true;
+            localStorage.setItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"), "true");
+        }
+        else{
+            gPrevRenkoRedClose = NaN;
+            localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevRedClose"));
+            gManualPrevRedSeedActive = false;
+            localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"));
+        }
+    }
+
+    fnSetPrevRenkoCloseInputs();
+    fnAppendRenkoFeedMsg(`Manual ${String(pType).toUpperCase()} reference ${bValid ? `set to ${vNum.toFixed(2)} (seed for first trade)` : "cleared"}.`);
+}
+
 function fnGetPrevRenkoStoragePrefix(){
     const vSymbol = String(fnGetRenkoFeedSymbol() || "BTCUSD").toUpperCase();
     const vStep = Number.isFinite(Number(gRenkoFeedStepPts)) ? Math.floor(Number(gRenkoFeedStepPts)) : 200;
@@ -268,6 +308,8 @@ function fnLoadPrevRenkoCloseSettings(){
     const vCurrRedKey = fnGetPrevRenkoStorageKey("CurrRedClose");
     const vPrevRedKey = fnGetPrevRenkoStorageKey("PrevRedClose");
     const vColorKey = fnGetPrevRenkoStorageKey("LastColor");
+    const vSeedGreenKey = fnGetPrevRenkoStorageKey("ManualPrevGreenSeed");
+    const vSeedRedKey = fnGetPrevRenkoStorageKey("ManualPrevRedSeed");
 
     let vCurrGreen = fnGetStoredNumOrNaN(vCurrGreenKey);
     let vPrevGreen = fnGetStoredNumOrNaN(vPrevGreenKey);
@@ -275,34 +317,8 @@ function fnLoadPrevRenkoCloseSettings(){
     let vPrevRed = fnGetStoredNumOrNaN(vPrevRedKey);
     let vLastColor = String(localStorage.getItem(vColorKey) || "");
 
-    // One-time fallback from legacy global keys.
-    if(!Number.isFinite(vPrevGreen)){
-        vPrevGreen = fnGetStoredNumOrNaN("DFSD_PrevRenkoGreenClose");
-        if(Number.isFinite(vPrevGreen)){
-            localStorage.setItem(vPrevGreenKey, String(vPrevGreen));
-        }
-    }
-    if(!Number.isFinite(vPrevRed)){
-        vPrevRed = fnGetStoredNumOrNaN("DFSD_PrevRenkoRedClose");
-        if(Number.isFinite(vPrevRed)){
-            localStorage.setItem(vPrevRedKey, String(vPrevRed));
-        }
-    }
     if(vLastColor !== "G" && vLastColor !== "R"){
-        vLastColor = String(localStorage.getItem("DFSD_LastRenkoColor") || "");
-        if(vLastColor === "G" || vLastColor === "R"){
-            localStorage.setItem(vColorKey, vLastColor);
-        }
-    }
-
-    // If curr is absent but prev exists (old migration), use prev as curr.
-    if(!Number.isFinite(vCurrGreen) && Number.isFinite(vPrevGreen)){
-        vCurrGreen = vPrevGreen;
-        localStorage.setItem(vCurrGreenKey, String(vCurrGreen));
-    }
-    if(!Number.isFinite(vCurrRed) && Number.isFinite(vPrevRed)){
-        vCurrRed = vPrevRed;
-        localStorage.setItem(vCurrRedKey, String(vCurrRed));
+        vLastColor = "";
     }
 
     gCurrRenkoGreenClose = Number.isFinite(vCurrGreen) ? vCurrGreen : NaN;
@@ -310,6 +326,8 @@ function fnLoadPrevRenkoCloseSettings(){
     gCurrRenkoRedClose = Number.isFinite(vCurrRed) ? vCurrRed : NaN;
     gPrevRenkoRedClose = Number.isFinite(vPrevRed) ? vPrevRed : NaN;
     gLastRenkoColorCode = (vLastColor === "G" || vLastColor === "R") ? vLastColor : "";
+    gManualPrevGreenSeedActive = String(localStorage.getItem(vSeedGreenKey) || "false") === "true";
+    gManualPrevRedSeedActive = String(localStorage.getItem(vSeedRedKey) || "false") === "true";
     fnSetPrevRenkoCloseInputs();
 }
 
@@ -472,6 +490,8 @@ function fnUpdatePrevRenkoCloseByBox(pOpen, pClose){
             localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevGreenClose"));
         }
         localStorage.setItem(fnGetPrevRenkoStorageKey("CurrGreenClose"), String(gCurrRenkoGreenClose));
+        gManualPrevGreenSeedActive = false;
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"));
         vTransition = "R2G";
         fnAppendRenkoFeedMsg(`[delta] First GREEN after RED | CurrGreen: ${gCurrRenkoGreenClose.toFixed(2)} | PrevGreen: ${Number.isFinite(gPrevRenkoGreenClose) ? gPrevRenkoGreenClose.toFixed(2) : "NA"}`);
     }
@@ -485,6 +505,8 @@ function fnUpdatePrevRenkoCloseByBox(pOpen, pClose){
             localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevRedClose"));
         }
         localStorage.setItem(fnGetPrevRenkoStorageKey("CurrRedClose"), String(gCurrRenkoRedClose));
+        gManualPrevRedSeedActive = false;
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"));
         vTransition = "G2R";
         fnAppendRenkoFeedMsg(`[delta] First RED after GREEN | CurrRed: ${gCurrRenkoRedClose.toFixed(2)} | PrevRed: ${Number.isFinite(gPrevRenkoRedClose) ? gPrevRenkoRedClose.toFixed(2) : "NA"}`);
     }
@@ -679,6 +701,10 @@ function fnUpdateRenkoFeedStep(pThis){
     localStorage.removeItem(fnGetPrevRenkoStorageKey("CurrRedClose"));
     localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevRedClose"));
     localStorage.removeItem(fnGetPrevRenkoStorageKey("LastColor"));
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"));
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"));
+    gManualPrevGreenSeedActive = false;
+    gManualPrevRedSeedActive = false;
     fnSetPrevRenkoCloseInputs();
     void fnBootstrapPrevRenkoCloseFromHistory(true);
     fnSetRenkoFeedMeta();
@@ -697,6 +723,10 @@ function fnUpdateRenkoFeedPriceSource(pThis){
     gCurrRenkoRedClose = NaN;
     gPrevRenkoRedClose = NaN;
     gLastRenkoColorCode = "";
+    gManualPrevGreenSeedActive = false;
+    gManualPrevRedSeedActive = false;
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"));
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"));
     fnSetPrevRenkoCloseInputs();
     void fnBootstrapPrevRenkoCloseFromHistory(true);
     fnSetRenkoFeedMeta();
@@ -777,19 +807,38 @@ async function fnProcessRenkoSignal(pRenkoMsg, pSource = "delta"){
 
     if(gRenkoHHLL === true){
         if(vSide === "buy"){
-            if(!Number.isFinite(gPrevRenkoGreenClose) || !(vClose > gPrevRenkoGreenClose)){
-                const vEvt = objBoxState?.Transition === "R2G" ? " | Event: First GREEN after RED" : "";
-                fnAppendRenkoFeedMsg(`[${pSource}] BUY skipped by HH/LL${vEvt}. CurrClose:${vClose.toFixed(2)} <= PrevGreen:${Number.isFinite(gPrevRenkoGreenClose) ? gPrevRenkoGreenClose.toFixed(2) : "NA"} (CurrGreen:${Number.isFinite(gCurrRenkoGreenClose) ? gCurrRenkoGreenClose.toFixed(2) : "NA"})`);
+            const bTransitionOk = objBoxState?.Transition === "R2G";
+            const bRangeOk = Number.isFinite(gCurrRenkoGreenClose) && Number.isFinite(gPrevRenkoGreenClose) && (gCurrRenkoGreenClose > gPrevRenkoGreenClose);
+            if(!(bTransitionOk && bRangeOk)){
+                fnAppendRenkoFeedMsg(`[${pSource}] BUY skipped by HH/LL. Need first GREEN after RED and CurrGreen > PrevGreen. CurrGreen:${Number.isFinite(gCurrRenkoGreenClose) ? gCurrRenkoGreenClose.toFixed(2) : "NA"} PrevGreen:${Number.isFinite(gPrevRenkoGreenClose) ? gPrevRenkoGreenClose.toFixed(2) : "NA"} Event:${objBoxState?.Transition || "NONE"}`);
                 return;
             }
         }
         else if(vSide === "sell"){
-            if(!Number.isFinite(gPrevRenkoRedClose) || !(vClose < gPrevRenkoRedClose)){
-                const vEvt = objBoxState?.Transition === "G2R" ? " | Event: First RED after GREEN" : "";
-                fnAppendRenkoFeedMsg(`[${pSource}] SELL skipped by HH/LL${vEvt}. CurrClose:${vClose.toFixed(2)} >= PrevRed:${Number.isFinite(gPrevRenkoRedClose) ? gPrevRenkoRedClose.toFixed(2) : "NA"} (CurrRed:${Number.isFinite(gCurrRenkoRedClose) ? gCurrRenkoRedClose.toFixed(2) : "NA"})`);
+            const bTransitionOk = objBoxState?.Transition === "G2R";
+            const bRangeOk = Number.isFinite(gCurrRenkoRedClose) && Number.isFinite(gPrevRenkoRedClose) && (gCurrRenkoRedClose < gPrevRenkoRedClose);
+            if(!(bTransitionOk && bRangeOk)){
+                fnAppendRenkoFeedMsg(`[${pSource}] SELL skipped by HH/LL. Need first RED after GREEN and CurrRed < PrevRed. CurrRed:${Number.isFinite(gCurrRenkoRedClose) ? gCurrRenkoRedClose.toFixed(2) : "NA"} PrevRed:${Number.isFinite(gPrevRenkoRedClose) ? gPrevRenkoRedClose.toFixed(2) : "NA"} Event:${objBoxState?.Transition || "NONE"}`);
                 return;
             }
         }
+    }
+
+    if(vSide === "buy" && gManualPrevGreenSeedActive){
+        gManualPrevGreenSeedActive = false;
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"));
+        gPrevRenkoGreenClose = NaN;
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevGreenClose"));
+        fnSetPrevRenkoCloseInputs();
+        fnAppendRenkoFeedMsg(`[${pSource}] Manual PrevGreen seed consumed on first BUY trade.`);
+    }
+    else if(vSide === "sell" && gManualPrevRedSeedActive){
+        gManualPrevRedSeedActive = false;
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"));
+        gPrevRenkoRedClose = NaN;
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevRedClose"));
+        fnSetPrevRenkoCloseInputs();
+        fnAppendRenkoFeedMsg(`[${pSource}] Manual PrevRed seed consumed on first SELL trade.`);
     }
 
     const objSideMatches = vSide === "buy" ? objMatched.buy : objMatched.sell;

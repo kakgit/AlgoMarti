@@ -26,9 +26,18 @@ let gRenkoFeedForceClose = false;
 let gRenkoFeedStepPts = 200;
 let gRenkoFeedPriceSource = "mark_price";
 let gRenkoFeedAnchor = null;
+let gRenkoFeedLastDir = 0;
 let gRenkoFeedMaxRows = 300;
 let gRenkoPatternSeq = "";
 let gRenkoPatternMaxLen = 0;
+let gRenkoHHLL = false;
+let gCurrRenkoGreenClose = NaN;
+let gPrevRenkoGreenClose = NaN;
+let gCurrRenkoRedClose = NaN;
+let gPrevRenkoRedClose = NaN;
+let gLastRenkoColorCode = "";
+let gManualPrevGreenSeedActive = false;
+let gManualPrevRedSeedActive = false;
 let gExchangeClosedOrderRows = [];
 let gClosedHistoryLoaded = false;
 let gRenkoPendingPollId = 0;
@@ -414,6 +423,8 @@ async function fnProcessRenkoSignal(pRenkoMsg, pSource = "tradingview"){
         return;
     }
 
+    const objBoxState = fnUpdatePrevRenkoCloseByBox(vOpen, vClose);
+
     const vColorCode = vClose > vOpen ? "G" : "R";
     const objMatched = fnMatchRenkoPatternsByColor(vColorCode);
     if(objMatched.buy.length === 0 && objMatched.sell.length === 0){
@@ -448,6 +459,42 @@ async function fnProcessRenkoSignal(pRenkoMsg, pSource = "tradingview"){
     if(vSide === ""){
         fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} matched but filtered by trade-side switch.`);
         return;
+    }
+
+    if(gRenkoHHLL === true){
+        if(vSide === "buy"){
+            const bTransitionOk = objBoxState?.Transition === "R2G";
+            const bRangeOk = Number.isFinite(gCurrRenkoGreenClose) && Number.isFinite(gPrevRenkoGreenClose) && (gCurrRenkoGreenClose > gPrevRenkoGreenClose);
+            if(!(bTransitionOk && bRangeOk)){
+                fnAppendRenkoFeedMsg(`[${pSource}] BUY skipped by HH/LL. Need first GREEN after RED and CurrGreen > PrevGreen. CurrGreen:${Number.isFinite(gCurrRenkoGreenClose) ? gCurrRenkoGreenClose.toFixed(2) : "NA"} PrevGreen:${Number.isFinite(gPrevRenkoGreenClose) ? gPrevRenkoGreenClose.toFixed(2) : "NA"} Event:${objBoxState?.Transition || "NONE"}`);
+                return;
+            }
+        }
+        else if(vSide === "sell"){
+            const bTransitionOk = objBoxState?.Transition === "G2R";
+            const bRangeOk = Number.isFinite(gCurrRenkoRedClose) && Number.isFinite(gPrevRenkoRedClose) && (gCurrRenkoRedClose < gPrevRenkoRedClose);
+            if(!(bTransitionOk && bRangeOk)){
+                fnAppendRenkoFeedMsg(`[${pSource}] SELL skipped by HH/LL. Need first RED after GREEN and CurrRed < PrevRed. CurrRed:${Number.isFinite(gCurrRenkoRedClose) ? gCurrRenkoRedClose.toFixed(2) : "NA"} PrevRed:${Number.isFinite(gPrevRenkoRedClose) ? gPrevRenkoRedClose.toFixed(2) : "NA"} Event:${objBoxState?.Transition || "NONE"}`);
+                return;
+            }
+        }
+    }
+
+    if(vSide === "buy" && gManualPrevGreenSeedActive){
+        gManualPrevGreenSeedActive = false;
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"));
+        gPrevRenkoGreenClose = NaN;
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevGreenClose"));
+        fnSetPrevRenkoCloseInputs();
+        fnAppendRenkoFeedMsg(`[${pSource}] Manual PrevGreen seed consumed on first BUY trade.`);
+    }
+    else if(vSide === "sell" && gManualPrevRedSeedActive){
+        gManualPrevRedSeedActive = false;
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"));
+        gPrevRenkoRedClose = NaN;
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevRedClose"));
+        fnSetPrevRenkoCloseInputs();
+        fnAppendRenkoFeedMsg(`[${pSource}] Manual PrevRed seed consumed on first SELL trade.`);
     }
 
     const objSideMatches = vSide === "buy" ? objMatched.buy : objMatched.sell;
@@ -2024,6 +2071,10 @@ function fnSetSymbolData(pThisVal){
 		objLotSize.value = 0;
 	}
 
+    gRenkoFeedAnchor = null;
+    gRenkoFeedLastDir = 0;
+    fnLoadPrevRenkoCloseSettings();
+    void fnBootstrapPrevRenkoCloseFromHistory(false);
     fnSetRenkoFeedMeta();
     if(gRenkoFeedEnabled){
         fnRestartRenkoFeedWS();
@@ -2102,6 +2153,351 @@ function fnGetTickerVolumeFromWSData(pWSData){
     return NaN;
 }
 
+function fnSetPrevRenkoCloseInputs(){
+    const objGreen = document.getElementById("txtPrevRenkoGreenClose");
+    const objRed = document.getElementById("txtPrevRenkoRedClose");
+    if(objGreen){
+        objGreen.value = Number.isFinite(gPrevRenkoGreenClose) ? gPrevRenkoGreenClose.toFixed(2) : "";
+    }
+    if(objRed){
+        objRed.value = Number.isFinite(gPrevRenkoRedClose) ? gPrevRenkoRedClose.toFixed(2) : "";
+    }
+}
+
+function fnUpdatePrevRenkoCloseFromInput(pThis, pType){
+    const vRaw = String(pThis?.value || "").trim();
+    const vNum = Number(vRaw);
+    const bValid = Number.isFinite(vNum) && vNum > 0;
+
+    if(String(pType).toLowerCase() === "green"){
+        if(bValid){
+            gPrevRenkoGreenClose = vNum;
+            localStorage.setItem(fnGetPrevRenkoStorageKey("PrevGreenClose"), String(vNum));
+            gManualPrevGreenSeedActive = true;
+            localStorage.setItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"), "true");
+        }
+        else{
+            gPrevRenkoGreenClose = NaN;
+            localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevGreenClose"));
+            gManualPrevGreenSeedActive = false;
+            localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"));
+        }
+    }
+    else{
+        if(bValid){
+            gPrevRenkoRedClose = vNum;
+            localStorage.setItem(fnGetPrevRenkoStorageKey("PrevRedClose"), String(vNum));
+            gManualPrevRedSeedActive = true;
+            localStorage.setItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"), "true");
+        }
+        else{
+            gPrevRenkoRedClose = NaN;
+            localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevRedClose"));
+            gManualPrevRedSeedActive = false;
+            localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"));
+        }
+    }
+
+    fnSetPrevRenkoCloseInputs();
+    fnAppendRenkoFeedMsg(`Manual ${String(pType).toUpperCase()} reference ${bValid ? `set to ${vNum.toFixed(2)} (seed for first trade)` : "cleared"}.`);
+}
+
+function fnGetPrevRenkoStoragePrefix(){
+    const vSymbol = String(fnGetRenkoFeedSymbol() || "BTCUSD").toUpperCase();
+    const vStep = Number.isFinite(Number(gRenkoFeedStepPts)) ? Math.floor(Number(gRenkoFeedStepPts)) : 200;
+    const vSrc = String(gRenkoFeedPriceSource || "mark_price").toLowerCase();
+    return `DFSL_RenkoPrev_${vSymbol}_${vStep}_${vSrc}`;
+}
+
+function fnGetPrevRenkoStorageKey(pField){
+    return `${fnGetPrevRenkoStoragePrefix()}_${pField}`;
+}
+
+function fnGetStoredNumOrNaN(pKey){
+    const vRaw = localStorage.getItem(pKey);
+    if(vRaw === null || String(vRaw).trim() === ""){
+        return NaN;
+    }
+    const vNum = Number(vRaw);
+    return Number.isFinite(vNum) ? vNum : NaN;
+}
+
+function fnLoadPrevRenkoCloseSettings(){
+    const vCurrGreenKey = fnGetPrevRenkoStorageKey("CurrGreenClose");
+    const vPrevGreenKey = fnGetPrevRenkoStorageKey("PrevGreenClose");
+    const vCurrRedKey = fnGetPrevRenkoStorageKey("CurrRedClose");
+    const vPrevRedKey = fnGetPrevRenkoStorageKey("PrevRedClose");
+    const vColorKey = fnGetPrevRenkoStorageKey("LastColor");
+    const vSeedGreenKey = fnGetPrevRenkoStorageKey("ManualPrevGreenSeed");
+    const vSeedRedKey = fnGetPrevRenkoStorageKey("ManualPrevRedSeed");
+
+    let vCurrGreen = fnGetStoredNumOrNaN(vCurrGreenKey);
+    let vPrevGreen = fnGetStoredNumOrNaN(vPrevGreenKey);
+    let vCurrRed = fnGetStoredNumOrNaN(vCurrRedKey);
+    let vPrevRed = fnGetStoredNumOrNaN(vPrevRedKey);
+    let vLastColor = String(localStorage.getItem(vColorKey) || "");
+
+    if(vLastColor !== "G" && vLastColor !== "R"){
+        vLastColor = "";
+    }
+
+    gCurrRenkoGreenClose = Number.isFinite(vCurrGreen) ? vCurrGreen : NaN;
+    gPrevRenkoGreenClose = Number.isFinite(vPrevGreen) ? vPrevGreen : NaN;
+    gCurrRenkoRedClose = Number.isFinite(vCurrRed) ? vCurrRed : NaN;
+    gPrevRenkoRedClose = Number.isFinite(vPrevRed) ? vPrevRed : NaN;
+    gLastRenkoColorCode = (vLastColor === "G" || vLastColor === "R") ? vLastColor : "";
+    gManualPrevGreenSeedActive = String(localStorage.getItem(vSeedGreenKey) || "false") === "true";
+    gManualPrevRedSeedActive = String(localStorage.getItem(vSeedRedKey) || "false") === "true";
+    fnSetPrevRenkoCloseInputs();
+}
+
+function fnToggleRenkoHHLL(pThis){
+    gRenkoHHLL = !!pThis?.checked;
+    localStorage.setItem("DFSL_RenkoHHLL", JSON.stringify(gRenkoHHLL));
+    fnAppendRenkoFeedMsg(`HH/LL filter ${gRenkoHHLL ? "ON" : "OFF"}.`);
+}
+
+function fnLoadRenkoHHLLSettings(){
+    const objSwt = document.getElementById("swtRenkoHHLL");
+    gRenkoHHLL = JSON.parse(localStorage.getItem("DFSL_RenkoHHLL") || "false");
+    if(objSwt){
+        objSwt.checked = !!gRenkoHHLL;
+    }
+}
+
+async function fnBootstrapPrevRenkoCloseFromHistory(pForce = false){
+    if(!pForce){
+        const bHasGreen = Number.isFinite(gPrevRenkoGreenClose) && Number.isFinite(gCurrRenkoGreenClose);
+        const bHasRed = Number.isFinite(gPrevRenkoRedClose) && Number.isFinite(gCurrRenkoRedClose);
+        if(bHasGreen && bHasRed){
+            return;
+        }
+    }
+
+    const vSymbol = fnGetRenkoFeedSymbol();
+    const vStep = Number(gRenkoFeedStepPts);
+    if(!Number.isFinite(vStep) || vStep <= 0){
+        return;
+    }
+
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+    let vAction = JSON.stringify({
+        CandleMinutes : gHisCandleMins,
+        Symbol: vSymbol,
+        LookbackCandles: 240
+    });
+
+    try{
+        const objResp = await fetch("/deltaFutScprDemo/getHistOHLC", {
+            method: "POST",
+            headers: vHeaders,
+            body: vAction,
+            redirect: "follow"
+        });
+        const objResult = await objResp.json();
+        if(objResult?.status !== "success"){
+            return;
+        }
+        const objRes = JSON.parse(objResult.data || "{}");
+        const objRowsRaw = Array.isArray(objRes?.result) ? objRes.result : [];
+        if(objRowsRaw.length === 0){
+            return;
+        }
+
+        const objRows = objRowsRaw.slice().sort((pA, pB) => {
+            const vAT = Number(pA?.time || pA?.timestamp || pA?.start || 0);
+            const vBT = Number(pB?.time || pB?.timestamp || pB?.start || 0);
+            return vAT - vBT;
+        });
+        const objCloses = objRows
+            .map((pRow) => Number(pRow?.close))
+            .filter((pVal) => Number.isFinite(pVal) && pVal > 0);
+        if(objCloses.length === 0){
+            return;
+        }
+
+        let vAnchor = Math.floor(objCloses[0] / vStep) * vStep;
+        if(!Number.isFinite(vAnchor)){
+            return;
+        }
+        let vLastDir = 0;
+        let vLastColor = "";
+        let vCurrGreen = NaN;
+        let vPrevGreen = NaN;
+        let vCurrRed = NaN;
+        let vPrevRed = NaN;
+
+        for(let i = 1; i < objCloses.length; i += 1){
+            const vMark = objCloses[i];
+            const objBuild = fnBuildStandardRenkoBricks(vMark, vStep, vAnchor, vLastDir, 50);
+            vAnchor = objBuild.Anchor;
+            vLastDir = objBuild.LastDir;
+            for(let j = 0; j < objBuild.Bricks.length; j += 1){
+                const vOpen = objBuild.Bricks[j].Open;
+                const vClose = objBuild.Bricks[j].Close;
+                const vColor = vClose > vOpen ? "G" : "R";
+                if(vColor === "G" && vLastColor === "R"){
+                    vPrevGreen = vCurrGreen;
+                    vCurrGreen = vClose;
+                }
+                else if(vColor === "R" && vLastColor === "G"){
+                    vPrevRed = vCurrRed;
+                    vCurrRed = vClose;
+                }
+                vLastColor = vColor;
+            }
+        }
+
+        gCurrRenkoGreenClose = Number.isFinite(vCurrGreen) ? vCurrGreen : NaN;
+        gPrevRenkoGreenClose = Number.isFinite(vPrevGreen) ? vPrevGreen : NaN;
+        gCurrRenkoRedClose = Number.isFinite(vCurrRed) ? vCurrRed : NaN;
+        gPrevRenkoRedClose = Number.isFinite(vPrevRed) ? vPrevRed : NaN;
+        gLastRenkoColorCode = (vLastColor === "G" || vLastColor === "R") ? vLastColor : gLastRenkoColorCode;
+        const vCurrGreenKey = fnGetPrevRenkoStorageKey("CurrGreenClose");
+        const vPrevGreenKey = fnGetPrevRenkoStorageKey("PrevGreenClose");
+        const vCurrRedKey = fnGetPrevRenkoStorageKey("CurrRedClose");
+        const vPrevRedKey = fnGetPrevRenkoStorageKey("PrevRedClose");
+        const vColorKey = fnGetPrevRenkoStorageKey("LastColor");
+        if(Number.isFinite(gCurrRenkoGreenClose)){
+            localStorage.setItem(vCurrGreenKey, String(gCurrRenkoGreenClose));
+        }
+        else{
+            localStorage.removeItem(vCurrGreenKey);
+        }
+        if(Number.isFinite(gPrevRenkoGreenClose)){
+            localStorage.setItem(vPrevGreenKey, String(gPrevRenkoGreenClose));
+        }
+        else{
+            localStorage.removeItem(vPrevGreenKey);
+        }
+        if(Number.isFinite(gCurrRenkoRedClose)){
+            localStorage.setItem(vCurrRedKey, String(gCurrRenkoRedClose));
+        }
+        else{
+            localStorage.removeItem(vCurrRedKey);
+        }
+        if(Number.isFinite(gPrevRenkoRedClose)){
+            localStorage.setItem(vPrevRedKey, String(gPrevRenkoRedClose));
+        }
+        else{
+            localStorage.removeItem(vPrevRedKey);
+        }
+        localStorage.setItem(vColorKey, gLastRenkoColorCode || "");
+        fnSetPrevRenkoCloseInputs();
+    }
+    catch(_err){
+        // no-op
+    }
+}
+
+function fnUpdatePrevRenkoCloseByBox(pOpen, pClose){
+    const vOpen = Number(pOpen);
+    const vClose = Number(pClose);
+    if(!Number.isFinite(vOpen) || !Number.isFinite(vClose) || vOpen === vClose){
+        return { ColorCode: "", Transition: "" };
+    }
+
+    const vColorCode = vClose > vOpen ? "G" : "R";
+    let vTransition = "";
+    if(vColorCode === "G" && gLastRenkoColorCode === "R"){
+        gPrevRenkoGreenClose = Number.isFinite(gCurrRenkoGreenClose) ? gCurrRenkoGreenClose : NaN;
+        gCurrRenkoGreenClose = vClose;
+        if(Number.isFinite(gPrevRenkoGreenClose)){
+            localStorage.setItem(fnGetPrevRenkoStorageKey("PrevGreenClose"), String(gPrevRenkoGreenClose));
+        }
+        else{
+            localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevGreenClose"));
+        }
+        localStorage.setItem(fnGetPrevRenkoStorageKey("CurrGreenClose"), String(gCurrRenkoGreenClose));
+        gManualPrevGreenSeedActive = false;
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"));
+        vTransition = "R2G";
+        fnAppendRenkoFeedMsg(`[delta] First GREEN after RED | CurrGreen: ${gCurrRenkoGreenClose.toFixed(2)} | PrevGreen: ${Number.isFinite(gPrevRenkoGreenClose) ? gPrevRenkoGreenClose.toFixed(2) : "NA"}`);
+    }
+    else if(vColorCode === "R" && gLastRenkoColorCode === "G"){
+        gPrevRenkoRedClose = Number.isFinite(gCurrRenkoRedClose) ? gCurrRenkoRedClose : NaN;
+        gCurrRenkoRedClose = vClose;
+        if(Number.isFinite(gPrevRenkoRedClose)){
+            localStorage.setItem(fnGetPrevRenkoStorageKey("PrevRedClose"), String(gPrevRenkoRedClose));
+        }
+        else{
+            localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevRedClose"));
+        }
+        localStorage.setItem(fnGetPrevRenkoStorageKey("CurrRedClose"), String(gCurrRenkoRedClose));
+        gManualPrevRedSeedActive = false;
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"));
+        vTransition = "G2R";
+        fnAppendRenkoFeedMsg(`[delta] First RED after GREEN | CurrRed: ${gCurrRenkoRedClose.toFixed(2)} | PrevRed: ${Number.isFinite(gPrevRenkoRedClose) ? gPrevRenkoRedClose.toFixed(2) : "NA"}`);
+    }
+
+    gLastRenkoColorCode = vColorCode;
+    localStorage.setItem(fnGetPrevRenkoStorageKey("LastColor"), vColorCode);
+    fnSetPrevRenkoCloseInputs();
+    return { ColorCode: vColorCode, Transition: vTransition };
+}
+
+function fnBuildStandardRenkoBricks(pMark, pStep, pAnchor, pLastDir, pMaxBricks = 50){
+    const vMark = Number(pMark);
+    const vStep = Number(pStep);
+    let vAnchor = Number(pAnchor);
+    let vLastDir = Number(pLastDir);
+    let vGuard = 0;
+    const objBricks = [];
+
+    if(!Number.isFinite(vMark) || !Number.isFinite(vStep) || vStep <= 0 || !Number.isFinite(vAnchor)){
+        return { Bricks: objBricks, Anchor: vAnchor, LastDir: vLastDir };
+    }
+
+    while(vGuard < pMaxBricks){
+        const vDiff = vMark - vAnchor;
+        let vDir = 0;
+
+        if(vLastDir === 0){
+            if(vDiff >= vStep){
+                vDir = 1;
+            }
+            else if(vDiff <= -vStep){
+                vDir = -1;
+            }
+            else{
+                break;
+            }
+        }
+        else if(vLastDir === 1){
+            if(vDiff >= vStep){
+                vDir = 1;
+            }
+            else if(vDiff <= -(2 * vStep)){
+                vDir = -1;
+            }
+            else{
+                break;
+            }
+        }
+        else{
+            if(vDiff <= -vStep){
+                vDir = -1;
+            }
+            else if(vDiff >= (2 * vStep)){
+                vDir = 1;
+            }
+            else{
+                break;
+            }
+        }
+
+        const vOpen = vAnchor;
+        const vClose = vOpen + (vDir * vStep);
+        objBricks.push({ Open: vOpen, Close: vClose });
+        vAnchor = vClose;
+        vLastDir = vDir;
+        vGuard += 1;
+    }
+
+    return { Bricks: objBricks, Anchor: vAnchor, LastDir: vLastDir };
+}
+
 function fnAppendRenkoFeedMsg(pMsg){
     const objWrap = document.getElementById("divRenkoFeedMsgs");
     if(!objWrap){
@@ -2137,6 +2533,23 @@ function fnUpdateRenkoFeedStep(pThis){
     }
     localStorage.setItem("DFSL_RenkoFeedStepPts", String(gRenkoFeedStepPts));
     gRenkoFeedAnchor = null;
+    gRenkoFeedLastDir = 0;
+    gCurrRenkoGreenClose = NaN;
+    gPrevRenkoGreenClose = NaN;
+    gCurrRenkoRedClose = NaN;
+    gPrevRenkoRedClose = NaN;
+    gLastRenkoColorCode = "";
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("CurrGreenClose"));
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevGreenClose"));
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("CurrRedClose"));
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevRedClose"));
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("LastColor"));
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"));
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"));
+    gManualPrevGreenSeedActive = false;
+    gManualPrevRedSeedActive = false;
+    fnSetPrevRenkoCloseInputs();
+    void fnBootstrapPrevRenkoCloseFromHistory(true);
     fnSetRenkoFeedMeta();
     fnAppendRenkoFeedMsg(`Step updated to ${gRenkoFeedStepPts} points.`);
 }
@@ -2147,6 +2560,18 @@ function fnUpdateRenkoFeedPriceSource(pThis){
     gRenkoFeedPriceSource = objAllowed.includes(vSel) ? vSel : "mark_price";
     localStorage.setItem("DFSL_RenkoFeedPriceSrc", gRenkoFeedPriceSource);
     gRenkoFeedAnchor = null;
+    gRenkoFeedLastDir = 0;
+    gCurrRenkoGreenClose = NaN;
+    gPrevRenkoGreenClose = NaN;
+    gCurrRenkoRedClose = NaN;
+    gPrevRenkoRedClose = NaN;
+    gLastRenkoColorCode = "";
+    gManualPrevGreenSeedActive = false;
+    gManualPrevRedSeedActive = false;
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"));
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"));
+    fnSetPrevRenkoCloseInputs();
+    void fnBootstrapPrevRenkoCloseFromHistory(true);
     fnSetRenkoFeedMeta();
     fnAppendRenkoFeedMsg(`Price source changed to ${gRenkoFeedPriceSource}. Anchor reset.`);
 }
@@ -2214,16 +2639,17 @@ async function fnHandleRenkoFeedTicker(pTicData){
     }
     if(!Number.isFinite(gRenkoFeedAnchor)){
         gRenkoFeedAnchor = Math.floor(vMark / gRenkoFeedStepPts) * gRenkoFeedStepPts;
+        gRenkoFeedLastDir = 0;
         fnAppendRenkoFeedMsg(`Anchor set @ ${gRenkoFeedAnchor.toFixed(2)} (${fnGetRenkoFeedSymbol()})`);
         return;
     }
 
-    let vGuard = 0;
-    while(Math.abs(vMark - gRenkoFeedAnchor) >= gRenkoFeedStepPts && vGuard < 25){
-        const vDir = vMark > gRenkoFeedAnchor ? 1 : -1;
-        const vOpen = gRenkoFeedAnchor;
-        const vClose = vOpen + (vDir * gRenkoFeedStepPts);
-        gRenkoFeedAnchor = vClose;
+    const objBuild = fnBuildStandardRenkoBricks(vMark, gRenkoFeedStepPts, gRenkoFeedAnchor, gRenkoFeedLastDir, 25);
+    gRenkoFeedAnchor = objBuild.Anchor;
+    gRenkoFeedLastDir = objBuild.LastDir;
+    for(let i = 0; i < objBuild.Bricks.length; i += 1){
+        const vOpen = objBuild.Bricks[i].Open;
+        const vClose = objBuild.Bricks[i].Close;
         const objOHLC = fnGetSyntheticRenkoOHLC(vOpen, vClose);
         const objRenkoMsg = {
             Indc: Number(document.getElementById("ddlIndicatorType")?.value || 0),
@@ -2236,7 +2662,6 @@ async function fnHandleRenkoFeedTicker(pTicData){
         if(fnShouldUseDeltaRenkoFeedForStrategy()){
             await fnProcessRenkoSignal(objRenkoMsg, "delta");
         }
-        vGuard += 1;
     }
 }
 
@@ -2259,6 +2684,7 @@ function fnStartRenkoFeedWS(){
         const vSendData = { type: "subscribe", payload: { channels: [{ name: "v2/ticker", symbols: [vSymbol] }] } };
         objRenkoWS.send(JSON.stringify(vSendData));
         gRenkoFeedAnchor = null;
+        gRenkoFeedLastDir = 0;
         fnSetRenkoFeedStatus("ON", "bg-success");
         fnSetRenkoFeedMeta();
         fnAppendRenkoFeedMsg(`Feed started for ${vSymbol}. Waiting for ${gRenkoFeedStepPts}-point move...`);
@@ -2373,7 +2799,11 @@ function fnLoadRenkoFeedSettings(){
         objSwt.checked = !!vEnabled;
     }
     gRenkoFeedEnabled = !!vEnabled;
+    gRenkoFeedLastDir = 0;
     fnLoadRenkoPatternSettings();
+    fnLoadRenkoHHLLSettings();
+    fnLoadPrevRenkoCloseSettings();
+    void fnBootstrapPrevRenkoCloseFromHistory(false);
     fnSetRenkoFeedMeta();
     fnSetRenkoFeedStatus(gRenkoFeedEnabled ? "ON" : "OFF", gRenkoFeedEnabled ? "bg-success" : "bg-secondary");
     if(gRenkoFeedEnabled){
