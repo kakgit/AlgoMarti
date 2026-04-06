@@ -1215,13 +1215,13 @@ function fnSyncOpenFutureRiskFromStrategy(){
         }
 
         if(objTrade.TransType === "sell"){
-            objTrade.AmtSL = Number((vRef + vSLPts).toFixed(2));
-            objTrade.AmtTP1 = Number((vRef - vTPPts).toFixed(2));
+            objTrade.AmtSL = vSLPts > 0 ? Number((vRef + vSLPts).toFixed(2)) : null;
+            objTrade.AmtTP1 = vTPPts > 0 ? Number((vRef - vTPPts).toFixed(2)) : null;
             objTrade.TrailNextTrigger = vTSLPts > 0 ? Number((Number(objTrade.BuyPrice) - vTSLPts).toFixed(2)) : null;
         }
         else{
-            objTrade.AmtSL = Number((vRef - vSLPts).toFixed(2));
-            objTrade.AmtTP1 = Number((vRef + vTPPts).toFixed(2));
+            objTrade.AmtSL = vSLPts > 0 ? Number((vRef - vSLPts).toFixed(2)) : null;
+            objTrade.AmtTP1 = vTPPts > 0 ? Number((vRef + vTPPts).toFixed(2)) : null;
             objTrade.TrailNextTrigger = vTSLPts > 0 ? Number((Number(objTrade.SellPrice) + vTSLPts).toFixed(2)) : null;
         }
     }
@@ -3204,15 +3204,25 @@ function fnInitFutureRiskFields(objTrade){
         return;
     }
 
-    if(!Number.isFinite(Number(objTrade.AmtSL))){
-        objTrade.AmtSL = objTrade.TransType === "sell"
-            ? Number((vRef + vSLPts).toFixed(2))
-            : Number((vRef - vSLPts).toFixed(2));
+    if(vSLPts > 0){
+        if(!Number.isFinite(Number(objTrade.AmtSL))){
+            objTrade.AmtSL = objTrade.TransType === "sell"
+                ? Number((vRef + vSLPts).toFixed(2))
+                : Number((vRef - vSLPts).toFixed(2));
+        }
     }
-    if(!Number.isFinite(Number(objTrade.AmtTP1))){
-        objTrade.AmtTP1 = objTrade.TransType === "sell"
-            ? Number((vRef - vTPPts).toFixed(2))
-            : Number((vRef + vTPPts).toFixed(2));
+    else{
+        objTrade.AmtSL = null;
+    }
+    if(vTPPts > 0){
+        if(!Number.isFinite(Number(objTrade.AmtTP1))){
+            objTrade.AmtTP1 = objTrade.TransType === "sell"
+                ? Number((vRef - vTPPts).toFixed(2))
+                : Number((vRef + vTPPts).toFixed(2));
+        }
+    }
+    else{
+        objTrade.AmtTP1 = null;
     }
 
     let vTPAmt = Number(objTrade.TakeProfitAmt);
@@ -3263,15 +3273,22 @@ function fnShouldCloseFuturePosition(objTrade, pCurrPrice){
     }
 
     let vCurr = Number(pCurrPrice);
+    let vSLPts = fnParsePositiveNumber(objTrade.StopLossPts ?? objTrade.PointsSL, 0);
+    let vTPPts = fnParsePositiveNumber(objTrade.TakeProfitPts ?? objTrade.PointsTP, 0);
     let vSL = Number(objTrade.AmtSL);
+    let bHasSL = (vSLPts > 0) && Number.isFinite(vSL);
     let vTP1 = Number(objTrade.AmtTP1);
+    let bHasTP = (vTPPts > 0) && Number.isFinite(vTP1);
     let vTPAmt = Number(objTrade.TakeProfitAmt || 0);
-    if(!Number.isFinite(vCurr) || !Number.isFinite(vSL) || !Number.isFinite(vTP1)){
+    if(!Number.isFinite(vCurr)){
         return false;
     }
 
     fnApplyFutureTrailingSL(objTrade, vCurr);
     vSL = Number(objTrade.AmtSL);
+    bHasSL = (vSLPts > 0) && Number.isFinite(vSL);
+    vTP1 = Number(objTrade.AmtTP1);
+    bHasTP = (vTPPts > 0) && Number.isFinite(vTP1);
 
     let vStrikePrice = Number(objTrade.StrikePrice);
     let vLotSize = Number(objTrade.LotSize);
@@ -3282,24 +3299,24 @@ function fnShouldCloseFuturePosition(objTrade, pCurrPrice){
     let vPL = fnGetTradePL(vBuy, vSell, vLotSize, vQty, vCharges);
 
     if(objTrade.TransType === "buy"){
-        if(vCurr <= vSL){
+        if(bHasSL && vCurr <= vSL){
             return true;
         }
         if(vTPAmt > 0 && Number.isFinite(vPL) && vPL >= vTPAmt){
             return true;
         }
-        if(vCurr >= vTP1){
+        if(bHasTP && vCurr >= vTP1){
             return true;
         }
     }
     else if(objTrade.TransType === "sell"){
-        if(vCurr >= vSL){
+        if(bHasSL && vCurr >= vSL){
             return true;
         }
         if(vTPAmt > 0 && Number.isFinite(vPL) && vPL >= vTPAmt){
             return true;
         }
-        if(vCurr <= vTP1){
+        if(bHasTP && vCurr <= vTP1){
             return true;
         }
     }
@@ -3462,15 +3479,15 @@ async function fnPreInitAutoFutTrade(pOptionType, pTransType){
         let vTrailNextTrigger = null;
 
         if(vBuyOrSell === "buy"){
-            vAmtSL = Number((vBestBuy - Number(vPointsSL)).toFixed(2));
-            vAmtTP1 = Number((vBestBuy + Number(vPointsTP)).toFixed(2));
+            vAmtSL = Number(vPointsSL) > 0 ? Number((vBestBuy - Number(vPointsSL)).toFixed(2)) : null;
+            vAmtTP1 = Number(vPointsTP) > 0 ? Number((vBestBuy + Number(vPointsTP)).toFixed(2)) : null;
             if(vPointsTSL > 0){
                 vTrailNextTrigger = Number((vBestSell + vPointsTSL).toFixed(2));
             }
         }
         else if(vBuyOrSell === "sell"){
-            vAmtSL = Number((vBestSell + Number(vPointsSL)).toFixed(2));
-            vAmtTP1 = Number((vBestSell - Number(vPointsTP)).toFixed(2));
+            vAmtSL = Number(vPointsSL) > 0 ? Number((vBestSell + Number(vPointsSL)).toFixed(2)) : null;
+            vAmtTP1 = Number(vPointsTP) > 0 ? Number((vBestSell - Number(vPointsTP)).toFixed(2)) : null;
             if(vPointsTSL > 0){
                 vTrailNextTrigger = Number((vBestBuy - vPointsTSL).toFixed(2));
             }
@@ -4115,6 +4132,13 @@ function fnGetTradePL(pBuyPrice, pSellPrice, pLotSize, pQty, pCharges){
     return vPL;
 }
 
+function fnHasOpenFuturesPosition(){
+    if(!gCurrPosDSSDV2 || !Array.isArray(gCurrPosDSSDV2.TradeData)){
+        return false;
+    }
+    return gCurrPosDSSDV2.TradeData.some(objLeg => objLeg.Status === "OPEN" && objLeg.OptionType === "F");
+}
+
 async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pStatus){
     let objApiKey = document.getElementById("txtUserAPIKey");
     let objApiSecret = document.getElementById("txtAPISecret");
@@ -4250,7 +4274,12 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
             let vReRow = gReLegCfgRow;
             gReLeg = false;
             gReLegCfgRow = 0;
-            fnPreInitAutoTrade(pOptionType, pTransType, vReRow);
+            if(fnHasOpenFuturesPosition()){
+                fnPreInitAutoTrade(pOptionType, pTransType, vReRow);
+            }
+            else{
+                fnGenMessage(`Re-entry skipped for Row ${vReRow}: no open Futures position.`, `badge bg-warning`, "spnGenMsg");
+            }
         }
     }
 }
