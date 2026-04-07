@@ -4586,9 +4586,11 @@ function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = 0){
     if(!Number.isFinite(vTotLossAmt)){
         vTotLossAmt = 0;
     }
+    const vTradePLNum = Number(pTradePL);
+    const bTradeLoss = Number.isFinite(vTradePLNum) ? (vTradePLNum < 0) : (vNewLossAmt < 0);
 
     if(bIsMarti){
-		if(vNewLossAmt < 0){
+		if(bTradeLoss){
             fnClearY2RCarryOnRealLoss();
 	        let vNextQty = Math.floor(vOldQtyMul * 2);
             if(!Number.isFinite(vNextQty) || vNextQty < vStartLots){
@@ -4615,7 +4617,7 @@ function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = 0){
 	    }
     }
     else if(bIsStep){
-        if(vNewLossAmt < 0){
+        if(bTradeLoss){
             fnClearY2RCarryOnRealLoss();
             const vNextQty = Math.floor(vOldQtyMul + vStartLots);
             localStorage.setItem("DFSL_QtyMul", vNextQty);
@@ -5173,6 +5175,8 @@ function fnGetTradePL(pSellPrice, pBuyPrice, pLotSize, pQty, pCharges){
 
 function fnClearLocalStorageTemp(){
     fnReleaseCloseLock();
+    const vStartQtyRaw = Number(localStorage.getItem("DFSL_StartQtyNo"));
+    const vStartQty = Number.isFinite(vStartQtyRaw) && vStartQtyRaw >= 1 ? Math.floor(vStartQtyRaw) : 1;
     gSellActState.LastBox = null;
     gSellActState.PendingOrders = [];
     gSellActState.Busy = false;
@@ -5207,6 +5211,8 @@ function fnClearLocalStorageTemp(){
     localStorage.removeItem("DFSL_SellActBelow");
     localStorage.removeItem("DFSL_SellActSL");
     localStorage.removeItem("DFSL_SellActTP");
+    localStorage.setItem("DFSL_StartQtyNo", vStartQty);
+    localStorage.setItem("DFSL_QtyMul", vStartQty);
 	localStorage.setItem("DFSL_TotLossAmt", 0);
     clearInterval(gTimerID);
 

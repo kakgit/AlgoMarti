@@ -1712,7 +1712,10 @@ function fnCheckBuySLTP(pCurrPrice){
 	// console.log("vBrokTotLossRec: " + vBrokTotLossRec);
 	// console.log("gPL: " + gPL);
     fnApplyTrailingSL(pCurrPrice);
-    const vY2RTarget = fnGetY2RTargetAmt();
+    const vBaseY2RTarget = fnGetY2RTargetAmt();
+    const vY2RTarget = bIsMarti
+        ? vBaseY2RTarget
+        : (vBaseY2RTarget > 0 ? Number((vBaseY2RTarget * fnParsePositiveNumber(gMultiplierX, 1)).toFixed(2)) : 0);
     if(objSwtYet2Rec?.checked && vY2RTarget > 0 && Number(gPL) >= vY2RTarget){
         fnCloseManualFutures(gByorSl);
         return;
@@ -1784,7 +1787,10 @@ function fnCheckSellSLTP(pCurrPrice){
 	// console.log("vBrokTotLossRec: " + vBrokTotLossRec);
 	// console.log("gPL: " + gPL);
     fnApplyTrailingSL(pCurrPrice);
-    const vY2RTarget = fnGetY2RTargetAmt();
+    const vBaseY2RTarget = fnGetY2RTargetAmt();
+    const vY2RTarget = bIsMarti
+        ? vBaseY2RTarget
+        : (vBaseY2RTarget > 0 ? Number((vBaseY2RTarget * fnParsePositiveNumber(gMultiplierX, 1)).toFixed(2)) : 0);
     if(objSwtYet2Rec?.checked && vY2RTarget > 0 && Number(gPL) >= vY2RTarget){
         fnCloseManualFutures(gByorSl);
         return;
@@ -2404,6 +2410,7 @@ async function fnInnitiateClsFutTrade(pQty){
         return { "status": "warning", "message": "Invalid quantity requested for close.", "data": "" };
     }
     let vToCntuQty = vCurrQty - vCloseQty;
+    const vExecQty = (vCloseQty === 0) ? vCurrQty : vCloseQty;
 
     let vClosedTradePL = 0;
     let objBestRates = await fnGetFutBestRates();
@@ -2429,13 +2436,13 @@ async function fnInnitiateClsFutTrade(pQty){
 
 	    gCurrPos.TradeData[0].CloseDTVal = vDate.valueOf();
 
-	    if(vCloseQty !== 0){
-		    gCurrPos.TradeData[0].Qty = vCloseQty;
-		    let vCapital = fnGetTradeCapital(gByorSl, gCurrPos.TradeData[0].BuyPrice, gCurrPos.TradeData[0].SellPrice, gCurrPos.TradeData[0].LotSize, vCloseQty);
+	    if(vExecQty > 0){
+		    gCurrPos.TradeData[0].Qty = vExecQty;
+		    let vCapital = fnGetTradeCapital(gByorSl, gCurrPos.TradeData[0].BuyPrice, gCurrPos.TradeData[0].SellPrice, gCurrPos.TradeData[0].LotSize, vExecQty);
 		    gCurrPos.TradeData[0].Capital = vCapital;
-		    let vCharges = fnGetTradeCharges(gCurrPos.TradeData[0].OrderID, vDate.valueOf(), gCurrPos.TradeData[0].LotSize, vCloseQty, gCurrPos.TradeData[0].BuyPrice, gCurrPos.TradeData[0].SellPrice, gByorSl);
+		    let vCharges = fnGetTradeCharges(gCurrPos.TradeData[0].OrderID, vDate.valueOf(), gCurrPos.TradeData[0].LotSize, vExecQty, gCurrPos.TradeData[0].BuyPrice, gCurrPos.TradeData[0].SellPrice, gByorSl);
 		    gCurrPos.TradeData[0].Charges = vCharges;
-		    let vTradePL = fnGetTradePL(gCurrPos.TradeData[0].SellPrice, gCurrPos.TradeData[0].BuyPrice, gCurrPos.TradeData[0].LotSize, vCloseQty, vCharges);
+		    let vTradePL = fnGetTradePL(gCurrPos.TradeData[0].SellPrice, gCurrPos.TradeData[0].BuyPrice, gCurrPos.TradeData[0].LotSize, vExecQty, vCharges);
 		    gCurrPos.TradeData[0].ProfitLoss = vTradePL;
             vClosedTradePL = vTradePL;
 	    }
@@ -2450,7 +2457,11 @@ async function fnInnitiateClsFutTrade(pQty){
         fnApplyLossCarryFromPLDemo(gNewPLAmt);
 	}
 	else{
-
+        gOldPLAmt = Number(localStorage.getItem("DFSD_TotLossAmt")) || 0;
+        gNewPLAmt = Number.isFinite(Number(gPL)) ? Number(gPL) : 0;
+        localStorage.setItem("DFSD_OldPLAmt", gOldPLAmt);
+        localStorage.setItem("DFSD_NewPLAmt", gNewPLAmt);
+        fnApplyLossCarryFromPLDemo(gNewPLAmt);
 	}
 	const objClsTrd = new Promise((resolve, reject) => {
 	    let objTodayTrades = JSON.parse(localStorage.getItem("DFSD_TrdBkFut"));
@@ -2482,7 +2493,7 @@ async function fnInnitiateClsFutTrade(pQty){
 	    }
 
         const bIsFullClose = (vCloseQty === 0 || vToCntuQty === 0);
-	    fnSetNextOptTradeSettings(bIsFullClose);
+	    fnSetNextOptTradeSettings(bIsFullClose, gNewPLAmt);
 
         document.getElementById("spnLossTrd").className = "badge rounded-pill text-bg-danger";
         fnSendTelegramRuntimeAlert(`DeltaFutScprDemo\n${bIsFullClose ? "Position Closed" : "Partial Close"}\nSide: ${gByorSl}\nClosed Qty: ${vCloseQty === 0 ? vCurrQty : vCloseQty}\nRemaining Qty: ${Math.max(0, vToCntuQty)}\nTime: ${new Date().toLocaleString("en-GB")}`);
@@ -2496,7 +2507,7 @@ async function fnInnitiateClsFutTrade(pQty){
 }
 
 //************* Yet To Recover Adjustment **************//
-function fnSetNextOptTradeSettings(pIsFullClose = true){
+function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = NaN){
 	if(!pIsFullClose){
         return;
     }
@@ -2531,6 +2542,18 @@ function fnSetNextOptTradeSettings(pIsFullClose = true){
     }
     if(!Number.isFinite(vCycleStartQty) || vCycleStartQty < 1){
         vCycleStartQty = vStartLots;
+    }
+
+    const vClosedPL = Number.isFinite(Number(pTradePL)) ? Number(pTradePL) : Number(localStorage.getItem("DFSD_NewPLAmt"));
+    if(Number.isFinite(vClosedPL) && vClosedPL < 0){
+        let vNextQty = bIsMarti ? Math.floor(vOldQtyMul * 2) : Math.floor(vOldQtyMul + vStartLots);
+        if(!Number.isFinite(vNextQty) || vNextQty < vStartLots){
+            vNextQty = vStartLots;
+        }
+        localStorage.setItem("DFSD_QtyMul", vNextQty);
+        objQty.value = vNextQty;
+        fnUpdateMartiDebugStatus();
+        return;
     }
 
     const vStartDeficit = Math.max(0, -vCycleStartLoss);
@@ -2929,11 +2952,15 @@ function fnClearLocalStorageTemp(){
     fnStopRenkoFeedWS();
     gRenkoPatternSeq = "";
     gRenkoFeedLastDir = 0;
+    const vStartQtyRaw = Number(localStorage.getItem("DFSD_StartQtyNo"));
+    const vStartQty = Number.isFinite(vStartQtyRaw) && vStartQtyRaw >= 1 ? Math.floor(vStartQtyRaw) : 1;
     localStorage.removeItem("DFSD_CurrFutPos");
 	localStorage.removeItem("DFSD_TrdBkFut");
     localStorage.removeItem("DFSD_CycleStartLossAmt");
     localStorage.removeItem("DFSD_CycleStartQty");
     localStorage.removeItem("DFSD_LossToRecAmt");
+    localStorage.setItem("DFSD_StartQtyNo", vStartQty);
+    localStorage.setItem("DFSD_QtyMul", vStartQty);
 	localStorage.setItem("DFSD_TotLossAmt", 0);
     clearInterval(gTimerID);
 
