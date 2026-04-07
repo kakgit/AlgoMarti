@@ -1220,6 +1220,13 @@ async function fnCreateSellPositionFromFilledRenkoOrder(pOrderData, pPending){
     localStorage.removeItem("DFSL_LastCloseTxnKey");
     localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(vExcTradeDtls));
     localStorage.setItem("DFSL_QtyMul", String(vQty || pPending.Qty));
+    {
+        const vCycleStartLoss = Number(localStorage.getItem("DFSL_TotLossAmt"));
+        const vSafeCycleStartLoss = Number.isFinite(vCycleStartLoss) ? vCycleStartLoss : 0;
+        const vCycleStartQty = Math.max(1, Math.floor(Number(vQty || pPending.Qty)));
+        localStorage.setItem("DFSL_CycleStartLossAmt", String(vSafeCycleStartLoss));
+        localStorage.setItem("DFSL_CycleStartQty", String(vCycleStartQty));
+    }
     fnSetLastOpenBrokerage(Number.isFinite(vEntryCommission) ? vEntryCommission : 0);
     g50Perc1Time = true;
 
@@ -1392,6 +1399,13 @@ async function fnCreateBuyPositionFromFilledRenkoOrder(pOrderData, pPending){
     localStorage.removeItem("DFSL_LastCloseTxnKey");
     localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(vExcTradeDtls));
     localStorage.setItem("DFSL_QtyMul", String(vQty || pPending.Qty));
+    {
+        const vCycleStartLoss = Number(localStorage.getItem("DFSL_TotLossAmt"));
+        const vSafeCycleStartLoss = Number.isFinite(vCycleStartLoss) ? vCycleStartLoss : 0;
+        const vCycleStartQty = Math.max(1, Math.floor(Number(vQty || pPending.Qty)));
+        localStorage.setItem("DFSL_CycleStartLossAmt", String(vSafeCycleStartLoss));
+        localStorage.setItem("DFSL_CycleStartQty", String(vCycleStartQty));
+    }
     fnSetLastOpenBrokerage(Number.isFinite(vEntryCommission) ? vEntryCommission : 0);
     g50Perc1Time = true;
 
@@ -3915,6 +3929,14 @@ async function fnInitiateManualFutures(pTransType){
     localStorage.removeItem("DFSL_LastCloseTxnKey");
     localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(vExcTradeDtls));
     localStorage.setItem("DFSL_QtyMul", objQty.value);
+    {
+        const vCycleStartLoss = Number(localStorage.getItem("DFSL_TotLossAmt"));
+        const vSafeCycleStartLoss = Number.isFinite(vCycleStartLoss) ? vCycleStartLoss : 0;
+        const vCycleStartQtyRaw = Number(objQty.value);
+        const vCycleStartQty = Number.isFinite(vCycleStartQtyRaw) && vCycleStartQtyRaw >= 1 ? Math.floor(vCycleStartQtyRaw) : 1;
+        localStorage.setItem("DFSL_CycleStartLossAmt", String(vSafeCycleStartLoss));
+        localStorage.setItem("DFSL_CycleStartQty", String(vCycleStartQty));
+    }
     fnSetLastOpenBrokerage(Number.isFinite(vEntryCommission) ? vEntryCommission : 0);
     g50Perc1Time = true;
 
@@ -4551,8 +4573,6 @@ function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = 0){
         return;
     }
     let objQty = document.getElementById("txtFuturesQty");
-    let vOldLossAmt = Number(localStorage.getItem("DFSL_OldPLAmt"));
-	let vNewLossAmt = Number(localStorage.getItem("DFSL_NewPLAmt"));
 	let vTotLossAmt = Number(localStorage.getItem("DFSL_TotLossAmt"));
 
     let vOldQtyMul = Number(JSON.parse(localStorage.getItem("DFSL_QtyMul")));
@@ -4560,6 +4580,8 @@ function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = 0){
     const vMode = String(localStorage.getItem("DFSL_TradeMode") || "").toUpperCase();
     const bIsMarti = (vMode === "MARTI");
     const bIsStep = !bIsMarti;
+    let vCycleStartLoss = Number(localStorage.getItem("DFSL_CycleStartLossAmt"));
+    let vCycleStartQty = Number(localStorage.getItem("DFSL_CycleStartQty"));
 
     if(!Number.isFinite(vStartLots) || vStartLots < 1){
         vStartLots = 1;
@@ -4567,83 +4589,85 @@ function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = 0){
     if(!Number.isFinite(vOldQtyMul) || vOldQtyMul < 1){
         vOldQtyMul = vStartLots;
     }
-    if(!Number.isFinite(vOldLossAmt)){
-        vOldLossAmt = 0;
-    }
-    if(!Number.isFinite(vNewLossAmt)){
-        vNewLossAmt = 0;
-    }
     if(!Number.isFinite(vTotLossAmt)){
         vTotLossAmt = 0;
     }
-    const vTradePLNum = Number(pTradePL);
-    const bTradeLoss = Number.isFinite(vTradePLNum) ? (vTradePLNum < 0) : (vNewLossAmt < 0);
-
-    if(bIsMarti){
-		if(bTradeLoss){
-            fnClearY2RCarryOnRealLoss();
-	        let vNextQty = Math.floor(vOldQtyMul * 2);
-            if(!Number.isFinite(vNextQty) || vNextQty < vStartLots){
-                vNextQty = vStartLots;
-            }
-	        localStorage.setItem("DFSL_QtyMul", vNextQty);
-	        objQty.value = vNextQty;
-		}
-		else if(vTotLossAmt < 0 && vOldLossAmt < 0){
-	        const vRemainRatio = Math.abs(vTotLossAmt) / Math.abs(vOldLossAmt);
-	        let vNextQty = Math.ceil(vOldQtyMul * vRemainRatio);
-
-	        if(!Number.isFinite(vNextQty) || vNextQty < vStartLots){
-                vNextQty = vStartLots;
-            }
-
-	        localStorage.setItem("DFSL_QtyMul", vNextQty);
-	        objQty.value = vNextQty;
-		}
-	    else {
-	        fnApplyLastOpenBrokerageOnFullRecovery();
-	        localStorage.setItem("DFSL_QtyMul", vStartLots);
-	        objQty.value = vStartLots;
-	    }
-    }
-    else if(bIsStep){
-        if(bTradeLoss){
-            fnClearY2RCarryOnRealLoss();
-            const vNextQty = Math.floor(vOldQtyMul + vStartLots);
-            localStorage.setItem("DFSL_QtyMul", vNextQty);
-            objQty.value = vNextQty;
-        }
-        else if(vTotLossAmt < 0 && vOldLossAmt < 0){
-            // Step mode: on partial recovery, reduce qty proportionally
-            // to remaining loss bucket instead of keeping qty unchanged.
-            let vRemainRatio = Math.abs(vTotLossAmt) / Math.abs(vOldLossAmt);
-            if(!Number.isFinite(vRemainRatio)){
-                vRemainRatio = 1;
-            }
-            vRemainRatio = Math.max(0, Math.min(1, vRemainRatio));
-            let vNextQty = Math.ceil(vOldQtyMul * vRemainRatio);
-            if(!Number.isFinite(vNextQty) || vNextQty < vStartLots){
-                vNextQty = vStartLots;
-            }
-            if(vNextQty > vOldQtyMul){
-                vNextQty = vOldQtyMul;
-            }
-            localStorage.setItem("DFSL_QtyMul", vNextQty);
-            objQty.value = vNextQty;
-        }
-        else if(vTotLossAmt >= 0){
-            fnApplyLastOpenBrokerageOnFullRecovery();
-            localStorage.setItem("DFSL_QtyMul", vStartLots);
-            objQty.value = vStartLots;
-        }
-        else{
-            localStorage.setItem("DFSL_QtyMul", vOldQtyMul);
-            objQty.value = vOldQtyMul;
+    if(!Number.isFinite(vCycleStartLoss)){
+        vCycleStartLoss = Number(localStorage.getItem("DFSL_OldPLAmt"));
+        if(!Number.isFinite(vCycleStartLoss)){
+            vCycleStartLoss = 0;
         }
     }
+    if(!Number.isFinite(vCycleStartQty) || vCycleStartQty < 1){
+        vCycleStartQty = vOldQtyMul;
+    }
+    if(!Number.isFinite(vCycleStartQty) || vCycleStartQty < 1){
+        vCycleStartQty = vStartLots;
+    }
+
+    const vStartDeficit = Math.max(0, -vCycleStartLoss);
+    const vEndDeficit = Math.max(0, -vTotLossAmt);
+    const bRecoveredSome = vEndDeficit < vStartDeficit;
+    const bWorsened = vEndDeficit > vStartDeficit;
+
+    let vNextQty = vOldQtyMul;
+    let vDecision = "flat";
+    let vRatioUsed = NaN;
+    if(vEndDeficit <= 0){
+        fnApplyLastOpenBrokerageOnFullRecovery();
+        vNextQty = vStartLots;
+        vDecision = "full_recovery";
+    }
+    else if(bRecoveredSome){
+        let vRemainRatio = vStartDeficit > 0 ? (vEndDeficit / vStartDeficit) : 1;
+        if(!Number.isFinite(vRemainRatio)){
+            vRemainRatio = 1;
+        }
+        vRemainRatio = Math.max(0, Math.min(1, vRemainRatio));
+        vRatioUsed = vRemainRatio;
+        vNextQty = Math.ceil(vCycleStartQty * vRemainRatio);
+        if(!Number.isFinite(vNextQty) || vNextQty < vStartLots){
+            vNextQty = vStartLots;
+        }
+        if(vNextQty > vCycleStartQty){
+            vNextQty = vCycleStartQty;
+        }
+        vDecision = "partial_recovery";
+    }
+    else if(bWorsened){
+        if(bIsMarti){
+            vNextQty = Math.floor(vOldQtyMul * 2);
+            vDecision = "worsened_marti";
+        }
+        else if(bIsStep){
+            vNextQty = Math.floor(vOldQtyMul + vStartLots);
+            vDecision = "worsened_step";
+        }
+    }
+    else{
+        vNextQty = vOldQtyMul;
+        vDecision = "unchanged";
+    }
+
+    if(!Number.isFinite(vNextQty) || vNextQty < vStartLots){
+        vNextQty = vStartLots;
+        vDecision = `${vDecision}_floored`;
+    }
+    localStorage.setItem("DFSL_QtyMul", vNextQty);
+    localStorage.setItem("DFSL_LastQtyDecision", JSON.stringify({
+        Decision: vDecision,
+        StartDeficit: Number(vStartDeficit.toFixed(2)),
+        EndDeficit: Number(vEndDeficit.toFixed(2)),
+        Ratio: Number.isFinite(vRatioUsed) ? Number(vRatioUsed.toFixed(4)) : null,
+        NextQty: vNextQty,
+        StartQty: vStartLots,
+        OldQty: vOldQtyMul,
+        CycleStartQty: vCycleStartQty
+    }));
+    objQty.value = vNextQty;
 
 	// Keep loss-recovery math strictly based on closed-trade P&L.
-    // vTradePL already includes charges, so don't adjust loss bucket again.
+	// vTradePL already includes charges, so don't adjust loss bucket again.
 
     if(Number(localStorage.getItem("DFSL_TotLossAmt")) >= 0){
         fnApplyLastOpenBrokerageOnFullRecovery();
@@ -4682,7 +4706,20 @@ function fnUpdateMartiDebugStatus(){
     const vLossToRec = fnGetLossToRecoverAmt();
     const vLossToRecColor = (vLossToRec > 0) ? "#b02a37" : "inherit";
     const vLossToRecTxt = ` | <span style="font-weight:700;color:${vLossToRecColor};">Loss To Rec: ${vLossToRec.toFixed(2)}</span>`;
-    objDbg.innerHTML = `Mode: ${vMode} | LossBucket: ${vLossBucket.toFixed(2)} | X: ${vX.toFixed(2)} | Target@X: ${vTargetProfit.toFixed(2)} | Qty: ${vCurrQty} | NextQty: ${vNextQty}${vLossToRecTxt}`;
+    const objLastCalc = fnGetLsJSON("DFSL_LastQtyDecision", null);
+    let vCalcTxt = "";
+    if(objLastCalc && typeof objLastCalc === "object"){
+        const vSD = Number(objLastCalc.StartDeficit);
+        const vED = Number(objLastCalc.EndDeficit);
+        const vR = Number(objLastCalc.Ratio);
+        const vNQ = Number(objLastCalc.NextQty);
+        const vD = String(objLastCalc.Decision || "-");
+        const vRatioTxt = Number.isFinite(vR) ? vR.toFixed(4) : "-";
+        if(Number.isFinite(vSD) && Number.isFinite(vED) && Number.isFinite(vNQ)){
+            vCalcTxt = ` | QtyCalc: ${vD} [SD:${vSD.toFixed(2)} ED:${vED.toFixed(2)} R:${vRatioTxt} NQ:${Math.floor(vNQ)}]`;
+        }
+    }
+    objDbg.innerHTML = `Mode: ${vMode} | LossBucket: ${vLossBucket.toFixed(2)} | X: ${vX.toFixed(2)} | Target@X: ${vTargetProfit.toFixed(2)} | Qty: ${vCurrQty} | NextQty: ${vNextQty}${vLossToRecTxt}${vCalcTxt}`;
 }
 
 function fnGetRenkoMidPrice(pBox){
@@ -5197,6 +5234,9 @@ function fnClearLocalStorageTemp(){
     localStorage.removeItem("DFSL_LastCloseBrokerage");
     localStorage.removeItem("DFSL_Y2RBrokerCarry");
     localStorage.removeItem("DFSL_LossToRecAmt");
+    localStorage.removeItem("DFSL_CycleStartLossAmt");
+    localStorage.removeItem("DFSL_CycleStartQty");
+    localStorage.removeItem("DFSL_LastQtyDecision");
     localStorage.removeItem("DFSL_SellActOn");
     localStorage.removeItem("DFSL_SellActBelow");
     localStorage.removeItem("DFSL_SellActSL");
