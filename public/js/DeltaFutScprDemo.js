@@ -1712,11 +1712,9 @@ function fnCheckBuySLTP(pCurrPrice){
 	// console.log("vBrokTotLossRec: " + vBrokTotLossRec);
 	// console.log("gPL: " + gPL);
     fnApplyTrailingSL(pCurrPrice);
-    const vBaseY2RTarget = fnGetY2RTargetAmt();
-    const vY2RTarget = bIsMarti
-        ? vBaseY2RTarget
-        : (vBaseY2RTarget > 0 ? Number((vBaseY2RTarget * fnParsePositiveNumber(gMultiplierX, 1)).toFixed(2)) : 0);
-    if(objSwtYet2Rec?.checked && vY2RTarget > 0 && Number(gPL) >= vY2RTarget){
+    const vY2RTarget = fnGetY2RTargetAmt();
+    const bY2RActive = Boolean(objSwtYet2Rec?.checked);
+    if(bY2RActive && vY2RTarget > 0 && Number(gPL) >= vY2RTarget){
         fnCloseManualFutures(gByorSl);
         return;
     }
@@ -1724,7 +1722,7 @@ function fnCheckBuySLTP(pCurrPrice){
 	if(pCurrPrice <= gAmtSL){
 		fnCloseManualFutures(gByorSl);
 	}
-    else if(bIsMarti && (parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) >= parseFloat(vNewProfit))){
+    else if(!bY2RActive && (parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) >= parseFloat(vNewProfit))){
         if(fnParsePositiveNumber(gLossRecPerct, 100) >= 100 || Number(gCurrPos?.TradeData?.[0]?.Qty || 0) <= 1){
             fnCloseManualFutures(gByorSl);
         }
@@ -1732,12 +1730,6 @@ function fnCheckBuySLTP(pCurrPrice){
             fnClosePrctTrade();
         }
     }
-	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit)) && (parseInt(gQty) > 10)){
-		// console.log("50 Profit Taken.............");
-		if(objSwtYet2Rec.checked){
-			fnClosePrctTrade();
-		}
-	}
 	// else if(parseFloat(gPL) >= vBrokTotLossRec){
 	// 	fnCloseManualFutures(gByorSl);
 	// }
@@ -1787,11 +1779,9 @@ function fnCheckSellSLTP(pCurrPrice){
 	// console.log("vBrokTotLossRec: " + vBrokTotLossRec);
 	// console.log("gPL: " + gPL);
     fnApplyTrailingSL(pCurrPrice);
-    const vBaseY2RTarget = fnGetY2RTargetAmt();
-    const vY2RTarget = bIsMarti
-        ? vBaseY2RTarget
-        : (vBaseY2RTarget > 0 ? Number((vBaseY2RTarget * fnParsePositiveNumber(gMultiplierX, 1)).toFixed(2)) : 0);
-    if(objSwtYet2Rec?.checked && vY2RTarget > 0 && Number(gPL) >= vY2RTarget){
+    const vY2RTarget = fnGetY2RTargetAmt();
+    const bY2RActive = Boolean(objSwtYet2Rec?.checked);
+    if(bY2RActive && vY2RTarget > 0 && Number(gPL) >= vY2RTarget){
         fnCloseManualFutures(gByorSl);
         return;
     }
@@ -1800,7 +1790,7 @@ function fnCheckSellSLTP(pCurrPrice){
 		// console.log("SL Hit");
 		fnCloseManualFutures(gByorSl);
 	}
-    else if(bIsMarti && (parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) >= parseFloat(vNewProfit))){
+    else if(!bY2RActive && (parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) >= parseFloat(vNewProfit))){
         if(fnParsePositiveNumber(gLossRecPerct, 100) >= 100 || Number(gCurrPos?.TradeData?.[0]?.Qty || 0) <= 1){
             fnCloseManualFutures(gByorSl);
         }
@@ -1808,12 +1798,6 @@ function fnCheckSellSLTP(pCurrPrice){
             fnClosePrctTrade();
         }
     }
-	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit)) && (parseInt(gQty) > 10)){
-		// console.log("50 Profit Taken.............");
-		if(objSwtYet2Rec.checked){
-			fnClosePrctTrade();
-		}
-	}
 	// else if(parseFloat(gPL) >= vBrokTotLossRec){
 	// 	fnCloseManualFutures(gByorSl);
 	// }

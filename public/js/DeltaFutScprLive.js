@@ -3461,7 +3461,8 @@ function fnCheckBuySLTP(pCurrPrice){
     // If Y2R is ON and current running net P&L fully recovers the loss bucket,
     // force full close (no partial close).
     const vY2RTarget = fnGetY2RTargetAmt();
-    if(objSwtYet2Rec?.checked && vY2RTarget > 0 && Number(gPL) >= vY2RTarget){
+    const bY2RActive = Boolean(objSwtYet2Rec?.checked);
+    if(bY2RActive && vY2RTarget > 0 && Number(gPL) >= vY2RTarget){
         fnGenMessage(`Y2R target hit (${vY2RTarget.toFixed(2)}). Closing full trade.`, `badge bg-success`, "spnGenMsg");
         fnRequestClose("Y2R target hit", "full");
         return;
@@ -3474,19 +3475,13 @@ function fnCheckBuySLTP(pCurrPrice){
 	else if(pCurrPrice <= gAmtSL){
 		fnRequestClose("Buy SL hit", "full");
 	}
-	else if(bIsMarti && (parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) >= parseFloat(vNewProfit))){
+	else if(!bY2RActive && (parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) >= parseFloat(vNewProfit))){
         if(fnParsePositiveNumber(gLossRecPerct, 100) >= 100 || Number(gCurrPos?.TradeData?.[0]?.Qty || 0) <= 1){
             fnRequestClose("Buy marti recovery full close", "full");
         }
         else{
             fnRequestClose("Buy marti recovery partial close", "partial");
         }
-	}
-	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit)) && (parseInt(gQty) > 10)){
-		// console.log("50 Profit Taken.............");
-		if(objSwtYet2Rec.checked){
-			fnRequestClose("Buy Y2R partial close", "partial");
-		}
 	}
 	// else if(parseFloat(gPL) >= vBrokTotLossRec){
 	// 	fnCloseManualFutures(gByorSl);
@@ -3555,7 +3550,8 @@ function fnCheckSellSLTP(pCurrPrice){
     // If Y2R is ON and current running net P&L fully recovers the loss bucket,
     // force full close (no partial close).
     const vY2RTarget = fnGetY2RTargetAmt();
-    if(objSwtYet2Rec?.checked && vY2RTarget > 0 && Number(gPL) >= vY2RTarget){
+    const bY2RActive = Boolean(objSwtYet2Rec?.checked);
+    if(bY2RActive && vY2RTarget > 0 && Number(gPL) >= vY2RTarget){
         fnGenMessage(`Y2R target hit (${vY2RTarget.toFixed(2)}). Closing full trade.`, `badge bg-success`, "spnGenMsg");
         fnRequestClose("Y2R target hit", "full");
         return;
@@ -3569,19 +3565,13 @@ function fnCheckSellSLTP(pCurrPrice){
 		// console.log("SL Hit");
 		fnRequestClose("Sell SL hit", "full");
 	}
-	else if(bIsMarti && (parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) >= parseFloat(vNewProfit))){
+	else if(!bY2RActive && (parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) >= parseFloat(vNewProfit))){
         if(fnParsePositiveNumber(gLossRecPerct, 100) >= 100 || Number(gCurrPos?.TradeData?.[0]?.Qty || 0) <= 1){
             fnRequestClose("Sell marti recovery full close", "full");
         }
         else{
             fnRequestClose("Sell marti recovery partial close", "partial");
         }
-	}
-	else if((parseFloat(vTotLossAmt) < 0) && (parseFloat(gPL) > parseFloat(vNewProfit)) && (parseInt(gQty) > 10)){
-		// console.log("50 Profit Taken.............");
-		if(objSwtYet2Rec.checked){
-			fnRequestClose("Sell Y2R partial close", "partial");
-		}
 	}
 	// else if(parseFloat(gPL) >= vBrokTotLossRec){
 	// 	fnCloseManualFutures(gByorSl);
