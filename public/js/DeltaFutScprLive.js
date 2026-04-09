@@ -11,13 +11,11 @@ let gLossRecPerct = 100;
 let gMultiplierX = 1.0;
 let gMakerFeePct = 0.02;
 let gTakerFeePct = 0.05;
-let gLiveExitFeeMode = "taker";
 let gOldPLAmt = 0;
 let gNewPLAmt = 0;
 let gPL = 0;
 let gHisCandleMins = 1; //Eg: 1, 3, 5, 15, 30
 let gSubInterval = 0;
-let gManualSubIntvl = 0;
 let gForceCloseDFL = false;
 let g50Perc1Time = true;
 let gRenkoFeedWS = null;
@@ -28,6 +26,7 @@ let gRenkoFeedPriceSource = "mark_price";
 let gRenkoFeedAnchor = null;
 let gRenkoFeedLastDir = 0;
 let gRenkoFeedMaxRows = 300;
+let gRenkoMinStepPoints = 0;
 let gRenkoPatternSeq = "";
 let gRenkoPatternMaxLen = 0;
 let gRenkoHHLL = false;
@@ -46,6 +45,8 @@ let gCloseInFlight = false;
 let gCloseStartedAt = 0;
 let gLastCloseReason = "";
 const gCloseLockTimeoutMs = 20000;
+let gSLSyncBusy = false;
+let gSLSyncQueued = false;
 let gTelegramHeartbeatTimer = null;
 let gFnGenMessageWrapped = false;
 let gLastTgErrAlertKey = "";
@@ -426,58 +427,69 @@ async function fnProcessRenkoSignal(pRenkoMsg, pSource = "tradingview"){
     const objBoxState = fnUpdatePrevRenkoCloseByBox(vOpen, vClose);
 
     const vColorCode = vClose > vOpen ? "G" : "R";
-    const objMatched = fnMatchRenkoPatternsByColor(vColorCode);
-    if(objMatched.buy.length === 0 && objMatched.sell.length === 0){
+    fnTrackRenkoPatternColor(vColorCode);
+
+    // Sequence: Min Step -> HH/LL -> Pattern -> Execute
+    let vSide = "";
+    if(objBoxState?.Transition === "R2G"){
+        vSide = "buy";
+    }
+    else if(objBoxState?.Transition === "G2R"){
+        vSide = "sell";
+    }
+    if(vSide === ""){
+        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} skipped. No direction-change event for step validation (Event:${objBoxState?.Transition || "NONE"}).`);
         return;
     }
 
-    if(gCurrPos !== null){
-        const vAnyMatch = [...objMatched.buy, ...objMatched.sell].join("|");
-        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} matched ${vAnyMatch} but position is open.`);
+    let vStepSize = NaN;
+    let bRangeOk = false;
+    if(vSide === "buy"){
+        vStepSize = (Number.isFinite(gCurrRenkoGreenClose) && Number.isFinite(gPrevRenkoGreenClose)) ? (gCurrRenkoGreenClose - gPrevRenkoGreenClose) : NaN;
+        bRangeOk = Number.isFinite(gCurrRenkoGreenClose) && Number.isFinite(gPrevRenkoGreenClose) && (gCurrRenkoGreenClose > gPrevRenkoGreenClose);
+    }
+    else{
+        vStepSize = (Number.isFinite(gCurrRenkoRedClose) && Number.isFinite(gPrevRenkoRedClose)) ? (gPrevRenkoRedClose - gCurrRenkoRedClose) : NaN;
+        bRangeOk = Number.isFinite(gCurrRenkoRedClose) && Number.isFinite(gPrevRenkoRedClose) && (gCurrRenkoRedClose < gPrevRenkoRedClose);
+    }
+    const bMinStepOk = Number.isFinite(vStepSize) && (vStepSize >= gRenkoMinStepPoints);
+    if(!bMinStepOk){
+        fnAppendRenkoFeedMsg(`[${pSource}] ${vSide.toUpperCase()} skipped by Min Step. Step:${Number.isFinite(vStepSize) ? vStepSize.toFixed(2) : "NA"} MinStep:${gRenkoMinStepPoints.toFixed(2)} Event:${objBoxState?.Transition || "NONE"}`);
+        return;
+    }
+
+    if(gRenkoHHLL === true && !bRangeOk){
+        if(vSide === "buy"){
+            fnAppendRenkoFeedMsg(`[${pSource}] BUY skipped by HH/LL. Need CurrGreen > PrevGreen. CurrGreen:${Number.isFinite(gCurrRenkoGreenClose) ? gCurrRenkoGreenClose.toFixed(2) : "NA"} PrevGreen:${Number.isFinite(gPrevRenkoGreenClose) ? gPrevRenkoGreenClose.toFixed(2) : "NA"} StepUp:${Number.isFinite(vStepSize) ? vStepSize.toFixed(2) : "NA"} MinStep:${gRenkoMinStepPoints.toFixed(2)}`);
+        }
+        else{
+            fnAppendRenkoFeedMsg(`[${pSource}] SELL skipped by HH/LL. Need CurrRed < PrevRed. CurrRed:${Number.isFinite(gCurrRenkoRedClose) ? gCurrRenkoRedClose.toFixed(2) : "NA"} PrevRed:${Number.isFinite(gPrevRenkoRedClose) ? gPrevRenkoRedClose.toFixed(2) : "NA"} StepDown:${Number.isFinite(vStepSize) ? vStepSize.toFixed(2) : "NA"} MinStep:${gRenkoMinStepPoints.toFixed(2)}`);
+        }
         return;
     }
 
     const vSideSwt = fnGetTradeSideSwitch();
-    let vSide = "";
     if(vSideSwt === "buy"){
-        vSide = objMatched.buy.length > 0 ? "buy" : "";
+        vSide = vSide === "buy" ? "buy" : "";
     }
     else if(vSideSwt === "sell"){
-        vSide = objMatched.sell.length > 0 ? "sell" : "";
-    }
-    else{
-        if(objMatched.buy.length > 0 && objMatched.sell.length === 0){
-            vSide = "buy";
-        }
-        else if(objMatched.sell.length > 0 && objMatched.buy.length === 0){
-            vSide = "sell";
-        }
-        else if(objMatched.buy.length > 0 && objMatched.sell.length > 0){
-            vSide = vColorCode === "G" ? "buy" : "sell";
-        }
+        vSide = vSide === "sell" ? "sell" : "";
     }
     if(vSide === ""){
-        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} matched but filtered by trade-side switch.`);
+        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} skipped by trade-side switch.`);
         return;
     }
 
-    if(gRenkoHHLL === true){
-        if(vSide === "buy"){
-            const bTransitionOk = objBoxState?.Transition === "R2G";
-            const bRangeOk = Number.isFinite(gCurrRenkoGreenClose) && Number.isFinite(gPrevRenkoGreenClose) && (gCurrRenkoGreenClose > gPrevRenkoGreenClose);
-            if(!(bTransitionOk && bRangeOk)){
-                fnAppendRenkoFeedMsg(`[${pSource}] BUY skipped by HH/LL. Need first GREEN after RED and CurrGreen > PrevGreen. CurrGreen:${Number.isFinite(gCurrRenkoGreenClose) ? gCurrRenkoGreenClose.toFixed(2) : "NA"} PrevGreen:${Number.isFinite(gPrevRenkoGreenClose) ? gPrevRenkoGreenClose.toFixed(2) : "NA"} Event:${objBoxState?.Transition || "NONE"}`);
-                return;
-            }
-        }
-        else if(vSide === "sell"){
-            const bTransitionOk = objBoxState?.Transition === "G2R";
-            const bRangeOk = Number.isFinite(gCurrRenkoRedClose) && Number.isFinite(gPrevRenkoRedClose) && (gCurrRenkoRedClose < gPrevRenkoRedClose);
-            if(!(bTransitionOk && bRangeOk)){
-                fnAppendRenkoFeedMsg(`[${pSource}] SELL skipped by HH/LL. Need first RED after GREEN and CurrRed < PrevRed. CurrRed:${Number.isFinite(gCurrRenkoRedClose) ? gCurrRenkoRedClose.toFixed(2) : "NA"} PrevRed:${Number.isFinite(gPrevRenkoRedClose) ? gPrevRenkoRedClose.toFixed(2) : "NA"} Event:${objBoxState?.Transition || "NONE"}`);
-                return;
-            }
-        }
+    if(gCurrPos !== null){
+        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} passed MinStep/HHLL but position is open.`);
+        return;
+    }
+
+    const objMatched = fnGetRenkoPatternMatches();
+    const objSideMatches = vSide === "buy" ? objMatched.buy : objMatched.sell;
+    if(objSideMatches.length === 0){
+        fnAppendRenkoFeedMsg(`[${pSource}] ${vSide.toUpperCase()} passed MinStep/HHLL but no ${vSide.toUpperCase()} pattern match.`);
+        return;
     }
 
     if(vSide === "buy" && gManualPrevGreenSeedActive){
@@ -497,7 +509,6 @@ async function fnProcessRenkoSignal(pRenkoMsg, pSource = "tradingview"){
         fnAppendRenkoFeedMsg(`[${pSource}] Manual PrevRed seed consumed on first SELL trade.`);
     }
 
-    const objSideMatches = vSide === "buy" ? objMatched.buy : objMatched.sell;
     const vMatchTxt = objSideMatches.join("|");
     const vAuto = String(localStorage.getItem("isDFSLAutoTrader") || "false");
     if(vAuto !== "true"){
@@ -613,20 +624,33 @@ function fnLoadRenkoPatternSettings(){
     }
 }
 
-function fnMatchRenkoPatternsByColor(pColorCode){
+function fnTrackRenkoPatternColor(pColorCode){
     const objBuyPatterns = fnGetConfiguredRenkoPatterns("buy");
     const objSellPatterns = fnGetConfiguredRenkoPatterns("sell");
     if(objBuyPatterns.length === 0 && objSellPatterns.length === 0){
-        return { buy: [], sell: [] };
+        return;
     }
     gRenkoPatternSeq += pColorCode;
     if(gRenkoPatternSeq.length > gRenkoPatternMaxLen){
         gRenkoPatternSeq = gRenkoPatternSeq.slice(-gRenkoPatternMaxLen);
     }
+}
+
+function fnGetRenkoPatternMatches(){
+    const objBuyPatterns = fnGetConfiguredRenkoPatterns("buy");
+    const objSellPatterns = fnGetConfiguredRenkoPatterns("sell");
+    if(objBuyPatterns.length === 0 && objSellPatterns.length === 0){
+        return { buy: [], sell: [] };
+    }
     return {
         buy: objBuyPatterns.filter((pPattern) => gRenkoPatternSeq.endsWith(pPattern)),
         sell: objSellPatterns.filter((pPattern) => gRenkoPatternSeq.endsWith(pPattern))
     };
+}
+
+function fnMatchRenkoPatternsByColor(pColorCode){
+    fnTrackRenkoPatternColor(pColorCode);
+    return fnGetRenkoPatternMatches();
 }
 
 function fnGetRenkoBoxColor(pBox){
@@ -803,11 +827,77 @@ async function fnPlaceSellActStopLimitForGreenBox(pBox){
 }
 
 async function fnPlaceSellActProtectionOrders(pTrade){
-    return;
+    if(!pTrade){
+        return { status: "warning", message: "No trade for protection.", data: null };
+    }
+
+    const vSymbol = String(pTrade.FutSymbol || "").trim();
+    const vQty = Math.floor(Number(pTrade.Qty || 0));
+    const vSide = String(pTrade.TransType || "").toLowerCase();
+    const vStopPx = Number(pTrade.AmtSL);
+    const vProductID = Number(pTrade.ProductID || 0);
+    if(!vSymbol || vQty < 1 || (vSide !== "buy" && vSide !== "sell")){
+        return { status: "warning", message: "Invalid protection params.", data: null };
+    }
+    if(!Number.isFinite(vStopPx) || vStopPx <= 0 || vStopPx >= 99999999){
+        await fnCancelSellActProtectionOrders(pTrade);
+        return { status: "warning", message: "No valid SL configured for exchange protection.", data: null };
+    }
+    if(Number.isFinite(vProductID) && vProductID > 0){
+        const objNetPos = await fnGetNetPositionByProductID(vProductID);
+        if(objNetPos.status === "success"){
+            const vSize = Number(objNetPos?.data?.size || 0);
+            const bStillOpen = (vSide === "sell") ? (vSize < 0) : (vSize > 0);
+            if(!bStillOpen){
+                await fnCancelSellActProtectionOrders(pTrade);
+                return { status: "no_position", message: "Exchange position already closed; SL placement skipped.", data: null };
+            }
+        }
+    }
+
+    await fnCancelSellActProtectionOrders(pTrade);
+
+    const vCloseSide = (vSide === "buy") ? "sell" : "buy";
+    const vClientOrderID = Date.now() + Math.floor(Math.random() * 1000) + 11;
+    const objPlace = await fnPlaceRealOrder(
+        vClientOrderID,
+        vSymbol,
+        "market_order",
+        vQty,
+        vCloseSide,
+        0,
+        "stop_loss_order",
+        vStopPx,
+        false,
+        true
+    );
+    if(objPlace.status !== "success"){
+        if(fnIsNoPositionForReduceOnlyError(objPlace.message)){
+            return { status: "no_position", message: "No reduce-only position yet on exchange.", data: null };
+        }
+        return { status: objPlace.status || "danger", message: objPlace.message || "Protection order failed.", data: null };
+    }
+
+    const objRes = objPlace?.data?.result || {};
+    pTrade.SLOrderID = Number(objRes.id || 0);
+    pTrade.SLClientOrderID = Number(objRes.client_order_id || vClientOrderID);
+    // Backward compatible fields used by older code paths.
+    pTrade.SACTSLOrderID = pTrade.SLOrderID;
+    pTrade.SACTSLClientOrderID = pTrade.SLClientOrderID;
+    if(gCurrPos?.TradeData?.[0]){
+        localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(gCurrPos));
+    }
+    return { status: "success", message: "Protection order placed.", data: objRes };
 }
 
 function fnHasSellActProtectionOpen(){
-    return false;
+    const objTrade = gCurrPos?.TradeData?.[0] || null;
+    if(!objTrade){
+        return false;
+    }
+    const vOID = Number(objTrade.SLOrderID || objTrade.SACTSLOrderID || 0);
+    const vCOID = Number(objTrade.SLClientOrderID || objTrade.SACTSLClientOrderID || 0);
+    return (vOID > 0 || vCOID > 0);
 }
 
 async function fnFinalizeClosedByExchange(pFillPrice, pCloseCommission = 0, pReason = ""){
@@ -879,7 +969,23 @@ async function fnFinalizeClosedByExchange(pFillPrice, pCloseCommission = 0, pRea
 }
 
 async function fnSyncSellActProtectionFill(){
-    return;
+    const objTrade = gCurrPos?.TradeData?.[0] || null;
+    if(!objTrade){
+        return;
+    }
+    const vOID = Number(objTrade.SLOrderID || objTrade.SACTSLOrderID || 0);
+    const vCOID = Number(objTrade.SLClientOrderID || objTrade.SACTSLClientOrderID || 0);
+    if(vOID <= 0 && vCOID <= 0){
+        return;
+    }
+    const objDet = await fnGetOrderDetailsById(vOID, vCOID);
+    if(objDet.status !== "success"){
+        return;
+    }
+    const vState = String(objDet?.data?.state || "").toLowerCase();
+    if(vState === "closed" || vState === "filled"){
+        await fnSyncLocalOpenPositionWithExchange();
+    }
 }
 
 async function fnSyncLocalOpenPositionWithExchange(){
@@ -946,14 +1052,43 @@ async function fnSyncLocalOpenPositionWithExchange(){
         }
     }
 
-    if(String(vTrade.EntryRule || "").toUpperCase() === "SACT"){
-        await fnCancelSellActProtectionOrders(vTrade);
+    let vCloseReason = "Exchange position already closed. Local open position synced.";
+    const vSLOrderID = Number(vTrade.SLOrderID || vTrade.SACTSLOrderID || 0);
+    const vSLClientID = Number(vTrade.SLClientOrderID || vTrade.SACTSLClientOrderID || 0);
+    if(vSLOrderID > 0 || vSLClientID > 0){
+        const objSLDet = await fnGetOrderDetailsById(vSLOrderID, vSLClientID);
+        if(objSLDet.status === "success"){
+            const vSLState = String(objSLDet?.data?.state || "").toLowerCase();
+            if(vSLState === "closed" || vSLState === "filled"){
+                vCloseReason = "Exchange SL order filled. Local open position synced.";
+            }
+        }
     }
-    await fnFinalizeClosedByExchange(vClosePx, vCloseComm, "Exchange position already closed. Local open position synced.");
+    await fnCancelSellActProtectionOrders(vTrade);
+    await fnFinalizeClosedByExchange(vClosePx, vCloseComm, vCloseReason);
 }
 
 async function fnCancelSellActProtectionOrders(pTrade, pMsg = ""){
-    return;
+    if(!pTrade){
+        return { status: "warning", message: "No trade for cancel protection.", data: null };
+    }
+    const vOID = Number(pTrade.SLOrderID || pTrade.SACTSLOrderID || 0);
+    const vCOID = Number(pTrade.SLClientOrderID || pTrade.SACTSLClientOrderID || 0);
+    const vSymbol = String(pTrade.FutSymbol || "").trim();
+    if(vOID > 0 || vCOID > 0){
+        await fnCancelLiveOrder(vOID, vCOID, vSymbol);
+    }
+    pTrade.SLOrderID = 0;
+    pTrade.SLClientOrderID = 0;
+    pTrade.SACTSLOrderID = 0;
+    pTrade.SACTSLClientOrderID = 0;
+    if(gCurrPos?.TradeData?.[0]){
+        localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(gCurrPos));
+    }
+    if(pMsg){
+        fnGenMessage(pMsg, `badge bg-warning`, "spnGenMsg");
+    }
+    return { status: "success", message: "Protection orders cleared.", data: null };
 }
 
 async function fnTrailSellActPendingToRedOpen(pBox){
@@ -1870,6 +2005,7 @@ function fnGetAllStatus(){
 function fnLoadOrderType(){
     const objOpenOrderType = document.getElementById("ddlOpenOrderType");
     const objCloseOrderType = document.getElementById("ddlCloseOrderType");
+    const objLimitSpeed = document.getElementById("ddlLimitSpeedProfile");
     if(!objOpenOrderType || !objCloseOrderType){
         return;
     }
@@ -1880,6 +2016,10 @@ function fnLoadOrderType(){
     objCloseOrderType.value = (vCloseOrderType === "limit_order") ? "limit_order" : "market_order";
     fnChangeOpenOrderType(objOpenOrderType.value);
     fnChangeCloseOrderType(objCloseOrderType.value);
+    if(objLimitSpeed){
+        const vLimitSpeed = localStorage.getItem("DFSL_LimitSpeedProfile") || "balanced";
+        fnChangeLimitSpeedProfile(vLimitSpeed);
+    }
 }
 
 function fnChangeOpenOrderType(pOrderType){
@@ -1906,8 +2046,58 @@ function fnChangeCloseOrderType(pOrderType){
     objOrderType.value = vOrderType;
 }
 
+function fnChangeLimitSpeedProfile(pProfile){
+    const objLimitSpeed = document.getElementById("ddlLimitSpeedProfile");
+    if(!objLimitSpeed){
+        return;
+    }
+    let vProfile = String(pProfile || objLimitSpeed.value || "balanced").toLowerCase();
+    if(vProfile !== "fast" && vProfile !== "balanced" && vProfile !== "maker"){
+        vProfile = "balanced";
+    }
+    objLimitSpeed.value = vProfile;
+    localStorage.setItem("DFSL_LimitSpeedProfile", vProfile);
+}
+
+function fnGetLimitSpeedConfig(){
+    const vProfileRaw = String(localStorage.getItem("DFSL_LimitSpeedProfile") || "balanced").toLowerCase();
+    const vProfile = (vProfileRaw === "fast" || vProfileRaw === "maker") ? vProfileRaw : "balanced";
+
+    if(vProfile === "fast"){
+        return {
+            profile: "fast",
+            maxRepriceCycles: 1,
+            maxPlaceTryPerCycle: 3,
+            retrySleepMs: 1000,
+            fillWaitMs: 2500
+        };
+    }
+    if(vProfile === "maker"){
+        // Keep existing behavior unchanged for Maker-first mode.
+        return {
+            profile: "maker",
+            maxRepriceCycles: 3,
+            maxPlaceTryPerCycle: 12,
+            retrySleepMs: 5000,
+            fillWaitMs: 10000
+        };
+    }
+    return {
+        profile: "balanced",
+        maxRepriceCycles: 2,
+        maxPlaceTryPerCycle: 5,
+        retrySleepMs: 2000,
+        fillWaitMs: 5000
+    };
+}
+
 function fnSleepMs(pMs){
     return new Promise((resolve) => setTimeout(resolve, pMs));
+}
+
+function fnIsNoPositionForReduceOnlyError(pMsg){
+    const vMsg = String(pMsg || "").toLowerCase();
+    return vMsg.includes("no_position_for_reduce_only");
 }
 
 function fnGetLimitPriceBySideWithOffset(pSide, pBestRates){
@@ -1948,6 +2138,41 @@ async function fnEnsureOrderFillByPolling(pOrderID, pClientOrdID){
     return { status: "pending", message: vState || "pending", data: objDet.data };
 }
 
+async function fnResolveFilledOrderData(pOrderData, pFallbackClientOrdID, pSymbol, pSide){
+    let objOrd = pOrderData || {};
+    let vFillPx = Number(objOrd?.average_fill_price || objOrd?.limit_price || 0);
+    if(Number.isFinite(vFillPx) && vFillPx > 0){
+        return { order: objOrd, fillPrice: vFillPx };
+    }
+
+    const vOrderID = Number(objOrd?.id || 0);
+    const vClientOrdID = Number(objOrd?.client_order_id || pFallbackClientOrdID || 0);
+    if(vOrderID > 0 || vClientOrdID > 0){
+        for(let i = 0; i < 6; i += 1){
+            const objDet = await fnGetOrderDetailsById(vOrderID, vClientOrdID);
+            if(objDet.status === "success" && objDet.data){
+                objOrd = objDet.data;
+                vFillPx = Number(objOrd?.average_fill_price || objOrd?.limit_price || 0);
+                if(Number.isFinite(vFillPx) && vFillPx > 0){
+                    return { order: objOrd, fillPrice: vFillPx };
+                }
+            }
+            await fnSleepMs(500);
+        }
+    }
+
+    const vSide = String(pSide || "").toLowerCase();
+    let vRefPx = await fnGetLiveLimitPriceBySide(vSide);
+    if(!Number.isFinite(vRefPx) || vRefPx <= 0){
+        vRefPx = Number(document.getElementById("txtMarkPrice")?.value || 0);
+    }
+    if(Number.isFinite(vRefPx) && vRefPx > 0){
+        objOrd.average_fill_price = vRefPx;
+        return { order: objOrd, fillPrice: vRefPx };
+    }
+    return { order: objOrd, fillPrice: NaN };
+}
+
 async function fnExecuteAdaptiveLimitOrderWithFallback(pSymbol, pQty, pSide, pReduceOnly = false, pLabel = "Order"){
     const vSide = String(pSide || "").toLowerCase();
     const vQty = Math.floor(fnParsePositiveNumber(pQty, 0));
@@ -1955,7 +2180,11 @@ async function fnExecuteAdaptiveLimitOrderWithFallback(pSymbol, pQty, pSide, pRe
         return { status: "failed", message: `${pLabel}: invalid order params`, data: null, finalOrderType: "limit_order" };
     }
 
-    const vMaxRepriceCycles = 3;
+    const objSpeedCfg = fnGetLimitSpeedConfig();
+    const vMaxRepriceCycles = objSpeedCfg.maxRepriceCycles;
+    const vMaxPlaceTryPerCycle = objSpeedCfg.maxPlaceTryPerCycle;
+    const vRetrySleepMs = objSpeedCfg.retrySleepMs;
+    const vFillWaitMs = objSpeedCfg.fillWaitMs;
     for(let vCycle = 1; vCycle <= vMaxRepriceCycles; vCycle += 1){
         let objPlacedOrder = null;
         let vPlacedClientOrdID = 0;
@@ -1964,28 +2193,36 @@ async function fnExecuteAdaptiveLimitOrderWithFallback(pSymbol, pQty, pSide, pRe
             vPlaceTry += 1;
             const objBest = await fnFetchBestRatesForLimit();
             if(objBest.status !== "success"){
-                if(vPlaceTry >= 12){
+                if(vPlaceTry >= vMaxPlaceTryPerCycle){
                     break;
                 }
-                await fnSleepMs(5000);
+                await fnSleepMs(vRetrySleepMs);
                 continue;
             }
             const vLimitPrice = fnGetLimitPriceBySideWithOffset(vSide, objBest.data);
             if(!Number.isFinite(vLimitPrice) || vLimitPrice <= 0){
-                if(vPlaceTry >= 12){
+                if(vPlaceTry >= vMaxPlaceTryPerCycle){
                     break;
                 }
-                await fnSleepMs(5000);
+                await fnSleepMs(vRetrySleepMs);
                 continue;
             }
 
             vPlacedClientOrdID = Date.now() + Math.floor(Math.random() * 1000);
             const objPlace = await fnPlaceRealOrder(vPlacedClientOrdID, pSymbol, "limit_order", vQty, vSide, vLimitPrice, "", 0, true, pReduceOnly);
             if(objPlace.status !== "success"){
-                if(vPlaceTry >= 12){
+                if(pReduceOnly && fnIsNoPositionForReduceOnlyError(objPlace.message)){
+                    return {
+                        status: "no_position",
+                        message: `${pLabel}: no open exchange position for reduce-only close.`,
+                        data: null,
+                        finalOrderType: "limit_order"
+                    };
+                }
+                if(vPlaceTry >= vMaxPlaceTryPerCycle){
                     break;
                 }
-                await fnSleepMs(5000);
+                await fnSleepMs(vRetrySleepMs);
                 continue;
             }
 
@@ -2002,7 +2239,7 @@ async function fnExecuteAdaptiveLimitOrderWithFallback(pSymbol, pQty, pSide, pRe
             break;
         }
 
-        await fnSleepMs(10000);
+        await fnSleepMs(vFillWaitMs);
         const objFillChk = await fnEnsureOrderFillByPolling(objPlacedOrder.id, objPlacedOrder.ClientOrderID);
         if(objFillChk.status === "filled"){
             return { status: "success", message: "", data: objFillChk.data, finalOrderType: "limit_order" };
@@ -2014,6 +2251,14 @@ async function fnExecuteAdaptiveLimitOrderWithFallback(pSymbol, pQty, pSide, pRe
     const vMktClientOrdID = Date.now() + Math.floor(Math.random() * 1000) + 7;
     const objMkt = await fnPlaceRealOrder(vMktClientOrdID, pSymbol, "market_order", vQty, vSide, 0, "", 0, false, pReduceOnly);
     if(objMkt.status !== "success"){
+        if(pReduceOnly && fnIsNoPositionForReduceOnlyError(objMkt.message)){
+            return {
+                status: "no_position",
+                message: `${pLabel}: no open exchange position for reduce-only close.`,
+                data: null,
+                finalOrderType: "market_order"
+            };
+        }
         return { status: "failed", message: `${pLabel}: market fallback failed (${objMkt.message})`, data: null, finalOrderType: "market_order" };
     }
 
@@ -2118,7 +2363,7 @@ function fnSetRenkoFeedMeta(){
     const objSellPatterns = fnGetConfiguredRenkoPatterns("sell");
     const vBuyPatts = objBuyPatterns.length > 0 ? objBuyPatterns.join(",") : "-";
     const vSellPatts = objSellPatterns.length > 0 ? objSellPatterns.join(",") : "-";
-    objMeta.innerText = `Symbol: ${fnGetRenkoFeedSymbol()} | Step: ${gRenkoFeedStepPts} | Src: ${gRenkoFeedPriceSource} | B: ${vBuyPatts} | S: ${vSellPatts}`;
+    objMeta.innerText = `Symbol: ${fnGetRenkoFeedSymbol()} | Step: ${gRenkoFeedStepPts} | MinStep: ${gRenkoMinStepPoints} | Src: ${gRenkoFeedPriceSource} | B: ${vBuyPatts} | S: ${vSellPatts}`;
 }
 
 function fnGetTickerVolumeText(pVol){
@@ -2590,6 +2835,17 @@ function fnUpdateRenkoFeedPriceSource(pThis){
     fnAppendRenkoFeedMsg(`Price source changed to ${gRenkoFeedPriceSource}. Anchor reset.`);
 }
 
+function fnUpdateRenkoMinStepPoints(pThis){
+    const vParsed = Number(pThis?.value);
+    gRenkoMinStepPoints = (Number.isFinite(vParsed) && vParsed >= 0) ? Number(vParsed.toFixed(2)) : 0;
+    if(pThis){
+        pThis.value = gRenkoMinStepPoints;
+    }
+    localStorage.setItem("DFSL_RenkoMinStepPoints", String(gRenkoMinStepPoints));
+    fnSetRenkoFeedMeta();
+    fnAppendRenkoFeedMsg(`Minimum step size updated to ${gRenkoMinStepPoints} points.`);
+}
+
 function fnGetRenkoFeedTickerPrice(pTicData){
     const vMark = Number(pTicData?.mark_price || 0);
     const vSpot = Number(pTicData?.spot_price || pTicData?.index_price || 0);
@@ -2795,16 +3051,22 @@ function fnToggleRenkoFeedSwitch(){
 function fnLoadRenkoFeedSettings(){
     const objSwt = document.getElementById("swtRenkoFeed");
     const objStep = document.getElementById("txtRenkoFeedPts");
+    const objMinStep = document.getElementById("txtRenkoMinStepPts");
     const objSrc = document.getElementById("ddlRenkoFeedPriceSrc");
     const vEnabled = JSON.parse(localStorage.getItem("DFSL_RenkoFeedEnabled") || "false");
     const vStepLs = Math.floor(fnParsePositiveNumber(localStorage.getItem("DFSL_RenkoFeedStepPts"), 200));
+    const vMinStepLsRaw = Number(localStorage.getItem("DFSL_RenkoMinStepPoints"));
     const vSrcLs = String(localStorage.getItem("DFSL_RenkoFeedPriceSrc") || "mark_price");
     const objAllowed = ["mark_price", "spot_price", "best_bid", "best_ask"];
     gRenkoFeedStepPts = (Number.isFinite(vStepLs) && vStepLs > 0) ? vStepLs : 200;
+    gRenkoMinStepPoints = (Number.isFinite(vMinStepLsRaw) && vMinStepLsRaw >= 0) ? Number(vMinStepLsRaw.toFixed(2)) : 0;
     gRenkoFeedPriceSource = objAllowed.includes(vSrcLs) ? vSrcLs : "mark_price";
 
     if(objStep){
         objStep.value = gRenkoFeedStepPts;
+    }
+    if(objMinStep){
+        objMinStep.value = gRenkoMinStepPoints;
     }
     if(objSrc){
         objSrc.value = gRenkoFeedPriceSource;
@@ -2907,26 +3169,21 @@ function fnUpdateMultiplierX(pThisVal){
 function fnLoadFeeModel(){
     const objMaker = document.getElementById("txtMakerFeePct");
     const objTaker = document.getElementById("txtTakerFeePct");
-    const objMode = document.getElementById("ddlLiveExitFeeMode");
-    if(!objMaker || !objTaker || !objMode){
+    if(!objMaker || !objTaker){
         return;
     }
 
     const vMaker = Number(localStorage.getItem("DFSL_MakerFeePct"));
     const vTaker = Number(localStorage.getItem("DFSL_TakerFeePct"));
-    const vMode = String(localStorage.getItem("DFSL_LiveExitFeeMode") || "taker").toLowerCase();
 
     gMakerFeePct = Number.isFinite(vMaker) && vMaker >= 0 ? vMaker : 0.02;
     gTakerFeePct = Number.isFinite(vTaker) && vTaker >= 0 ? vTaker : 0.05;
-    gLiveExitFeeMode = (vMode === "maker" || vMode === "auto") ? vMode : "taker";
 
     objMaker.value = gMakerFeePct;
     objTaker.value = gTakerFeePct;
-    objMode.value = gLiveExitFeeMode;
 
     localStorage.setItem("DFSL_MakerFeePct", gMakerFeePct);
     localStorage.setItem("DFSL_TakerFeePct", gTakerFeePct);
-    localStorage.setItem("DFSL_LiveExitFeeMode", gLiveExitFeeMode);
 }
 
 function fnUpdateMakerFeePct(pThisVal){
@@ -2941,12 +3198,6 @@ function fnUpdateTakerFeePct(pThisVal){
     pThisVal.value = vTaker;
     gTakerFeePct = vTaker;
     localStorage.setItem("DFSL_TakerFeePct", vTaker);
-}
-
-function fnUpdateLiveExitFeeMode(pThisVal){
-    const vMode = String(pThisVal?.value || "taker").toLowerCase();
-    gLiveExitFeeMode = (vMode === "maker" || vMode === "auto") ? vMode : "taker";
-    localStorage.setItem("DFSL_LiveExitFeeMode", gLiveExitFeeMode);
 }
 
 function fnCalcCommByPct(pNotional, pPct){
@@ -3724,6 +3975,59 @@ function fnApplyTrailingSL(pCurrPrice){
         objTrade.TrailNextTrigger = Number(vNextTrigger.toFixed(2));
         localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(gCurrPos));
         fnUpdateCurrentSLDisplay();
+        void fnSyncExchangeProtectionSL("trail");
+    }
+}
+
+async function fnSyncExchangeProtectionSL(pReason = ""){
+    if(gSLSyncBusy){
+        gSLSyncQueued = true;
+        return;
+    }
+    gSLSyncBusy = true;
+    let objLastRes = { status: "warning", message: "SL sync skipped." };
+    try{
+        do{
+            gSLSyncQueued = false;
+            const objTrade = gCurrPos?.TradeData?.[0] || null;
+            if(!objTrade){
+                objLastRes = { status: "warning", message: "No open trade for SL sync." };
+                break;
+            }
+            const vStopPx = Number(objTrade.AmtSL);
+            if(!Number.isFinite(vStopPx) || vStopPx <= 0 || vStopPx >= 99999999){
+                await fnCancelSellActProtectionOrders(objTrade);
+                objLastRes = { status: "warning", message: "SL disabled; exchange protection cleared." };
+                break;
+            }
+
+            const vMaxAttempts = (pReason === "open") ? 6 : ((pReason === "partial-close" || pReason === "heal") ? 4 : 1);
+            const vRetryMs = 800;
+            objLastRes = { status: "warning", message: "SL sync not attempted." };
+            for(let vTry = 1; vTry <= vMaxAttempts; vTry += 1){
+                objLastRes = await fnPlaceSellActProtectionOrders(objTrade);
+                if(objLastRes.status === "success"){
+                    break;
+                }
+                if(objLastRes.status !== "no_position"){
+                    break;
+                }
+                if(vTry < vMaxAttempts){
+                    await fnSleepMs(vRetryMs);
+                }
+            }
+        }while(gSLSyncQueued);
+    }
+    finally{
+        gSLSyncBusy = false;
+    }
+    if(pReason && pReason !== "trail"){
+        if(objLastRes.status === "success"){
+            fnGenMessage(`Exchange SL synced (${pReason}).`, `badge bg-success`, "spnGenMsg");
+        }
+        else{
+            fnGenMessage(`Exchange SL sync pending (${pReason}): ${objLastRes.message || "will retry on poller."}`, `badge bg-warning`, "spnGenMsg");
+        }
     }
 }
 
@@ -3866,13 +4170,18 @@ async function fnInitiateManualFutures(pTransType){
         objExecOrder = objOrder.data.result;
     }
 
-    const vRes = objExecOrder || {};
+    const objResolvedOrder = await fnResolveFilledOrderData(objExecOrder || {}, vClientOrdID, objFutDDL.value, pTransType);
+    const vRes = objResolvedOrder.order || {};
     const vOrdId = vRes.id;
     const vState = vRes.state;
     const vOrderTypeVal = vRes.order_type;
     const vProductID = vRes.product_id;
     const vActualClientOrdID = Number(vRes.client_order_id || vClientOrdID);
-    const vExecPrice = parseFloat(vRes.average_fill_price || vRes.limit_price);
+    const vExecPrice = Number(objResolvedOrder.fillPrice);
+    if(!Number.isFinite(vExecPrice) || vExecPrice <= 0){
+        fnGenMessage("Open order placed but fill price is unavailable; unable to arm SL now. Please retry after rates sync.", `badge bg-warning`, "spnGenMsg");
+        return;
+    }
     const vEntryCommission = Number(vRes.paid_commission || 0);
     let vTrailNextTrigger = null;
 
@@ -3926,7 +4235,9 @@ async function fnInitiateManualFutures(pTransType){
             OrderState: vState,
             ProductID: vProductID,
             BuyCommission: (pTransType === "buy" && Number.isFinite(vEntryCommission)) ? vEntryCommission : 0,
-            SellCommission: (pTransType === "sell" && Number.isFinite(vEntryCommission)) ? vEntryCommission : 0
+            SellCommission: (pTransType === "sell" && Number.isFinite(vEntryCommission)) ? vEntryCommission : 0,
+            SLOrderID: 0,
+            SLClientOrderID: 0
         }]
     };
     gCurrPos = vExcTradeDtls;
@@ -3946,6 +4257,7 @@ async function fnInitiateManualFutures(pTransType){
 
     fnSetInitFutTrdDtls();
     fnSubscribe();
+    await fnSyncExchangeProtectionSL("open");
     fnGenMessage("Live order placed successfully!", `badge bg-success`, "spnGenMsg");
     document.getElementById("spnLossTrd").className = "badge rounded-pill text-bg-success";
     fnSendOpenTradeTelegramAlert(vExcTradeDtls.TradeData[0], "MANUAL");
@@ -4140,42 +4452,6 @@ function fnSetInitFutTrdDtls(){
     fnLoadNetLimits();
 }
 
-function fnManualSubStart(){
-	fnManualSubcription();
-	clearInterval(gManualSubIntvl);
-	gManualSubIntvl = setInterval(fnManualSubcription, 8000);
-}
-
-async function fnManualSubcription(){
-    let objBestRates = await fnGetFutBestRates();
-    if(objBestRates.status === "success"){
-    	let objBestBuy = document.getElementById("txtBestBuyPrice");
-		let objBestSell = document.getElementById("txtBestSellPrice");
-
-	    objBestBuy.value = parseFloat(objBestRates.data.BestBuy);
-	    objBestSell.value = parseFloat(objBestRates.data.BestSell);
-    	
-		if(gCurrPos !== null){
-			fnUpdateOpnPosStatus();
-		}
-		console.log("Manual Rates Started.....")
-    }
-	else{
-
-	}
-}
-
-function fnManualSubStop(){
-	clearInterval(gManualSubIntvl);
-	console.log("Manual Rates Stopped.....");
-
-   	let objBestBuy = document.getElementById("txtBestBuyPrice");
-	let objBestSell = document.getElementById("txtBestSellPrice");
-
-	objBestBuy.value = "";
-	objBestSell.value= "";
-}
-
 function fnGetFutBestRates(){
 	const objPromise = new Promise((resolve, reject) => {
 
@@ -4252,11 +4528,6 @@ async function fnCloseManualFutures(pTransType, pReason = ""){
             return { status: "warning", message: "Close already in progress." };
         }
         try{
-            const objTrade = gCurrPos?.TradeData?.[0] || {};
-            if(String(objTrade.EntryRule || "").toUpperCase() === "SACT"){
-                await fnCancelSellActProtectionOrders(objTrade);
-                localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(gCurrPos));
-            }
     		let objClsTrd = await fnInnitiateClsFutTrade(0);
     		if(objClsTrd.status === "success"){
                 fnSetInitFutTrdDtls();
@@ -4311,7 +4582,25 @@ async function fnPollRenkoPendingFills(){
     try{
         await fnRefreshRenkoPendingFill("sell", gRenkoSellState);
         await fnRefreshRenkoPendingFill("buy", gRenkoBuyState);
+        await fnSyncSellActProtectionFill();
         await fnSyncLocalOpenPositionWithExchange();
+        if(gCurrPos !== null && !fnHasSellActProtectionOpen()){
+            const objTrade = gCurrPos?.TradeData?.[0] || null;
+            const vStopPx = Number(objTrade?.AmtSL);
+            const vProductID = Number(objTrade?.ProductID || 0);
+            let bCanHeal = true;
+            if(Number.isFinite(vProductID) && vProductID > 0){
+                const objNetPos = await fnGetNetPositionByProductID(vProductID);
+                if(objNetPos.status === "success"){
+                    const vSide = String(objTrade?.TransType || "").toLowerCase();
+                    const vSize = Number(objNetPos?.data?.size || 0);
+                    bCanHeal = (vSide === "sell") ? (vSize < 0) : (vSize > 0);
+                }
+            }
+            if(bCanHeal && Number.isFinite(vStopPx) && vStopPx > 0 && vStopPx < 99999999){
+                await fnSyncExchangeProtectionSL("heal");
+            }
+        }
 
         if(gCurrPos !== null){
             if(gCurrPos?.TradeData?.[0]?.TransType === "sell" && gRenkoBuyState.Pending){
@@ -4434,6 +4723,10 @@ async function fnInnitiateClsFutTrade(pQty){
     let vReturnData = "";
     if(vOrderType === "limit_order"){
         const objLimitClose = await fnExecuteAdaptiveLimitOrderWithFallback(vSymbol, vExecQty, vTransType, true, `Close ${vTransType.toUpperCase()}`);
+        if(objLimitClose.status === "no_position"){
+            await fnSyncLocalOpenPositionWithExchange();
+            return { "status": "warning", "message": "Exchange shows no open position for close. Local position synced.", "data": "" };
+        }
         if(objLimitClose.status !== "success"){
             return { "status": "danger", "message": objLimitClose.message || "Limit close failed.", "data": "" };
         }
@@ -4472,6 +4765,10 @@ async function fnInnitiateClsFutTrade(pQty){
 
         if(objResult.status !== "success"){
             const vErrCode = objResult?.data?.response?.body?.error?.code || objResult.message;
+            if(fnIsNoPositionForReduceOnlyError(vErrCode)){
+                await fnSyncLocalOpenPositionWithExchange();
+                return { "status": "warning", "message": "Exchange shows no open position for close. Local position synced.", "data": "" };
+            }
             return { "status": objResult.status, "message": vErrCode, "data": objResult.data };
         }
         vCloseExecResult = objResult?.data?.result || {};
@@ -4551,6 +4848,7 @@ async function fnInnitiateClsFutTrade(pQty){
         reason: vCloseReason,
         isFullClose: bIsFullClose
     };
+    await fnCancelSellActProtectionOrders(gCurrPos.TradeData[0]);
     if(bIsFullClose){
         localStorage.removeItem("DFSL_CurrFutPos");
         gCurrPos = null;
@@ -4562,6 +4860,7 @@ async function fnInnitiateClsFutTrade(pQty){
         gCurrPos.TradeData[0].SellCommission = Math.max(0, vEntrySellCommRaw - vEntrySellCommForClose);
         gCurrPos.TradeData[0].Qty = vToCntuQty;
         localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(gCurrPos));
+        await fnSyncExchangeProtectionSL("partial-close");
     }
 
     fnSetNextOptTradeSettings(bIsFullClose);
@@ -5250,6 +5549,7 @@ function fnClearLocalStorageTemp(){
     localStorage.removeItem("DFSL_CycleStartLossAmt");
     localStorage.removeItem("DFSL_CycleStartQty");
     localStorage.removeItem("DFSL_LastQtyDecision");
+    localStorage.removeItem("DFSL_LimitSpeedProfile");
     localStorage.removeItem("DFSL_SellActOn");
     localStorage.removeItem("DFSL_SellActBelow");
     localStorage.removeItem("DFSL_SellActSL");

@@ -14,7 +14,6 @@ let gNewPLAmt = 0;
 let gPL = 0;
 let gHisCandleMins = 1; //Eg: 1, 3, 5, 15, 30
 let gSubInterval = 0;
-let gManualSubIntvl = 0;
 let gForceCloseDFL = false;
 let g50Perc1Time = true;
 let gRenkoFeedWS = null;
@@ -25,6 +24,7 @@ let gRenkoFeedPriceSource = "mark_price";
 let gRenkoFeedAnchor = null;
 let gRenkoFeedLastDir = 0;
 let gRenkoFeedMaxRows = 300;
+let gRenkoMinStepPoints = 0;
 let gRenkoPatternSeq = "";
 let gRenkoPatternMaxLen = 0;
 let gRenkoHHLL = false;
@@ -184,7 +184,7 @@ function fnSetRenkoFeedMeta(){
     const objSellPatterns = fnGetConfiguredRenkoPatterns("sell");
     const vBuyPatts = objBuyPatterns.length > 0 ? objBuyPatterns.join(",") : "-";
     const vSellPatts = objSellPatterns.length > 0 ? objSellPatterns.join(",") : "-";
-    objMeta.innerText = `Symbol: ${fnGetRenkoFeedSymbol()} | Step: ${gRenkoFeedStepPts} | Src: ${gRenkoFeedPriceSource} | B: ${vBuyPatts} | S: ${vSellPatts}`;
+    objMeta.innerText = `Symbol: ${fnGetRenkoFeedSymbol()} | Step: ${gRenkoFeedStepPts} | MinStep: ${gRenkoMinStepPoints} | Src: ${gRenkoFeedPriceSource} | B: ${vBuyPatts} | S: ${vSellPatts}`;
 }
 
 function fnGetTickerVolumeText(pVol){
@@ -733,6 +733,17 @@ function fnUpdateRenkoFeedPriceSource(pThis){
     fnAppendRenkoFeedMsg(`Price source changed to ${gRenkoFeedPriceSource}. Anchor reset.`);
 }
 
+function fnUpdateRenkoMinStepPoints(pThis){
+    const vParsed = Number(pThis?.value);
+    gRenkoMinStepPoints = (Number.isFinite(vParsed) && vParsed >= 0) ? Number(vParsed.toFixed(2)) : 0;
+    if(pThis){
+        pThis.value = gRenkoMinStepPoints;
+    }
+    localStorage.setItem("DFSD_RenkoMinStepPoints", String(gRenkoMinStepPoints));
+    fnSetRenkoFeedMeta();
+    fnAppendRenkoFeedMsg(`Minimum step size updated to ${gRenkoMinStepPoints} points.`);
+}
+
 function fnGetTradeSideSwitch(){
     const vTradeSide = String(localStorage.getItem("DFSD_TradeSideSwtS") || "-1");
     if(vTradeSide === "true"){
@@ -744,20 +755,33 @@ function fnGetTradeSideSwitch(){
     return "both";
 }
 
-function fnMatchRenkoPatternsByColor(pColorCode){
+function fnTrackRenkoPatternColor(pColorCode){
     const objBuyPatterns = fnGetConfiguredRenkoPatterns("buy");
     const objSellPatterns = fnGetConfiguredRenkoPatterns("sell");
     if(objBuyPatterns.length === 0 && objSellPatterns.length === 0){
-        return { buy: [], sell: [] };
+        return;
     }
     gRenkoPatternSeq += pColorCode;
     if(gRenkoPatternSeq.length > gRenkoPatternMaxLen){
         gRenkoPatternSeq = gRenkoPatternSeq.slice(-gRenkoPatternMaxLen);
     }
+}
+
+function fnGetRenkoPatternMatches(){
+    const objBuyPatterns = fnGetConfiguredRenkoPatterns("buy");
+    const objSellPatterns = fnGetConfiguredRenkoPatterns("sell");
+    if(objBuyPatterns.length === 0 && objSellPatterns.length === 0){
+        return { buy: [], sell: [] };
+    }
     return {
         buy: objBuyPatterns.filter((pPattern) => gRenkoPatternSeq.endsWith(pPattern)),
         sell: objSellPatterns.filter((pPattern) => gRenkoPatternSeq.endsWith(pPattern))
     };
+}
+
+function fnMatchRenkoPatternsByColor(pColorCode){
+    fnTrackRenkoPatternColor(pColorCode);
+    return fnGetRenkoPatternMatches();
 }
 
 async function fnProcessRenkoSignal(pRenkoMsg, pSource = "delta"){
@@ -770,58 +794,69 @@ async function fnProcessRenkoSignal(pRenkoMsg, pSource = "delta"){
     const objBoxState = fnUpdatePrevRenkoCloseByBox(vOpen, vClose);
 
     const vColorCode = vClose > vOpen ? "G" : "R";
-    const objMatched = fnMatchRenkoPatternsByColor(vColorCode);
-    if(objMatched.buy.length === 0 && objMatched.sell.length === 0){
+    fnTrackRenkoPatternColor(vColorCode);
+
+    // Sequence: Min Step -> HH/LL -> Pattern -> Execute
+    let vSide = "";
+    if(objBoxState?.Transition === "R2G"){
+        vSide = "buy";
+    }
+    else if(objBoxState?.Transition === "G2R"){
+        vSide = "sell";
+    }
+    if(vSide === ""){
+        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} skipped. No direction-change event for step validation (Event:${objBoxState?.Transition || "NONE"}).`);
         return;
     }
 
-    if(gCurrPos !== null){
-        const vAnyMatch = [...objMatched.buy, ...objMatched.sell].join("|");
-        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} matched ${vAnyMatch} but position is open.`);
+    let vStepSize = NaN;
+    let bRangeOk = false;
+    if(vSide === "buy"){
+        vStepSize = (Number.isFinite(gCurrRenkoGreenClose) && Number.isFinite(gPrevRenkoGreenClose)) ? (gCurrRenkoGreenClose - gPrevRenkoGreenClose) : NaN;
+        bRangeOk = Number.isFinite(gCurrRenkoGreenClose) && Number.isFinite(gPrevRenkoGreenClose) && (gCurrRenkoGreenClose > gPrevRenkoGreenClose);
+    }
+    else{
+        vStepSize = (Number.isFinite(gCurrRenkoRedClose) && Number.isFinite(gPrevRenkoRedClose)) ? (gPrevRenkoRedClose - gCurrRenkoRedClose) : NaN;
+        bRangeOk = Number.isFinite(gCurrRenkoRedClose) && Number.isFinite(gPrevRenkoRedClose) && (gCurrRenkoRedClose < gPrevRenkoRedClose);
+    }
+    const bMinStepOk = Number.isFinite(vStepSize) && (vStepSize >= gRenkoMinStepPoints);
+    if(!bMinStepOk){
+        fnAppendRenkoFeedMsg(`[${pSource}] ${vSide.toUpperCase()} skipped by Min Step. Step:${Number.isFinite(vStepSize) ? vStepSize.toFixed(2) : "NA"} MinStep:${gRenkoMinStepPoints.toFixed(2)} Event:${objBoxState?.Transition || "NONE"}`);
+        return;
+    }
+
+    if(gRenkoHHLL === true && !bRangeOk){
+        if(vSide === "buy"){
+            fnAppendRenkoFeedMsg(`[${pSource}] BUY skipped by HH/LL. Need CurrGreen > PrevGreen. CurrGreen:${Number.isFinite(gCurrRenkoGreenClose) ? gCurrRenkoGreenClose.toFixed(2) : "NA"} PrevGreen:${Number.isFinite(gPrevRenkoGreenClose) ? gPrevRenkoGreenClose.toFixed(2) : "NA"} StepUp:${Number.isFinite(vStepSize) ? vStepSize.toFixed(2) : "NA"} MinStep:${gRenkoMinStepPoints.toFixed(2)}`);
+        }
+        else{
+            fnAppendRenkoFeedMsg(`[${pSource}] SELL skipped by HH/LL. Need CurrRed < PrevRed. CurrRed:${Number.isFinite(gCurrRenkoRedClose) ? gCurrRenkoRedClose.toFixed(2) : "NA"} PrevRed:${Number.isFinite(gPrevRenkoRedClose) ? gPrevRenkoRedClose.toFixed(2) : "NA"} StepDown:${Number.isFinite(vStepSize) ? vStepSize.toFixed(2) : "NA"} MinStep:${gRenkoMinStepPoints.toFixed(2)}`);
+        }
         return;
     }
 
     const vSideSwt = fnGetTradeSideSwitch();
-    let vSide = "";
     if(vSideSwt === "buy"){
-        vSide = objMatched.buy.length > 0 ? "buy" : "";
+        vSide = vSide === "buy" ? "buy" : "";
     }
     else if(vSideSwt === "sell"){
-        vSide = objMatched.sell.length > 0 ? "sell" : "";
-    }
-    else{
-        if(objMatched.buy.length > 0 && objMatched.sell.length === 0){
-            vSide = "buy";
-        }
-        else if(objMatched.sell.length > 0 && objMatched.buy.length === 0){
-            vSide = "sell";
-        }
-        else if(objMatched.buy.length > 0 && objMatched.sell.length > 0){
-            vSide = vColorCode === "G" ? "buy" : "sell";
-        }
+        vSide = vSide === "sell" ? "sell" : "";
     }
     if(vSide === ""){
-        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} matched but filtered by trade-side switch.`);
+        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} skipped by trade-side switch.`);
         return;
     }
 
-    if(gRenkoHHLL === true){
-        if(vSide === "buy"){
-            const bTransitionOk = objBoxState?.Transition === "R2G";
-            const bRangeOk = Number.isFinite(gCurrRenkoGreenClose) && Number.isFinite(gPrevRenkoGreenClose) && (gCurrRenkoGreenClose > gPrevRenkoGreenClose);
-            if(!(bTransitionOk && bRangeOk)){
-                fnAppendRenkoFeedMsg(`[${pSource}] BUY skipped by HH/LL. Need first GREEN after RED and CurrGreen > PrevGreen. CurrGreen:${Number.isFinite(gCurrRenkoGreenClose) ? gCurrRenkoGreenClose.toFixed(2) : "NA"} PrevGreen:${Number.isFinite(gPrevRenkoGreenClose) ? gPrevRenkoGreenClose.toFixed(2) : "NA"} Event:${objBoxState?.Transition || "NONE"}`);
-                return;
-            }
-        }
-        else if(vSide === "sell"){
-            const bTransitionOk = objBoxState?.Transition === "G2R";
-            const bRangeOk = Number.isFinite(gCurrRenkoRedClose) && Number.isFinite(gPrevRenkoRedClose) && (gCurrRenkoRedClose < gPrevRenkoRedClose);
-            if(!(bTransitionOk && bRangeOk)){
-                fnAppendRenkoFeedMsg(`[${pSource}] SELL skipped by HH/LL. Need first RED after GREEN and CurrRed < PrevRed. CurrRed:${Number.isFinite(gCurrRenkoRedClose) ? gCurrRenkoRedClose.toFixed(2) : "NA"} PrevRed:${Number.isFinite(gPrevRenkoRedClose) ? gPrevRenkoRedClose.toFixed(2) : "NA"} Event:${objBoxState?.Transition || "NONE"}`);
-                return;
-            }
-        }
+    if(gCurrPos !== null){
+        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} passed MinStep/HHLL but position is open.`);
+        return;
+    }
+
+    const objMatched = fnGetRenkoPatternMatches();
+    const objSideMatches = vSide === "buy" ? objMatched.buy : objMatched.sell;
+    if(objSideMatches.length === 0){
+        fnAppendRenkoFeedMsg(`[${pSource}] ${vSide.toUpperCase()} passed MinStep/HHLL but no ${vSide.toUpperCase()} pattern match.`);
+        return;
     }
 
     if(vSide === "buy" && gManualPrevGreenSeedActive){
@@ -841,7 +876,6 @@ async function fnProcessRenkoSignal(pRenkoMsg, pSource = "delta"){
         fnAppendRenkoFeedMsg(`[${pSource}] Manual PrevRed seed consumed on first SELL trade.`);
     }
 
-    const objSideMatches = vSide === "buy" ? objMatched.buy : objMatched.sell;
     const vMatchTxt = objSideMatches.join("|");
     const vAuto = String(localStorage.getItem("isDFSDAutoTrader") || "false");
     if(vAuto !== "true"){
@@ -1040,17 +1074,23 @@ function fnToggleRenkoFeedSwitch(){
 function fnLoadRenkoFeedSettings(){
     const objSwt = document.getElementById("swtRenkoFeed");
     const objStep = document.getElementById("txtRenkoFeedPts");
+    const objMinStep = document.getElementById("txtRenkoMinStepPts");
     const objSrc = document.getElementById("ddlRenkoFeedPriceSrc");
     const vEnabled = JSON.parse(localStorage.getItem("DFSD_RenkoFeedEnabled") || "false");
     const vStepLs = Math.floor(fnParsePositiveNumber(localStorage.getItem("DFSD_RenkoFeedStepPts"), 200));
+    const vMinStepLsRaw = Number(localStorage.getItem("DFSD_RenkoMinStepPoints"));
     const vSrcLs = String(localStorage.getItem("DFSD_RenkoFeedPriceSrc") || "mark_price");
     const objAllowed = ["mark_price", "spot_price", "best_bid", "best_ask"];
 
     gRenkoFeedStepPts = (Number.isFinite(vStepLs) && vStepLs > 0) ? vStepLs : 200;
+    gRenkoMinStepPoints = (Number.isFinite(vMinStepLsRaw) && vMinStepLsRaw >= 0) ? Number(vMinStepLsRaw.toFixed(2)) : 0;
     gRenkoFeedPriceSource = objAllowed.includes(vSrcLs) ? vSrcLs : "mark_price";
 
     if(objStep){
         objStep.value = gRenkoFeedStepPts;
+    }
+    if(objMinStep){
+        objMinStep.value = gRenkoMinStepPoints;
     }
     if(objSrc){
         objSrc.value = gRenkoFeedPriceSource;
@@ -2235,42 +2275,6 @@ function fnOpenEditCurrentTrade(){
     }
     let vTrade = gCurrPos.TradeData[0];
     fnOpenEditModel(vTrade.OrderID, vTrade.LotSize, vTrade.Qty, vTrade.BuyPrice, vTrade.SellPrice, "open");
-}
-
-function fnManualSubStart(){
-	fnManualSubcription();
-	clearInterval(gManualSubIntvl);
-	gManualSubIntvl = setInterval(fnManualSubcription, 8000);
-}
-
-async function fnManualSubcription(){
-    let objBestRates = await fnGetFutBestRates();
-    if(objBestRates.status === "success"){
-    	let objBestBuy = document.getElementById("txtBestBuyPrice");
-		let objBestSell = document.getElementById("txtBestSellPrice");
-
-	    objBestBuy.value = parseFloat(objBestRates.data.BestBuy);
-	    objBestSell.value = parseFloat(objBestRates.data.BestSell);
-    	
-		if(gCurrPos !== null){
-			fnUpdateOpnPosStatus();
-		}
-		console.log("Manual Rates Started.....")
-    }
-	else{
-
-	}
-}
-
-function fnManualSubStop(){
-	clearInterval(gManualSubIntvl);
-	console.log("Manual Rates Stopped.....");
-
-   	let objBestBuy = document.getElementById("txtBestBuyPrice");
-	let objBestSell = document.getElementById("txtBestSellPrice");
-
-	objBestBuy.value = "";
-	objBestSell.value= "";
 }
 
 function fnGetFutBestRates(){

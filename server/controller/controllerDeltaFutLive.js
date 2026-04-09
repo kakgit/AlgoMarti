@@ -96,11 +96,13 @@ exports.fnPlaceOrderSDK = async (req, res) => {
                 product_symbol: vSymbolID,
                 size: vQuantity,
                 side: vTransType,
-                limit_price: vOrderLimitPrice,
                 order_type: vOrderType,
                 // post_only: vUsePostOnly,
                 client_order_id: (vClientOrdID).toString()
             };
+            if(vOrderType === "limit_order"){
+                objOrder.limit_price = vOrderLimitPrice;
+            }
 
             if(vOrderType === "limit_order" && vPostOnly){
                 objOrder.post_only = true;
@@ -108,7 +110,7 @@ exports.fnPlaceOrderSDK = async (req, res) => {
             if(vReduceOnly){
                 objOrder.reduce_only = true;
             }
-            if(vOrderType === "limit_order" && vStopOrderType && !isNaN(vStopPrice) && vStopPrice > 0){
+            if(vStopOrderType && !isNaN(vStopPrice) && vStopPrice > 0){
                 objOrder.stop_order_type = vStopOrderType;
                 objOrder.stop_price = vStopPrice.toString();
             }
