@@ -301,16 +301,14 @@
                                     <label id="divTimer" for="swtAutoChkPosition" style="cursor:pointer;white-space:normal;">Trade closes in <span id="time"></span> minutes!</label>
                                 </div>
                             </div>
-                            <div class="col-12 col-lg-2">
-                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                    <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtMartingale" name="swtMartingale" onchange="fnChangeTradeMode('step');" />
-                                    <label for="swtMartingale" style="cursor:pointer;text-wrap:nowrap;">Step</label>
-                                </div>
-                            </div>
-                            <div class="col-12 col-lg-2">
-                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                    <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtMarti" name="swtMarti" onchange="fnChangeTradeMode('marti');" />
-                                    <label for="swtMarti" style="cursor:pointer;text-wrap:nowrap;">Marti</label>
+                            <div class="col-12 col-lg-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    <label for="ddlTradeMode" style="white-space:nowrap; margin-bottom:0;">Mode</label>
+                                    <select id="ddlTradeMode" class="form-select form-select-sm" onchange="fnChangeTradeMode(this.value);" title="Select Qty Mode">
+                                        <option value="flat">Flat</option>
+                                        <option value="step" selected>Step</option>
+                                        <option value="marti">Marti</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="col-6 col-lg-1 text-lg-end">
@@ -430,10 +428,10 @@
                             <div class="col-1" id="tdHeadPL">
                                 0.00
                             </div>
-                            <div class="col-2" style="font-weight: bold;">
+                            <div class="col-2" style="font-weight: bold;text-align:right">
                                 <div class="form-check form-switch fs-6" style="white-space: nowrap;">
                                     <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtYetToRec" name="swtYetToRec" onchange="fnUpdateYet2RecSwt();" />
-                                    <label id="lblYetToRecover" for="swtYetToRec" style="cursor:pointer;text-wrap:nowrap;">Yet to Recover:</label>
+                                    <label id="lblYetToRecover" for="swtYetToRec" style="cursor:pointer;text-wrap:nowrap;">Y2R:</label>
                                 </div>
                             </div>
                             <div class="col-2">

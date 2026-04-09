@@ -39,12 +39,33 @@ let gRenkoFeedForceClose = false;
 let gRenkoFeedStepPts = 200;
 let gRenkoFeedPriceSource = "mark_price";
 let gRenkoFeedAnchor = null;
+let gRenkoFeedLastDir = 0;
 let gRenkoFeedMaxRows = 300;
 let gRenkoPatternSeq = "";
 let gRenkoPatternMaxLen = 0;
+let gRenkoHHLL = false;
+let gCurrRenkoGreenClose = NaN;
+let gPrevRenkoGreenClose = NaN;
+let gCurrRenkoRedClose = NaN;
+let gPrevRenkoRedClose = NaN;
+let gLastRenkoColorCode = "";
+let gManualPrevGreenSeedActive = false;
+let gManualPrevRedSeedActive = false;
 let gCurrStrats = { StratsData : [{StratID : 1, NewSellCE : true, NewSellPE : true, StartQty1 : 75, NewDelta1 : 0.25, ReDelta1 : 0.25, DeltaTP1 : 0.12, DeltaSL1 : 0.42, NewBuyCE : true, NewBuyPE : true, StartQty2 : 50, NewDelta2 : 0.12, ReDelta2 : 0.12, DeltaTP2 : 0.25, DeltaSL2 : 0.06, StartQty3 : 25, NewDelta3 : 0.06, ReDelta3 : 0.06, DeltaTP3 : 0.14, DeltaSL3 : 0.03, SellAction : "sell", SellLegSide : "both", BuyAction : "buy", BuyLegSide : "both", Action3 : "buy", LegSide3 : "both" }]};
 let gCurrFutStrats = { StratsData : [{StratID : 11, StartFutQty : 1, PointsSL : 100, PointsTP : 200, PointsTSL : 0 }]};
 let gOtherFlds = [{ BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtBrokRec : false, BrokX4Profit : 2, LossRecPerct : 100, MultiplierX : 1.0, ReLegBrok : false, ReLeg1 : true, ReLeg2 : true, ReLeg3 : false }];
+let gS2OrderPlacementEnabled = true;
+let gRenkoSpreadExecBusy = false;
+
+function fnIsS2OrderPlacementEnabled(pSilent = false){
+    if(gS2OrderPlacementEnabled){
+        return true;
+    }
+    if(!pSilent){
+        fnGenMessage("Order placement is disabled in Strategy2FO (fresh-start mode).", "badge bg-warning", "spnGenMsg");
+    }
+    return false;
+}
 
 window.addEventListener("DOMContentLoaded", function(){
     fnGetAllStatus();
@@ -64,10 +85,6 @@ window.addEventListener("DOMContentLoaded", function(){
     //     }
     //     fnTradeSideSync();
     // });
-
-    socket.on("refreshAllDFL", () => {
-        document.location.reload();
-    });
 
     socket.on("tv-Msg-SSDemo-Open", (pMsg) => {
         let isLsAutoTrader = localStorage.getItem("isAutoTraderDSSDV2");
@@ -164,7 +181,197 @@ function fnSetRenkoFeedMeta(){
     const objSellPatterns = fnGetConfiguredRenkoPatterns("sell");
     const vBuyPatts = objBuyPatterns.length > 0 ? objBuyPatterns.join(",") : "-";
     const vSellPatts = objSellPatterns.length > 0 ? objSellPatterns.join(",") : "-";
-    objMeta.innerText = `Symbol: ${fnGetRenkoFeedSymbol()} | Step: ${gRenkoFeedStepPts} | Src: ${gRenkoFeedPriceSource} | B: ${vBuyPatts} | S: ${vSellPatts}`;
+    objMeta.innerText = `Symbol: ${fnGetRenkoFeedSymbol()} | Step: ${gRenkoFeedStepPts} | Src: ${gRenkoFeedPriceSource} | HH/LL: ${gRenkoHHLL ? "ON" : "OFF"} | B: ${vBuyPatts} | S: ${vSellPatts}`;
+}
+
+function fnSetPrevRenkoCloseInputs(){
+    const objGreen = document.getElementById("txtPrevRenkoGreenClose");
+    const objRed = document.getElementById("txtPrevRenkoRedClose");
+    if(objGreen){
+        objGreen.value = Number.isFinite(gPrevRenkoGreenClose) ? gPrevRenkoGreenClose.toFixed(2) : "";
+    }
+    if(objRed){
+        objRed.value = Number.isFinite(gPrevRenkoRedClose) ? gPrevRenkoRedClose.toFixed(2) : "";
+    }
+}
+
+function fnUpdatePrevRenkoCloseFromInput(pThis, pType){
+    const vRaw = String(pThis?.value || "").trim();
+    const vNum = Number(vRaw);
+    const bValid = Number.isFinite(vNum) && vNum > 0;
+
+    if(String(pType).toLowerCase() === "green"){
+        if(bValid){
+            gPrevRenkoGreenClose = vNum;
+            localStorage.setItem(fnGetPrevRenkoStorageKey("PrevGreenClose"), String(vNum));
+            gManualPrevGreenSeedActive = true;
+            localStorage.setItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"), "true");
+        }
+        else{
+            gPrevRenkoGreenClose = NaN;
+            localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevGreenClose"));
+            gManualPrevGreenSeedActive = false;
+            localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"));
+        }
+    }
+    else if(String(pType).toLowerCase() === "red"){
+        if(bValid){
+            gPrevRenkoRedClose = vNum;
+            localStorage.setItem(fnGetPrevRenkoStorageKey("PrevRedClose"), String(vNum));
+            gManualPrevRedSeedActive = true;
+            localStorage.setItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"), "true");
+        }
+        else{
+            gPrevRenkoRedClose = NaN;
+            localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevRedClose"));
+            gManualPrevRedSeedActive = false;
+            localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"));
+        }
+    }
+
+    fnSetPrevRenkoCloseInputs();
+    fnAppendRenkoFeedMsg(`Manual ${String(pType).toUpperCase()} reference ${bValid ? `set to ${vNum.toFixed(2)} (seed for first trade)` : "cleared"}.`);
+}
+
+function fnGetPrevRenkoStoragePrefix(){
+    const vSymbol = String(fnGetRenkoFeedSymbol() || "BTCUSD").toUpperCase();
+    const vStep = Number.isFinite(Number(gRenkoFeedStepPts)) ? Math.floor(Number(gRenkoFeedStepPts)) : 200;
+    const vSrc = String(gRenkoFeedPriceSource || "mark_price").toLowerCase();
+    return `S2FO_RenkoPrev_${vSymbol}_${vStep}_${vSrc}`;
+}
+
+function fnGetPrevRenkoStorageKey(pField){
+    return `${fnGetPrevRenkoStoragePrefix()}_${pField}`;
+}
+
+function fnGetLsNumberByKey(pKey, pDefaultVal = NaN){
+    const vNum = Number(localStorage.getItem(pKey));
+    return Number.isFinite(vNum) ? vNum : pDefaultVal;
+}
+
+function fnLoadPrevRenkoCloseSettings(){
+    const vCurrGreenKey = fnGetPrevRenkoStorageKey("CurrGreenClose");
+    const vPrevGreenKey = fnGetPrevRenkoStorageKey("PrevGreenClose");
+    const vCurrRedKey = fnGetPrevRenkoStorageKey("CurrRedClose");
+    const vPrevRedKey = fnGetPrevRenkoStorageKey("PrevRedClose");
+    const vColorKey = fnGetPrevRenkoStorageKey("LastColor");
+    const vSeedGreenKey = fnGetPrevRenkoStorageKey("ManualPrevGreenSeed");
+    const vSeedRedKey = fnGetPrevRenkoStorageKey("ManualPrevRedSeed");
+
+    const vCurrGreen = fnGetLsNumberByKey(vCurrGreenKey, NaN);
+    const vPrevGreen = fnGetLsNumberByKey(vPrevGreenKey, NaN);
+    const vCurrRed = fnGetLsNumberByKey(vCurrRedKey, NaN);
+    const vPrevRed = fnGetLsNumberByKey(vPrevRedKey, NaN);
+    const vLastColor = String(localStorage.getItem(vColorKey) || "");
+    const vSeedGreen = String(localStorage.getItem(vSeedGreenKey) || "") === "true";
+    const vSeedRed = String(localStorage.getItem(vSeedRedKey) || "") === "true";
+
+    gCurrRenkoGreenClose = Number.isFinite(vCurrGreen) ? vCurrGreen : NaN;
+    gPrevRenkoGreenClose = Number.isFinite(vPrevGreen) ? vPrevGreen : NaN;
+    gCurrRenkoRedClose = Number.isFinite(vCurrRed) ? vCurrRed : NaN;
+    gPrevRenkoRedClose = Number.isFinite(vPrevRed) ? vPrevRed : NaN;
+    gLastRenkoColorCode = (vLastColor === "G" || vLastColor === "R") ? vLastColor : "";
+    gManualPrevGreenSeedActive = vSeedGreen;
+    gManualPrevRedSeedActive = vSeedRed;
+    fnSetPrevRenkoCloseInputs();
+}
+
+function fnToggleRenkoHHLL(pThis){
+    gRenkoHHLL = !!pThis?.checked;
+    localStorage.setItem("S2FO_RenkoHHLL", JSON.stringify(gRenkoHHLL));
+    fnAppendRenkoFeedMsg(`HH/LL filter ${gRenkoHHLL ? "ON" : "OFF"}.`);
+}
+
+function fnLoadRenkoHHLLSettings(){
+    const objSwt = document.getElementById("swtRenkoHHLL");
+    gRenkoHHLL = JSON.parse(localStorage.getItem("S2FO_RenkoHHLL") || "false");
+    if(objSwt){
+        objSwt.checked = !!gRenkoHHLL;
+    }
+}
+
+function fnUpdatePrevRenkoCloseByBox(pOpen, pClose){
+    const vOpen = Number(pOpen);
+    const vClose = Number(pClose);
+    if(!Number.isFinite(vOpen) || !Number.isFinite(vClose) || vOpen === vClose){
+        return { ColorCode: "", Transition: "NONE" };
+    }
+
+    const vColorCode = vClose > vOpen ? "G" : "R";
+    let vTransition = "NONE";
+
+    if(vColorCode === "G" && gLastRenkoColorCode === "R"){
+        gPrevRenkoGreenClose = Number.isFinite(gCurrRenkoGreenClose) ? gCurrRenkoGreenClose : NaN;
+        gCurrRenkoGreenClose = vClose;
+        if(Number.isFinite(gPrevRenkoGreenClose)){
+            localStorage.setItem(fnGetPrevRenkoStorageKey("PrevGreenClose"), String(gPrevRenkoGreenClose));
+        }
+        else{
+            localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevGreenClose"));
+        }
+        localStorage.setItem(fnGetPrevRenkoStorageKey("CurrGreenClose"), String(gCurrRenkoGreenClose));
+        gManualPrevGreenSeedActive = false;
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"));
+        vTransition = "RG";
+        fnAppendRenkoFeedMsg(`[delta] First GREEN after RED | CurrGreen: ${gCurrRenkoGreenClose.toFixed(2)} | PrevGreen: ${Number.isFinite(gPrevRenkoGreenClose) ? gPrevRenkoGreenClose.toFixed(2) : "NA"}`);
+    }
+    else if(vColorCode === "R" && gLastRenkoColorCode === "G"){
+        gPrevRenkoRedClose = Number.isFinite(gCurrRenkoRedClose) ? gCurrRenkoRedClose : NaN;
+        gCurrRenkoRedClose = vClose;
+        if(Number.isFinite(gPrevRenkoRedClose)){
+            localStorage.setItem(fnGetPrevRenkoStorageKey("PrevRedClose"), String(gPrevRenkoRedClose));
+        }
+        else{
+            localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevRedClose"));
+        }
+        localStorage.setItem(fnGetPrevRenkoStorageKey("CurrRedClose"), String(gCurrRenkoRedClose));
+        gManualPrevRedSeedActive = false;
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"));
+        vTransition = "GR";
+        fnAppendRenkoFeedMsg(`[delta] First RED after GREEN | CurrRed: ${gCurrRenkoRedClose.toFixed(2)} | PrevRed: ${Number.isFinite(gPrevRenkoRedClose) ? gPrevRenkoRedClose.toFixed(2) : "NA"}`);
+    }
+
+    gLastRenkoColorCode = vColorCode;
+    localStorage.setItem(fnGetPrevRenkoStorageKey("LastColor"), vColorCode);
+    fnSetPrevRenkoCloseInputs();
+
+    return { ColorCode: vColorCode, Transition: vTransition };
+}
+
+function fnBuildStandardRenkoBricks(pMark, pStep, pAnchor, pLastDir, pMaxBricks = 50){
+    let vAnchor = Number(pAnchor);
+    let vLastDir = Number(pLastDir);
+    const vBricks = [];
+    const vMark = Number(pMark);
+    const vStep = Number(pStep);
+    let vGuard = 0;
+
+    if(!Number.isFinite(vAnchor)){
+        vAnchor = Math.floor(vMark / vStep) * vStep;
+    }
+
+    while(vGuard < pMaxBricks){
+        const vDiff = vMark - vAnchor;
+        const vDir = vDiff > 0 ? 1 : (vDiff < 0 ? -1 : 0);
+        if(vDir === 0){
+            break;
+        }
+
+        const vAbsDiff = Math.abs(vDiff);
+        const vNeed = (vLastDir !== 0 && vDir !== vLastDir) ? (2 * vStep) : vStep;
+        if(vAbsDiff < vNeed){
+            break;
+        }
+
+        const vOpen = vAnchor;
+        const vClose = vOpen + (vDir * vStep);
+        vBricks.push([vOpen, vClose]);
+        vAnchor = vClose;
+        vLastDir = vDir;
+        vGuard += 1;
+    }
+
+    return { Bricks: vBricks, Anchor: vAnchor, LastDir: vLastDir };
 }
 
 function fnAppendRenkoFeedMsg(pMsg){
@@ -244,6 +451,13 @@ function fnUpdateRenkoPatterns(pThis, pSide = "buy"){
 function fnLoadRenkoPatternSettings(){
     const objBuyTxt = document.getElementById("txtRenkoBuyPatterns");
     const objSellTxt = document.getElementById("txtRenkoSellPatterns");
+    const vLegacy = String(localStorage.getItem("S2FO_RenkoPatterns") || "");
+    if(vLegacy){
+        if(!localStorage.getItem("S2FO_RenkoBuyPatterns")){
+            localStorage.setItem("S2FO_RenkoBuyPatterns", vLegacy);
+        }
+        localStorage.removeItem("S2FO_RenkoPatterns");
+    }
 
     if(!localStorage.getItem("S2FO_RenkoBuyPatterns")){
         localStorage.setItem("S2FO_RenkoBuyPatterns", "RRG,GRG");
@@ -263,6 +477,249 @@ function fnLoadRenkoPatternSettings(){
     }
 }
 
+function fnGetRenkoSpreadPresetDefaults(){
+    return {
+        FarExpiryMode: "7",
+        ShortDelta: 0.15,
+        ShortTP: 0.08,
+        ShortSL: 0.30,
+        HedgeDelta: 0.05,
+        HedgeTP: 0.12,
+        HedgeSL: 0.02
+    };
+}
+
+function fnGetRenkoSpreadPresetSettings(){
+    const objDef = fnGetRenkoSpreadPresetDefaults();
+    let objSaved = {};
+    try{
+        objSaved = JSON.parse(localStorage.getItem("S2FO_RenkoSpreadPreset") || "{}");
+    }
+    catch(_err){
+        objSaved = {};
+    }
+    const objCfg = {
+        FarExpiryMode: String(objSaved?.FarExpiryMode || objDef.FarExpiryMode),
+        ShortDelta: fnParsePositiveNumber(objSaved?.ShortDelta, objDef.ShortDelta),
+        ShortTP: fnParsePositiveNumber(objSaved?.ShortTP, objDef.ShortTP),
+        ShortSL: fnParsePositiveNumber(objSaved?.ShortSL, objDef.ShortSL),
+        HedgeDelta: fnParsePositiveNumber(objSaved?.HedgeDelta, objDef.HedgeDelta),
+        HedgeTP: fnParsePositiveNumber(objSaved?.HedgeTP, objDef.HedgeTP),
+        HedgeSL: fnParsePositiveNumber(objSaved?.HedgeSL, objDef.HedgeSL)
+    };
+    if(!["5", "6", "7"].includes(objCfg.FarExpiryMode)){
+        objCfg.FarExpiryMode = objDef.FarExpiryMode;
+    }
+    return objCfg;
+}
+
+function fnSetRenkoSpreadPresetInputs(){
+    const objCfg = fnGetRenkoSpreadPresetSettings();
+    const objExp = document.getElementById("ddlRenkoSpreadFarExpiry");
+    const objShortD = document.getElementById("txtRenkoShortDelta");
+    const objShortTP = document.getElementById("txtRenkoShortTP");
+    const objShortSL = document.getElementById("txtRenkoShortSL");
+    const objHedgeD = document.getElementById("txtRenkoHedgeDelta");
+    const objHedgeTP = document.getElementById("txtRenkoHedgeTP");
+    const objHedgeSL = document.getElementById("txtRenkoHedgeSL");
+
+    if(objExp){
+        objExp.value = objCfg.FarExpiryMode;
+    }
+    if(objShortD){
+        objShortD.value = objCfg.ShortDelta;
+    }
+    if(objShortTP){
+        objShortTP.value = objCfg.ShortTP;
+    }
+    if(objShortSL){
+        objShortSL.value = objCfg.ShortSL;
+    }
+    if(objHedgeD){
+        objHedgeD.value = objCfg.HedgeDelta;
+    }
+    if(objHedgeTP){
+        objHedgeTP.value = objCfg.HedgeTP;
+    }
+    if(objHedgeSL){
+        objHedgeSL.value = objCfg.HedgeSL;
+    }
+}
+
+function fnLoadRenkoSpreadPresetSettings(){
+    const objCfg = fnGetRenkoSpreadPresetSettings();
+    localStorage.setItem("S2FO_RenkoSpreadPreset", JSON.stringify(objCfg));
+    fnSetRenkoSpreadPresetInputs();
+}
+
+function fnUpdateRenkoSpreadPreset(pThis, pField){
+    const objCfg = fnGetRenkoSpreadPresetSettings();
+    const vField = String(pField || "");
+    const vRaw = pThis?.value;
+
+    if(vField === "FarExpiryMode"){
+        const vMode = String(vRaw || "");
+        objCfg.FarExpiryMode = ["5", "6", "7"].includes(vMode) ? vMode : "7";
+    }
+    else if(vField === "ShortDelta"){
+        objCfg.ShortDelta = fnParsePositiveNumber(vRaw, objCfg.ShortDelta);
+    }
+    else if(vField === "ShortTP"){
+        objCfg.ShortTP = fnParsePositiveNumber(vRaw, objCfg.ShortTP);
+    }
+    else if(vField === "ShortSL"){
+        objCfg.ShortSL = fnParsePositiveNumber(vRaw, objCfg.ShortSL);
+    }
+    else if(vField === "HedgeDelta"){
+        objCfg.HedgeDelta = fnParsePositiveNumber(vRaw, objCfg.HedgeDelta);
+    }
+    else if(vField === "HedgeTP"){
+        objCfg.HedgeTP = fnParsePositiveNumber(vRaw, objCfg.HedgeTP);
+    }
+    else if(vField === "HedgeSL"){
+        objCfg.HedgeSL = fnParsePositiveNumber(vRaw, objCfg.HedgeSL);
+    }
+
+    localStorage.setItem("S2FO_RenkoSpreadPreset", JSON.stringify(objCfg));
+    fnSetRenkoSpreadPresetInputs();
+    fnAppendRenkoFeedMsg("Renko spread preset updated.");
+}
+
+function fnGetStrategyPresetCatalogS2(){
+    return {
+        hedged_short: {
+            TradeMode: "flat",
+            LossRec: 100,
+            MultX: 1.2,
+            RenkoHHLL: true,
+            BuyPatterns: "GG,RGG",
+            SellPatterns: "RR,GRR",
+            SpreadPreset: {
+                FarExpiryMode: "7",
+                ShortDelta: 0.15,
+                ShortTP: 0.08,
+                ShortSL: 0.30,
+                HedgeDelta: 0.05,
+                HedgeTP: 0.12,
+                HedgeSL: 0.02
+            }
+        },
+        hedged_short_conservative: {
+            TradeMode: "flat",
+            LossRec: 100,
+            MultX: 1.0,
+            RenkoHHLL: true,
+            BuyPatterns: "RGG",
+            SellPatterns: "GRR",
+            SpreadPreset: {
+                FarExpiryMode: "7",
+                ShortDelta: 0.12,
+                ShortTP: 0.06,
+                ShortSL: 0.24,
+                HedgeDelta: 0.04,
+                HedgeTP: 0.10,
+                HedgeSL: 0.02
+            }
+        }
+    };
+}
+
+function fnApplyStrategyPresetS2(pPresetKey, pShowMsg = true){
+    const objCatalog = fnGetStrategyPresetCatalogS2();
+    const vKey = String(pPresetKey || "").toLowerCase();
+    const objPreset = objCatalog[vKey];
+    const objDDL = document.getElementById("ddlStrategyPresetS2");
+
+    if(objDDL){
+        objDDL.value = objPreset ? vKey : "custom";
+    }
+
+    if(!objPreset){
+        localStorage.setItem("S2FO_StrategyPresetName", "custom");
+        return;
+    }
+
+    localStorage.setItem("S2FO_StrategyPresetName", vKey);
+
+    const objMode = document.getElementById("ddlTradeModeS2");
+    if(objMode){
+        objMode.value = String(objPreset.TradeMode || "flat");
+        fnChangeTradeModeS2(objMode.value);
+    }
+
+    const objLoss = document.getElementById("txtLossRecvPerct");
+    if(objLoss){
+        objLoss.value = String(objPreset.LossRec);
+        fnUpdateLossRecPrct(objLoss);
+    }
+
+    const objX = document.getElementById("txtMultiplierX");
+    if(objX){
+        objX.value = String(objPreset.MultX);
+        fnUpdateMultiplierX(objX);
+    }
+
+    const objBuyP = document.getElementById("txtRenkoBuyPatterns");
+    if(objBuyP){
+        objBuyP.value = String(objPreset.BuyPatterns || "");
+        fnUpdateRenkoPatterns(objBuyP, "buy");
+    }
+
+    const objSellP = document.getElementById("txtRenkoSellPatterns");
+    if(objSellP){
+        objSellP.value = String(objPreset.SellPatterns || "");
+        fnUpdateRenkoPatterns(objSellP, "sell");
+    }
+
+    const objHHLL = document.getElementById("swtRenkoHHLL");
+    gRenkoHHLL = !!objPreset.RenkoHHLL;
+    localStorage.setItem("S2FO_RenkoHHLL", JSON.stringify(gRenkoHHLL));
+    if(objHHLL){
+        objHHLL.checked = gRenkoHHLL;
+    }
+
+    const objSpread = {
+        ...fnGetRenkoSpreadPresetDefaults(),
+        ...(objPreset.SpreadPreset || {})
+    };
+    localStorage.setItem("S2FO_RenkoSpreadPreset", JSON.stringify(objSpread));
+    fnSetRenkoSpreadPresetInputs();
+    fnSetRenkoFeedMeta();
+
+    if(pShowMsg){
+        fnAppendRenkoFeedMsg(`Strategy preset loaded: ${vKey}.`);
+        fnGenMessage(`Strategy preset loaded: ${vKey}`, "badge bg-success", "spnGenMsg");
+    }
+}
+
+function fnLoadStrategyPresetSelectorS2(){
+    const objDDL = document.getElementById("ddlStrategyPresetS2");
+    if(!objDDL){
+        return;
+    }
+
+    const objCatalog = fnGetStrategyPresetCatalogS2();
+    let vKey = String(localStorage.getItem("S2FO_StrategyPresetName") || "hedged_short").toLowerCase();
+    if(vKey === "custom"){
+        objDDL.value = "custom";
+        return;
+    }
+    if(!objCatalog[vKey]){
+        vKey = "hedged_short";
+    }
+    fnApplyStrategyPresetS2(vKey, false);
+}
+
+function fnChangeStrategyPresetS2(pPresetKey){
+    const vKey = String(pPresetKey || "").toLowerCase();
+    if(vKey === "custom"){
+        localStorage.setItem("S2FO_StrategyPresetName", "custom");
+        fnAppendRenkoFeedMsg("Strategy preset set to custom.");
+        return;
+    }
+    fnApplyStrategyPresetS2(vKey, true);
+}
+
 function fnUpdateRenkoFeedStep(pThis){
     const vParsed = Math.floor(fnParsePositiveNumber(pThis?.value, 200));
     gRenkoFeedStepPts = (Number.isFinite(vParsed) && vParsed > 0) ? vParsed : 200;
@@ -271,6 +728,22 @@ function fnUpdateRenkoFeedStep(pThis){
     }
     localStorage.setItem("S2FO_RenkoFeedStepPts", String(gRenkoFeedStepPts));
     gRenkoFeedAnchor = null;
+    gRenkoFeedLastDir = 0;
+    gCurrRenkoGreenClose = NaN;
+    gPrevRenkoGreenClose = NaN;
+    gCurrRenkoRedClose = NaN;
+    gPrevRenkoRedClose = NaN;
+    gLastRenkoColorCode = "";
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("CurrGreenClose"));
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevGreenClose"));
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("CurrRedClose"));
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevRedClose"));
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("LastColor"));
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"));
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"));
+    gManualPrevGreenSeedActive = false;
+    gManualPrevRedSeedActive = false;
+    fnSetPrevRenkoCloseInputs();
     fnSetRenkoFeedMeta();
     fnAppendRenkoFeedMsg(`Step updated to ${gRenkoFeedStepPts} points.`);
 }
@@ -281,6 +754,17 @@ function fnUpdateRenkoFeedPriceSource(pThis){
     gRenkoFeedPriceSource = objAllowed.includes(vSel) ? vSel : "mark_price";
     localStorage.setItem("S2FO_RenkoFeedPriceSrc", gRenkoFeedPriceSource);
     gRenkoFeedAnchor = null;
+    gRenkoFeedLastDir = 0;
+    gCurrRenkoGreenClose = NaN;
+    gPrevRenkoGreenClose = NaN;
+    gCurrRenkoRedClose = NaN;
+    gPrevRenkoRedClose = NaN;
+    gLastRenkoColorCode = "";
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"));
+    localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"));
+    gManualPrevGreenSeedActive = false;
+    gManualPrevRedSeedActive = false;
+    fnSetPrevRenkoCloseInputs();
     fnSetRenkoFeedMeta();
     fnAppendRenkoFeedMsg(`Price source changed to ${gRenkoFeedPriceSource}. Anchor reset.`);
 }
@@ -395,7 +879,164 @@ function fnMatchRenkoPatternsByColor(pColorCode){
 async function fnHandleRenkoSignalExecution(pSide, pMatchTxt, pSource, pColorCode){
     fnAppendRenkoFeedMsg(`[${pSource}] Pattern ${pMatchTxt} hit on ${pColorCode}. ${pSide.toUpperCase()} signal ready.`);
     fnGenMessage(`Renko ${pSide.toUpperCase()} pattern matched (${pMatchTxt})`, "badge bg-info", "spnGenMsg");
-    await fnPreInitAutoFutTrade("F", pSide);
+    await fnExecuteRenkoDirectionalHedgedSpread(pSide, pMatchTxt, pSource, pColorCode);
+}
+
+function fnApplyRenkoDirectionalSpreadPreset(pSide){
+    const vSide = String(pSide || "").toLowerCase();
+    const bBullish = vSide === "buy";
+    const vOptType = bBullish ? "pe" : "ce";
+    const objPreset = fnGetRenkoSpreadPresetSettings();
+
+    const objStartQty = document.getElementById("txtStartQty");
+    const objFutQty = document.getElementById("txtFutQty");
+    const objQty1 = document.getElementById("txtStartQty1");
+    const objQty2 = document.getElementById("txtStartQty2");
+    const objAction1 = document.getElementById("ddlAction1");
+    const objLegSide1 = document.getElementById("ddlLegSide1");
+    const objAction2 = document.getElementById("ddlAction2");
+    const objLegSide2 = document.getElementById("ddlLegSide2");
+    const objExpMode1 = document.getElementById("ddlExpiryMode1");
+    const objExpMode2 = document.getElementById("ddlExpiryMode2");
+    const objNewDelta1 = document.getElementById("txtNewDelta1");
+    const objReDelta1 = document.getElementById("txtReDelta1");
+    const objDeltaTP1 = document.getElementById("txtDeltaTP1");
+    const objDeltaSL1 = document.getElementById("txtDeltaSL1");
+    const objNewDelta2 = document.getElementById("txtNewDelta2");
+    const objReDelta2 = document.getElementById("txtReDelta2");
+    const objDeltaTP2 = document.getElementById("txtDeltaTP2");
+    const objDeltaSL2 = document.getElementById("txtDeltaSL2");
+
+    let vQty = Math.floor(Number(objQty1?.value || objFutQty?.value || objStartQty?.value || 1));
+    if(!Number.isFinite(vQty) || vQty < 1){
+        vQty = 1;
+    }
+
+    if(objAction1){
+        objAction1.value = "sell";
+    }
+    if(objLegSide1){
+        objLegSide1.value = vOptType;
+    }
+    if(objAction2){
+        objAction2.value = "buy";
+    }
+    if(objLegSide2){
+        objLegSide2.value = vOptType;
+    }
+    if(objQty1){
+        objQty1.value = vQty;
+    }
+    if(objQty2){
+        objQty2.value = vQty;
+    }
+
+    // Far-dated setup (monthly) for short + hedge rows.
+    if(objExpMode1){
+        objExpMode1.value = objPreset.FarExpiryMode;
+    }
+    if(objExpMode2){
+        objExpMode2.value = objPreset.FarExpiryMode;
+    }
+    fnUpdateSellExpiryMode();
+    fnUpdateBuyExpiryMode();
+
+    // Short leg (sell)
+    if(objNewDelta1){
+        objNewDelta1.value = String(objPreset.ShortDelta);
+    }
+    if(objReDelta1){
+        objReDelta1.value = String(objPreset.ShortDelta);
+    }
+    if(objDeltaTP1){
+        objDeltaTP1.value = String(objPreset.ShortTP);
+    }
+    if(objDeltaSL1){
+        objDeltaSL1.value = String(objPreset.ShortSL);
+    }
+
+    // Hedge leg (buy)
+    if(objNewDelta2){
+        objNewDelta2.value = String(objPreset.HedgeDelta);
+    }
+    if(objReDelta2){
+        objReDelta2.value = String(objPreset.HedgeDelta);
+    }
+    if(objDeltaTP2){
+        objDeltaTP2.value = String(objPreset.HedgeTP);
+    }
+    if(objDeltaSL2){
+        objDeltaSL2.value = String(objPreset.HedgeSL);
+    }
+
+    if(typeof fnUpdateLegSelector === "function"){
+        fnUpdateLegSelector("sell");
+        fnUpdateLegSelector("buy");
+    }
+}
+
+function fnFindLatestOpenLegByTypeAndSide(pOptionType, pTransType){
+    if(!gCurrPosDSSDV2 || !Array.isArray(gCurrPosDSSDV2.TradeData)){
+        return null;
+    }
+    const vOpt = String(pOptionType || "").toUpperCase();
+    const vSide = String(pTransType || "").toLowerCase();
+    let objFound = null;
+
+    for(let i=0; i<gCurrPosDSSDV2.TradeData.length; i++){
+        const objLeg = gCurrPosDSSDV2.TradeData[i];
+        if(objLeg?.Status === "OPEN" && String(objLeg.OptionType || "").toUpperCase() === vOpt && String(objLeg.TransType || "").toLowerCase() === vSide){
+            if(!objFound || Number(objLeg.OpenDTVal || 0) > Number(objFound.OpenDTVal || 0)){
+                objFound = objLeg;
+            }
+        }
+    }
+    return objFound;
+}
+
+async function fnExecuteRenkoDirectionalHedgedSpread(pSide, pMatchTxt, pSource, pColorCode){
+    if(gRenkoSpreadExecBusy){
+        fnAppendRenkoFeedMsg(`[${pSource}] ${pColorCode} ${pMatchTxt} skipped: spread execution already in progress.`);
+        return;
+    }
+    if(!fnIsS2OrderPlacementEnabled()){
+        return;
+    }
+
+    const vSide = String(pSide || "").toLowerCase();
+    const vOptionType = vSide === "buy" ? "P" : (vSide === "sell" ? "C" : "");
+    if(vOptionType === ""){
+        return;
+    }
+
+    gRenkoSpreadExecBusy = true;
+    try{
+        fnApplyRenkoDirectionalSpreadPreset(vSide);
+        fnAppendRenkoFeedMsg(`[${pSource}] Executing ${vSide.toUpperCase()} far-expiry spread: BUY ${vOptionType} hedge first, then SELL ${vOptionType} short.`);
+
+        const bHedgeOpened = await fnPreInitAutoTrade(vOptionType, "buy", 2);
+        if(!bHedgeOpened){
+            fnAppendRenkoFeedMsg(`[${pSource}] Spread aborted: hedge BUY ${vOptionType} could not be opened.`);
+            return;
+        }
+
+        const bShortOpened = await fnPreInitAutoTrade(vOptionType, "sell", 1);
+        if(!bShortOpened){
+            fnAppendRenkoFeedMsg(`[${pSource}] Short SELL ${vOptionType} failed after hedge. Attempting hedge unwind.`);
+            const objHedge = fnFindLatestOpenLegByTypeAndSide(vOptionType, "buy");
+            if(objHedge?.TradeID && objHedge?.Symbol){
+                await fnCloseOptPosition(objHedge.TradeID, "buy", vOptionType, objHedge.Symbol, "CLOSED");
+                fnAppendRenkoFeedMsg(`[${pSource}] Hedge unwind completed for ${vOptionType}.`);
+            }
+            return;
+        }
+
+        fnAppendRenkoFeedMsg(`[${pSource}] Spread deployed successfully (${vSide.toUpperCase()} | ${vOptionType}).`);
+        fnGenMessage(`Renko spread deployed: ${vSide.toUpperCase()} (${vOptionType})`, "badge bg-success", "spnGenMsg");
+    }
+    finally{
+        gRenkoSpreadExecBusy = false;
+    }
 }
 
 async function fnProcessRenkoSignal(pRenkoMsg, pSource = "delta"){
@@ -406,6 +1047,7 @@ async function fnProcessRenkoSignal(pRenkoMsg, pSource = "delta"){
     }
 
     const vColorCode = vClose > vOpen ? "G" : "R";
+    const objBoxState = fnUpdatePrevRenkoCloseByBox(vOpen, vClose);
     const objMatched = fnMatchRenkoPatternsByColor(vColorCode);
     if(objMatched.buy.length === 0 && objMatched.sell.length === 0){
         return;
@@ -442,12 +1084,48 @@ async function fnProcessRenkoSignal(pRenkoMsg, pSource = "delta"){
         return;
     }
 
+    if(gRenkoHHLL === true){
+        if(vSide === "buy"){
+            const bRangeOk = Number.isFinite(gCurrRenkoGreenClose) && Number.isFinite(gPrevRenkoGreenClose) && (gCurrRenkoGreenClose > gPrevRenkoGreenClose);
+            if(!bRangeOk){
+                fnAppendRenkoFeedMsg(`[${pSource}] BUY skipped by HH/LL. Need CurrGreen > PrevGreen. CurrGreen:${Number.isFinite(gCurrRenkoGreenClose) ? gCurrRenkoGreenClose.toFixed(2) : "NA"} PrevGreen:${Number.isFinite(gPrevRenkoGreenClose) ? gPrevRenkoGreenClose.toFixed(2) : "NA"} Event:${objBoxState?.Transition || "NONE"}`);
+                return;
+            }
+            fnAppendRenkoFeedMsg(`[${pSource}] HH/LL PASS BUY. CurrGreen:${gCurrRenkoGreenClose.toFixed(2)} > PrevGreen:${gPrevRenkoGreenClose.toFixed(2)}.`);
+        }
+        else if(vSide === "sell"){
+            const bRangeOk = Number.isFinite(gCurrRenkoRedClose) && Number.isFinite(gPrevRenkoRedClose) && (gCurrRenkoRedClose < gPrevRenkoRedClose);
+            if(!bRangeOk){
+                fnAppendRenkoFeedMsg(`[${pSource}] SELL skipped by HH/LL. Need CurrRed < PrevRed. CurrRed:${Number.isFinite(gCurrRenkoRedClose) ? gCurrRenkoRedClose.toFixed(2) : "NA"} PrevRed:${Number.isFinite(gPrevRenkoRedClose) ? gPrevRenkoRedClose.toFixed(2) : "NA"} Event:${objBoxState?.Transition || "NONE"}`);
+                return;
+            }
+            fnAppendRenkoFeedMsg(`[${pSource}] HH/LL PASS SELL. CurrRed:${gCurrRenkoRedClose.toFixed(2)} < PrevRed:${gPrevRenkoRedClose.toFixed(2)}.`);
+        }
+    }
+
     const objSideMatches = vSide === "buy" ? objMatched.buy : objMatched.sell;
     const vMatchTxt = objSideMatches.join("|");
     const vAuto = String(localStorage.getItem("isAutoTraderDSSDV2") || "false");
     if(vAuto !== "true"){
         fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} matched ${vSide.toUpperCase()} ${vMatchTxt} but Auto Trader is OFF.`);
         return;
+    }
+
+    if(vSide === "buy" && gManualPrevGreenSeedActive){
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevGreenSeed"));
+        gManualPrevGreenSeedActive = false;
+        gPrevRenkoGreenClose = NaN;
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevGreenClose"));
+        fnSetPrevRenkoCloseInputs();
+        fnAppendRenkoFeedMsg(`[${pSource}] Manual PrevGreen seed consumed on first BUY trade.`);
+    }
+    if(vSide === "sell" && gManualPrevRedSeedActive){
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("ManualPrevRedSeed"));
+        gManualPrevRedSeedActive = false;
+        gPrevRenkoRedClose = NaN;
+        localStorage.removeItem(fnGetPrevRenkoStorageKey("PrevRedClose"));
+        fnSetPrevRenkoCloseInputs();
+        fnAppendRenkoFeedMsg(`[${pSource}] Manual PrevRed seed consumed on first SELL trade.`);
     }
 
     await fnHandleRenkoSignalExecution(vSide, vMatchTxt, pSource, vColorCode);
@@ -488,6 +1166,31 @@ function fnGetSyntheticRenkoOHLC(pOpen, pClose){
     return { Open: vOpen, High: vHigh, Low: vLow, Close: vClose };
 }
 
+function fnGetTickerVolumeText(pVol){
+    const vParsed = Number(pVol);
+    if(!Number.isFinite(vParsed)){
+        return "-";
+    }
+    return vParsed.toLocaleString("en-US");
+}
+
+function fnGetTickerVolumeFromWSData(pWSData){
+    if(!pWSData || typeof pWSData !== "object"){
+        return NaN;
+    }
+    const vDirect = Number(pWSData.volume);
+    if(Number.isFinite(vDirect)){
+        return vDirect;
+    }
+    if(Array.isArray(pWSData.result) && pWSData.result.length > 0){
+        const vResVol = Number(pWSData.result[0]?.volume);
+        if(Number.isFinite(vResVol)){
+            return vResVol;
+        }
+    }
+    return NaN;
+}
+
 async function fnHandleRenkoFeedTicker(pTicData){
     const vMark = fnGetRenkoFeedTickerPrice(pTicData);
     if(!Number.isFinite(vMark) || vMark <= 0){
@@ -495,16 +1198,18 @@ async function fnHandleRenkoFeedTicker(pTicData){
     }
     if(!Number.isFinite(gRenkoFeedAnchor)){
         gRenkoFeedAnchor = Math.floor(vMark / gRenkoFeedStepPts) * gRenkoFeedStepPts;
+        gRenkoFeedLastDir = 0;
         fnAppendRenkoFeedMsg(`Anchor set @ ${gRenkoFeedAnchor.toFixed(2)} (${fnGetRenkoFeedSymbol()})`);
         return;
     }
 
-    let vGuard = 0;
-    while(Math.abs(vMark - gRenkoFeedAnchor) >= gRenkoFeedStepPts && vGuard < 25){
-        const vDir = vMark > gRenkoFeedAnchor ? 1 : -1;
-        const vOpen = gRenkoFeedAnchor;
-        const vClose = vOpen + (vDir * gRenkoFeedStepPts);
-        gRenkoFeedAnchor = vClose;
+    const objBuild = fnBuildStandardRenkoBricks(vMark, gRenkoFeedStepPts, gRenkoFeedAnchor, gRenkoFeedLastDir, 25);
+    gRenkoFeedAnchor = objBuild.Anchor;
+    gRenkoFeedLastDir = objBuild.LastDir;
+    const vVolTxt = fnGetTickerVolumeText(fnGetTickerVolumeFromWSData(pTicData));
+
+    for(let i = 0; i < objBuild.Bricks.length; i += 1){
+        const [vOpen, vClose] = objBuild.Bricks[i];
         const objOHLC = fnGetSyntheticRenkoOHLC(vOpen, vClose);
         const objRenkoMsg = {
             Open: objOHLC.Open,
@@ -512,11 +1217,10 @@ async function fnHandleRenkoFeedTicker(pTicData){
             Low: objOHLC.Low,
             Close: objOHLC.Close
         };
-        fnAppendRenkoFeedMsg(`[delta] O:${objOHLC.Open.toFixed(2)} H:${objOHLC.High.toFixed(2)} L:${objOHLC.Low.toFixed(2)} C:${objOHLC.Close.toFixed(2)}`);
+        fnAppendRenkoFeedMsg(`[delta] O:${objOHLC.Open.toFixed(2)} H:${objOHLC.High.toFixed(2)} L:${objOHLC.Low.toFixed(2)} C:${objOHLC.Close.toFixed(2)} V:${vVolTxt}`);
         if(fnShouldUseDeltaRenkoFeedForStrategy()){
             await fnProcessRenkoSignal(objRenkoMsg, "delta");
         }
-        vGuard += 1;
     }
 }
 
@@ -539,6 +1243,7 @@ function fnStartRenkoFeedWS(){
         const vSendData = { type: "subscribe", payload: { channels: [{ name: "v2/ticker", symbols: [vSymbol] }] } };
         objRenkoWS.send(JSON.stringify(vSendData));
         gRenkoFeedAnchor = null;
+        gRenkoFeedLastDir = 0;
         fnSetRenkoFeedStatus("ON", "bg-success");
         fnSetRenkoFeedMeta();
         fnAppendRenkoFeedMsg(`Feed started for ${vSymbol}. Waiting for ${gRenkoFeedStepPts}-point move...`);
@@ -641,7 +1346,12 @@ function fnLoadRenkoFeedSettings(){
         objSwt.checked = !!vEnabled;
     }
     gRenkoFeedEnabled = !!vEnabled;
+    gRenkoFeedLastDir = 0;
     fnLoadRenkoPatternSettings();
+    fnLoadRenkoHHLLSettings();
+    fnLoadPrevRenkoCloseSettings();
+    fnLoadRenkoSpreadPresetSettings();
+    fnLoadStrategyPresetSelectorS2();
     fnSetRenkoFeedMeta();
     fnSetRenkoFeedStatus(gRenkoFeedEnabled ? "ON" : "OFF", gRenkoFeedEnabled ? "bg-success" : "bg-secondary");
     if(gRenkoFeedEnabled){
@@ -1605,6 +2315,9 @@ function fnSetSymbolData(pThisVal){
         objLotSize.value = 0;
     }
 
+    gRenkoFeedAnchor = null;
+    gRenkoFeedLastDir = 0;
+    fnLoadPrevRenkoCloseSettings();
     fnSetRenkoFeedMeta();
     if(gRenkoFeedEnabled){
         fnRestartRenkoFeedWS();
@@ -1681,29 +2394,35 @@ function fnLoadOptStep(){
 }
 
 function fnLoadMartiModeS2(){
+    let objModeDDL = document.getElementById("ddlTradeModeS2");
     let objSwtStep = document.getElementById("swtStepDFL");
     let objSwtMarti = document.getElementById("swtMartiDFL");
-    if(!objSwtStep){
+    if(!objModeDDL && !objSwtStep){
         return;
     }
 
     let vMode = (localStorage.getItem("S2FO_TradeMode") || "").toUpperCase();
-    if(vMode === ""){
+    if(vMode !== "STEP" && vMode !== "MARTI" && vMode !== "FLAT"){
         let vLegacyMarti = JSON.parse(localStorage.getItem("OptStepDSSDV2"));
         vMode = (vLegacyMarti === false) ? "MARTI" : "STEP";
     }
+    if(vMode !== "STEP" && vMode !== "MARTI" && vMode !== "FLAT"){
+        vMode = "STEP";
+    }
 
-    if(objSwtMarti){
+    if(objModeDDL){
+        objModeDDL.value = vMode.toLowerCase();
+    }
+    if(objSwtStep && objSwtMarti){
         objSwtStep.checked = (vMode === "STEP");
         objSwtMarti.checked = (vMode === "MARTI");
-        if(objSwtStep.checked === objSwtMarti.checked){
-            objSwtStep.checked = true;
-            objSwtMarti.checked = false;
-            vMode = "STEP";
-        }
-        localStorage.setItem("S2FO_TradeMode", vMode);
-        localStorage.setItem("OptStepDSSDV2", JSON.stringify(objSwtStep.checked));
     }
+    else if(objSwtStep){
+        objSwtStep.checked = (vMode === "MARTI");
+    }
+
+    localStorage.setItem("S2FO_TradeMode", vMode);
+    localStorage.setItem("OptStepDSSDV2", JSON.stringify(vMode === "STEP"));
 }
 
 function fnLoadTotalLossAmtQty(){
@@ -1711,36 +2430,42 @@ function fnLoadTotalLossAmtQty(){
 }
 
 function fnChangeTradeModeS2(pMode){
+    let objModeDDL = document.getElementById("ddlTradeModeS2");
     let objSwtStep = document.getElementById("swtStepDFL");
     let objSwtMarti = document.getElementById("swtMartiDFL");
-    if(!objSwtStep){
-        return;
-    }
-    if(!objSwtMarti){
-        localStorage.setItem("S2FO_TradeMode", objSwtStep.checked ? "STEP" : "MARTI");
+    if(!objModeDDL && !objSwtStep){
         return;
     }
 
-    if(pMode === "step"){
-        if(objSwtStep.checked){
-            objSwtMarti.checked = false;
-        }
-        else if(!objSwtMarti.checked){
-            objSwtStep.checked = true;
-        }
+    let vMode = String(pMode || "").toUpperCase();
+    if(vMode !== "STEP" && vMode !== "MARTI" && vMode !== "FLAT"){
+        vMode = String(objModeDDL?.value || "").toUpperCase();
     }
-    else if(pMode === "marti"){
-        if(objSwtMarti.checked){
-            objSwtStep.checked = false;
+    if(vMode !== "STEP" && vMode !== "MARTI" && vMode !== "FLAT"){
+        if(objSwtStep && objSwtMarti){
+            vMode = objSwtMarti.checked ? "MARTI" : "STEP";
         }
-        else if(!objSwtStep.checked){
-            objSwtMarti.checked = true;
+        else if(objSwtStep){
+            vMode = objSwtStep.checked ? "MARTI" : "STEP";
+        }
+        else{
+            vMode = "STEP";
         }
     }
 
-    let vMode = objSwtMarti.checked ? "MARTI" : "STEP";
+    if(objModeDDL){
+        objModeDDL.value = vMode.toLowerCase();
+    }
+    if(objSwtStep && objSwtMarti){
+        objSwtStep.checked = (vMode === "STEP");
+        objSwtMarti.checked = (vMode === "MARTI");
+    }
+    else if(objSwtStep){
+        objSwtStep.checked = (vMode === "MARTI");
+    }
+
     localStorage.setItem("S2FO_TradeMode", vMode);
-    localStorage.setItem("OptStepDSSDV2", JSON.stringify(objSwtStep.checked));
+    localStorage.setItem("OptStepDSSDV2", JSON.stringify(vMode === "STEP"));
 }
 
 function fnApplyQtyToAllTradeInputs(pQty){
@@ -1864,7 +2589,8 @@ function fnSetNextTradeQtySettings(pIsFullClose = true){
     let vStartLots = Number(localStorage.getItem("StartQtyNoDSSDV2"));
     let vMode = String(localStorage.getItem("S2FO_TradeMode") || "").toUpperCase();
     let bIsMarti = (vMode === "MARTI");
-    let bIsStep = !bIsMarti;
+    let bIsStep = (vMode === "STEP");
+    let bIsFlat = (vMode === "FLAT");
     let vX = fnParsePositiveNumber(gMultiplierX, 1.0);
     let vCycleStartLoss = Number(localStorage.getItem("S2FO_CycleStartLossAmt"));
     let vCycleStartQty = Number(localStorage.getItem("S2FO_CycleStartQty"));
@@ -1914,6 +2640,9 @@ function fnSetNextTradeQtySettings(pIsFullClose = true){
         }
         else if(bIsStep){
             vNextQty = Math.floor(vOldQtyMul + Math.max(1, Math.floor(vStartLots * vX)));
+        }
+        else if(bIsFlat){
+            vNextQty = vOldQtyMul;
         }
     }
 
@@ -2407,45 +3136,6 @@ function fnGetBuyOpenPosAndClose(pTransType, pOptionType){
 
     if(vToPosClose){
         fnCloseOptPosition(vLegID, "buy", vOptionType, vSymbol, "CLOSED");
-    }
-}
-
-function fnRefreshAllOpenBrowser(){
-    if(localStorage.getItem("AppLoginEmail") === "kamarthi.anil@gmail.com"){
-        // fnClearLocalStorageTemp();
-
-        let vHeaders = new Headers();
-        vHeaders.append("Content-Type", "application/json");
-
-        let objRequestOptions = {
-            method: 'POST',
-            headers: vHeaders,
-            body: '',
-            redirect: 'follow'
-        };
-
-        fetch("/refreshAllDFL", objRequestOptions)
-        .then(objResponse => objResponse.json())
-        .then(objResult => {
-            if(objResult.status === "success"){
-
-                console.log(objResult);
-                fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-            }
-            else if(objResult.status === "danger"){
-                fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-            }
-            else if(objResult.status === "warning"){
-                fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
-            }
-            else{
-                fnGenMessage("Error to Receive Trade Msg", `badge bg-danger`, "spnGenMsg");
-            }
-        })
-        .catch(error => {
-            console.log('error: ', error);
-            fnGenMessage("Error to Fetch Trade Msg.", `badge bg-danger`, "spnGenMsg");
-        });        
     }
 }
 
@@ -2994,6 +3684,11 @@ async function fnCheckOptionLeg(){
 
 function fnExecOptionLeg(pApiKey, pSecret, pOrderType, pUndrAsst, pExpiry, pOptionType, pTransType, pLotSize, pLotQty, pDeltaPos, pDeltaRePos, pDeltaTP, pDeltaSL){
     const objPromise = new Promise((resolve, reject) => {
+        if(!fnIsS2OrderPlacementEnabled()){
+            resolve({ "status": "warning", "message": "Order placement disabled", "data": "" });
+            return;
+        }
+
         let vHeaders = new Headers();
         vHeaders.append("Content-Type", "application/json");
 
@@ -3052,6 +3747,10 @@ function fnExecOptionLeg(pApiKey, pSecret, pOrderType, pUndrAsst, pExpiry, pOpti
 }
 
 function fnPreInitTrade(pOptionType, pTransType){
+    if(!fnIsS2OrderPlacementEnabled()){
+        return;
+    }
+
     let vIsRecExists = false;
 
     fnUpdateBuyExpiryMode();
@@ -3325,6 +4024,10 @@ function fnShouldCloseFuturePosition(objTrade, pCurrPrice){
 }
 
 async function fnPreInitAutoTrade(pOptionType, pTransType, pCfgRow){
+    if(!fnIsS2OrderPlacementEnabled()){
+        return false;
+    }
+
     let vIsRecExists = false;
     let objBrokAmt = document.getElementById("txtBrok2Rec");
     let objApiKey = document.getElementById("txtUserAPIKey");
@@ -3340,7 +4043,7 @@ async function fnPreInitAutoTrade(pOptionType, pTransType, pCfgRow){
     let objCtx = fnGetCfgRowContext(vCfgRow);
     if(!objCtx || !objCtx.objExpiry || !objCtx.objQty || !objCtx.objNewDelta || !objCtx.objReDelta || !objCtx.objTP || !objCtx.objSL){
         fnGenMessage("Invalid row configuration controls.", `badge bg-danger`, "spnGenMsg");
-        return;
+        return false;
     }
 
     let vExpiryNewPos = fnSetDDMMYYYY(objCtx.objExpiry.value);
@@ -3418,14 +4121,21 @@ async function fnPreInitAutoTrade(pOptionType, pTransType, pCfgRow){
             gUpdPos = true;
             fnSetSymbolTickerList();
             fnUpdateOpenPositions();
+            return true;
         }
         else{
             fnGenMessage("Option Leg Open Failed: " + objTradeDtls.message, `badge bg-${objTradeDtls.status}`, "spnGenMsg");
+            return false;
         }
     }
+    return false;
 }
 
 async function fnPreInitAutoFutTrade(pOptionType, pTransType){
+    if(!fnIsS2OrderPlacementEnabled()){
+        return;
+    }
+
     if(fnHasOpenFuturePosition()){
         fnGenMessage("Futures position already open. Close it before opening a new one.", `badge bg-warning`, "spnGenMsg");
         return;
@@ -3526,6 +4236,11 @@ async function fnPreInitAutoFutTrade(pOptionType, pTransType){
 
 function fnExecFuturesLeg(pApiKey, pSecret, pOrderType, pUndrAsst, pOptionType, pTransType, pLotSize, pLotQty, pPointsTP, pPointsSL){
     const objPromise = new Promise((resolve, reject) => {
+        if(!fnIsS2OrderPlacementEnabled()){
+            resolve({ "status": "warning", "message": "Order placement disabled", "data": "" });
+            return;
+        }
+
         let vHeaders = new Headers();
         vHeaders.append("Content-Type", "application/json");
 
@@ -3614,6 +4329,10 @@ function fnPreInitTradeClose(pOptionType, pTransType){
 }
 
 async function fnInitTrade(pOptionType, pTransType){
+    if(!fnIsS2OrderPlacementEnabled()){
+        return;
+    }
+
     // let objTrdCountCE = JSON.parse(localStorage.getItem("CETrdCntDSSDV2"));
     // let objTrdCountPE = JSON.parse(localStorage.getItem("PETrdCntDSSDV2"));
 
@@ -3760,6 +4479,10 @@ async function fnInitTrade(pOptionType, pTransType){
 
 function fnExecOption(pApiKey, pApiSecret, pUndAsst, pExpiry, pOptionType, pTransType, pRateNPos, pDeltaNPos, pOrderType, pQty, pClientID){
     const objPromise = new Promise((resolve, reject) => {
+        if(!fnIsS2OrderPlacementEnabled()){
+            resolve({ "status": "warning", "message": "Order placement disabled", "data": "" });
+            return;
+        }
 
         let vHeaders = new Headers();
         vHeaders.append("Content-Type", "application/json");
@@ -4454,6 +5177,14 @@ function fnDelLeg(pLegID){
 function fnClearLocalStorageTemp(){
     fnStopRenkoFeedWS();
     gRenkoPatternSeq = "";
+    gRenkoFeedLastDir = 0;
+    gCurrRenkoGreenClose = NaN;
+    gPrevRenkoGreenClose = NaN;
+    gCurrRenkoRedClose = NaN;
+    gPrevRenkoRedClose = NaN;
+    gLastRenkoColorCode = "";
+    gManualPrevGreenSeedActive = false;
+    gManualPrevRedSeedActive = false;
     localStorage.removeItem("CurrPosDSSDV2");
     localStorage.removeItem("ClsdPosDSSDV2");
     localStorage.removeItem("NetLimitDSSDV2");
@@ -4467,6 +5198,24 @@ function fnClearLocalStorageTemp(){
     localStorage.removeItem("S2FO_MultiplierX");
     localStorage.removeItem("S2FO_CycleStartLossAmt");
     localStorage.removeItem("S2FO_CycleStartQty");
+    localStorage.removeItem("S2FO_RenkoHHLL");
+    localStorage.removeItem("S2FO_RenkoPatterns");
+    localStorage.removeItem("S2FO_RenkoBuyPatterns");
+    localStorage.removeItem("S2FO_RenkoSellPatterns");
+    localStorage.removeItem("S2FO_RenkoFeedStepPts");
+    localStorage.removeItem("S2FO_RenkoFeedPriceSrc");
+    localStorage.removeItem("S2FO_RenkoFeedEnabled");
+    localStorage.removeItem("S2FO_RenkoSpreadPreset");
+    localStorage.removeItem("S2FO_StrategyPresetName");
+    try{
+        const objKeys = Object.keys(localStorage);
+        for(let i = 0; i < objKeys.length; i += 1){
+            if(String(objKeys[i]).startsWith("S2FO_RenkoPrev_")){
+                localStorage.removeItem(objKeys[i]);
+            }
+        }
+    }
+    catch(_err){}
 
     // Reset totals shown in Manual Trader summary.
     let objBrokAmt = document.getElementById("txtBrok2Rec");

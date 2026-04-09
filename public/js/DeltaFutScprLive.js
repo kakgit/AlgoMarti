@@ -867,7 +867,7 @@ async function fnFinalizeClosedByExchange(pFillPrice, pCloseCommission = 0, pRea
 
     localStorage.removeItem("DFSL_CurrFutPos");
     gCurrPos = null;
-    fnSetNextOptTradeSettings(true, vTradePL);
+    fnSetNextOptTradeSettings(true);
     fnUpdateMartiDebugStatus();
     document.getElementById("spnLossTrd").className = "badge rounded-pill text-bg-danger";
     clearInterval(gTimerID);
@@ -3021,68 +3021,75 @@ function fnToggleRenkoStrategy(){
 }
 
 function fnLoadMarti(){
+    let objModeDDL = document.getElementById("ddlTradeMode");
     let objSwtStep = document.getElementById("swtMartingale");
     let objSwtMarti = document.getElementById("swtMarti");
-    if(!objSwtStep){
+    if(!objModeDDL && !objSwtStep){
         return;
     }
 
     let vMode = (localStorage.getItem("DFSL_TradeMode") || "").toUpperCase();
-    if(vMode === ""){
+    if(vMode !== "STEP" && vMode !== "MARTI" && vMode !== "FLAT"){
         let vLegacyMarti = JSON.parse(localStorage.getItem("DFSL_Marti"));
         vMode = vLegacyMarti ? "MARTI" : "STEP";
+    }
+    if(vMode !== "STEP" && vMode !== "MARTI" && vMode !== "FLAT"){
+        vMode = "STEP";
+    }
+
+    if(objModeDDL){
+        objModeDDL.value = vMode.toLowerCase();
     }
 
     if(objSwtMarti){
         objSwtStep.checked = (vMode === "STEP");
         objSwtMarti.checked = (vMode === "MARTI");
-        if(objSwtStep.checked === objSwtMarti.checked){
-            objSwtStep.checked = true;
-            objSwtMarti.checked = false;
-            vMode = "STEP";
-        }
-        localStorage.setItem("DFSL_TradeMode", vMode);
-        localStorage.setItem("DFSL_Marti", JSON.stringify(objSwtMarti.checked));
     }
-    else{
+    else if(objSwtStep){
         objSwtStep.checked = (vMode === "MARTI");
-        localStorage.setItem("DFSL_Marti", JSON.stringify(objSwtStep.checked));
     }
+
+    localStorage.setItem("DFSL_TradeMode", vMode);
+    localStorage.setItem("DFSL_Marti", JSON.stringify(vMode === "MARTI"));
     fnUpdateMartiDebugStatus();
 }
 
 function fnChangeTradeMode(pMode){
+    let objModeDDL = document.getElementById("ddlTradeMode");
     let objSwtStep = document.getElementById("swtMartingale");
     let objSwtMarti = document.getElementById("swtMarti");
-    if(!objSwtStep){
+    if(!objModeDDL && !objSwtStep){
         return;
     }
 
-    if(!objSwtMarti){
-        localStorage.setItem("DFSL_Marti", JSON.stringify(objSwtStep.checked));
-        return;
-    }
-
-    if(pMode === "step"){
-        if(objSwtStep.checked){
-            objSwtMarti.checked = false;
-        }
-        else if(!objSwtMarti.checked){
-            objSwtStep.checked = true;
+    let vMode = String(pMode || "").toUpperCase();
+    if(vMode !== "STEP" && vMode !== "MARTI" && vMode !== "FLAT"){
+        if(objModeDDL){
+            vMode = String(objModeDDL.value || "").toUpperCase();
         }
     }
-    else if(pMode === "marti"){
-        if(objSwtMarti.checked){
-            objSwtStep.checked = false;
+    if(vMode !== "STEP" && vMode !== "MARTI" && vMode !== "FLAT"){
+        if(objSwtMarti){
+            vMode = objSwtMarti.checked ? "MARTI" : "STEP";
         }
-        else if(!objSwtStep.checked){
-            objSwtMarti.checked = true;
+        else{
+            vMode = "STEP";
         }
     }
 
-    let vMode = objSwtMarti.checked ? "MARTI" : "STEP";
+    if(objModeDDL){
+        objModeDDL.value = vMode.toLowerCase();
+    }
+    if(objSwtStep && objSwtMarti){
+        objSwtStep.checked = (vMode === "STEP");
+        objSwtMarti.checked = (vMode === "MARTI");
+    }
+    else if(objSwtStep){
+        objSwtStep.checked = (vMode === "MARTI");
+    }
+
     localStorage.setItem("DFSL_TradeMode", vMode);
-    localStorage.setItem("DFSL_Marti", JSON.stringify(objSwtMarti.checked));
+    localStorage.setItem("DFSL_Marti", JSON.stringify(vMode === "MARTI"));
     fnUpdateMartiDebugStatus();
 }
 
@@ -3448,9 +3455,6 @@ function fnCheckBuySLTP(pCurrPrice){
     let vTotLossAmt = JSON.parse(localStorage.getItem("DFSL_TotLossAmt"));
     let vNewProfit = Math.abs(parseFloat(localStorage.getItem("DFSL_TotLossAmt")) * parseFloat(gMultiplierX));
 	let objCounterSwt = document.getElementById("swtTradeCounter");
-	let objBrkRec = document.getElementById("tdHeadBrkRec");
-    const vMode = String(localStorage.getItem("DFSL_TradeMode") || "").toUpperCase();
-    const bIsMarti = (vMode === "MARTI");
     const objOpenTrade = gCurrPos?.TradeData?.[0] || {};
     const vEntryRule = String(objOpenTrade.EntryRule || "").toUpperCase();
     const vEntryPrice = Number(objOpenTrade.BuyPrice || gBuyPrice);
@@ -3462,12 +3466,8 @@ function fnCheckBuySLTP(pCurrPrice){
     	vNewProfit = 0;
     }
 
-	// let vBrokTotLossRec = Math.abs(parseFloat(vTotLossAmt) - parseFloat(gCharges));
-	// objBrkRec.innerText = (vBrokTotLossRec).toFixed(2);
-
     // console.log("vTotLossAmt: " + vTotLossAmt);
     // console.log("gCharges: " + gCharges);
-	// console.log("vBrokTotLossRec: " + vBrokTotLossRec);
     // console.log("gPL: " + gPL);
     fnApplyTrailingSL(pCurrPrice);
 
@@ -3497,9 +3497,6 @@ function fnCheckBuySLTP(pCurrPrice){
             fnRequestClose("Buy marti recovery partial close", "partial");
         }
 	}
-	// else if(parseFloat(gPL) >= vBrokTotLossRec){
-	// 	fnCloseManualFutures(gByorSl);
-	// }
 	else if(gTimeDiff < gMaxTradeTime){
 		// console.log("Timer Ending...");
 		if(objCounterSwt.checked){
@@ -3527,9 +3524,6 @@ function fnCheckSellSLTP(pCurrPrice){
     let vTotLossAmt = JSON.parse(localStorage.getItem("DFSL_TotLossAmt"));
     let vNewProfit = Math.abs(parseFloat(localStorage.getItem("DFSL_TotLossAmt")) * parseFloat(gMultiplierX));
 	let objCounterSwt = document.getElementById("swtTradeCounter");
-	let objBrkRec = document.getElementById("tdHeadBrkRec");
-    const vMode = String(localStorage.getItem("DFSL_TradeMode") || "").toUpperCase();
-    const bIsMarti = (vMode === "MARTI");
     const objOpenTrade = gCurrPos?.TradeData?.[0] || {};
     const vEntryRule = String(objOpenTrade.EntryRule || "").toUpperCase();
     const vEntryPrice = Number(objOpenTrade.SellPrice || gSellPrice);
@@ -3551,12 +3545,8 @@ function fnCheckSellSLTP(pCurrPrice){
     	vNewProfit = 0;
     }
 
-	// let vBrokTotLossRec = Math.abs(parseFloat(vTotLossAmt) - parseFloat(gCharges));
-	// objBrkRec.innerText =  (vBrokTotLossRec).toFixed(2);
-
     // console.log("vTotLossAmt: " + vTotLossAmt);
 	// console.log("gCharges: " + gCharges);
-	// console.log("vBrokTotLossRec: " + vBrokTotLossRec);
     // console.log("gPL: " + gPL);
     fnApplyTrailingSL(pCurrPrice);
 
@@ -3587,9 +3577,6 @@ function fnCheckSellSLTP(pCurrPrice){
             fnRequestClose("Sell marti recovery partial close", "partial");
         }
 	}
-	// else if(parseFloat(gPL) >= vBrokTotLossRec){
-	// 	fnCloseManualFutures(gByorSl);
-	// }
 	else if(gTimeDiff < gMaxTradeTime){
 		// console.log("Timer Ending...");
 		if(objCounterSwt.checked){
@@ -4559,7 +4546,7 @@ async function fnInnitiateClsFutTrade(pQty){
         localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(gCurrPos));
     }
 
-    fnSetNextOptTradeSettings(bIsFullClose, vTradePL);
+    fnSetNextOptTradeSettings(bIsFullClose);
     fnSendCloseTradeTelegramAlert(objCloseAlert);
     document.getElementById("spnLossTrd").className = "badge rounded-pill text-bg-danger";
     localStorage.setItem("DFSL_LastCloseTxnKey", vTxnKey);
@@ -4568,7 +4555,12 @@ async function fnInnitiateClsFutTrade(pQty){
 }
 
 //************* Yet To Recover Adjustment **************//
-function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = 0){
+// Next qty is derived from cycle deficit, not just last-trade P/L:
+// - full recovery -> reset to StartQty
+// - partial recovery -> scale by (endDeficit/startDeficit)
+// - worsened deficit -> Marti doubles, Step adds StartQty
+// Final guard: next qty never goes below StartQty.
+function fnSetNextOptTradeSettings(pIsFullClose = true){
     if(!pIsFullClose){
         return;
     }
@@ -4579,7 +4571,7 @@ function fnSetNextOptTradeSettings(pIsFullClose = true, pTradePL = 0){
     let vStartLots = Number(JSON.parse(localStorage.getItem("DFSL_StartQtyNo")));
     const vMode = String(localStorage.getItem("DFSL_TradeMode") || "").toUpperCase();
     const bIsMarti = (vMode === "MARTI");
-    const bIsStep = !bIsMarti;
+    const bIsStep = (vMode === "STEP");
     let vCycleStartLoss = Number(localStorage.getItem("DFSL_CycleStartLossAmt"));
     let vCycleStartQty = Number(localStorage.getItem("DFSL_CycleStartQty"));
 
@@ -4700,8 +4692,11 @@ function fnUpdateMartiDebugStatus(){
     if(vMode === "MARTI"){
         vNextQty = vLossBucket < 0 ? Math.max(vStartQty, Math.floor(vCurrQty * 2)) : vStartQty;
     }
-    else{
+    else if(vMode === "STEP"){
         vNextQty = vLossBucket < 0 ? Math.max(vStartQty, Math.floor(vCurrQty + vStartQty)) : vStartQty;
+    }
+    else{
+        vNextQty = vLossBucket < 0 ? Math.max(vStartQty, Math.floor(vCurrQty)) : vStartQty;
     }
     const vLossToRec = fnGetLossToRecoverAmt();
     const vLossToRecColor = (vLossToRec > 0) ? "#b02a37" : "inherit";
