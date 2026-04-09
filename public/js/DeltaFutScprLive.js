@@ -3376,6 +3376,21 @@ function fnExecInternalStrategy(){
     }
 }
 
+function fnUpdateCurrentSLDisplay(){
+    const objCurrSL = document.getElementById("spnCurrentSL");
+    if(!objCurrSL){
+        return;
+    }
+    const vTradeSL = Number(gCurrPos?.TradeData?.[0]?.AmtSL);
+    const vSL = Number.isFinite(vTradeSL) ? vTradeSL : Number(gAmtSL);
+    if(Number.isFinite(vSL) && vSL !== 0){
+        objCurrSL.innerText = vSL.toFixed(2);
+    }
+    else{
+        objCurrSL.innerText = "-";
+    }
+}
+
 function fnUpdateOpnPosStatus(){
     let objCharges = document.getElementById("tdCharges");
     let objProfitLoss = document.getElementById("tdProfitLoss");
@@ -3426,6 +3441,7 @@ function fnUpdateOpnPosStatus(){
 	else{
 		fnGenMessage("No Open Position!", `badge bg-warning`, "spnGenMsg");
 	}
+    fnUpdateCurrentSLDisplay();
     fnUpdateMartiDebugStatus();
 }
 
@@ -3707,6 +3723,7 @@ function fnApplyTrailingSL(pCurrPrice){
         objTrade.AmtSL = gAmtSL;
         objTrade.TrailNextTrigger = Number(vNextTrigger.toFixed(2));
         localStorage.setItem("DFSL_CurrFutPos", JSON.stringify(gCurrPos));
+        fnUpdateCurrentSLDisplay();
     }
 }
 
@@ -4118,6 +4135,7 @@ function fnSetInitFutTrdDtls(){
 
 		gByorSl = "";
 	}
+    fnUpdateCurrentSLDisplay();
 
     fnLoadNetLimits();
 }
