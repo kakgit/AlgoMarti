@@ -118,6 +118,78 @@ Continue enhancing `cryptoFundingV2` as a funding-arbitrage workflow between Del
   - Equal target capital per leg near `100 USD` each (exchange-specific constraints applied).
 - Rollback switch exists in JS:
   - `CFV2_USE_EQUAL_USD_SIZING = true`
+
+---
+
+# StrategyFOGreeks - Live Coding Backlog
+
+Date: 2026-04-12
+
+## Current status
+- Paper-trade mode remains the current focus.
+- `StrategyFOGreeks` delta-hedge sizing and futures brokerage issues were fixed in the current session.
+- Browser-console and terminal debug noise for the `StrategyFOGreeks` flow was reduced.
+
+## Key StrategyFOGreeks files
+- `views/StrategyFOGreeks.ejs`
+- `public/js/StrategyFOGreeks.js`
+- `server/controller/cntrStrategyFOGreeks.js`
+
+## Second-level review summary
+
+### Current behavior
+- The strategy works as a delta-band hedger, not a true continuous net-position rebalancer.
+- Option legs are opened first, then total net delta is checked.
+- If total delta is outside the configured `-Delta / +Delta` threshold band, futures are used to hedge back toward neutral.
+- Open futures are included in later total-delta checks.
+
+### Current limitations / risks
+- Hedge stacking risk:
+  - The code can add new futures hedge legs based on current net delta instead of first computing the exact net futures adjustment needed.
+- Threshold edge behavior:
+  - Exact threshold values do not trigger hedge placement; hedging starts only when delta is strictly outside the band.
+- Coarse hedge rounding:
+  - Hedge size is rounded from absolute net delta, which can slightly under- or over-correct.
+- Delayed first hedge:
+  - After `Exec All Legs`, neutrality check is delayed by about 8 seconds.
+- Global close behavior:
+  - If one open leg hits its SL/TP condition, the current logic closes all open positions, including hedge futures.
+- Re-entry dependency:
+  - Re-entry currently depends on futures still being open, but full-position close can remove that prerequisite.
+
+## Recommended live-code implementation order
+1. Replace hedge stacking with true net futures rebalance logic.
+2. Add hysteresis / two-stage threshold behavior to reduce hedge churn.
+3. Add minimum hedge-size filter so tiny delta drift does not trigger extra brokerage.
+4. Separate leg-level exits from full strategy exits.
+5. Add max hedge exposure guardrails.
+6. Add a small hedge dashboard in UI:
+   - option delta
+   - futures delta
+   - total net delta
+   - current futures qty
+   - target futures qty
+
+## Profitability improvement ideas
+- Use volatility-aware thresholds:
+  - tighter in calm markets, wider in fast markets.
+- Use asymmetric thresholds:
+  - hedge faster on the side with higher gamma risk.
+- Add hedge-difference filter:
+  - place hedge only if required change exceeds a minimum contract count.
+- Add partial hedge unwind rules:
+  - reduce hedge when option delta normalizes instead of waiting for another full band break.
+- Tune thresholds by strategy structure:
+  - short premium, long premium, ratio-type structures should not share one default band.
+- Track hedge efficiency metrics:
+  - delta before hedge
+  - delta after hedge
+  - slippage
+  - brokerage spent
+  - net PnL contribution of hedging
+
+## Suggested first live-coding milestone
+- Implement true net futures rebalance so the system trades only the exact futures difference required, instead of stacking hedge legs.
   - Set `false` to revert to legacy sizing (`10 USD @ 20x` path).
 - CoinDCX constraints used in qty:
   - `quantity_increment`

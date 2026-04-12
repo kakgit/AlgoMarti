@@ -320,7 +320,6 @@ exports.fnGetBestRatesBySymbol = async (req, res) => {
         res.send({ "status": "success", "message": "Best Buy and Sell Rates Feched!", "data": objRes });
     })
       .catch((objError) => {
-        console.log(objError);
         res.send({ "status": "danger", "message": "Error in Best Rates. Contact Administrator!", "data": objError });
     });
     // res.send({ "status": "success", "message": "Current Rate Information Feched!", "data": "" });
@@ -357,7 +356,6 @@ const fnGetSymbolDetails = async (pApiKey, pApiSecret, pUAssetSymbol, pTransType
 
         axios.request(config)
         .then((objResult) => {
-            console.log('API Response:', JSON.stringify(objResult.data, null, 2));
             let objRes = objResult.data;
             
             // Check if the response has the expected structure
@@ -436,7 +434,6 @@ const fnGetUserWallet = async (pApiKey, pApiSecret) => {
                 }
             })
             .catch(function(objError) {
-                console.log(objError);
                 resolve({ "status": "danger", "message": "Error At User Login! Catch.", "data": objError });
             });
         });
@@ -461,7 +458,6 @@ const fnGetOptChnByCntrctTypeExp = async (pApiKey, pApiSecret, pUndrAsstSymb, pE
                 }
             })
             .catch(function(objError) {
-                console.log(objError);
                 resolve({ "status": "danger", "message": "Error in getting Option Chain!", "data": objError });
             });
         });
@@ -504,7 +500,6 @@ const fnGetSrtdOptChnByRate = async (pApiKey, pApiSecret, pTransType, pOptType, 
                 }
             })
             .catch(function(objError) {
-                console.log(objError);
                 resolve({ "status": "danger", "message": "Error in getting Option Chain!", "data": objError });
             });
         });
@@ -586,7 +581,6 @@ const fnGetSrtdOptChnByDelta = async (pApiKey, pApiSecret,pTransType, pOptType, 
                 }
             })
             .catch(function(objError) {
-                console.log(objError);
                 resolve({ "status": "danger", "message": "Error in getting Option Chain!", "data": objError });
             });
         });
@@ -652,3 +646,4 @@ const fnGetTelegramConfigFromReq = (req) => {
         chatId: String(req?.body?.TelegramChatId || "").trim()
     };
 }
+

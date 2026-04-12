@@ -1735,7 +1735,6 @@ function fnUpdCurrPosFutParams(pThisVal, pOptionType, pCurrPosParam){
     for(let i=0; i<gCurrPosDSSDV2.TradeData.length; i++){
         if((gCurrPosDSSDV2.TradeData[i].Status === "OPEN") && (pOptionType === "F")){
             gCurrPosDSSDV2.TradeData[i][pCurrPosParam] = parseFloat(pThisVal);
-            console.log("Params Updated");
         }
     }
 
@@ -2121,7 +2120,6 @@ function fnUpdCurrPosOptParams(pThisVal, pIfBorS, pOptionType, pCurrPosParam){
     for(let i=0; i<gCurrPosDSSDV2.TradeData.length; i++){
         if((gCurrPosDSSDV2.TradeData[i].Status === "OPEN") && (gCurrPosDSSDV2.TradeData[i].TransType === pIfBorS) && (pOptionType === "")){
             gCurrPosDSSDV2.TradeData[i][pCurrPosParam] = parseFloat(pThisVal);
-            console.log("Params Updated");
         }
     }
 
@@ -2873,10 +2871,6 @@ function fnTest(){
     let v3PM = vDate3PM.getTime();
     let v5PM = vDate5PM.getTime();
 
-    console.log(gCurrPosDSSDV2);
-    console.log(vDDMMYYYY);
-    console.log(v3PM);
-    console.log(v5PM);
     
 
     // // console.log("Open epoch (ms):", v4PM);
@@ -3387,7 +3381,6 @@ async function fnCheckOptionLeg(){
 
                     localStorage.setItem("HidFldsDSSDV2", JSON.stringify(gOtherFlds));
 
-                    console.log("Trade Executed");
                     gUpdPos = true;
                     fnSetSymbolTickerList();
                     fnUpdateOpenPositions();
@@ -3755,7 +3748,6 @@ async function fnPreInitAutoTrade(pOptionType, pTransType, pCfgRow){
     }
 
     let vIsRecExists = false;
-    let objBrokAmt = document.getElementById("txtBrok2Rec");
     let objApiKey = document.getElementById("txtUserAPIKey");
     let objApiSecret = document.getElementById("txtAPISecret");
     let objOrderType = document.getElementById("ddlOrderType");
@@ -3842,7 +3834,6 @@ async function fnPreInitAutoTrade(pOptionType, pTransType, pCfgRow){
                 localStorage.setItem("S2FO_CycleStartQty", String(Math.max(1, Math.floor(Number(vLotQty) || 1))));
             }
 
-            console.log("Trade Executed");
 
             gUpdPos = true;
             fnSetSymbolTickerList();
@@ -3940,18 +3931,14 @@ async function fnPreInitAutoFutTrade(pOptionType, pTransType){
 
         localStorage.setItem("CurrPosDSSDV2", objExcTradeDtls);
 
-        let vCharges = fnGetTradeCharges(vStrPrice, vLotSize, vLotQty, vBestBuy, vBestSell, vOptType);
-        gOtherFlds[0]["BrokerageAmt"] = parseFloat(objBrokAmt.value) + vCharges;
-        objBrokAmt.value = gOtherFlds[0]["BrokerageAmt"];
-
-        localStorage.setItem("HidFldsDSSDV2", JSON.stringify(gOtherFlds));
+            let vCharges = fnGetTradeCharges(vStrPrice, vLotSize, vLotQty, vBestBuy, vBestSell, vOptType);
+            fnAddBrokerageToRecovery(vCharges);
 
         if(bCycleStart){
             localStorage.setItem("S2FO_CycleStartLossAmt", String(Number(gOtherFlds?.[0]?.Yet2RecvrAmt || 0)));
             localStorage.setItem("S2FO_CycleStartQty", String(Math.max(1, Math.floor(Number(vLotQty) || 1))));
         }
 
-        console.log("Trade Executed");
         gUpdPos = true;
         fnSetSymbolTickerList();
         fnUpdateOpenPositions();
@@ -4600,6 +4587,33 @@ function fnGetTradeCharges(pIndexPrice, pLotSize, pQty, pBuyPrice, pSellPrice, p
     return vEffectiveBrokerage;
 }
 
+function fnAddBrokerageToRecovery(pCharges){
+    if(!Number.isFinite(Number(pCharges))){
+        return 0;
+    }
+
+    let vCharges = Number(pCharges);
+    let objBrokAmt = document.getElementById("txtBrok2Rec");
+    let vCurrBrok = parseFloat(objBrokAmt?.value);
+    if(!Number.isFinite(vCurrBrok)){
+        vCurrBrok = parseFloat(gOtherFlds?.[0]?.BrokerageAmt);
+    }
+    if(!Number.isFinite(vCurrBrok)){
+        vCurrBrok = 0;
+    }
+
+    let vUpdatedBrok = vCurrBrok + vCharges;
+    if(Array.isArray(gOtherFlds) && gOtherFlds[0]){
+        gOtherFlds[0]["BrokerageAmt"] = vUpdatedBrok;
+        localStorage.setItem("HidFldsDSSDV2", JSON.stringify(gOtherFlds));
+    }
+    if(objBrokAmt){
+        objBrokAmt.value = vUpdatedBrok;
+    }
+
+    return vUpdatedBrok;
+}
+
 function fnGetTradePL(pBuyPrice, pSellPrice, pLotSize, pQty, pCharges){
     let vPL = ((pSellPrice - pBuyPrice) * pLotSize * pQty) - pCharges;
 
@@ -4734,7 +4748,6 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
             // localStorage.setItem("HidFldsDSSDV2", JSON.stringify(gOtherFlds));
         }
 
-        console.log("Position Closed!");
 
         gUpdPos = true;
         fnSetSymbolTickerList();
@@ -5001,7 +5014,6 @@ function fnClearLocalStorageTemp(){
     gPL = 0;
 
     // fnGetAllStatus();
-    console.log("Memory Cleared!!!");
 }
 
 
@@ -5018,7 +5030,6 @@ function fnConnectDFL(){
     }
     obj_WS_DFL.onerror = function (){
         setTimeout(fnSubscribeDFL, 3000);
-        console.log("WS Error, Trying to Reconnect.....");
     }
     obj_WS_DFL.onclose = function (){
         if(gForceCloseDFL){
@@ -5145,14 +5156,12 @@ function fnForceDisconnectDFL(){
 }
 
 function fnCheckStatusOSD(){
-    console.log(obj_WS_DFL);    
 }
 
 function fnAdd2SubList(){
     let objSymbol = document.getElementById("txtRateTest");
 
     gSubList.push(objSymbol.value);
-    console.log(gSubList);
     fnUnSubscribeDFL();
     fnSubscribeDFL();
 }
@@ -5393,41 +5402,56 @@ function fnDisplayDeltaDirec(){
 
 //******** Delta Hedging Functions ********//
 
+function fnGetLegPerContractDelta(objLeg){
+    if(!objLeg){
+        return 0;
+    }
+
+    let vDeltaPerContract = parseFloat(objLeg.DeltaC);
+    if(!Number.isFinite(vDeltaPerContract)){
+        vDeltaPerContract = parseFloat(objLeg.Delta || 0);
+    }
+    if(!Number.isFinite(vDeltaPerContract)){
+        return 0;
+    }
+
+    if(objLeg.OptionType === "F"){
+        let vQty = parseFloat(objLeg.LotQty || 1);
+        if(Number.isFinite(vQty) && vQty > 0 && Math.abs(vDeltaPerContract) > 1){
+            // Older auto-hedge rows stored total futures delta in DeltaC; normalize to per-contract delta.
+            vDeltaPerContract = vDeltaPerContract / vQty;
+        }
+        if(vDeltaPerContract > 0){
+            return 1;
+        }
+        if(vDeltaPerContract < 0){
+            return -1;
+        }
+        return 0;
+    }
+
+    return vDeltaPerContract;
+}
+
 // Calculate total delta from all open positions
 function calculateTotalDelta(){
     let vTotalDelta = 0.0;
-    
     if(!gCurrPosDSSDV2 || !Array.isArray(gCurrPosDSSDV2.TradeData)){
         return vTotalDelta;
     }
-    
     for(let i = 0; i < gCurrPosDSSDV2.TradeData.length; i++){
         let objLeg = gCurrPosDSSDV2.TradeData[i];
-        if(objLeg.Status === "OPEN"){
-            let vDeltaC = parseFloat(objLeg.DeltaC || 0);
-            if(Number.isFinite(vDeltaC) && vDeltaC !== 0){
-                let vQty = parseFloat(objLeg.LotQty || 1);
-                let vLotSize = parseFloat(objLeg.LotSize || 1);
-                
-                // Calculate delta contribution based on instrument type
-                let vDeltaContribution;
-                if(objLeg.OptionType === "F"){
-                    // Futures: each contract has delta ±1.0 BTC, LotQty is number of contracts
-                    vDeltaContribution = vDeltaC * vQty;
-                    console.log(`[Delta Calc] ${objLeg.TransType} ${objLeg.OptionType}: DeltaC=${vDeltaC}, qty=${vQty}, contribution=${vDeltaContribution} (futures)`);
-                }
-                else{
-                    // Options: DeltaC is already in BTC delta terms per lot
-                    vDeltaContribution = vDeltaC * vQty;
-                    console.log(`[Delta Calc] ${objLeg.TransType} ${objLeg.OptionType}: DeltaC=${vDeltaC}, qty=${vQty}, contribution=${vDeltaContribution} (options)`);
-                }
-                
-                vTotalDelta += vDeltaContribution;
-            }
+        if(objLeg.Status !== "OPEN"){
+            continue;
         }
+        let vDeltaC = fnGetLegPerContractDelta(objLeg);
+        if(!Number.isFinite(vDeltaC) || vDeltaC === 0){
+            continue;
+        }
+        let vQty = parseFloat(objLeg.LotQty || 1);
+        let vDeltaContribution = vDeltaC * vQty;
+        vTotalDelta += vDeltaContribution;
     }
-    
-    console.log("[Delta Calc] Total Delta:", vTotalDelta);
     return vTotalDelta;
 }
 
@@ -5436,7 +5460,6 @@ async function executeDeltaHedge(pTotalDelta){
     // Check cooldown to prevent too frequent hedging
     let vNow = Date.now();
     if(vNow - gLastHedgeTime < gHedgeCooldownMs){
-        console.log("[Delta Hedge] Cooldown active, skipping hedge");
         return;
     }
     
@@ -5450,7 +5473,6 @@ async function executeDeltaHedge(pTotalDelta){
     let objSymbol = document.getElementById("ddlSymbols");
     let objLotSize = document.getElementById("txtLotSize");
     let objOrderType = document.getElementById("ddlOrderType");
-    
     if(!objApiKey || !objApiSecret || !objSymbol || !objLotSize || !objOrderType){
         fnGenMessage("Missing required fields for delta hedging!", `badge bg-warning`, "spnGenMsg");
         return;
@@ -5467,14 +5489,12 @@ async function executeDeltaHedge(pTotalDelta){
         vHedgeTransType = "sell";
         // Round to nearest whole contract (futures can't be fractional)
         vHedgeQty = Math.round(Math.abs(pTotalDelta));
-        console.warn(`%c[DELTA HEDGE] BULLISH POSITION (${pTotalDelta.toFixed(3)} delta) → SELLING ${vHedgeQty} contracts`, "background: #ff6b6b; color: white; padding: 5px; font-weight: bold;");
     }
     else if(pTotalDelta < 0){
         // Negative options delta - LONG futures to hedge (BUY order)
         vHedgeTransType = "buy";
         // Round to nearest whole contract (futures can't be fractional)
         vHedgeQty = Math.round(Math.abs(pTotalDelta));
-        console.warn(`%c[DELTA HEDGE] BEARISH POSITION (${pTotalDelta.toFixed(3)} delta) → BUYING ${vHedgeQty} contracts`, "background: #51cf66; color: white; padding: 5px; font-weight: bold;");
     }
     else{
         vHedgeTransType = "buy";
@@ -5483,14 +5503,12 @@ async function executeDeltaHedge(pTotalDelta){
     
     // Only hedge if quantity is at least 1 contract
     if(vHedgeQty < 1){
-        console.log("[Delta Hedge] Hedge quantity too small after rounding, skipping");
         return;
     }
     
     fnGenMessage(`Executing delta hedge: ${vHedgeTransType.toUpperCase()} ${vHedgeQty} contracts of BTCUSD to offset ${pTotalDelta > 0 ? '+' : ''}${pTotalDelta.toFixed(3)} delta`, `badge bg-info`, "spnGenMsg");
     
     try{
-        console.log("[StrategyFOGreeks] executeDeltaHedge: placing futures hedge", { totalDelta: pTotalDelta, hedgeSide: vHedgeTransType, hedgeQty: vHedgeQty });
         let objTradeResult = await fnExecFuturesLeg(
             objApiKey.value, 
             objApiSecret.value, 
@@ -5498,7 +5516,7 @@ async function executeDeltaHedge(pTotalDelta){
             objSymbol.value, 
             "F", 
             vHedgeTransType, 
-            1, // LotSize = 1 for futures (each contract = 1 BTC)
+            parseFloat(objLotSize.value) || 1,
             vHedgeQty, 
             0, // No TP for hedging
             0  // No SL for hedging
@@ -5535,8 +5553,8 @@ async function executeDeltaHedge(pTotalDelta){
                 LotQty : vLotQty, 
                 BuyPrice : vBestBuy, 
                 SellPrice : vBestSell, 
-                Delta : 0, 
-                DeltaC : (vBuyOrSell === "buy" ? 1 : -1) * vLotQty * vLotSize, // Futures have delta of 1 per contract
+                Delta : parseFloat(objTradeResult.data.Delta || (vBuyOrSell === "buy" ? 1 : -1)), 
+                DeltaC : fnGetLegPerContractDelta(objTradeResult.data), 
                 Gamma : 0, 
                 GammaC : 0, 
                 Theta : 0, 
@@ -5554,6 +5572,9 @@ async function executeDeltaHedge(pTotalDelta){
             gCurrPosDSSDV2.TradeData.push(vExcTradeDtls);
             let objExcTradeDtlsStr = JSON.stringify(gCurrPosDSSDV2);
             localStorage.setItem("CurrPosDSSDV2", objExcTradeDtlsStr);
+
+            let vCharges = fnGetTradeCharges(0, vLotSize, vLotQty, vBestBuy, vBestSell, "F");
+            fnAddBrokerageToRecovery(vCharges);
             
             gUpdPos = true;
             fnSetSymbolTickerList();
@@ -5586,19 +5607,12 @@ async function checkDeltaNeutrality(){
     }
     
     let vTotalDelta = calculateTotalDelta();
-    console.warn(`%c[DELTA CHECK] Total: ${vTotalDelta.toFixed(3)} | Range: [${gNegDeltaThreshold.toFixed(3)}, ${gPosDeltaThreshold.toFixed(3)}]`, "background: #4c6ef5; color: white; padding: 5px;");
     
     // Check if hedging is needed
     if(vTotalDelta < gNegDeltaThreshold || vTotalDelta > gPosDeltaThreshold){
-        console.warn(`%c[DELTA CHECK] ⚠️ OUTSIDE RANGE - Triggering hedge!`, "background: #ff9800; color: white; padding: 5px; font-weight: bold;");
         await executeDeltaHedge(vTotalDelta);
     }
-    else{
-        console.log("[DELTA CHECK] ✓ Within threshold - no hedge needed");
-    }
 }
-
-
 
 
 

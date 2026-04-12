@@ -1,5 +1,6 @@
 {
     "editor.fontSize": 12,
     "continue.enableConsole": true,
-    "continue.enableQuickActions": true
+    "continue.enableQuickActions": true,
+    "chatgpt.openOnStartup": true
 }
