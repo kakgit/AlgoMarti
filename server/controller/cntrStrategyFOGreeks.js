@@ -14,7 +14,7 @@ const gTelegramChatId = process.env.TELEGRAM_CHAT_ID || "";
 
 exports.defaultRoute = (req, res) => {
     //res.send("Crud Application");
-    res.render("Strategy2FO.ejs");
+    res.render("StrategyFOGreeks.ejs");
 }
 
 exports.fnValidateUserLogin = async (req, res) => {
@@ -357,12 +357,37 @@ const fnGetSymbolDetails = async (pApiKey, pApiSecret, pUAssetSymbol, pTransType
 
         axios.request(config)
         .then((objResult) => {
+            console.log('API Response:', JSON.stringify(objResult.data, null, 2));
             let objRes = objResult.data;
+            
+            // Check if the response has the expected structure
+            if (!objRes || !objRes.result) {
+                console.error('Invalid API response structure:', objRes);
+                let errorMsg = "Invalid API response structure. Check symbol and API credentials.";
+                if (objRes && objRes.error) {
+                    errorMsg = "API Error: " + (objRes.error.message || JSON.stringify(objRes.error));
+                }
+                resolve({ "status": "danger", "message": errorMsg, "data": objRes });
+                return;
+            }
+            
+            if (!objRes.result.quotes) {
+                console.error('Missing quotes in API response:', objRes.result);
+                resolve({ "status": "danger", "message": "Missing quotes data in API response.", "data": objRes });
+                return;
+            }
+            
             let vDate = new Date();
             const vRandNumb = getRandomIntInclusive(1, 1000);
             let vTradeId = vDate.valueOf() + vRandNumb;
             let vBestBuyPrice = parseFloat(objRes.result.quotes.best_ask);
             let vBestSellPrice = parseFloat(objRes.result.quotes.best_bid);
+            
+            if (isNaN(vBestBuyPrice) || isNaN(vBestSellPrice)) {
+                console.error('Invalid price data:', objRes.result.quotes);
+                resolve({ "status": "danger", "message": "Invalid price data received from API.", "data": objRes });
+                return;
+            }
             let vRateTP, vRateSL = 0;
             // For futures hedging: 1 contract = 1.0 delta (or -1.0 for short)
             // LotQty represents the number of contracts, so delta = ±1.0 per contract
@@ -384,8 +409,8 @@ const fnGetSymbolDetails = async (pApiKey, pApiSecret, pUAssetSymbol, pTransType
             resolve({ "status": "success", "message": "Best Buy and Sell Rates Feched!", "data": objFutLeg });
         })
         .catch((objError) => {
-            console.log(objError);
-            resolve({ "status": "danger", "message": "Error in Best Rates. Contact Administrator!", "data": objError });
+            console.error('API Request Error:', objError.response ? objError.response.data : objError.message);
+            resolve({ "status": "danger", "message": "Error fetching best rates from API. Check network connection and API credentials.", "data": objError.response ? objError.response.data : objError.message });
         });
 
         // resolve({ "status": "success", "message": "Futures Data Fetched!", "data": "" });

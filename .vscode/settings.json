@@ -1,3 +1,5 @@
 {
-    "editor.fontSize": 12
+    "editor.fontSize": 12,
+    "continue.enableConsole": true,
+    "continue.enableQuickActions": true
 }

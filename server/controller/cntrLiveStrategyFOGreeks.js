@@ -18,11 +18,10 @@ const gFutModifyRetryMs = 8000;
 const gFutLoopAbortMap = {};
 const gTelegramBotToken = process.env.TELEGRAM_BOT_TOKEN || "";
 const gTelegramChatId = process.env.TELEGRAM_CHAT_ID || "";
-let gPaperOrderSeq = 1;
 
 exports.defaultRoute = (req, res) => {
     //res.send("Crud Application");
-    res.render("Strategy3FO.ejs");
+    res.render("LiveStrategyFOGreeks.ejs");
 }
 
 exports.fnValidateUserLogin = async (req, res) => {
@@ -149,13 +148,24 @@ exports.fnExecOptByOTypExpTType = async (req, res) => {
         let objOptChn = await fnGetSrtdOptChnByDelta(vApiKey, vApiSecret, vTransType, vOptionType, vUAssetSymbol, vLotSize, vExpiry, vLotQty, vContractType, vDeltaPos, vDeltaRePos, vDeltaTP, vDeltaSL);
         if(objOptChn.status === "success"){
             let vLimitPrice = (vTransType === "buy") ? Number(objOptChn.data.BestAsk) : Number(objOptChn.data.BestBid);
+            // Options are always executed as market orders for consistency.
             vOrderType = "market_order";
-            let objOrd = fnBuildPaperOrder({
+            let objOrdRes = await fnPlaceLiveOrder(vApiKey, vApiSecret, {
                 symbol: objOptChn.data.Symbol,
-                side: vTransType,
                 size: Number(vLotQty),
-                execPrice: vLimitPrice
+                side: vTransType,
+                orderType: vOrderType,
+                limitPrice: vLimitPrice,
+                reduceOnly: false
             });
+
+            if(objOrdRes.status !== "success"){
+                fnSendTelegramAlert(`LiveStrategy2FO Option Open Failed\nType: ${vOptionType}\nSide: ${vTransType}\nOrder: ${vOrderType}\nReason: ${objOrdRes.message || objOrdRes.status}`, objTgCfg);
+                res.send({ "status": objOrdRes.status, "message": objOrdRes.message, "data": objOrdRes.data });
+                return;
+            }
+
+            let objOrd = objOrdRes.data.result;
             let vExecPx = fnGetExecPrice(objOrd, vLimitPrice);
 
             if(vTransType === "buy"){
@@ -171,17 +181,17 @@ exports.fnExecOptByOTypExpTType = async (req, res) => {
             objOptChn.data.Symbol = objOrd.product_symbol;
             objOptChn.data.TransType = objOrd.side;
             objOptChn.data.Qty = objOrd.size;
-            objOptChn.data.State = "OPEN";
-            fnSendTelegramAlert(`strategy3fo Option Paper Opened\nSymbol: ${objOrd.product_symbol}\nType: ${vOptionType}\nSide: ${objOrd.side}\nQty: ${objOrd.size}\nExec: ${Number(vExecPx || 0).toFixed(2)}\nMode: SIMULATED`, objTgCfg);
-            res.send({ "status": "success", "message": "Paper Order Executed Successfully!", "data": objOptChn.data });
+            objOptChn.data.State = (objOrd.state === "open") ? "PENDING" : "OPEN";
+            fnSendTelegramAlert(`LiveStrategy2FO Option Opened\nSymbol: ${objOrd.product_symbol}\nType: ${vOptionType}\nSide: ${objOrd.side}\nQty: ${objOrd.size}\nExec: ${Number(vExecPx || 0).toFixed(2)}\nOrder: market_order`, objTgCfg);
+            res.send({ "status": "success", "message": "Order Executed Successfully!", "data": objOptChn.data });
         }
         else{
-            fnSendTelegramAlert(`strategy3fo Option Select Failed\nType: ${vOptionType}\nSide: ${vTransType}\nReason: ${objOptChn.message || "No option chain leg"}`, objTgCfg);
+            fnSendTelegramAlert(`LiveStrategy2FO Option Select Failed\nType: ${vOptionType}\nSide: ${vTransType}\nReason: ${objOptChn.message || "No option chain leg"}`, objTgCfg);
             res.send({ "status": "danger", "message": objOptChn.message, "data": "" });
         }
     }
     catch (error) {
-            fnSendTelegramAlert(`strategy3fo Option Error\nType: ${vOptionType}\nSide: ${vTransType}\nReason: ${error.message || error}`, objTgCfg);
+            fnSendTelegramAlert(`LiveStrategy2FO Option Error\nType: ${vOptionType}\nSide: ${vTransType}\nReason: ${error.message || error}`, objTgCfg);
             res.send({ "status": "danger", "message": error.message, "data": "" });
     }
     // res.send({ "status": "success", "message": "Option Chain Data Received Successfully!", "data": "" });
@@ -215,14 +225,41 @@ exports.fnExecFutByTType = async (req, res) => {
     try {
         let objSybDet = await fnGetSymbolDetails(vApiKey, vApiSecret, vUAssetSymbol, vTransType, vOptionType, vLotSize, vLotQty, vPointsTP, vPointsSL);
         if(objSybDet.status === "success"){
+            // Delta futures `size` expects contract quantity, not base-notional.
             let vOrderSize = Number(vLotQty);
             let vLimitPrice = (vTransType === "buy") ? Number(objSybDet.data.BestAsk) : Number(objSybDet.data.BestBid);
-            let objOrd = fnBuildPaperOrder({
-                symbol: objSybDet.data.Symbol,
-                side: vTransType,
-                size: vOrderSize,
-                execPrice: vLimitPrice
-            });
+            let objOrdRes = null;
+            if(vOrderType === "limit_order"){
+                const vLoopKey = fnGetFutLoopKey(vApiKey, objSybDet.data.Symbol, vTransType);
+                gFutLoopAbortMap[vLoopKey] = false;
+                objOrdRes = await fnPlaceFutPostOnlyLimitUntilFilled(vApiKey, vApiSecret, {
+                    symbol: objSybDet.data.Symbol,
+                    side: vTransType,
+                    size: vOrderSize,
+                    initialLimitPrice: vLimitPrice,
+                    loopKey: vLoopKey,
+                    alertCfg: objTgCfg
+                });
+                delete gFutLoopAbortMap[vLoopKey];
+            }
+            else{
+                objOrdRes = await fnPlaceLiveOrder(vApiKey, vApiSecret, {
+                    symbol: objSybDet.data.Symbol,
+                    size: vOrderSize,
+                    side: vTransType,
+                    orderType: vOrderType,
+                    limitPrice: vLimitPrice,
+                    reduceOnly: false
+                });
+            }
+
+            if(objOrdRes.status !== "success"){
+                fnSendTelegramAlert(`LiveStrategy2FO Futures Open Failed\nSymbol: ${objSybDet.data.Symbol}\nSide: ${vTransType}\nOrder: ${vOrderType}\nReason: ${objOrdRes.message || objOrdRes.status}`, objTgCfg);
+                res.send({ "status": objOrdRes.status, "message": objOrdRes.message, "data": objOrdRes.data });
+                return;
+            }
+
+            let objOrd = objOrdRes.data.result;
             let vExecPx = fnGetExecPrice(objOrd, vLimitPrice);
 
             if(vTransType === "buy"){
@@ -238,17 +275,17 @@ exports.fnExecFutByTType = async (req, res) => {
             objSybDet.data.Symbol = objOrd.product_symbol;
             objSybDet.data.TransType = objOrd.side;
             objSybDet.data.Qty = objOrd.size;
-            objSybDet.data.State = "OPEN";
-            fnSendTelegramAlert(`strategy3fo Futures Paper Opened\nSymbol: ${objOrd.product_symbol}\nSide: ${objOrd.side}\nQty: ${objOrd.size}\nExec: ${Number(vExecPx || 0).toFixed(2)}\nMode: SIMULATED`, objTgCfg);
-            res.send({ "status": "success", "message": "Paper Order Executed Successfully!", "data": objSybDet.data });
+            objSybDet.data.State = (objOrd.state === "open") ? "PENDING" : "OPEN";
+            fnSendTelegramAlert(`LiveStrategy2FO Futures Opened\nSymbol: ${objOrd.product_symbol}\nSide: ${objOrd.side}\nQty: ${objOrd.size}\nExec: ${Number(vExecPx || 0).toFixed(2)}\nOrder: ${vOrderType}`, objTgCfg);
+            res.send({ "status": "success", "message": "Order Executed Successfully!", "data": objSybDet.data });
         }
         else{
-            fnSendTelegramAlert(`strategy3fo Futures Select Failed\nSide: ${vTransType}\nReason: ${objSybDet.message || "No ticker data"}`, objTgCfg);
+            fnSendTelegramAlert(`LiveStrategy2FO Futures Select Failed\nSide: ${vTransType}\nReason: ${objSybDet.message || "No ticker data"}`, objTgCfg);
             res.send({ "status": "danger", "message": objSybDet.message, "data": "" });
         }
     }
     catch (error) {
-            fnSendTelegramAlert(`strategy3fo Futures Error\nSide: ${vTransType}\nReason: ${error.message || error}`, objTgCfg);
+            fnSendTelegramAlert(`LiveStrategy2FO Futures Error\nSide: ${vTransType}\nReason: ${error.message || error}`, objTgCfg);
             res.send({ "status": "danger", "message": error.message, "data": "" });
     }
     // res.send({ "status": "success", "message": "Option Chain Data Received Successfully!", "data": "" });
@@ -284,13 +321,24 @@ exports.fnExecOptionByOptTypeExpTransType = async (req, res) => {
         let objOptChn = await fnGetSrtdOptChnByRate(vApiKey, vApiSecret, vTransType, vOptionType, vUAssetSymbol, vExpiry, vContractType, vDeltaNPos, vRateNPos);
         if(objOptChn.status === "success"){
             let vLimitPrice = (vTransType === "buy") ? Number(objOptChn.data.BestAsk) : Number(objOptChn.data.BestBid);
+            // Options are always executed as market orders for consistency.
             vOrderType = "market_order";
-            let objOrd = fnBuildPaperOrder({
+            let objOrdRes = await fnPlaceLiveOrder(vApiKey, vApiSecret, {
                 symbol: objOptChn.data.Symbol,
-                side: vTransType,
                 size: Number(vLotQty),
-                execPrice: vLimitPrice
+                side: vTransType,
+                orderType: vOrderType,
+                limitPrice: vLimitPrice,
+                reduceOnly: false
             });
+
+            if(objOrdRes.status !== "success"){
+                fnSendTelegramAlert(`LiveStrategy2FO Option(Open by Rate) Failed\nType: ${vOptionType}\nSide: ${vTransType}\nReason: ${objOrdRes.message || objOrdRes.status}`, objTgCfg);
+                res.send({ "status": objOrdRes.status, "message": objOrdRes.message, "data": objOrdRes.data });
+                return;
+            }
+
+            let objOrd = objOrdRes.data.result;
             let vExecPx = fnGetExecPrice(objOrd, vLimitPrice);
 
             if(vTransType === "buy"){
@@ -306,17 +354,17 @@ exports.fnExecOptionByOptTypeExpTransType = async (req, res) => {
             objOptChn.data.Symbol = objOrd.product_symbol;
             objOptChn.data.TransType = objOrd.side;
             objOptChn.data.Qty = objOrd.size;
-            objOptChn.data.State = "OPEN";
-            fnSendTelegramAlert(`strategy3fo Option Paper Opened (Rate)\nSymbol: ${objOrd.product_symbol}\nType: ${vOptionType}\nSide: ${objOrd.side}\nQty: ${objOrd.size}\nExec: ${Number(vExecPx || 0).toFixed(2)}\nMode: SIMULATED`, objTgCfg);
-            res.send({ "status": "success", "message": "Paper Order Executed Successfully!", "data": objOptChn.data });
+            objOptChn.data.State = (objOrd.state === "open") ? "PENDING" : "OPEN";
+            fnSendTelegramAlert(`LiveStrategy2FO Option Opened (Rate)\nSymbol: ${objOrd.product_symbol}\nType: ${vOptionType}\nSide: ${objOrd.side}\nQty: ${objOrd.size}\nExec: ${Number(vExecPx || 0).toFixed(2)}\nOrder: market_order`, objTgCfg);
+            res.send({ "status": "success", "message": "Order Executed Successfully!", "data": objOptChn.data });
         }
         else{
-            fnSendTelegramAlert(`strategy3fo Option Select Failed (Rate)\nType: ${vOptionType}\nSide: ${vTransType}\nReason: ${objOptChn.message || "No option chain leg"}`, objTgCfg);
+            fnSendTelegramAlert(`LiveStrategy2FO Option Select Failed (Rate)\nType: ${vOptionType}\nSide: ${vTransType}\nReason: ${objOptChn.message || "No option chain leg"}`, objTgCfg);
             res.send({ "status": "danger", "message": objOptChn.message, "data": "" });
         }
     }
     catch (error) {
-            fnSendTelegramAlert(`strategy3fo Option Error (Rate)\nType: ${vOptionType}\nSide: ${vTransType}\nReason: ${error.message || error}`, objTgCfg);
+            fnSendTelegramAlert(`LiveStrategy2FO Option Error (Rate)\nType: ${vOptionType}\nSide: ${vTransType}\nReason: ${error.message || error}`, objTgCfg);
             res.send({ "status": "danger", "message": error.message, "data": "" });
     }
     // res.send({ "status": "success", "message": "Option Chain Data Received Successfully!", "data": "" });
@@ -371,11 +419,15 @@ exports.fnSendTelegramAlertMsg = async (req, res) => {
 }
 
 exports.fnCloseLeg = async (req, res) => {
+    let vApiKey = req.body.ApiKey;
+    let vApiSecret = req.body.ApiSecret;
     let vSymbol = req.body.Symbol;
     let vOpenTransType = req.body.TransType;
     let vOptionType = req.body.OptionType;
     let vLotSize = Number(req.body.LotSize);
     let vLotQty = Number(req.body.LotQty);
+    let vReqOrderType = (req.body.OrderType || "market_order").toString();
+
     let vCloseSide = (vOpenTransType === "sell") ? "buy" : "sell";
     let vOrderSize = vLotQty;
     if(vOptionType === "F"){
@@ -388,23 +440,49 @@ exports.fnCloseLeg = async (req, res) => {
     }
 
     try {
-        let vClosePx = 0;
-        let objTicker = await fnGetTickerBySymbol(vSymbol);
-        if(objTicker.status === "success"){
-            let objQ = objTicker?.data?.result?.quotes || {};
-            vClosePx = (vCloseSide === "buy") ? Number(objQ.best_ask) : Number(objQ.best_bid);
+        let objOrdRes = null;
+        if(vOptionType === "F" && vReqOrderType === "limit_order"){
+            let vLimitPrice = 0;
+            let objTicker = await fnGetTickerBySymbol(vSymbol);
+            if(objTicker.status === "success"){
+                let objQ = objTicker?.data?.result?.quotes || {};
+                vLimitPrice = (vCloseSide === "buy") ? Number(objQ.best_ask) : Number(objQ.best_bid);
+            }
+            if(!(vLimitPrice > 0)){
+                vLimitPrice = 1;
+            }
+
+            objOrdRes = await fnPlaceFutPostOnlyLimitUntilFilled(vApiKey, vApiSecret, {
+                symbol: vSymbol,
+                side: vCloseSide,
+                size: vOrderSize,
+                initialLimitPrice: vLimitPrice,
+                loopKey: fnGetFutLoopKey(vApiKey, vSymbol, vCloseSide + "_close"),
+                reduceOnly: true
+            });
         }
-        let objOrd = fnBuildPaperOrder({
-            symbol: vSymbol,
-            side: vCloseSide,
-            size: vOrderSize,
-            execPrice: vClosePx
-        });
+        else{
+            objOrdRes = await fnPlaceLiveOrder(vApiKey, vApiSecret, {
+                symbol: vSymbol,
+                size: vOrderSize,
+                side: vCloseSide,
+                orderType: "market_order",
+                limitPrice: 0,
+                reduceOnly: true
+            });
+        }
+
+        if(objOrdRes.status !== "success"){
+            res.send({ "status": objOrdRes.status, "message": objOrdRes.message, "data": objOrdRes.data });
+            return;
+        }
+
+        let objOrd = objOrdRes.data.result;
         let vExecPx = fnGetExecPrice(objOrd, 0);
 
         res.send({
             "status": "success",
-            "message": "Paper Close Order Executed Successfully!",
+            "message": "Close Order Executed Successfully!",
             "data": {
                 TradeID: objOrd.id,
                 ClientOrderID: objOrd.client_order_id,
@@ -578,11 +656,18 @@ exports.fnGetFilledOrderHistory = async (req, res) => {
 
 const fnGetSymbolDetails = async (pApiKey, pApiSecret, pUAssetSymbol, pTransType, pOptType, pLotSize, pLotQty, pPointsTP, pPointsSL) => {
     const objPromise = new Promise((resolve, reject) => {
+        // Construct the symbol based on option type
+        let vSymbol = pUAssetSymbol;
+        let vQueryStr = "";
+        if (pOptType !== "C" && pOptType !== "P") {
+            // For futures, use the futures symbol format and contract type
+            vSymbol = pUAssetSymbol + "USD";
+            vQueryStr = "?contract_type=perpetual_futures";
+        }
+        
         const vMethod = "GET";
-        const vPath = '/v2/tickers/' + pUAssetSymbol;
+        const vPath = '/v2/tickers/' + vSymbol;
         const vTimeStamp = Math.floor(new Date().getTime() / 1000);
-
-        const vQueryStr = "";
         const vBody = "";
         const vSignature = fnGetSignature(pApiSecret, vMethod, vPath, vQueryStr, vTimeStamp, vBody);
         let config = {
@@ -607,18 +692,19 @@ const fnGetSymbolDetails = async (pApiKey, pApiSecret, pUAssetSymbol, pTransType
             let vBestBuyPrice = parseFloat(objRes.result.quotes.best_ask);
             let vBestSellPrice = parseFloat(objRes.result.quotes.best_bid);
             let vRateTP, vRateSL = 0;
-            let vFutDeltaAbs = 0.10;
-            let vFutDelta = vFutDeltaAbs;
+            // For futures hedging: 1 contract = 1.0 delta (or -1.0 for short)
+            // LotQty represents the number of contracts, so delta = ±1.0 per contract
+            let vFutDelta = 0;
 
             if(pTransType === "buy"){
                 vRateTP = vBestBuyPrice + parseFloat(pPointsTP);
                 vRateSL = vBestBuyPrice - parseFloat(pPointsSL);
-                vFutDelta = vFutDeltaAbs;
+                vFutDelta = 1.0;  // BUY futures = +1.0 delta per contract
             }
             else if(pTransType === "sell"){
                 vRateTP = vBestSellPrice - parseFloat(pPointsTP);
                 vRateSL = vBestSellPrice + parseFloat(pPointsSL);
-                vFutDelta = -vFutDeltaAbs;
+                vFutDelta = -1.0;  // SELL futures = -1.0 delta per contract
             }
 
             let objFutLeg = { TradeID : vTradeId, ProductID : objRes.result.product_id, UndrAsstSymb : objRes.result.underlying_asset_symbol, ContType : objRes.result.contract_type, TransType: pTransType, OptionType : pOptType, Delta : vFutDelta, DeltaC : vFutDelta, BestAsk : vBestBuyPrice, BestBid : vBestSellPrice, Strike : parseInt(objRes.result.spot_price), Symbol : objRes.result.symbol, LotSize : pLotSize, LotQty : parseFloat(pLotQty), PointsTP : parseFloat(pPointsTP), PointsSL : parseFloat(pPointsSL), RateTP : vRateTP, RateSL : vRateSL };
@@ -649,25 +735,6 @@ const fnGetExecPrice = (pOrderResult, pFallbackPrice) => {
         return vFallback;
     }
     return 0;
-}
-
-const fnBuildPaperOrder = (pInput = {}) => {
-    const vNow = Date.now();
-    const vSeq = gPaperOrderSeq++;
-    const vExecPrice = Number(pInput.execPrice) > 0 ? Number(pInput.execPrice) : 0;
-    const vSize = Number(pInput.size);
-    return {
-        id: `PAPER-${vNow}-${vSeq}`,
-        client_order_id: `PAPER-CL-${vNow}-${vSeq}`,
-        product_id: Number(pInput.productId || 0),
-        product_symbol: String(pInput.symbol || ""),
-        side: String(pInput.side || "buy"),
-        size: Number.isFinite(vSize) && vSize > 0 ? vSize : 0,
-        state: "filled",
-        paid_commission: 0,
-        average_fill_price: vExecPrice,
-        limit_price: vExecPrice
-    };
 }
 
 const fnGetTickerBySymbol = async (pSymbol) => {
@@ -900,12 +967,12 @@ const fnPlaceFutPostOnlyLimitUntilFilled = async (pApiKey, pApiSecret, pInput) =
             reduceOnly: !!pInput?.reduceOnly
         });
         if(objMkt.status !== "success"){
-            fnSendTelegramAlert(`strategy3fo Futures Market Fallback Failed\nSymbol: ${vSymbol}\nSide: ${vSide}\nRemainQty: ${vMarketRemain}\nReason: ${objMkt.message || objMkt.status}`, pInput?.alertCfg);
+            fnSendTelegramAlert(`LiveStrategy2FO Futures Market Fallback Failed\nSymbol: ${vSymbol}\nSide: ${vSide}\nRemainQty: ${vMarketRemain}\nReason: ${objMkt.message || objMkt.status}`, pInput?.alertCfg);
             return { "status": objMkt.status, "message": "Limit not filled after modifies and market fallback failed: " + objMkt.message, "data": objMkt.data };
         }
 
         let objMktOrd = objMkt?.data?.result || {};
-        fnSendTelegramAlert(`strategy3fo Futures Market Fallback\nSymbol: ${objMktOrd.product_symbol || vSymbol}\nSide: ${objMktOrd.side || vSide}\nQty: ${objMktOrd.size || vMarketRemain}\nReason: Limit not filled after ${gFutModifyMaxAttempts} modifies`, pInput?.alertCfg);
+        fnSendTelegramAlert(`LiveStrategy2FO Futures Market Fallback\nSymbol: ${objMktOrd.product_symbol || vSymbol}\nSide: ${objMktOrd.side || vSide}\nQty: ${objMktOrd.size || vMarketRemain}\nReason: Limit not filled after ${gFutModifyMaxAttempts} modifies`, pInput?.alertCfg);
         let objMktFill = fnGetFillFromOrder(objMktOrd, vMarketRemain);
         let vMktFilled = objMktFill.filledQty;
         if(vMktFilled <= gOrderFillEpsilon){

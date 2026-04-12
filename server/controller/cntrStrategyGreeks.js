@@ -14,7 +14,7 @@ const gTelegramChatId = process.env.TELEGRAM_CHAT_ID || "";
 
 exports.defaultRoute = (req, res) => {
     //res.send("Crud Application");
-    res.render("Strategy2FO.ejs");
+    res.render("StrategyGreeks.ejs");
 }
 
 exports.fnValidateUserLogin = async (req, res) => {
@@ -627,3 +627,4 @@ const fnGetTelegramConfigFromReq = (req) => {
         chatId: String(req?.body?.TelegramChatId || "").trim()
     };
 }
+

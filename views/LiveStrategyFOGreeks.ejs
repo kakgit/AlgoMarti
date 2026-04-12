@@ -20,11 +20,15 @@
             font-weight: 600;
             padding: 1rem 0;
         }
+
+        .start-qty-input {
+            max-width: 96px;
+        }
     </style>
     <div class="page-heading">
         <div class="row">
             <div class="col-4">
-                <h3>Strategy3FO TEST</h3>
+                <h3>LiveStrategyFOGreeks</h3>
             </div>
             <div class="col-4 text-center">
                 <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
@@ -55,41 +59,29 @@
             <div class="col-12">
                 <div class="card" id="cardManualTrader">
                     <div class="card-header">
-                        <div class="row">
-                            <div class="col-2">
-                                <h4>Manual Trader</h4>
-                            </div>
-                            <div class="col-1">
-                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                    <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtActiveMsgs" name="swtActiveMsgs" onchange="fnUpdHidFldSettings(this.checked, 'SwtActiveMsgs', 'Active Messages!');" />
+                        <div class="row align-items-center">
+                            <div class="col-3">
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <h4 class="mb-0">Manual Trader</h4>
+                                    <form name="frmSide" class="mb-0">
+                                        <div class="tw-toggle" style="white-space: nowrap;">
+                                            <input id="txtBN1" type="radio" name="rdoTradeSide" value="false" onclick="fnTradeSide();" />
+                                            <label class="toggle toggle-yes" for="txtBN1"><i class="fa fa-arrow-down"></i></label>
+                                            <input id="txtBN2" checked type="radio" name="rdoTradeSide" value="-1" onclick="fnTradeSide();" />
+                                            <label class="toggle toggle-yes" for="txtBN2"><i class="fa fa-minus"></i></label>
+                                            <input id="txtBN3" type="radio" name="rdoTradeSide" value="true" onclick="fnTradeSide();" />
+                                            <label class="toggle toggle-yes" for="txtBN3"><i class="fa fa-arrow-up"></i></label>
+                                            <span></span>
+                                            <label for="TradeSide">Side</label>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
-                            <div class="col-3">
-                                <form name="frmSide" id="frmSide">
-                                    <div class="tw-toggle" style="white-space: nowrap;">
-                                        <input id="txtBN1" type="radio" name="rdoCallTradeSide" value="false" onclick="fnCallTradeSide();" />
-                                        <label class="toggle toggle-yes" for="txtBN1"><i class="fa fa-arrow-down"></i></label>
-                                        <input id="txtBN2" checked type="radio" name="rdoCallTradeSide" value="-1" onclick="fnCallTradeSide();" />
-                                        <label class="toggle toggle-yes" for="txtBN2"><i class="fa fa-minus"></i></label>
-                                        <input id="txtBN3" type="radio" name="rdoCallTradeSide" value="true" onclick="fnCallTradeSide();" />
-                                        <label class="toggle toggle-yes" for="txtBN3"><i class="fa fa-arrow-up"></i></label>
-                                        <span></span>
-                                        <label for="txtBN1">Call</label>
-                                    </div>
-                                    <div class="tw-toggle" style="white-space: nowrap;">
-                                        <input id="txtBN11" type="radio" name="rdoPutTradeSide" value="false" onclick="fnPutTradeSide();" />
-                                        <label class="toggle toggle-yes" for="txtBN11"><i class="fa fa-arrow-down"></i></label>
-                                        <input id="txtBN12" checked type="radio" name="rdoPutTradeSide" value="-1" onclick="fnPutTradeSide();" />
-                                        <label class="toggle toggle-yes" for="txtBN12"><i class="fa fa-minus"></i></label>
-                                        <input id="txtBN13" type="radio" name="rdoPutTradeSide" value="true" onclick="fnPutTradeSide();" />
-                                        <label class="toggle toggle-yes" for="txtBN13"><i class="fa fa-arrow-up"></i></label>
-                                        <span></span>
-                                        <label for="txtBN11">Put</label>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="col-1">
-                                
+                            <div class="col-4">
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <span class="text-muted">Start Qty</span>
+                                    <input type="number" class="form-control start-qty-input" min="1" step="1" value="1" id="txtStartQty" onchange="fnChangeStartQty(this);" />
+                                </div>
                             </div>
                             <div class="col-1"></div>
                             <div class="col-1" style="text-align: right;">
@@ -115,9 +107,9 @@
                                     <div class="col-2">Symbols List</div>
                                     <div class="col-2">Lot Size</div>
                                     <div class="col-2">Order Type</div>
-                                    <div class="col-2" style="display:none;">Futures SL-Points</div>
-                                    <div class="col-2" style="display:none;">Futures TP-Points</div>
-                                    <div class="col-2" style="display:none;">BS Futures Qty</div>
+                                    <div class="col-2">BS Fut Qty</div>
+                                    <div class="col-2">Loss Recovery %</div>
+                                    <div class="col-2">X-Multiplier</div>
 
                                     <div class="col-2">
                                         <select id="ddlSymbols" class="form-select" onchange="fnSetSymbolData(this.value);" placeholder="Select Symbol" title="SYMBOL">
@@ -131,93 +123,51 @@
                                     </div>
                                     <div class="col-2">
                                         <select id="ddlOrderType" class="form-select" placeholder="Select Order Type">
-                                            <option value='limit_order' selected>Limit Order</option>
-                                            <option value='market_order'>Market Order</option>
+                                            <option value='limit_order'>Limit Order</option>
+                                            <option value='market_order' selected>Market Order</option>
                                         </select>
                                     </div>
-                                    <div class="col-2" style="display:none;">
-                                        <input type="number" class="form-control" min="1" value="100" id="txtFutSL" onchange="fnUpdFutStratSettings(this.value, 'PointsSL', 'Futures Stop Loss Points!', true, 'F');" title="Futures SL Points" />
-                                    </div>
-                                    <div class="col-2" style="display:none;">
-                                        <input type="number" class="form-control" min="1" value="1000" id="txtFutTP" onchange="fnUpdFutStratSettings(this.value, 'PointsTP', 'Futures Take Profit Points!', true, 'F');" title="Futures TP Points" />
-                                    </div>
-                                    <div class="col-2" style="display:none;">
+                                    <div class="col-2">
                                         <div class="input-group mb-3">
-                                            <button class="btn btn-danger" id="btnSellManF" type="button" onclick="fnPreInitAutoFutTrade('F', 'sell');"><b>S</b></button>
+                                            <button class="btn btn-danger" type="button" onclick="fnPreInitAutoFutTrade('F', 'sell');"><b>S</b></button>
                                             <input type="text" value="100" id="txtFutQty" class="form-control" style="text-align: center;" title="Futures Qty" onchange="fnUpdFutStratSettings(this.value, 'StartFutQty', 'Futures Qty!', false, 'F', 'LotQty');" />
-                                            <button class="btn btn-success" id="btnBuyManF" type="button" onclick="fnPreInitAutoFutTrade('F', 'buy');"><b>B</b></button>
+                                            <button class="btn btn-success" type="button" onclick="fnPreInitAutoFutTrade('F', 'buy');"><b>B</b></button>
                                         </div>
                                     </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" min="1" value="100" id="txtLossRecvPerct" onchange="fnUpdateLossRecPrct(this);" title="Loss Recovery Percentage" />
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" class="form-control" min="0.1" step="0.1" value="1.0" id="txtMultiplierX" onchange="fnUpdateMultiplierX(this);" title="Multiplier for next qty progression" />
+                                    </div>
 
-                                    <div class="col-1" style="text-align: center;">Sell CE</div>
-                                    <div class="col-1" style="text-align: center;">Sell PE</div>
-                                    <div class="col-2">Sell Expiry Type</div>
-                                    <div class="col-2">Select Sell Expiry</div>
-                                    <div class="col-1">S-Qty</div>
-                                    <div class="col-1">N-Sl D</div>
-                                    <div class="col-1">R-Sl D</div>
+                                    <div class="col-1" style="text-align: center;">Action</div>
+                                    <div class="col-1" style="text-align: center;">Legs</div>
+                                    <div class="col-2">Expiry Type</div>
+                                    <div class="col-2">Select Expiry</div>
+                                    <div class="col-1">Qty</div>
+                                    <div class="col-1">New D</div>
+                                    <div class="col-1">Re D</div>
                                     <div class="col-1">TP D</div>
                                     <div class="col-1">SL D</div>
                                     <div class="col-1" style="text-align: center;">Re Enter</div>
 
-                                    <div class="col-1" style="text-align: center;">
-                                        <input type="checkbox" class="form-check-input" id="chkSellCE" onchange="fnUpdOptStratSettings(this, this.checked, 'NewSellCE', 'Sell CE!', false, 'sell', '', '');" title="Select to Sell New Call" />
+                                    <div class="col-1">
+                                        <select id="ddlAction1" class="form-select" onchange="fnUpdateLegSelector('sell');" title="Select action for Sell selector">
+                                            <option value="none">None</option>
+                                            <option value="buy">Buy</option>
+                                            <option value="sell" selected>Sell</option>
+                                        </select>
                                     </div>
-                                    <div class="col-1" style="text-align: center;">
-                                        <input type="checkbox" class="form-check-input" checked id="chkSellPE" onchange="fnUpdOptStratSettings(this, this.checked, 'NewSellPE', 'Sell PE!', false, 'sell', '', '');" title="Select to Sell New Put" />
-                                    </div>
-                                    <div class="col-2">
-                                        <select id="ddlSellExpiryMode" class="form-select" onchange="fnUpdateSellExpiryMode();" placeholder="Select Sell Expiry Mode" title="Select Sell Leg Expiry Mode">
-                                            <option value=1>DAILY T+1</option>
-                                            <option value=2>DAILY T+2</option>
-                                            <option value=4>WEEKLY</option>
-                                            <option value=5>BI-WEEKLY</option>
-                                            <option value=6 selected>MONTHLY</option>
-                                            <option value=7>BI-MONTHLY</option>
+                                    <div class="col-1">
+                                        <select id="ddlLegSide1" class="form-select" onchange="fnUpdateLegSelector('sell');" title="Select CE/PE legs for Sell selector">
+                                            <option value="both" selected>Both</option>
+                                            <option value="ce">CE</option>
+                                            <option value="pe">PE</option>
                                         </select>
                                     </div>
                                     <div class="col-2">
-                                        <input type="date" class="form-control" placeholder="Sell Expiry" id="txtExpSell" value="" title="Select / Input Sell Leg Expiry Date" />
-                                    </div>
-                                    <div class="col-1">
-                                        <input type="number" class="form-control" min="1" value="1000" id="txtStartSQty" onchange="fnUpdOptStratSettings(this, this.value, 'StartSellQty', 'Sell Qty!', false, 'sell', '', 'LotQty');" title="Sell Leg Qty in Lots" />
-                                    </div>
-                                    <div class="col-1">
-                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="New Sell Delta" id="txtNewSellDelta" value="0.17" onchange="fnUpdOptStratSettings(this, this.value, 'NewSellDelta', 'New Sell Delta!', false, 'sell', '', 'DeltaNP');" title="New Sell Leg Delta" />
-                                    </div>
-                                    <div class="col-1">
-                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="Re-Entry Sell Delta" id="txtReSellDelta" value="0.17" onchange="fnUpdOptStratSettings(this, this.value, 'ReSellDelta', 'Re-Sell Delta!', true, 'sell', '', 'DeltaNP');" title="Re-Entry Sell Leg Delta" />
-                                    </div>
-                                    <div class="col-1">
-                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="TP Delta" id="txtDeltaSellTP" value="0.09" onchange="fnUpdOptStratSettings(this, this.value, 'SellDeltaTP', 'Sell Delta Take Profit!', true, 'sell', '', 'DeltaTP');" title="Sell Leg Take Profit Delta" />
-                                    </div>
-                                    <div class="col-1">
-                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="SL Delta" id="txtDeltaSellSL" value="0.30" onchange="fnUpdOptStratSettings(this, this.value, 'SellDeltaSL', 'Sell Delta Stop Loss!', true, 'sell', '', 'DeltaSL');" title="Sell Leg Stop Loss Delta" />
-                                    </div>
-                                    <div class="col-1" style="text-align: center;">
-                                        <input type="checkbox" class="form-check-input" id="chkReLegSell" onchange="fnUpdHidFldSettings(this.checked, 'ReLegSell', 'Re Enter Sell Legs!');" title="Select to Re Enter Sell Leg when Closed" />
-                                    </div>
-
-
-                                    <div class="col-1" style="text-align: center;">Buy CE</div>
-                                    <div class="col-1" style="text-align: center;">Buy PE</div>
-                                    <div class="col-2">Buy Expiry Type</div>
-                                    <div class="col-2">Select Buy Expiry</div>
-                                    <div class="col-1">B-Qty</div>
-                                    <div class="col-1">N-By D</div>
-                                    <div class="col-1">R-By D</div>
-                                    <div class="col-1">TP D</div>
-                                    <div class="col-1">SL D</div>
-                                    <div class="col-1" style="text-align: center;">Re Enter</div>
-
-                                    <div class="col-1" style="text-align: center;">
-                                        <input type="checkbox" class="form-check-input" id="chkBuyCE" onchange="fnUpdOptStratSettings(this, this.checked, 'NewBuyCE', 'New Buy CE!', false, 'buy', '', '');" title="Select to Buy New Call" />
-                                    </div>
-                                    <div class="col-1" style="text-align: center;">
-                                        <input type="checkbox" class="form-check-input" id="chkBuyPE" onchange="fnUpdOptStratSettings(this, this.checked, 'NewBuyPE', 'New Buy PE!', false, 'buy', '', '');" title="Select to Buy New Put" />
-                                    </div>  
-                                    <div class="col-2">
-                                        <select id="ddlBuyExpiryMode" class="form-select" onchange="fnUpdateBuyExpiryMode();" placeholder="Select Buy Expiry Mode" title="Select Buy Leg Expiry Mode">
+                                        <select id="ddlExpiryMode1" class="form-select" onchange="fnUpdateSellExpiryMode();" placeholder="Select Expiry Mode" title="Select Leg Expiry Mode">
                                             <option value=1>DAILY T+1</option>
                                             <option value=2>DAILY T+2</option>
                                             <option value=4>WEEKLY</option>
@@ -227,89 +177,173 @@
                                         </select>
                                     </div>
                                     <div class="col-2">
-                                        <input type="date" class="form-control" placeholder="Buy Expiry" id="txtExpBuy" value="" title="Select / Input Buy Leg Expiry Date" />
+                                        <input type="date" class="form-control" placeholder="Expiry" id="txtExpiry1" value="" title="Select / Input Leg Expiry Date" />
                                     </div>
                                     <div class="col-1">
-                                        <input type="number" class="form-control" min="1" value="1" id="txtStartBQty" onchange="fnUpdOptStratSettings(this, this.value, 'StartBuyQty', 'Buy Qty!', false, 'buy', '', 'LotQty');" title="Buy Leg Qty in LOTS" />
+                                        <input type="number" class="form-control" min="1" value="1" id="txtStartQty1" onchange="fnUpdOptStratSettings(this, this.value, 'StartQty1', 'Qty!', false, 'sell', '', 'LotQty');" title="Leg Qty in Lots" />
                                     </div>
                                     <div class="col-1">
-                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="New Buy Delta" id="txtNewBuyDelta" value="" onchange="fnUpdOptStratSettings(this, this.value, 'NewBuyDelta', 'New Buy Leg Delta!', false, 'buy', '', 'DeltaNP');" title="New Buy Leg Delta" />
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="New Delta" id="txtNewDelta1" value="" onchange="fnUpdOptStratSettings(this, this.value, 'NewDelta1', 'New Delta!', false, 'sell', '', 'DeltaNP');" title="New Leg Delta" />
                                     </div>
                                     <div class="col-1">
-                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="Re-Entry Buy Delta" id="txtReBuyDelta" value="" onchange="fnUpdOptStratSettings(this, this.value, 'ReBuyDelta', 'Re-Buy Leg Delta!', true, 'buy', '', 'DeltaNP');" title="Re-Entry Buy Leg Delta" />
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="Re-Entry Delta" id="txtReDelta1" value="" onchange="fnUpdOptStratSettings(this, this.value, 'ReDelta1', 'Re Delta!', true, 'sell', '', 'DeltaNP');" title="Re-Entry Leg Delta" />
                                     </div>
                                     <div class="col-1">
-                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="TP Delta" id="txtDeltaBuyTP" value="" onchange="fnUpdOptStratSettings(this, this.value, 'BuyDeltaTP', 'Buy Delta Take Profit!', true, 'buy', '', 'DeltaTP');" title="Buy Leg Take Proft Delta" />
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="TP Delta" id="txtDeltaTP1" value="" onchange="fnUpdOptStratSettings(this, this.value, 'DeltaTP1', 'Delta Take Profit!', true, 'sell', '', 'DeltaTP');" title="Take Profit Delta" />
                                     </div>
                                     <div class="col-1">
-                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="SL Delta" id="txtDeltaBuySL" value="" onchange="fnUpdOptStratSettings(this, this.value, 'BuyDeltaSL', 'Buy Delta Stop Loss!', true, 'buy', '', 'DeltaSL');" title="Buy Leg Stop Loss Delta" />
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="SL Delta" id="txtDeltaSL1" value="" onchange="fnUpdOptStratSettings(this, this.value, 'DeltaSL1', 'Delta Stop Loss!', true, 'sell', '', 'DeltaSL');" title="Stop Loss Delta" />
                                     </div>
                                     <div class="col-1" style="text-align: center;">
-                                        <input type="checkbox" class="form-check-input" id="chkReLegBuy" onchange="fnUpdHidFldSettings(this.checked, 'ReLegBuy', 'Re Enter Buy Legs!');" title="Select to Re Enter Buy Leg when Closed" />
+                                        <input type="checkbox" class="form-check-input" id="chkReLeg1" onchange="fnUpdHidFldSettings(this.checked, 'ReLeg1', 'Re Enter Legs!');" title="Select to Re Enter Leg when Closed" />
                                     </div>
 
-                                    <div class="col-4">
-                                        Manage Vega Adjustment for Options
+
+                                    <div class="col-1" style="text-align: center;">Action</div>
+                                    <div class="col-1" style="text-align: center;">Legs</div>
+                                    <div class="col-2">Expiry Type</div>
+                                    <div class="col-2">Select Expiry</div>
+                                    <div class="col-1">Qty</div>
+                                    <div class="col-1">New D</div>
+                                    <div class="col-1">Re D</div>
+                                    <div class="col-1">TP D</div>
+                                    <div class="col-1">SL D</div>
+                                    <div class="col-1" style="text-align: center;">Re Enter</div>
+
+                                    <div class="col-1">
+                                        <select id="ddlAction2" class="form-select" onchange="fnUpdateLegSelector('buy');" title="Select action for selector">
+                                            <option value="none" selected>None</option>
+                                            <option value="buy">Buy</option>
+                                            <option value="sell">Sell</option>
+                                        </select>
                                     </div>
+                                    <div class="col-1">
+                                        <select id="ddlLegSide2" class="form-select" onchange="fnUpdateLegSelector('buy');" title="Select CE/PE legs for selector">
+                                            <option value="both" selected>Both</option>
+                                            <option value="ce">CE</option>
+                                            <option value="pe">PE</option>
+                                        </select>
+                                    </div>  
+                                    <div class="col-2">
+                                        <select id="ddlExpiryMode2" class="form-select" onchange="fnUpdateBuyExpiryMode();" placeholder="Select Expiry Mode" title="Select Leg Expiry Mode">
+                                            <option value=1>DAILY T+1</option>
+                                            <option value=2>DAILY T+2</option>
+                                            <option value=4>WEEKLY</option>
+                                            <option value=5>BI-WEEKLY</option>
+                                            <option value=6>MONTHLY</option>
+                                            <option value=7>BI-MONTHLY</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="date" class="form-control" placeholder="Expiry" id="txtExpiry2" value="" title="Select / Input Leg Expiry Date" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="1" value="1" id="txtStartQty2" onchange="fnUpdOptStratSettings(this, this.value, 'StartQty2', 'Qty!', false, 'buy', '', 'LotQty');" title="Qty in LOTS" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="New Delta" id="txtNewDelta2" value="" onchange="fnUpdOptStratSettings(this, this.value, 'NewDelta2', 'New Leg Delta!', false, 'buy', '', 'DeltaNP');" title="New Leg Delta" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="Re-Entry Delta" id="txtReDelta2" value="" onchange="fnUpdOptStratSettings(this, this.value, 'ReDelta2', 'Re Leg Delta!', true, 'buy', '', 'DeltaNP');" title="Re-Entry Leg Delta" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="TP Delta" id="txtDeltaTP2" value="" onchange="fnUpdOptStratSettings(this, this.value, 'DeltaTP2', 'Delta Take Profit!', true, 'buy', '', 'DeltaTP');" title="Leg Take Proft Delta" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="SL Delta" id="txtDeltaSL2" value="" onchange="fnUpdOptStratSettings(this, this.value, 'DeltaSL2', 'Delta Stop Loss!', true, 'buy', '', 'DeltaSL');" title="Leg Stop Loss Delta" />
+                                    </div>
+                                    <div class="col-1" style="text-align: center;">
+                                        <input type="checkbox" class="form-check-input" id="chkReLeg2" onchange="fnUpdHidFldSettings(this.checked, 'ReLeg2', 'Re Enter Legs!');" title="Select to Re Enter when Closed" />
+                                    </div>
+
+                                    <div class="col-1" style="text-align: center;">Action</div>
+                                    <div class="col-1" style="text-align: center;">Legs</div>
+                                    <div class="col-2">Expiry Type</div>
+                                    <div class="col-2">Select Expiry</div>
+                                    <div class="col-1">Qty</div>
+                                    <div class="col-1">New D</div>
+                                    <div class="col-1">Re D</div>
+                                    <div class="col-1">TP D</div>
+                                    <div class="col-1">SL D</div>
+                                    <div class="col-1" style="text-align: center;">Re Enter</div>
+
+                                    <div class="col-1">
+                                        <select id="ddlAction3" class="form-select" onchange="fnUpdateLegSelector('row3');" title="Select action for selector">
+                                            <option value="none" selected>None</option>
+                                            <option value="buy">Buy</option>
+                                            <option value="sell">Sell</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-1">
+                                        <select id="ddlLegSide3" class="form-select" onchange="fnUpdateLegSelector('row3');" title="Select CE/PE legs for selector">
+                                            <option value="both" selected>Both</option>
+                                            <option value="ce">CE</option>
+                                            <option value="pe">PE</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-2">
+                                        <select id="ddlExpiryMode3" class="form-select" onchange="fnUpdateExpiryMode3();" placeholder="Select Expiry Mode" title="Select Leg Expiry Mode">
+                                            <option value=1>DAILY T+1</option>
+                                            <option value=2>DAILY T+2</option>
+                                            <option value=4>WEEKLY</option>
+                                            <option value=5>BI-WEEKLY</option>
+                                            <option value=6>MONTHLY</option>
+                                            <option value=7>BI-MONTHLY</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="date" class="form-control" placeholder="Expiry" id="txtExpiry3" value="" title="Select / Input Leg Expiry Date" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="1" value="1" id="txtStartQty3" onchange="fnUpdOptStratSettings(this, this.value, 'StartQty3', 'Qty!', false, 'buy', '', 'LotQty');" title="Qty in LOTS" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="New Delta" id="txtNewDelta3" value="" onchange="fnUpdOptStratSettings(this, this.value, 'NewDelta3', 'New Leg Delta!', false, 'buy', '', 'DeltaNP');" title="New Leg Delta" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="Re-Entry Delta" id="txtReDelta3" value="" onchange="fnUpdOptStratSettings(this, this.value, 'ReDelta3', 'Re Leg Delta!', true, 'buy', '', 'DeltaNP');" title="Re-Entry Leg Delta" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="TP Delta" id="txtDeltaTP3" value="" onchange="fnUpdOptStratSettings(this, this.value, 'DeltaTP3', 'Delta Take Profit!', true, 'buy', '', 'DeltaTP');" title="Leg Take Profit Delta" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" placeholder="SL Delta" id="txtDeltaSL3" value="" onchange="fnUpdOptStratSettings(this, this.value, 'DeltaSL3', 'Delta Stop Loss!', true, 'buy', '', 'DeltaSL');" title="Leg Stop Loss Delta" />
+                                    </div>
+                                    <div class="col-1" style="text-align: center;">
+                                        <input type="checkbox" class="form-check-input" id="chkReLeg3" onchange="fnUpdHidFldSettings(this.checked, 'ReLeg3', 'Re Enter Legs!');" title="Select to Re Enter when Closed" />
+                                    </div>
+
+                                    <div class="col-2">Fut SL-Points</div>
+                                    <div class="col-2">Fut T-SL</div>
+                                    <div class="col-2">Fut TP-Points</div>
+                                    <div class="col-2">
+                                        Close All when Net Profit is > X of Brokerage
+                                    </div>
+                                    <div class="col-2">Re Enter</div>
                                     <div class="col-2"></div>
-                                    <div class="col-4">
-                                        Close All when Net Profit is >= X * Total Brokerage
-                                    </div>
-                                    <div class="col-2">Re-Enter</div>
-
 
                                     <div class="col-2">
-                                        <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                            <input class="form-check-input  me-0" type="checkbox" id="swtVegaAdjust" name="swtVegaAdjust" onchange="fnUpdHidFldSettings(this.checked, 'SwtVegaAdj', 'Vega Adjustment!');" />
-                                        </div>
+                                        <input type="number" class="form-control" min="1" value="100" id="txtFutSL" onchange="fnUpdFutStratSettings(this.value, 'PointsSL', 'Futures Stop Loss Points!', true, 'F');" title="Futures SL Points" />
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="-Vega Threshold" id="txtMinusVegaPM" value="0.20" min="0" step="0.01" title="Minimum negative net vega threshold to trigger vega adjustment" onchange="fnUpdHidFldSettings(this.value, 'VegaMinusPM', 'Minus Vega Threshold!');" />
+                                        <input type="number" class="form-control" min="0" value="0" id="txtFutTSL" onchange="fnUpdFutStratSettings(this.value, 'PointsTSL', 'Futures Trailing SL Points!', true, 'F');" title="Futures Trailing SL Points" />
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="+Vega Threshold" id="txtPlusVegaPM" value="0.20" min="0" step="0.01" title="Minimum positive net vega threshold to trigger vega adjustment" onchange="fnUpdHidFldSettings(this.value, 'VegaPlusPM', 'Plus Vega Threshold!');" />
+                                        <input type="number" class="form-control" min="1" value="1000" id="txtFutTP" onchange="fnUpdFutStratSettings(this.value, 'PointsTP', 'Futures Take Profit Points!', true, 'F');" title="Futures TP Points" />
                                     </div>
                                     <div class="col-1">
                                         <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                            <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtBrokRecvry" name="swtBrokRecvry" onchange="fnUpdHidFldSettings(this.checked, 'SwtBrokRec', 'Brokerage X Close Switch!');" />
+                                            <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtBrokRecvry" name="swtBrokRecvry" onchange="fnUpdHidFldSettings(this.checked, 'SwtBrokRec', 'Brok Recovery!');" />
                                         </div>
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="X of Brokerage" id="txtXBrok2Rec" value="2" min="0" step="0.1" title="Close all when Net PnL reaches X times total brokerage" onchange="fnUpdHidFldSettings(this.value, 'BrokX4Profit', 'Brokerage X Trigger!');" />
+                                        <input type="number" class="form-control" placeholder="X of Brokerage" id="txtXBrok2Rec" value="1" title="X of Brokerage to Close when in profit" onchange="fnUpdHidFldSettings(this.value, 'BrokX4Profit', 'Brokerage X!');" />
                                     </div>
-                                    <div class="col-1">X</div>
-                                    <div class="col-2">
+                                    <div class="col-1">
                                         <input type="checkbox" class="form-check-input" id="chkReLegBrok" onchange="fnUpdHidFldSettings(this.checked, 'ReLegBrok', 'Re Enter After Profit from Brokerage!');" title="Select to Buy New Call" />
                                     </div>
+                                    <div class="col-2"></div>
 
-                                    <div class="col-3">Entry Gamma Buffer % (Auto)</div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" id="txtEntryGammaBufPct" min="0" step="0.1" value="10" title="Caps initial short qty using gamma difference at entry" onchange="fnUpdHidFldSettings(this.value, 'EntryGammaBufPct', 'Entry Gamma Buffer %!');" />
-                                    </div>
-                                    <div class="col-2">Lower Tol (Auto)</div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" id="txtAutoTolLower" min="0" step="0.0001" value="0.2000" title="Auto strategy lower net vega tolerance (absolute)" onchange="fnUpdHidFldSettings(this.value, 'AutoTolLower', 'Auto Lower Tolerance!');" />
-                                    </div>
-                                    <div class="col-1">Upper Tol</div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" id="txtAutoTolUpper" min="0" step="0.0001" value="0.2000" title="Auto strategy upper net vega tolerance (absolute)" onchange="fnUpdHidFldSettings(this.value, 'AutoTolUpper', 'Auto Upper Tolerance!');" />
-                                    </div>
-
-                                    <div class="col-12">
-                                        <div class="form-control" style="display:flex; gap:18px; flex-wrap:wrap;">
-                                            <span><b>Auto Vega Strategy Details</b></span>
-                                            <span>Active: <b id="spnVegaAdjActive">NO</b></span>
-                                            <span>Option Type: <b id="spnVegaAdjOptType">-</b></span>
-                                            <span>Net Vega: <b id="spnVegaAdjNetVega">0.0000</b></span>
-                                            <span>Tolerance Band: <b id="spnVegaAdjBand">-0.2000 / +0.2000</b></span>
-                                            <span>Initial Exposure: <b id="spnVegaAdjInitExp">-</b></span>
-                                            <span>Deviation: <b id="spnVegaAdjDev">0.0000</b></span>
-                                            <span>Short Unit Vega: <b id="spnVegaAdjUnit">-</b></span>
-                                            <span>Adjust Needed: <b id="spnVegaAdjNeed">NO</b></span>
-                                            <span>Next Action: <b id="spnVegaAdjAction">-</b></span>
-                                            <span>Req Qty: <b id="spnVegaAdjQty">0</b></span>
-                                        </div>
-                                    </div>
                                     <div class="col-12">&nbsp;</div>
 
                                     <div class="col-2">Total Brokerage to Recvr</div>
@@ -323,7 +357,7 @@
                                         <input type="number" class="form-control" placeholder="Brokerage Loss" id="txtBrok2Rec" value="0" title="Brokerage to Recovery" onchange="fnUpdHidFldSettings(this.value, 'BrokerageAmt', 'Brokerage Amount!');" />
                                     </div>
                                     <div class="col-2">
-                                        <div class="form-control" id="divTotalPL" style="text-align: right;">0.00</div>
+                                        <input type="number" class="form-control" placeholder="Total Yet to Recvr" id="txtYet2Recvr" value="0" title="Yet To Recover Loss Amount" onchange="fnUpdHidFldSettings(this.value, 'Yet2RecvrAmt', 'Yet To Recover Amount!');" />
                                     </div>
                                     <div class="col-2" id="divNetPL" style="text-align: center;">0.00</div>
                                     <div class="col-2" id="divTotalMargin"></div>
@@ -336,36 +370,30 @@
                                         </div>
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" class="form-control" id="txtMaxTheoProfit" value="0" min="0" step="1" title="Optional max theoretical profit for 70% TP check" />
+                                        <select id="ddlCfgRow" class="form-select" title="Manual order config row">
+                                            <option value="1" selected>CfgRow 1</option>
+                                            <option value="2">CfgRow 2</option>
+                                            <option value="3">CfgRow 3</option>
+                                        </select>
                                     </div>
                                     <div class="col-2">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success" onclick="fnPreInitAutoTrade('P', 'sell');"><b>SELL PE</b></button>
+                                            <button class="btn btn-outline-success" onclick="fnPreInitAutoTradeByCfgRow('P', 'sell');"><b>SELL PE</b></button>
                                         </div>
                                     </div>
                                     <div class="col-2">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-danger" onclick="fnPreInitAutoTrade('C', 'sell');"><b>SELL CE</b></button>
+                                            <button class="btn btn-outline-danger" onclick="fnPreInitAutoTradeByCfgRow('C', 'sell');"><b>SELL CE</b></button>
                                         </div>
                                     </div>
                                     <div class="col-2">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success" onclick="fnPreInitAutoTrade('C', 'buy');"><b>BUY CE</b></button>
+                                            <button class="btn btn-outline-success" onclick="fnPreInitAutoTradeByCfgRow('C', 'buy');"><b>BUY CE</b></button>
                                         </div>
                                     </div>
                                     <div class="col-2">
                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-danger" onclick="fnPreInitAutoTrade('P', 'buy');"><b>BUY PE</b></button>
-                                        </div>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-primary" onclick="fnStartVegaCalendarStrategy('P');"><b>Start Vega P</b></button>
-                                        </div>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-primary" onclick="fnStartVegaCalendarStrategy('C');"><b>Start Vega C</b></button>
+                                            <button class="btn btn-outline-danger" onclick="fnPreInitAutoTradeByCfgRow('P', 'buy');"><b>BUY PE</b></button>
                                         </div>
                                     </div>
 
@@ -403,20 +431,25 @@
                             <div class="col-3">
                                 <h4>Open Position(s)</h4>
                             </div>
-                            <div class="col-1">
-                                <a href="javascript:void(0);" class="nav-link" onclick="fnOpenFetchLivePosModal();" title="Fetch Live Positions">
-                                    <i class="fa fa-download" aria-hidden="true"></i>
-                                </a>
+                            <div class="col-1"></div>
+                            <div class="col-2">
+                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                                    <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtStepDFL" name="swtStepDFL" onchange="fnChangeTradeModeS2('step');" />
+                                    <label for="swtStepDFL" style="cursor:pointer;text-wrap:nowrap;">Step Qty</label>
+                                </div>
                             </div>
-                            <div class="col-1"></div>
-                            <div class="col-1"></div>
-                            <div class="col-2"></div>
+                            <div class="col-2">
+                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
+                                    <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtMartiDFL" name="swtMartiDFL" onchange="fnChangeTradeModeS2('marti');" />
+                                    <label for="swtMartiDFL" style="cursor:pointer;text-wrap:nowrap;">Marti</label>
+                                </div>
+                            </div>
                             <div class="col-1" style="text-align: right;">
                                 <button class='nav-link' onclick="fnClearLocalStorageTemp();" role="tab" type="button">Clear All</button>
                             </div>
                             <div class="col-1"><i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnRefreshAllOpenBrowser();"></i></div>
                             <div class="col-1" style="text-align: right;">
-                                <span id="spnClsAllPos" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" title="Kill Switch - Close All Real Open Legs" onclick="fnKillSwitchCloseAll();">&nbsp;</span>
+                                <span id="spnLossTrd" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px;" onclick="fnExitAllOpenPositionsByBadge();">&nbsp;</span>
                             </div>
                             <div class="col-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divOpenPosClps" role="button" aria-expanded="true" aria-controls="divOpenPosClps">
@@ -479,12 +512,28 @@
 
                 <div class="card" id="cardClosedPosition">
                     <div class="card-header">
-                        <div class="row">
-                            <div class="col-3">
-                                <h4>Closed Positions</h4>
+                        <div class="row align-items-center g-2">
+                            <div class="col-lg-2">
+                                <h4>Closed Position(s)</h4>
                             </div>
-                            <div class="col-8"></div>
-                            <div class="col-1" style="text-align: right;">
+                            <div class="col-lg-1" style="font-weight: bold;">
+                                P&L:
+                            </div>
+                            <div class="col-lg-1" id="tdHeadPL">
+                                0.00
+                            </div>
+                            <div class="col-lg-3" style="display: flex; align-items: center; gap: 8px;">
+                                <label for="txtClsFromDate" style="margin-bottom: 0; white-space: nowrap;">From</label>
+                                <input type="datetime-local" class="form-control" id="txtClsFromDate" />
+                            </div>
+                            <div class="col-lg-4" style="display: flex; align-items: center; gap: 8px;">
+                                <label for="txtClsToDate" style="margin-bottom: 0; white-space: nowrap;">To</label>
+                                <input type="datetime-local" class="form-control" id="txtClsToDate" />
+                                <a href="javascript:void(0);" title="Clear and load defaults" onclick="fnClearClosedPosDateTimeFilters();" style="color: #dc3545;">
+                                    <i class="fa fa-times-circle" aria-hidden="true"></i>
+                                </a>
+                            </div>
+                            <div class="col-lg-1" style="text-align: right;">
                                 <a data-bs-toggle="collapse" href="#divClosedPosClps" role="button" aria-expanded="true" aria-controls="divClosedPosClps">
                                     <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
                                 </a>
@@ -495,28 +544,23 @@
                         <div class="collapse show" id="divClosedPosClps">
                             <div class="container-fluid">
                                 <div class="table-responsive">
-                                    <table class="table">
+                                    <table class="table table-sm table-hover">
                                         <thead>
                                             <tr style="text-align:center;">
-                                                <th scope="col" style="text-wrap: nowrap;">Actions</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Delta</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Gamma</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Theta</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Vega</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Start Date Time</th>
+                                                <th scope="col" style="text-wrap: nowrap;">End Date Time</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Symbol</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Tr Type</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Lot Sz</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Qty</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
+                                                <th scope="col" style="text-wrap: nowrap;">Capital</th>
                                                 <th scope="col" style="text-wrap: nowrap;">Charges</th>
                                                 <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Start DT</th>
-                                                <th scope="col" style="text-wrap: nowrap;">End DT</th>
-                                                <th scope="col" style="text-wrap: nowrap;">Status</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="tBodyClosedTrades">
+                                        <tbody id="tBodyTodayPaperTrades">
 
                                         </tbody>
                                     </table>
@@ -576,49 +620,11 @@
     </div>
 </div>
 
-<div class="modal fade text-left" id="mdlFetchLivePos" tabindex="-1" role="dialog" aria-labelledby="mdlFetchLivePosLabel">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-secondary">
-                <h5 class="modal-title" id="mdlFetchLivePosLabel">Fetch Live Open Positions</h5>
-                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
-            </div>
-            <div class="modal-body">
-                <div class="row" style="margin-bottom: 10px;">
-                    <div class="col-12" style="text-align: right;">
-                        <label for="chkReplaceExistingLivePos" style="margin-right: 8px; cursor: pointer;">Replace existing symbol legs</label>
-                        <input type="checkbox" id="chkReplaceExistingLivePos" style="cursor: pointer;" />
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr style="text-align:center;">
-                                <th scope="col"><input type="checkbox" id="chkFetchAllLivePos" onchange="fnToggleSelectAllFetchLivePos(this.checked);" /></th>
-                                <th scope="col">Symbol</th>
-                                <th scope="col">Type</th>
-                                <th scope="col">Side</th>
-                                <th scope="col">Qty</th>
-                                <th scope="col">Entry</th>
-                                <th scope="col">Best Ask</th>
-                                <th scope="col">Best Bid</th>
-                                <th scope="col">U-PnL</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tBodyFetchLivePos"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="fnAddSelectedLivePosToLocal();">Add Selected</button>
-            </div>
-        </div>
-    </div>
-</div>
+<%- include('partials/LiveStrategyFOGreeksSettings.ejs') %>
 
-<%- include('partials/Strategy1FOSettings.ejs') %>
+<script src="/js/LiveStrategyFOGreeks.js"></script>
+<script src="/js/LiveStrategyFOGreeksSettings.js"></script>
 
-<script src="/js/Strategy3FO.js"></script>
-<script src="/js/Strategy3FOSettings.js"></script>
+
+
 

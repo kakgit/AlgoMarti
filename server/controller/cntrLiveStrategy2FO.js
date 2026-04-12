@@ -656,11 +656,18 @@ exports.fnGetFilledOrderHistory = async (req, res) => {
 
 const fnGetSymbolDetails = async (pApiKey, pApiSecret, pUAssetSymbol, pTransType, pOptType, pLotSize, pLotQty, pPointsTP, pPointsSL) => {
     const objPromise = new Promise((resolve, reject) => {
+        // Construct the symbol based on option type
+        let vSymbol = pUAssetSymbol;
+        let vQueryStr = "";
+        if (pOptType !== "C" && pOptType !== "P") {
+            // For futures, use the futures symbol format and contract type
+            vSymbol = pUAssetSymbol + "USD";
+            vQueryStr = "?contract_type=perpetual_futures";
+        }
+        
         const vMethod = "GET";
-        const vPath = '/v2/tickers/' + pUAssetSymbol;
+        const vPath = '/v2/tickers/' + vSymbol;
         const vTimeStamp = Math.floor(new Date().getTime() / 1000);
-
-        const vQueryStr = "";
         const vBody = "";
         const vSignature = fnGetSignature(pApiSecret, vMethod, vPath, vQueryStr, vTimeStamp, vBody);
         let config = {
@@ -685,18 +692,19 @@ const fnGetSymbolDetails = async (pApiKey, pApiSecret, pUAssetSymbol, pTransType
             let vBestBuyPrice = parseFloat(objRes.result.quotes.best_ask);
             let vBestSellPrice = parseFloat(objRes.result.quotes.best_bid);
             let vRateTP, vRateSL = 0;
-            let vFutDeltaAbs = 0.10;
-            let vFutDelta = vFutDeltaAbs;
+            // For futures hedging: 1 contract = 1.0 delta (or -1.0 for short)
+            // LotQty represents the number of contracts, so delta = ±1.0 per contract
+            let vFutDelta = 0;
 
             if(pTransType === "buy"){
                 vRateTP = vBestBuyPrice + parseFloat(pPointsTP);
                 vRateSL = vBestBuyPrice - parseFloat(pPointsSL);
-                vFutDelta = vFutDeltaAbs;
+                vFutDelta = 1.0;  // BUY futures = +1.0 delta per contract
             }
             else if(pTransType === "sell"){
                 vRateTP = vBestSellPrice - parseFloat(pPointsTP);
                 vRateSL = vBestSellPrice + parseFloat(pPointsSL);
-                vFutDelta = -vFutDeltaAbs;
+                vFutDelta = -1.0;  // SELL futures = -1.0 delta per contract
             }
 
             let objFutLeg = { TradeID : vTradeId, ProductID : objRes.result.product_id, UndrAsstSymb : objRes.result.underlying_asset_symbol, ContType : objRes.result.contract_type, TransType: pTransType, OptionType : pOptType, Delta : vFutDelta, DeltaC : vFutDelta, BestAsk : vBestBuyPrice, BestBid : vBestSellPrice, Strike : parseInt(objRes.result.spot_price), Symbol : objRes.result.symbol, LotSize : pLotSize, LotQty : parseFloat(pLotQty), PointsTP : parseFloat(pPointsTP), PointsSL : parseFloat(pPointsSL), RateTP : vRateTP, RateSL : vRateSL };
