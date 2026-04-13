@@ -59,11 +59,13 @@ let gManualPrevGreenSeedActive = false;
 let gManualPrevRedSeedActive = false;
 let gCurrStrats = { StratsData : [{StratID : 1, NewSellCE : true, NewSellPE : true, StartQty1 : 75, NewDelta1 : 0.25, ReDelta1 : 0.25, DeltaTP1 : 0.12, DeltaSL1 : 0.42, NewBuyCE : true, NewBuyPE : true, StartQty2 : 50, NewDelta2 : 0.12, ReDelta2 : 0.12, DeltaTP2 : 0.25, DeltaSL2 : 0.06, StartQty3 : 25, NewDelta3 : 0.06, ReDelta3 : 0.06, DeltaTP3 : 0.14, DeltaSL3 : 0.03, SellAction : "sell", SellLegSide : "both", BuyAction : "buy", BuyLegSide : "both", Action3 : "buy", LegSide3 : "both" }]};
 let gCurrFutStrats = { StratsData : [{StratID : 11, StartFutQty : 1, PointsSL : 100, PointsTP : 200, PointsTSL : 0 }]};
-let gOtherFlds = [{ BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtBrokRec : false, BrokX4Profit : 2, LossRecPerct : 100, MultiplierX : 1.0, ReLegBrok : false, ReLeg1 : true, ReLeg2 : true, ReLeg3 : false }];
+let gOtherFlds = [{ BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtBrokRec : false, BrokX4Profit : 2, LossRecPerct : 100, MultiplierX : 1.0, ReLegBrok : false, SwtBlockMarginRec : false, BlockMarginProfitPct : 10, ReLegBlockMargin : false, ReLeg1 : true, ReLeg2 : true, ReLeg3 : false }];
 let gS2OrderPlacementEnabled = true;
 let gRenkoSpreadExecBusy = false;
 let gBrokReEntryTimer = null;
 let gBrokReEntryCooldownMs = 900000;
+let gBlockMarginReEntryTimer = null;
+let gBlockMarginReEntryCooldownMs = 900000;
 
 function fnIsS2OrderPlacementEnabled(pSilent = false){
     if(gS2OrderPlacementEnabled){
@@ -81,6 +83,14 @@ function fnClearBrokerageReEntrySchedule(){
         gBrokReEntryTimer = null;
     }
     localStorage.removeItem("S2FO_BrokReEntryAt");
+}
+
+function fnClearBlockMarginReEntrySchedule(){
+    if(gBlockMarginReEntryTimer){
+        clearTimeout(gBlockMarginReEntryTimer);
+        gBlockMarginReEntryTimer = null;
+    }
+    localStorage.removeItem("S2FO_BlockMarginReEntryAt");
 }
 
 function fnRunBrokerageReEntry(){
@@ -132,6 +142,57 @@ function fnRestoreBrokerageReEntrySchedule(){
         clearTimeout(gBrokReEntryTimer);
     }
     gBrokReEntryTimer = setTimeout(fnRunBrokerageReEntry, vDelayMs);
+}
+
+function fnRunBlockMarginReEntry(){
+    fnClearBlockMarginReEntrySchedule();
+    const objChkReLeg = document.getElementById("chkReLegBlockMargin");
+    const bReEntryEnabled = !!(objChkReLeg ? objChkReLeg.checked : gOtherFlds?.[0]?.ReLegBlockMargin);
+
+    if(!bReEntryEnabled){
+        fnGenMessage("Blocked margin re-entry skipped because Re Enter is disabled.", "badge bg-warning", "spnGenMsg");
+        return;
+    }
+
+    if(gCurrPosDSSDV2 && Array.isArray(gCurrPosDSSDV2.TradeData) && gCurrPosDSSDV2.TradeData.some(objLeg => objLeg.Status === "OPEN")){
+        fnGenMessage("Blocked margin re-entry skipped because open positions already exist.", "badge bg-warning", "spnGenMsg");
+        return;
+    }
+
+    if(!fnIsS2OrderPlacementEnabled()){
+        return;
+    }
+
+    fnGenMessage("Blocked margin profit cooldown completed. Re-entering configured option legs.", "badge bg-warning", "spnGenMsg");
+    fnExecAllLegs();
+}
+
+function fnScheduleBlockMarginReEntry(){
+    fnClearBlockMarginReEntrySchedule();
+
+    const vRunAt = Date.now() + gBlockMarginReEntryCooldownMs;
+    localStorage.setItem("S2FO_BlockMarginReEntryAt", String(vRunAt));
+
+    gBlockMarginReEntryTimer = setTimeout(fnRunBlockMarginReEntry, gBlockMarginReEntryCooldownMs);
+    fnGenMessage("Blocked margin profit target hit. Re-entry scheduled after 15 minutes.", "badge bg-warning", "spnGenMsg");
+}
+
+function fnRestoreBlockMarginReEntrySchedule(){
+    const vRunAt = Number(localStorage.getItem("S2FO_BlockMarginReEntryAt"));
+    if(!Number.isFinite(vRunAt) || vRunAt <= 0){
+        return;
+    }
+
+    const vDelayMs = vRunAt - Date.now();
+    if(vDelayMs <= 0){
+        gBlockMarginReEntryTimer = setTimeout(fnRunBlockMarginReEntry, 1000);
+        return;
+    }
+
+    if(gBlockMarginReEntryTimer){
+        clearTimeout(gBlockMarginReEntryTimer);
+    }
+    gBlockMarginReEntryTimer = setTimeout(fnRunBlockMarginReEntry, vDelayMs);
 }
 
 window.addEventListener("DOMContentLoaded", function(){
@@ -1678,6 +1739,7 @@ function fnGetAllStatus(){
     }
     fnLoadRenkoFeedSettings();
     fnRestoreBrokerageReEntrySchedule();
+    fnRestoreBlockMarginReEntrySchedule();
 }
 
 function fnLoadDefQty(){
@@ -1772,6 +1834,9 @@ function fnLoadHiddenFlds(){
     let objSwtBrokerage = document.getElementById("swtBrokRecvry");
     let objTxtBrokVal = document.getElementById("txtXBrok2Rec");
     let objChkReLeg = document.getElementById("chkReLegBrok");
+    let objSwtBlockMargin = document.getElementById("swtBlockMarginRec");
+    let objTxtBlockMarginPct = document.getElementById("txtXBlockMarginRec");
+    let objChkReLegBlockMargin = document.getElementById("chkReLegBlockMargin");
 
     let objchkReLeg1 = document.getElementById("chkReLeg1");
     let objchkReLeg2 = document.getElementById("chkReLeg2");
@@ -1785,6 +1850,9 @@ function fnLoadHiddenFlds(){
         objSwtBrokerage.checked = objHidFlds[0]["SwtBrokRec"]; 
         objTxtBrokVal.value = objHidFlds[0]["BrokX4Profit"];
         objChkReLeg.checked = objHidFlds[0]["ReLegBrok"]; 
+        objSwtBlockMargin.checked = objHidFlds[0]["SwtBlockMarginRec"] || false;
+        objTxtBlockMarginPct.value = objHidFlds[0]["BlockMarginProfitPct"] ?? 10;
+        objChkReLegBlockMargin.checked = objHidFlds[0]["ReLegBlockMargin"] || false;
 
         objchkReLeg1.checked = objHidFlds[0]["ReLeg1"]; 
         objchkReLeg2.checked = objHidFlds[0]["ReLeg2"]; 
@@ -1798,6 +1866,9 @@ function fnLoadHiddenFlds(){
         objSwtBrokerage.checked = gOtherFlds[0]["SwtBrokRec"]; 
         objTxtBrokVal.value = gOtherFlds[0]["BrokX4Profit"];
         objChkReLeg.checked = gOtherFlds[0]["ReLegBrok"]; 
+        objSwtBlockMargin.checked = gOtherFlds[0]["SwtBlockMarginRec"] || false;
+        objTxtBlockMarginPct.value = gOtherFlds[0]["BlockMarginProfitPct"] ?? 10;
+        objChkReLegBlockMargin.checked = gOtherFlds[0]["ReLegBlockMargin"] || false;
 
         objchkReLeg1.checked = gOtherFlds[0]["ReLeg1"]; 
         objchkReLeg2.checked = gOtherFlds[0]["ReLeg2"]; 
@@ -1816,6 +1887,9 @@ function fnUpdHidFldSettings(pThisVal, pHidFldParam, pFieldMsg){
 
         if(pHidFldParam === "ReLegBrok" && !pThisVal){
             fnClearBrokerageReEntrySchedule();
+        }
+        if(pHidFldParam === "ReLegBlockMargin" && !pThisVal){
+            fnClearBlockMarginReEntrySchedule();
         }
 
         fnGenMessage("Value Changed Successfully for " + pFieldMsg, `badge bg-success`, "spnGenMsg");
@@ -2313,6 +2387,8 @@ function fnLoadCurrentTradePos(){
     else{
         fnSetSymbolTickerList();
     }
+
+    fnRenderBlockedMargin();
 }
 
 function fnLoadClosedPostions(){
@@ -2711,6 +2787,14 @@ async function fnSaveUpdCurrPos(){
         return;
     }
 
+    if(fnShouldAutoCloseOnBlockedMarginProfit(vTotalPL)){
+        gReLeg = false;
+        gReLegCfgRow = 0;
+        fnExitAllPositions("blockmargin");
+        fnGenMessage("All open positions closed after reaching the blocked-margin profit target.", "badge bg-success", "spnGenMsg");
+        return;
+    }
+
     for(let i=0; i<gCurrPosDSSDV2.TradeData.length; i++){
             if(gCurrPosDSSDV2.TradeData[i].Status === "OPEN"){
                 let vOptionTypeZZ = gCurrPosDSSDV2.TradeData[i].OptionType;
@@ -2926,11 +3010,17 @@ function fnExitAllPositions(pReason = "manual"){
     fnUpdateOpenPositions();
     fnDispClosedPositions();
 
+    const objChkReLegBlockMargin = document.getElementById("chkReLegBlockMargin");
+
     if(pReason === "brokerage" && objChkReLeg && objChkReLeg.checked){
         fnScheduleBrokerageReEntry();
     }
+    else if(pReason === "blockmargin" && objChkReLegBlockMargin && objChkReLegBlockMargin.checked){
+        fnScheduleBlockMarginReEntry();
+    }
     else{
         fnClearBrokerageReEntrySchedule();
+        fnClearBlockMarginReEntrySchedule();
     }
 }
 
@@ -3116,10 +3206,10 @@ function fnLoadExpiryDate(pExpiryMode, objExpiry){
         objExpiry.value = vExpValTB;
     }
     else if(pExpiryMode === "4"){
-        // Weekly expiry is Friday, rolled by Tuesday cutoff (EOD).
+        // Weekly expiry is Friday, rolled to next Friday from Tuesday onward.
         const vCurrDayOfWeek = vCurrDate.getDay();
-        const vDaysToNextTuesday = (2 - vCurrDayOfWeek + 7) % 7;
-        const vDaysToWeeklyFriday = vDaysToNextTuesday + 3;
+        const vDaysToThisFriday = (5 - vCurrDayOfWeek + 7) % 7;
+        const vDaysToWeeklyFriday = (vCurrDayOfWeek >= 2) ? (vDaysToThisFriday + 7) : vDaysToThisFriday;
 
         vCurrFriday.setDate(vCurrDate.getDate() + vDaysToWeeklyFriday);
         let vDay = (vCurrFriday.getDate()).toString().padStart(2, "0");
@@ -3129,10 +3219,10 @@ function fnLoadExpiryDate(pExpiryMode, objExpiry){
         objExpiry.value = vExpValTB;
     }
     else if(pExpiryMode === "5"){
-        // Bi-weekly expiry is the following Friday after weekly (Tuesday cutoff based).
+        // Bi-weekly expiry is one Friday after the weekly target, rolled from Tuesday onward.
         const vCurrDayOfWeek = vCurrDate.getDay();
-        const vDaysToNextTuesday = (2 - vCurrDayOfWeek + 7) % 7;
-        const vDaysToBiWeeklyFriday = vDaysToNextTuesday + 10;
+        const vDaysToThisFriday = (5 - vCurrDayOfWeek + 7) % 7;
+        const vDaysToBiWeeklyFriday = (vCurrDayOfWeek >= 2) ? (vDaysToThisFriday + 14) : (vDaysToThisFriday + 7);
 
         vNextFriday.setDate(vCurrDate.getDate() + vDaysToBiWeeklyFriday);
         let vDay = (vNextFriday.getDate()).toString().padStart(2, "0");
@@ -3194,6 +3284,10 @@ function fnSetDDMMYYYY(pDateToConv){
 }
 
 function fnExecAllLegs(){
+    fnUpdateSellExpiryMode();
+    fnUpdateBuyExpiryMode();
+    fnUpdateExpiryMode3();
+
     let objSellAction = document.getElementById("ddlAction1");
     let objBuyAction = document.getElementById("ddlAction2");
     let objAction3 = document.getElementById("ddlAction3");
@@ -3862,7 +3956,7 @@ function fnShouldCloseFuturePosition(objTrade, pCurrPrice){
     return false;
 }
 
-async function fnPreInitAutoTrade(pOptionType, pTransType, pCfgRow){
+async function fnPreInitAutoTrade(pOptionType, pTransType, pCfgRow, pUseReDelta = false){
     if(!fnIsS2OrderPlacementEnabled()){
         return false;
     }
@@ -3888,6 +3982,7 @@ async function fnPreInitAutoTrade(pOptionType, pTransType, pCfgRow){
     let vLotQty = objCtx.objQty.value;
     let vDeltaNPos = objCtx.objNewDelta.value;
     let vDeltaRePos = objCtx.objReDelta.value;
+    let vDeltaSearchPos = pUseReDelta ? vDeltaRePos : vDeltaNPos;
     let vDeltaTP = objCtx.objTP.value;
     let vDeltaSL = objCtx.objSL.value;
 
@@ -3903,7 +3998,7 @@ async function fnPreInitAutoTrade(pOptionType, pTransType, pCfgRow){
         const bCycleStart = !(gCurrPosDSSDV2 && Array.isArray(gCurrPosDSSDV2.TradeData) && gCurrPosDSSDV2.TradeData.some(objLeg => objLeg.Status === "OPEN"));
         let vUndrAsst = objSymbol.value;
 
-        let objTradeDtls = await fnExecOptionLeg(objApiKey.value, objApiSecret.value, objOrderType.value, vUndrAsst, vExpiryNewPos, pOptionType, pTransType, objLotSize.value, vLotQty, vDeltaNPos, vDeltaRePos, vDeltaTP, vDeltaSL);
+        let objTradeDtls = await fnExecOptionLeg(objApiKey.value, objApiSecret.value, objOrderType.value, vUndrAsst, vExpiryNewPos, pOptionType, pTransType, objLotSize.value, vLotQty, vDeltaSearchPos, vDeltaRePos, vDeltaTP, vDeltaSL);
 
         if(objTradeDtls.status === "success"){
             let vDate = new Date();
@@ -4457,12 +4552,12 @@ function fnUpdateOpenPositions(){
                 }
                 let vDeltaDisplay = vDelta * vGreekFactor;
                 let vDeltaCDisplay = vDeltaC * vGreekFactor;
-                let vGammaDisplay = vGamma * vGreekFactor;
-                let vGammaCDisplay = vGammaC * vGreekFactor;
-                let vThetaDisplay = vTheta * vGreekFactor;
-                let vThetaCDisplay = vThetaC * vGreekFactor;
-                let vVegaDisplay = vVega * vGreekFactor;
-                let vVegaCDisplay = vVegaC * vGreekFactor;
+                let vGammaDisplay = vGamma;
+                let vGammaCDisplay = vGammaC;
+                let vThetaDisplay = vTheta;
+                let vThetaCDisplay = vThetaC;
+                let vVegaDisplay = vVega;
+                let vVegaCDisplay = vVegaC;
 
                 if(vStatus === "OPEN"){
                     vTotalTrades += 1;
@@ -4545,6 +4640,7 @@ function fnUpdateOpenPositions(){
         }
         fnUpdatePayoffGraph();
         fnDispClosedPositions();
+        fnRenderBlockedMargin();
     }
 }
 
@@ -4626,12 +4722,12 @@ function fnDispClosedPositions(){
         }
         let vDeltaDisplay = vDelta * vGreekFactor;
         let vDeltaCDisplay = vDeltaC * vGreekFactor;
-        let vGammaDisplay = vGamma * vGreekFactor;
-        let vGammaCDisplay = vGammaC * vGreekFactor;
-        let vThetaDisplay = vTheta * vGreekFactor;
-        let vThetaCDisplay = vThetaC * vGreekFactor;
-        let vVegaDisplay = vVega * vGreekFactor;
-        let vVegaCDisplay = vVegaC * vGreekFactor;
+        let vGammaDisplay = vGamma;
+        let vGammaCDisplay = vGammaC;
+        let vThetaDisplay = vTheta;
+        let vThetaCDisplay = vThetaC;
+        let vVegaDisplay = vVega;
+        let vVegaCDisplay = vVegaC;
 
         vTotalTrades += 1;
         vTotalCharges += parseFloat(vCharges);
@@ -4740,6 +4836,88 @@ function fnGetTradePL(pBuyPrice, pSellPrice, pLotSize, pQty, pCharges){
     return vPL;
 }
 
+function fnGetLegMarginRefPrice(objLeg){
+    const objPrices = [
+        Number(objLeg?.BuyPrice),
+        Number(objLeg?.SellPrice),
+        Number(gSymbBRateList?.[objLeg?.Symbol]),
+        Number(gSymbSRateList?.[objLeg?.Symbol])
+    ].filter(vVal => Number.isFinite(vVal) && vVal > 0);
+
+    if(objPrices.length === 0){
+        return 0;
+    }
+
+    return Math.max(...objPrices);
+}
+
+function fnEstimateBlockedMargin(){
+    if(!gCurrPosDSSDV2 || !Array.isArray(gCurrPosDSSDV2.TradeData)){
+        return 0;
+    }
+
+    const vFuturesMarginRate = 0.12;
+    const vOptionShortMarginFactor = 1.25;
+    const vSpreadCreditRate = 0.5;
+    let vBlockedMargin = 0;
+    const objOptionBuckets = {};
+
+    for(let i=0; i<gCurrPosDSSDV2.TradeData.length; i++){
+        const objLeg = gCurrPosDSSDV2.TradeData[i];
+        if(!objLeg || objLeg.Status !== "OPEN"){
+            continue;
+        }
+
+        const vQty = Math.abs(Number(objLeg.LotQty) || 0);
+        const vLotSize = Math.abs(Number(objLeg.LotSize) || 0);
+        const vRefPrice = fnGetLegMarginRefPrice(objLeg);
+        const vNotional = vRefPrice * vLotSize * vQty;
+
+        if(!Number.isFinite(vNotional) || vNotional <= 0){
+            continue;
+        }
+
+        if(objLeg.OptionType === "F"){
+            vBlockedMargin += vNotional * vFuturesMarginRate;
+            continue;
+        }
+
+        const vBucketKey = `${objLeg.UndrAsstSymb || ""}|${objLeg.Expiry || ""}|${objLeg.OptionType || ""}`;
+        if(!objOptionBuckets[vBucketKey]){
+            objOptionBuckets[vBucketKey] = { longNotional: 0, shortNotional: 0 };
+        }
+
+        if(String(objLeg.TransType).toLowerCase() === "buy"){
+            objOptionBuckets[vBucketKey].longNotional += vNotional;
+        }
+        else if(String(objLeg.TransType).toLowerCase() === "sell"){
+            objOptionBuckets[vBucketKey].shortNotional += vNotional;
+        }
+    }
+
+    const objBucketKeys = Object.keys(objOptionBuckets);
+    for(let i=0; i<objBucketKeys.length; i++){
+        const objBucket = objOptionBuckets[objBucketKeys[i]];
+        const vLongMargin = objBucket.longNotional;
+        const vShortMargin = objBucket.shortNotional * vOptionShortMarginFactor;
+        const vSpreadCredit = Math.min(objBucket.longNotional, objBucket.shortNotional * vSpreadCreditRate);
+
+        vBlockedMargin += Math.max(0, vLongMargin + vShortMargin - vSpreadCredit);
+    }
+
+    return vBlockedMargin;
+}
+
+function fnRenderBlockedMargin(){
+    const objBlockedMargin = document.getElementById("divBlockedMargin");
+    if(!objBlockedMargin){
+        return;
+    }
+
+    const vBlockedMargin = fnEstimateBlockedMargin();
+    objBlockedMargin.innerText = Number.isFinite(vBlockedMargin) ? vBlockedMargin.toFixed(2) : "0.00";
+}
+
 function fnShouldAutoCloseOnBrokerageProfit(pNetPL){
     const objBrokSwt = document.getElementById("swtBrokRecvry");
     const objBrokX = document.getElementById("txtXBrok2Rec");
@@ -4765,6 +4943,31 @@ function fnShouldAutoCloseOnBrokerageProfit(pNetPL){
     }
 
     return Number(pNetPL) >= (vBrokAmt * vBrokX);
+}
+
+function fnShouldAutoCloseOnBlockedMarginProfit(pNetPL){
+    const objMarginSwt = document.getElementById("swtBlockMarginRec");
+    const objMarginPct = document.getElementById("txtXBlockMarginRec");
+
+    const bEnabled = !!(objMarginSwt ? objMarginSwt.checked : gOtherFlds?.[0]?.SwtBlockMarginRec);
+    if(!bEnabled){
+        return false;
+    }
+
+    let vPct = parseFloat(objMarginPct?.value);
+    if(!Number.isFinite(vPct)){
+        vPct = parseFloat(gOtherFlds?.[0]?.BlockMarginProfitPct);
+    }
+    if(!Number.isFinite(vPct) || vPct <= 0){
+        return false;
+    }
+
+    const vBlockedMargin = fnEstimateBlockedMargin();
+    if(!Number.isFinite(vBlockedMargin) || vBlockedMargin <= 0){
+        return false;
+    }
+
+    return Number(pNetPL) >= (vBlockedMargin * (vPct / 100));
 }
 
 function fnHasOpenFuturesPosition(){
@@ -4908,7 +5111,7 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
             let vReRow = gReLegCfgRow;
             gReLeg = false;
             gReLegCfgRow = 0;
-            fnPreInitAutoTrade(pOptionType, pTransType, vReRow);
+            fnPreInitAutoTrade(pOptionType, pTransType, vReRow, true);
         }
     }
 }
@@ -5082,6 +5285,7 @@ function fnDelLeg(pLegID){
 
 function fnClearLocalStorageTemp(){
     fnClearBrokerageReEntrySchedule();
+    fnClearBlockMarginReEntrySchedule();
     fnStopRenkoFeedWS();
     gRenkoPatternSeq = "";
     gRenkoFeedLastDir = 0;
@@ -5128,6 +5332,7 @@ function fnClearLocalStorageTemp(){
     let objBrokAmt = document.getElementById("txtBrok2Rec");
     let objTotPnl = document.getElementById("txtYet2Recvr");
     let objNetPnl = document.getElementById("divNetPL");
+    let objBlockedMargin = document.getElementById("divBlockedMargin");
     if(objBrokAmt){
         objBrokAmt.value = 0;
     }
@@ -5136,6 +5341,9 @@ function fnClearLocalStorageTemp(){
     }
     if(objNetPnl){
         objNetPnl.innerText = "0.00";
+    }
+    if(objBlockedMargin){
+        objBlockedMargin.innerText = "0.00";
     }
     if(Array.isArray(gOtherFlds) && gOtherFlds[0]){
         gOtherFlds[0]["BrokerageAmt"] = 0;
