@@ -2777,6 +2777,7 @@ async function fnSaveUpdCurrPos(){
                         vOptionType = gCurrPosDSSDV2.TradeData[i].OptionType;
                         vSymbol = gCurrPosDSSDV2.TradeData[i].Symbol;
                         vToPosClose = true;
+                        break;
                     }
                     continue;
                 }
@@ -2808,6 +2809,7 @@ async function fnSaveUpdCurrPos(){
                             gReLeg = true;
                             gReLegCfgRow = 1;
                         }
+                        break;
                     }
                 }
                 else if(gCurrPosDSSDV2.TradeData[i].TransType === "buy"){
@@ -2837,6 +2839,7 @@ async function fnSaveUpdCurrPos(){
                             gReLeg = true;
                             gReLegCfgRow = 2;
                         }
+                        break;
                     }
                 }
             }
@@ -2845,14 +2848,8 @@ async function fnSaveUpdCurrPos(){
         fnUpdateOpenPositions();
 
         if(vToPosClose){
-            // SL/TP hit on any open leg: close all open legs and wait for fresh signal.
-            gReLeg = false;
-            gReLegCfgRow = 0;
-
-            let objOpenLegs = gCurrPosDSSDV2.TradeData.filter(objLeg => objLeg.Status === "OPEN");
-            for(let i=0; i<objOpenLegs.length; i++){
-                await fnCloseOptPosition(objOpenLegs[i].TradeID, objOpenLegs[i].TransType, objOpenLegs[i].OptionType, objOpenLegs[i].Symbol, "CLOSED");
-            }
+            // SL/TP hit: close only the triggered leg and keep other legs, including futures, running.
+            await fnCloseOptPosition(vLegID, vTransType, vOptionType, vSymbol, "CLOSED");
         }
 
         // Check delta neutrality after position updates
@@ -4911,12 +4908,7 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
             let vReRow = gReLegCfgRow;
             gReLeg = false;
             gReLegCfgRow = 0;
-            if(fnHasOpenFuturesPosition()){
-                fnPreInitAutoTrade(pOptionType, pTransType, vReRow);
-            }
-            else{
-                fnGenMessage(`Re-entry skipped for Row ${vReRow}: no open Futures position.`, `badge bg-warning`, "spnGenMsg");
-            }
+            fnPreInitAutoTrade(pOptionType, pTransType, vReRow);
         }
     }
 }
