@@ -62,6 +62,8 @@ let gCurrFutStrats = { StratsData : [{StratID : 11, StartFutQty : 1, PointsSL : 
 let gOtherFlds = [{ BrokerageAmt : 0, Yet2RecvrAmt : 0, SwtBrokRec : false, BrokX4Profit : 2, LossRecPerct : 100, MultiplierX : 1.0, ReLegBrok : false, ReLeg1 : true, ReLeg2 : true, ReLeg3 : false }];
 let gS2OrderPlacementEnabled = true;
 let gRenkoSpreadExecBusy = false;
+let gBrokReEntryTimer = null;
+let gBrokReEntryCooldownMs = 900000;
 
 function fnIsS2OrderPlacementEnabled(pSilent = false){
     if(gS2OrderPlacementEnabled){
@@ -71,6 +73,65 @@ function fnIsS2OrderPlacementEnabled(pSilent = false){
         fnGenMessage("Order placement is disabled in Strategy2FO (fresh-start mode).", "badge bg-warning", "spnGenMsg");
     }
     return false;
+}
+
+function fnClearBrokerageReEntrySchedule(){
+    if(gBrokReEntryTimer){
+        clearTimeout(gBrokReEntryTimer);
+        gBrokReEntryTimer = null;
+    }
+    localStorage.removeItem("S2FO_BrokReEntryAt");
+}
+
+function fnRunBrokerageReEntry(){
+    fnClearBrokerageReEntrySchedule();
+    const objChkReLeg = document.getElementById("chkReLegBrok");
+    const bReEntryEnabled = !!(objChkReLeg ? objChkReLeg.checked : gOtherFlds?.[0]?.ReLegBrok);
+
+    if(!bReEntryEnabled){
+        fnGenMessage("Brokerage re-entry skipped because Re Enter is disabled.", "badge bg-warning", "spnGenMsg");
+        return;
+    }
+
+    if(gCurrPosDSSDV2 && Array.isArray(gCurrPosDSSDV2.TradeData) && gCurrPosDSSDV2.TradeData.some(objLeg => objLeg.Status === "OPEN")){
+        fnGenMessage("Brokerage re-entry skipped because open positions already exist.", "badge bg-warning", "spnGenMsg");
+        return;
+    }
+
+    if(!fnIsS2OrderPlacementEnabled()){
+        return;
+    }
+
+    fnGenMessage("Brokerage profit cooldown completed. Re-entering configured option legs.", "badge bg-warning", "spnGenMsg");
+    fnExecAllLegs();
+}
+
+function fnScheduleBrokerageReEntry(){
+    fnClearBrokerageReEntrySchedule();
+
+    const vRunAt = Date.now() + gBrokReEntryCooldownMs;
+    localStorage.setItem("S2FO_BrokReEntryAt", String(vRunAt));
+
+    gBrokReEntryTimer = setTimeout(fnRunBrokerageReEntry, gBrokReEntryCooldownMs);
+    fnGenMessage("Brokerage profit target hit. Re-entry scheduled after 15 minutes.", "badge bg-warning", "spnGenMsg");
+}
+
+function fnRestoreBrokerageReEntrySchedule(){
+    const vRunAt = Number(localStorage.getItem("S2FO_BrokReEntryAt"));
+    if(!Number.isFinite(vRunAt) || vRunAt <= 0){
+        return;
+    }
+
+    const vDelayMs = vRunAt - Date.now();
+    if(vDelayMs <= 0){
+        gBrokReEntryTimer = setTimeout(fnRunBrokerageReEntry, 1000);
+        return;
+    }
+
+    if(gBrokReEntryTimer){
+        clearTimeout(gBrokReEntryTimer);
+    }
+    gBrokReEntryTimer = setTimeout(fnRunBrokerageReEntry, vDelayMs);
 }
 
 window.addEventListener("DOMContentLoaded", function(){
@@ -1585,6 +1646,7 @@ function fnUpdatePayoffGraph(){
 
 function fnGetAllStatus(){
 	let bAppStatus = JSON.parse(localStorage.getItem("AppMsgStatusS"));
+    fnLoadDeltaThresholdSettings();
     if(bAppStatus){
         fnConnectDFL();
         fnLoadLoginCred();
@@ -1615,6 +1677,7 @@ function fnGetAllStatus(){
         // fnLoadTotalLossAmtQty();
     }
     fnLoadRenkoFeedSettings();
+    fnRestoreBrokerageReEntrySchedule();
 }
 
 function fnLoadDefQty(){
@@ -1652,6 +1715,53 @@ function fnLoadDefFutStrategy(){
     }
 
     objFutQty.value = gCurrFutStrats.StratsData[0]["StartFutQty"];
+}
+
+function fnLoadDeltaThresholdSettings(){
+    const objNegThreshold = document.getElementById("txtNegDeltaThreshold");
+    const objPosThreshold = document.getElementById("txtPosDeltaThreshold");
+
+    if(!objNegThreshold || !objPosThreshold){
+        return;
+    }
+
+    const vSavedNeg = localStorage.getItem("S2FO_NegDeltaThreshold");
+    const vSavedPos = localStorage.getItem("S2FO_PosDeltaThreshold");
+    const vNeg = Number(vSavedNeg);
+    const vPos = Number(vSavedPos);
+
+    gNegDeltaThreshold = Number.isFinite(vNeg) ? vNeg : -10;
+    gPosDeltaThreshold = Number.isFinite(vPos) ? vPos : 10;
+
+    objNegThreshold.value = gNegDeltaThreshold;
+    objPosThreshold.value = gPosDeltaThreshold;
+}
+
+function fnUpdateDeltaThresholdSettings(pSilent = false){
+    const objNegThreshold = document.getElementById("txtNegDeltaThreshold");
+    const objPosThreshold = document.getElementById("txtPosDeltaThreshold");
+
+    if(!objNegThreshold || !objPosThreshold){
+        return;
+    }
+
+    const vNeg = Number(objNegThreshold.value);
+    const vPos = Number(objPosThreshold.value);
+
+    if(!Number.isFinite(vNeg) || !Number.isFinite(vPos)){
+        fnGenMessage("Please input valid delta thresholds!", "badge bg-warning", "spnGenMsg");
+        return;
+    }
+
+    gNegDeltaThreshold = vNeg;
+    gPosDeltaThreshold = vPos;
+
+    localStorage.setItem("S2FO_NegDeltaThreshold", String(gNegDeltaThreshold));
+    localStorage.setItem("S2FO_PosDeltaThreshold", String(gPosDeltaThreshold));
+
+    if(!pSilent){
+        fnGenMessage("Delta threshold settings updated successfully!", "badge bg-success", "spnGenMsg");
+    }
 }
 
 function fnLoadHiddenFlds(){
@@ -1703,6 +1813,10 @@ function fnUpdHidFldSettings(pThisVal, pHidFldParam, pFieldMsg){
         gOtherFlds[0][pHidFldParam] = pThisVal;
 
         localStorage.setItem("HidFldsDSSDV2", JSON.stringify(gOtherFlds));
+
+        if(pHidFldParam === "ReLegBrok" && !pThisVal){
+            fnClearBrokerageReEntrySchedule();
+        }
 
         fnGenMessage("Value Changed Successfully for " + pFieldMsg, `badge bg-success`, "spnGenMsg");
     }
@@ -2589,7 +2703,13 @@ async function fnSaveUpdCurrPos(){
 
     document.getElementById("divNetPL").innerText = (vTotalPL).toFixed(2);
 
-    // Removed brokerage threshold check as controls were removed
+    if(fnShouldAutoCloseOnBrokerageProfit(vTotalPL)){
+        gReLeg = false;
+        gReLegCfgRow = 0;
+        fnExitAllPositions("brokerage");
+        fnGenMessage("All open positions closed after reaching the brokerage-profit target.", "badge bg-success", "spnGenMsg");
+        return;
+    }
 
     for(let i=0; i<gCurrPosDSSDV2.TradeData.length; i++){
             if(gCurrPosDSSDV2.TradeData[i].Status === "OPEN"){
@@ -2743,7 +2863,7 @@ async function fnSaveUpdCurrPos(){
     }
 }
 
-function fnExitAllPositions(){
+function fnExitAllPositions(pReason = "manual"){
     let vDate = new Date();
     let vMonth = vDate.getMonth() + 1;
     let vToday = vDate.getDate() + "-" + vMonth + "-" + vDate.getFullYear() + " " + vDate.getHours() + ":" + vDate.getMinutes() + ":" + vDate.getSeconds();
@@ -2809,8 +2929,11 @@ function fnExitAllPositions(){
     fnUpdateOpenPositions();
     fnDispClosedPositions();
 
-    if(objChkReLeg){
-        setTimeout(fnExecAllLegs, 900000);
+    if(pReason === "brokerage" && objChkReLeg && objChkReLeg.checked){
+        fnScheduleBrokerageReEntry();
+    }
+    else{
+        fnClearBrokerageReEntrySchedule();
     }
 }
 
@@ -2936,7 +3059,7 @@ function fnExitAllOpenPositionsByBadge(){
 
     gReLeg = false;
     gReLegCfgRow = 0;
-    fnExitAllPositions();
+    fnExitAllPositions("manual");
     fnGenMessage("All Open Positions moved to Closed Positions.", `badge bg-success`, "spnGenMsg");
 }
 
@@ -4620,6 +4743,33 @@ function fnGetTradePL(pBuyPrice, pSellPrice, pLotSize, pQty, pCharges){
     return vPL;
 }
 
+function fnShouldAutoCloseOnBrokerageProfit(pNetPL){
+    const objBrokSwt = document.getElementById("swtBrokRecvry");
+    const objBrokX = document.getElementById("txtXBrok2Rec");
+    const objBrokAmt = document.getElementById("txtBrok2Rec");
+
+    const bEnabled = !!(objBrokSwt ? objBrokSwt.checked : gOtherFlds?.[0]?.SwtBrokRec);
+    if(!bEnabled){
+        return false;
+    }
+
+    let vBrokX = parseFloat(objBrokX?.value);
+    if(!Number.isFinite(vBrokX)){
+        vBrokX = parseFloat(gOtherFlds?.[0]?.BrokX4Profit);
+    }
+
+    let vBrokAmt = parseFloat(objBrokAmt?.value);
+    if(!Number.isFinite(vBrokAmt)){
+        vBrokAmt = parseFloat(gOtherFlds?.[0]?.BrokerageAmt);
+    }
+
+    if(!Number.isFinite(vBrokX) || !Number.isFinite(vBrokAmt) || vBrokX <= 0 || vBrokAmt <= 0){
+        return false;
+    }
+
+    return Number(pNetPL) >= (vBrokAmt * vBrokX);
+}
+
 function fnHasOpenFuturesPosition(){
     if(!gCurrPosDSSDV2 || !Array.isArray(gCurrPosDSSDV2.TradeData)){
         return false;
@@ -4939,6 +5089,7 @@ function fnDelLeg(pLegID){
 
 
 function fnClearLocalStorageTemp(){
+    fnClearBrokerageReEntrySchedule();
     fnStopRenkoFeedWS();
     gRenkoPatternSeq = "";
     gRenkoFeedLastDir = 0;
