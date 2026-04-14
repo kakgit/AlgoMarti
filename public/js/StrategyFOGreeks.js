@@ -52,6 +52,10 @@ let gPrevRenkoRedClose = NaN;
 // Delta hedging global variables
 let gNegDeltaThreshold = 0.0;
 let gPosDeltaThreshold = 0.0;
+let gNeutralMode = "delta";
+let gThetaNeutralBasePnl = 0.0;
+let gThetaNeutralLastTriggerPnl = 0.0;
+let gThetaNeutralRow1TradeId = "";
 let gLastHedgeTime = 0;
 let gHedgeCooldownMs = 5000; // 5 second cooldown between hedges
 let gLastRenkoColorCode = "";
@@ -1708,6 +1712,7 @@ function fnUpdatePayoffGraph(){
 function fnGetAllStatus(){
 	let bAppStatus = JSON.parse(localStorage.getItem("AppMsgStatusS"));
     fnLoadDeltaThresholdSettings();
+    fnLoadNeutralModeSettings();
     if(bAppStatus){
         fnConnectDFL();
         fnLoadLoginCred();
@@ -1740,6 +1745,107 @@ function fnGetAllStatus(){
     fnLoadRenkoFeedSettings();
     fnRestoreBrokerageReEntrySchedule();
     fnRestoreBlockMarginReEntrySchedule();
+}
+
+function fnLoadNeutralModeSettings(){
+    const objOnlyDelta = document.getElementById("swtOnlyDeltaNeutral");
+    const objThetaDelta = document.getElementById("swtThetaDeltaNeutral");
+    let vMode = String(localStorage.getItem("S2FO_NeutralMode") || "delta").toLowerCase();
+    if(vMode !== "delta" && vMode !== "theta" && vMode !== "none"){
+        vMode = "delta";
+    }
+    gNeutralMode = vMode;
+
+    if(objOnlyDelta){
+        objOnlyDelta.checked = (vMode === "delta");
+    }
+    if(objThetaDelta){
+        objThetaDelta.checked = (vMode === "theta");
+    }
+
+    let vBasePnl = Number(localStorage.getItem("S2FO_ThetaNeutralBasePnl"));
+    let vLastTriggerPnl = Number(localStorage.getItem("S2FO_ThetaNeutralLastTriggerPnl"));
+    gThetaNeutralBasePnl = Number.isFinite(vBasePnl) ? vBasePnl : 0;
+    gThetaNeutralLastTriggerPnl = Number.isFinite(vLastTriggerPnl) ? vLastTriggerPnl : gThetaNeutralBasePnl;
+    gThetaNeutralRow1TradeId = String(localStorage.getItem("S2FO_ThetaNeutralRow1TradeId") || "");
+}
+
+function fnToggleNeutralMode(pMode){
+    const objOnlyDelta = document.getElementById("swtOnlyDeltaNeutral");
+    const objThetaDelta = document.getElementById("swtThetaDeltaNeutral");
+    const vMode = String(pMode || "").toLowerCase();
+
+    if(vMode === "delta"){
+        if(objOnlyDelta?.checked){
+            gNeutralMode = "delta";
+            if(objThetaDelta){
+                objThetaDelta.checked = false;
+            }
+        }
+        else{
+            gNeutralMode = objThetaDelta?.checked ? "theta" : "none";
+        }
+    }
+    else if(vMode === "theta"){
+        if(objThetaDelta?.checked){
+            gNeutralMode = "theta";
+            if(objOnlyDelta){
+                objOnlyDelta.checked = false;
+            }
+        }
+        else{
+            gNeutralMode = objOnlyDelta?.checked ? "delta" : "none";
+        }
+    }
+
+    localStorage.setItem("S2FO_NeutralMode", gNeutralMode);
+    if(gNeutralMode === "theta"){
+        fnResetThetaNeutralTracking("mode_switch");
+    }
+    if(gNeutralMode === "delta"){
+        fnGenMessage("Only Delta Neutral mode enabled.", "badge bg-success", "spnGenMsg");
+    }
+    else if(gNeutralMode === "theta"){
+        fnGenMessage("Theta Delta Neutral mode enabled.", "badge bg-warning", "spnGenMsg");
+    }
+    else{
+        fnGenMessage("All neutral hedging modes are OFF.", "badge bg-warning", "spnGenMsg");
+    }
+}
+
+function fnGetThetaNeutralRow1Leg(){
+    if(!gCurrPosDSSDV2 || !Array.isArray(gCurrPosDSSDV2.TradeData)){
+        return null;
+    }
+    for(let i = 0; i < gCurrPosDSSDV2.TradeData.length; i++){
+        let objLeg = gCurrPosDSSDV2.TradeData[i];
+        if(!objLeg || objLeg.Status !== "OPEN"){
+            continue;
+        }
+        if(String(objLeg.OptionType || "").toUpperCase() === "F"){
+            continue;
+        }
+        if(parseInt(objLeg.CfgRow || 0) === 1){
+            return objLeg;
+        }
+    }
+    return null;
+}
+
+function fnResetThetaNeutralTracking(pReason = "reset", pBasePnl = null, pTradeId = ""){
+    let vBasePnl = Number(pBasePnl);
+    if(!Number.isFinite(vBasePnl)){
+        vBasePnl = Number(gPL);
+    }
+    if(!Number.isFinite(vBasePnl)){
+        vBasePnl = 0;
+    }
+    gThetaNeutralBasePnl = vBasePnl;
+    gThetaNeutralLastTriggerPnl = vBasePnl;
+    gThetaNeutralRow1TradeId = String(pTradeId || "");
+    localStorage.setItem("S2FO_ThetaNeutralBasePnl", String(gThetaNeutralBasePnl));
+    localStorage.setItem("S2FO_ThetaNeutralLastTriggerPnl", String(gThetaNeutralLastTriggerPnl));
+    localStorage.setItem("S2FO_ThetaNeutralRow1TradeId", gThetaNeutralRow1TradeId);
 }
 
 function fnLoadDefQty(){
@@ -5778,16 +5884,17 @@ function calculateTotalDelta(){
 }
 
 // Execute delta hedging with futures
-async function executeDeltaHedge(pTotalDelta){
+async function executeDeltaHedge(pTotalDelta, pOpts = {}){
+    const bBypassThresholds = !!pOpts.bypassThresholds;
     // Check cooldown to prevent too frequent hedging
     let vNow = Date.now();
     if(vNow - gLastHedgeTime < gHedgeCooldownMs){
-        return;
+        return { status: "cooldown", hedged: false };
     }
     
     // Check if hedging is actually needed
-    if(pTotalDelta >= gNegDeltaThreshold && pTotalDelta <= gPosDeltaThreshold){
-        return; // No hedging needed - within acceptable range
+    if(!bBypassThresholds && pTotalDelta >= gNegDeltaThreshold && pTotalDelta <= gPosDeltaThreshold){
+        return { status: "within_threshold", hedged: false }; // No hedging needed - within acceptable range
     }
     
     let objApiKey = document.getElementById("txtUserAPIKey");
@@ -5797,7 +5904,7 @@ async function executeDeltaHedge(pTotalDelta){
     let objOrderType = document.getElementById("ddlOrderType");
     if(!objApiKey || !objApiSecret || !objSymbol || !objLotSize || !objOrderType){
         fnGenMessage("Missing required fields for delta hedging!", `badge bg-warning`, "spnGenMsg");
-        return;
+        return { status: "warning", hedged: false };
     }
     
     // Determine hedge direction and quantity
@@ -5825,7 +5932,7 @@ async function executeDeltaHedge(pTotalDelta){
     
     // Only hedge if quantity is at least 1 contract
     if(vHedgeQty < 1){
-        return;
+        return { status: "qty_below_one", hedged: false };
     }
     
     fnGenMessage(`Executing delta hedge: ${vHedgeTransType.toUpperCase()} ${vHedgeQty} contracts of BTCUSD to offset ${pTotalDelta > 0 ? '+' : ''}${pTotalDelta.toFixed(3)} delta`, `badge bg-info`, "spnGenMsg");
@@ -5905,18 +6012,65 @@ async function executeDeltaHedge(pTotalDelta){
             fnGenMessage(`Delta hedge executed successfully: ${vBuyOrSell} ${vLotQty} futures contracts`, `badge bg-success`, "spnGenMsg");
             gLastHedgeTime = Date.now(); // Update cooldown timestamp
             fnSendTelegramRuntimeAlert(`StrategyFOGreeks\nDelta Hedge Executed\nSide: ${vBuyOrSell}\nQty: ${vLotQty}\nTime: ${new Date().toLocaleString("en-GB")}`);
+            return { status: "success", hedged: true, qty: vLotQty, side: vBuyOrSell };
         }
         else{
             fnGenMessage("Delta hedge failed: " + objTradeResult.message, `badge bg-danger`, "spnGenMsg");
+            return { status: "failed", hedged: false, message: objTradeResult.message };
         }
     }
     catch(error){
         fnGenMessage("Error executing delta hedge: " + error.message, `badge bg-danger`, "spnGenMsg");
+        return { status: "error", hedged: false, message: error.message };
+    }
+}
+
+async function checkThetaDeltaNeutrality(){
+    const objRow1Leg = fnGetThetaNeutralRow1Leg();
+    if(!objRow1Leg){
+        fnResetThetaNeutralTracking("no_row1", gPL, "");
+        return;
+    }
+
+    const vTradeId = String(objRow1Leg.TradeID || "");
+    const vCurrNetPnl = Number(gPL);
+    const vSafeCurrNetPnl = Number.isFinite(vCurrNetPnl) ? vCurrNetPnl : 0;
+    const vThetaRaw = Number(objRow1Leg.ThetaC ?? objRow1Leg.Theta);
+    const vThetaThreshold = Math.abs(vThetaRaw);
+
+    if(gThetaNeutralRow1TradeId !== vTradeId){
+        fnResetThetaNeutralTracking("new_row1", vSafeCurrNetPnl, vTradeId);
+        return;
+    }
+
+    if(!Number.isFinite(vThetaThreshold) || vThetaThreshold <= 0){
+        return;
+    }
+
+    const vStepNetPnl = vSafeCurrNetPnl - gThetaNeutralLastTriggerPnl;
+    if(Math.abs(vStepNetPnl) < vThetaThreshold){
+        return;
+    }
+
+    const vTotalDelta = calculateTotalDelta();
+    const objHedge = await executeDeltaHedge(vTotalDelta, { bypassThresholds: true });
+    if(objHedge?.hedged){
+        gThetaNeutralLastTriggerPnl = vSafeCurrNetPnl;
+        localStorage.setItem("S2FO_ThetaNeutralLastTriggerPnl", String(gThetaNeutralLastTriggerPnl));
+        localStorage.setItem("S2FO_ThetaNeutralRow1TradeId", gThetaNeutralRow1TradeId);
+        fnGenMessage(`Theta-neutral hedge step executed. Step PnL ${vStepNetPnl.toFixed(2)} crossed Row1 theta ${vThetaThreshold.toFixed(4)}.`, "badge bg-success", "spnGenMsg");
     }
 }
 
 // Check delta neutrality and trigger hedging if needed
 async function checkDeltaNeutrality(){
+    if(gNeutralMode === "theta"){
+        await checkThetaDeltaNeutrality();
+        return;
+    }
+    if(gNeutralMode !== "delta"){
+        return;
+    }
     // Update threshold values from UI
     let objNegThreshold = document.getElementById("txtNegDeltaThreshold");
     let objPosThreshold = document.getElementById("txtPosDeltaThreshold");
