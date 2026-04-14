@@ -1768,6 +1768,7 @@ function fnLoadNeutralModeSettings(){
     gThetaNeutralBasePnl = Number.isFinite(vBasePnl) ? vBasePnl : 0;
     gThetaNeutralLastTriggerPnl = Number.isFinite(vLastTriggerPnl) ? vLastTriggerPnl : gThetaNeutralBasePnl;
     gThetaNeutralRow1TradeId = String(localStorage.getItem("S2FO_ThetaNeutralRow1TradeId") || "");
+    fnUpdateThetaNeutralDebugStatus();
 }
 
 function fnToggleNeutralMode(pMode){
@@ -1811,6 +1812,7 @@ function fnToggleNeutralMode(pMode){
     else{
         fnGenMessage("All neutral hedging modes are OFF.", "badge bg-warning", "spnGenMsg");
     }
+    fnUpdateThetaNeutralDebugStatus();
 }
 
 function fnGetThetaNeutralRow1Leg(){
@@ -1832,6 +1834,49 @@ function fnGetThetaNeutralRow1Leg(){
     return null;
 }
 
+function fnGetThetaNeutralThreshold(objLeg){
+    if(!objLeg){
+        return 0;
+    }
+
+    let vThetaPerUnit = Number(objLeg.ThetaC ?? objLeg.Theta);
+    if(!Number.isFinite(vThetaPerUnit)){
+        return 0;
+    }
+
+    const vLotSize = Math.abs(Number(objLeg.LotSize || 0));
+    const vLotQty = Math.abs(Number(objLeg.LotQty || objLeg.Qty || 0));
+    const vUnits = vLotSize * vLotQty;
+
+    if(Number.isFinite(vUnits) && vUnits > 0){
+        return Math.abs(vThetaPerUnit * vUnits);
+    }
+
+    return Math.abs(vThetaPerUnit);
+}
+
+function fnUpdateThetaNeutralDebugStatus(){
+    const objDbg = document.getElementById("divThetaNeutralDbg");
+    if(!objDbg){
+        return;
+    }
+
+    const objRow1Leg = fnGetThetaNeutralRow1Leg();
+    const vCurrNetPnl = Number(gPL);
+    const vSafeCurrNetPnl = Number.isFinite(vCurrNetPnl) ? vCurrNetPnl : 0;
+    const vLastTrigger = Number(gThetaNeutralLastTriggerPnl);
+    const vSafeLastTrigger = Number.isFinite(vLastTrigger) ? vLastTrigger : 0;
+    const vBasePnl = Number(gThetaNeutralBasePnl);
+    const vSafeBasePnl = Number.isFinite(vBasePnl) ? vBasePnl : 0;
+    const vStepNetPnl = vSafeCurrNetPnl - vSafeLastTrigger;
+    const vThetaThreshold = fnGetThetaNeutralThreshold(objRow1Leg);
+    const vRemaining = Number.isFinite(vThetaThreshold) && vThetaThreshold > 0 ? (vThetaThreshold - Math.abs(vStepNetPnl)) : 0;
+    const vTradeId = String(objRow1Leg?.TradeID || gThetaNeutralRow1TradeId || "-");
+    const vSymbol = String(objRow1Leg?.Symbol || "-");
+
+    objDbg.textContent = `ThetaMode: ${String(gNeutralMode || "none").toUpperCase()} | Row1: ${vSymbol}#${vTradeId} | NetPnL: ${vSafeCurrNetPnl.toFixed(2)} | BasePnL: ${vSafeBasePnl.toFixed(2)} | LastTriggerPnL: ${vSafeLastTrigger.toFixed(2)} | StepPnL: ${vStepNetPnl.toFixed(2)} | ThetaThreshold: ${vThetaThreshold.toFixed(4)} | Remaining: ${Math.max(0, vRemaining).toFixed(4)}`;
+}
+
 function fnResetThetaNeutralTracking(pReason = "reset", pBasePnl = null, pTradeId = ""){
     let vBasePnl = Number(pBasePnl);
     if(!Number.isFinite(vBasePnl)){
@@ -1846,6 +1891,7 @@ function fnResetThetaNeutralTracking(pReason = "reset", pBasePnl = null, pTradeI
     localStorage.setItem("S2FO_ThetaNeutralBasePnl", String(gThetaNeutralBasePnl));
     localStorage.setItem("S2FO_ThetaNeutralLastTriggerPnl", String(gThetaNeutralLastTriggerPnl));
     localStorage.setItem("S2FO_ThetaNeutralRow1TradeId", gThetaNeutralRow1TradeId);
+    fnUpdateThetaNeutralDebugStatus();
 }
 
 function fnLoadDefQty(){
@@ -2884,6 +2930,7 @@ async function fnSaveUpdCurrPos(){
     }
 
     document.getElementById("divNetPL").innerText = (vTotalPL).toFixed(2);
+    fnUpdateThetaNeutralDebugStatus();
 
     if(fnShouldAutoCloseOnBrokerageProfit(vTotalPL)){
         gReLeg = false;
@@ -4715,6 +4762,7 @@ function fnUpdateOpenPositions(){
             objCurrTradeList.innerHTML = vTempHtml;
             gPL = vNetPL;
         }
+        fnUpdateThetaNeutralDebugStatus();
         fnUpdatePayoffGraph();
         fnDispClosedPositions();
         fnRenderBlockedMargin();
@@ -6035,8 +6083,7 @@ async function checkThetaDeltaNeutrality(){
     const vTradeId = String(objRow1Leg.TradeID || "");
     const vCurrNetPnl = Number(gPL);
     const vSafeCurrNetPnl = Number.isFinite(vCurrNetPnl) ? vCurrNetPnl : 0;
-    const vThetaRaw = Number(objRow1Leg.ThetaC ?? objRow1Leg.Theta);
-    const vThetaThreshold = Math.abs(vThetaRaw);
+    const vThetaThreshold = fnGetThetaNeutralThreshold(objRow1Leg);
 
     if(gThetaNeutralRow1TradeId !== vTradeId){
         fnResetThetaNeutralTracking("new_row1", vSafeCurrNetPnl, vTradeId);
@@ -6058,7 +6105,8 @@ async function checkThetaDeltaNeutrality(){
         gThetaNeutralLastTriggerPnl = vSafeCurrNetPnl;
         localStorage.setItem("S2FO_ThetaNeutralLastTriggerPnl", String(gThetaNeutralLastTriggerPnl));
         localStorage.setItem("S2FO_ThetaNeutralRow1TradeId", gThetaNeutralRow1TradeId);
-        fnGenMessage(`Theta-neutral hedge step executed. Step PnL ${vStepNetPnl.toFixed(2)} crossed Row1 theta ${vThetaThreshold.toFixed(4)}.`, "badge bg-success", "spnGenMsg");
+        fnUpdateThetaNeutralDebugStatus();
+        fnGenMessage(`Theta-neutral hedge step executed. Step PnL ${vStepNetPnl.toFixed(2)} crossed Row1 theta threshold ${vThetaThreshold.toFixed(4)}.`, "badge bg-success", "spnGenMsg");
     }
 }
 
