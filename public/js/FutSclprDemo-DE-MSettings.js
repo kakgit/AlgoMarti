@@ -1,8 +1,8 @@
 
 function fnGetSetTraderLoginStatus(){
-    let vTraderStatus = localStorage.getItem("lsHLFSDLoginValid");
+    let vTraderStatus = localStorage.getItem("lsDFSDLoginValid");
     let objTraderStatus = document.getElementById("btnTraderStatus");
-    let lsPrevSessionDate = localStorage.getItem("lsHLFSDLoginDate");
+    let lsPrevSessionDate = localStorage.getItem("lsDFSDLoginDate");
 
     if(vTraderStatus === "true"){
         fnChangeBtnProps(objTraderStatus.id, "badge bg-success", "Trader - Valid");
@@ -10,6 +10,14 @@ function fnGetSetTraderLoginStatus(){
     else{
         fnChangeBtnProps(objTraderStatus.id, "badge bg-danger", "Trader - Invalid");
     }
+}
+
+function fnPersistFsDemApiCredentials(){
+    let objApiKey = document.getElementById("txtUserAPIKey");
+    let objApiSecret = document.getElementById("txtAPISecret");
+
+    localStorage.setItem("lsDFSDUserAPIKey", JSON.stringify(objApiKey?.value || ""));
+    localStorage.setItem("lsDFSDAPISecret", JSON.stringify(objApiSecret?.value || ""));
 }
 
 function fnShowTraderLoginMdl(objThis){
@@ -57,28 +65,30 @@ function fnValidateDeltaLogin(){
             redirect: 'follow'
         };
 
-        fetch("/hlFutSclprDemo/validateLogin", requestOptions)
+        fetch("/futSclprDemo-DE-M/validateLogin", requestOptions)
         .then(response => response.json())
         .then(objResult => {
             if(objResult.status === "success"){
                 console.log(objResult.data);
+                fnPersistFsDemApiCredentials();
 
                 let objBalances = { BalanceINR: objResult.data.result[0].available_balance_inr, BalanceUSD: objResult.data.result[0].available_balance };
-                localStorage.setItem("HLFSD_NetLimit", JSON.stringify(objBalances));
-                console.log(localStorage.getItem("HLFSD_NetLimit"));
-                localStorage.setItem("lsTgBotTokenHLFSD", JSON.stringify(objTgBotToken?.value || ""));
-                localStorage.setItem("lsTgChatIdHLFSD", JSON.stringify(objTgChatId?.value || ""));
+                localStorage.setItem("DFSD_NetLimit", JSON.stringify(objBalances));
+                console.log(localStorage.getItem("DFSD_NetLimit"));
+                localStorage.setItem("lsTgBotTokenDFSD", JSON.stringify(objTgBotToken?.value || ""));
+                localStorage.setItem("lsTgChatIdDFSD", JSON.stringify(objTgChatId?.value || ""));
 
                 const vDate = new Date();
                 let vToday = vDate.getDate();            
-                localStorage.setItem("lsHLFSDLoginDate", vToday);
+                localStorage.setItem("lsDFSDLoginDate", vToday);
 
                 $('#mdlDeltaLogin').modal('hide');
-                localStorage.setItem("lsHLFSDLoginValid", "true");
-                objApiSecret.value = "";
+                localStorage.setItem("lsDFSDLoginValid", "true");
+                localStorage.setItem("isDFSDAutoTrader", "false");
                 fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
                 fnGenMessage("Please Input Login Details", `badge bg-primary`, "spnDeltaLogin");
                 fnGetSetTraderLoginStatus();
+                fnGetSetAutoTraderStatus();
             }
             else if(objResult.status === "danger"){
                 fnClearLoginStatus();
@@ -111,11 +121,25 @@ function fnValidateDeltaLogin(){
 }
 
 window.addEventListener("DOMContentLoaded", function(){
+    let objApiKey = document.getElementById("txtUserAPIKey");
+    let objApiSecret = document.getElementById("txtAPISecret");
     let objTgBotToken = document.getElementById("txtTelegramBotToken");
     let objTgChatId = document.getElementById("txtTelegramChatId");
-    let vTgBotToken = JSON.parse(localStorage.getItem("lsTgBotTokenHLFSD") || "null");
-    let vTgChatId = JSON.parse(localStorage.getItem("lsTgChatIdHLFSD") || "null");
+    let vApiKey = JSON.parse(localStorage.getItem("lsDFSDUserAPIKey") || "null");
+    let vApiSecret = JSON.parse(localStorage.getItem("lsDFSDAPISecret") || "null");
+    let vTgBotToken = JSON.parse(localStorage.getItem("lsTgBotTokenDFSD") || "null");
+    let vTgChatId = JSON.parse(localStorage.getItem("lsTgChatIdDFSD") || "null");
 
+    if(objApiKey){
+        objApiKey.value = vApiKey || "";
+        objApiKey.addEventListener("change", fnPersistFsDemApiCredentials);
+        objApiKey.addEventListener("blur", fnPersistFsDemApiCredentials);
+    }
+    if(objApiSecret){
+        objApiSecret.value = vApiSecret || "";
+        objApiSecret.addEventListener("change", fnPersistFsDemApiCredentials);
+        objApiSecret.addEventListener("blur", fnPersistFsDemApiCredentials);
+    }
     if(objTgBotToken){
         objTgBotToken.value = vTgBotToken || "";
     }
@@ -130,7 +154,7 @@ function fnChangeLater(){
 
 function fnToggleAutoTrader(){
     let bAppStatus = JSON.parse(localStorage.getItem("AppMsgStatusS"));
-    let isLsAutoTrader = localStorage.getItem("isHLFSDAutoTrader");
+    let isLsAutoTrader = localStorage.getItem("isDFSDAutoTrader");
     
     let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
 
@@ -138,12 +162,12 @@ function fnToggleAutoTrader(){
         if(isLsAutoTrader === null || isLsAutoTrader === "false"){
             fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-success", "Auto Trader - ON");
             fnGenMessage("Auto Trading Mode is ON!", `badge bg-success`, "spnGenMsg");
-            localStorage.setItem("isHLFSDAutoTrader", "true");
+            localStorage.setItem("isDFSDAutoTrader", "true");
         }
         else{
             fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
             fnGenMessage("Auto Trading Mode is OFF!", `badge bg-danger`, "spnGenMsg");
-            localStorage.setItem("isHLFSDAutoTrader", "false");
+            localStorage.setItem("isDFSDAutoTrader", "false");
         }
     }
     else{
@@ -152,7 +176,7 @@ function fnToggleAutoTrader(){
 }
 
 function fnGetSetAutoTraderStatus(){
-    let isLsAutoTrader = localStorage.getItem("isHLFSDAutoTrader");
+    let isLsAutoTrader = localStorage.getItem("isDFSDAutoTrader");
     let objAutoTraderStatus = document.getElementById("btnAutoTraderStatus");
 
     if(isLsAutoTrader === "true")
@@ -162,13 +186,13 @@ function fnGetSetAutoTraderStatus(){
     else
     {
         fnChangeBtnProps(objAutoTraderStatus.id, "badge bg-danger", "Auto Trader - OFF");
-        localStorage.setItem("isHLFSDAutoTrader", "false");
+        localStorage.setItem("isDFSDAutoTrader", "false");
     }
 }
 
 function fnClearLoginStatus(){
-    localStorage.removeItem("lsHLFSDLoginValid");
-    localStorage.removeItem("isHLFSDAutoTrader");
+    localStorage.removeItem("lsDFSDLoginValid");
+    localStorage.removeItem("isDFSDAutoTrader");
 
     fnGetSetTraderLoginStatus();
 }
@@ -176,13 +200,12 @@ function fnClearLoginStatus(){
 function fnClearPrevLoginSession(){
     //let objSession = document.getElementById("txtKotakSession");
     gIsTraderLogin = false;
-    localStorage.removeItem("lsHLFSDLoginDate");
-    localStorage.removeItem("isHLFSDAutoTrader");
-    localStorage.removeItem("lsHLFSDLoginValid");
-    localStorage.removeItem("HLFSD_NetLimit");
+    localStorage.removeItem("lsDFSDLoginDate");
+    localStorage.removeItem("isDFSDAutoTrader");
+    localStorage.removeItem("lsDFSDLoginValid");
+    localStorage.removeItem("DFSD_NetLimit");
 
   //objSession.value = "";
   //fnChangeBtnProps("btnTraderStatus", "badge bg-danger", "Trader - Disconnected");
 }
-
 

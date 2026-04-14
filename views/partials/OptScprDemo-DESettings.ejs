@@ -1,11 +1,12 @@
 
+
 <!--Disabled Backdrop Modal for Trader Login-->
 <div class="modal fade text-left" id="mdlDeltaLogin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4"
     data-bs-backdrop="false" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-secondary">
-                <h4 class="modal-title" id="myModalLabel4">Delta Exchange Login Details</h4>
+                <h4 class="modal-title" id="myModalLabel4">Opt Scpr Demo DE Login Details</h4>
                 <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
             </div>
             <div class="modal-body">
@@ -23,26 +24,26 @@
                                             <div class="row">
                                                 <div class="col-md-12 col-12">
                                                     <div class="form-group">
-                                                        <label for="txtUserAPIKey">Account API Key</label>
-                                                        <input type="text" id="txtUserAPIKey" class="form-control" value="1LmJxvtyqgUsxa2kMnlO3nighX59NI" placeholder="API Key" />
+                                                        <label for="txtUserAPIKey">API Key</label>
+                                                        <input type="text" id="txtUserAPIKey" class="form-control" value="" placeholder="API Key" autocomplete="off" />
                                                     </div>
                                                 </div>
                                                 <div class="col-md-12 col-12">
                                                     <div class="form-group">
-                                                        <label for="txtAPISecret">Account Secret Code</label>
-                                                        <input type="text" id="txtAPISecret" class="form-control" value="zE1SAHacrXD5eUQQOa4C7VV8QyXjhYbiAaFCOZTem7lw2l9ANYqZTjOQFWFZ" placeholder="Secret Code" />
+                                                        <label for="txtAPISecret">API Secret Code</label>
+                                                        <input type="password" id="txtAPISecret" class="form-control" value="" placeholder="API Secret" autocomplete="off" />
                                                     </div>
                                                 </div>
                                                 <div class="col-md-12 col-12">
                                                     <div class="form-group">
                                                         <label for="txtTelegramBotToken">Telegram Bot Token (Optional)</label>
-                                                        <input type="text" id="txtTelegramBotToken" class="form-control" value="" placeholder="123456789:AA..." />
+                                                        <input type="text" id="txtTelegramBotToken" class="form-control" value="" placeholder="123456789:AA..." autocomplete="off" />
                                                     </div>
                                                 </div>
                                                 <div class="col-md-12 col-12">
                                                     <div class="form-group">
                                                         <label for="txtTelegramChatId">Telegram Chat ID (Optional)</label>
-                                                        <input type="text" id="txtTelegramChatId" class="form-control" value="" placeholder="-1001234567890" />
+                                                        <input type="text" id="txtTelegramChatId" class="form-control" value="" placeholder="-1001234567890" autocomplete="off" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -106,49 +107,6 @@
                     <span class="d-none d-sm-block">CLOSE</span>
                 </button>
                 <button type="button" class="btn btn-primary ms-1" onclick="fnUpdateOptionLeg();">
-                    <i class="bx bx-check d-block d-sm-none"></i>
-                    <span class="d-none d-sm-block">UPDATE</span>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!--Disabled Backdrop Modal for Open Positions List-->
-<div class="modal fade text-left" id="mdlOpenPosSel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4" data-bs-backdrop="false" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-secondary">
-                <h4 class="modal-title" id="myModalLabel4">Select Open Positions</h4>
-                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
-            </div>
-            <div class="modal-body">
-                <div class="container-fluid">
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr style="text-align:center;">
-                                    <th scope="col" style="text-wrap: nowrap;">Select</th>
-                                    <th scope="col" style="text-wrap: nowrap;">Symbol</th>
-                                    <th scope="col" style="text-wrap: nowrap;">Price</th>
-                                    <th scope="col" style="text-wrap: nowrap;">Trans</th>
-                                    <th scope="col" style="text-wrap: nowrap;">Qty</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tBodyOpenTrades">
-
-                            </tbody>
-                        </table>
-                        <textarea id="taOpenPos" cols="130" rows="10"></textarea>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
-                    <i class="bx bx-x d-block d-sm-none"></i>
-                    <span class="d-none d-sm-block">CLOSE</span>
-                </button>
-                <button type="button" class="btn btn-primary ms-1" onclick="fnSaveOpenPositions();">
                     <i class="bx bx-check d-block d-sm-none"></i>
                     <span class="d-none d-sm-block">UPDATE</span>
                 </button>

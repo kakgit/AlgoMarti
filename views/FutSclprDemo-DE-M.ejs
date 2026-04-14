@@ -84,7 +84,7 @@
     <div class="page-heading">
         <div class="row align-items-center g-2">
             <div class="col-12 col-md-4">
-                <h3>HLFutSclprDemo</h3>
+                <h3>FutSclprDemo-DE-M</h3>
             </div>
             <div class="col-12 col-md-4 text-center">
                 <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
@@ -217,23 +217,28 @@
                                         <input type="number" class="form-control" placeholder="Candle Open Price" id="txtMultiplierX" value="1.0" onchange="fnUpdateMultiplierX(this);" />
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Best Buy Price" id="txtBestBuyPrice" />
+                                        <input type="number" class="form-control-plaintext fw-semibold" placeholder="Best Buy Price" id="txtBestBuyPrice" readonly tabindex="-1" />
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Spot Price" id="txtSpotPrice" />
+                                        <input type="number" class="form-control-plaintext fw-semibold" placeholder="Spot Price" id="txtSpotPrice" readonly tabindex="-1" />
                                     </div>
                                     <div class="col-2">
-                                        <input type="number" class="form-control" placeholder="Best Sell Price" id="txtBestSellPrice" />
+                                        <input type="number" class="form-control-plaintext fw-semibold" placeholder="Best Sell Price" id="txtBestSellPrice" readonly tabindex="-1" />
                                     </div>
-                                    <div class="col-6 col-md-1">
-                                        <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-success action-btn" onclick="fnManualSubStart();" style="display: block;"><b>START</b></button>
+                                    <div class="col-2"></div>
+                                    <div class="col-12">
+                                        <div class="d-flex flex-wrap align-items-center gap-2">
+                                            <div class="form-check form-switch mb-0">
+                                                <input class="form-check-input" type="checkbox" id="swtFirstLossBoxExit" onchange="fnToggleFirstLossBoxExit(this);" />
+                                                <label class="form-check-label" for="swtFirstLossBoxExit" style="cursor:pointer;">Exit X % of Qty on first Loss Box</label>
+                                            </div>
+                                            <input type="number" class="form-control" min="1" max="99" step="1" value="50" id="txtFirstLossBoxExitPct" onchange="fnUpdateFirstLossBoxExitPct(this);" style="width: 96px;" />
+                                            <span class="text-muted small">%</span>
                                         </div>
                                     </div>
-                                    <div class="col-6 col-md-1">
-                                         <div class="d-grid gap-1">
-                                            <button class="btn btn-outline-danger action-btn" onclick="fnManualSubStop();" style="display: block;"><b>STOP</b></button>
-                                        </div>
+                                    <div class="col-12 my-1"><hr class="my-1"/></div>
+                                    <div class="col-12">
+                                        <div id="divMartiDbg" class="small text-muted" style="white-space: nowrap; overflow-x: auto;"></div>
                                     </div>
                                     <div style="display: none;">
                                         <div class="col-2">Open</div>
@@ -297,16 +302,15 @@
                                     <label id="divTimer" for="swtAutoChkPosition" style="cursor:pointer;white-space:normal;">Trade closes in <span id="time"></span> minutes!</label>
                                 </div>
                             </div>
-                            <div class="col-12 col-lg-2">
-                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                    <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtMartingale" name="swtMartingale" onchange="fnChangeTradeMode('step');" />
-                                    <label for="swtMartingale" style="cursor:pointer;text-wrap:nowrap;">Step</label>
-                                </div>
-                            </div>
-                            <div class="col-12 col-lg-2">
-                                <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                    <input class="form-check-input  me-0" type="checkbox" style="cursor: pointer" id="swtMarti" name="swtMarti" onchange="fnChangeTradeMode('marti');" />
-                                    <label for="swtMarti" style="cursor:pointer;text-wrap:nowrap;">Marti</label>
+                            <div class="col-12 col-lg-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    <label for="ddlTradeMode" style="white-space:nowrap; margin-bottom:0;">Mode</label>
+                                    <select id="ddlTradeMode" class="form-select form-select-sm" onchange="fnChangeTradeMode(this.value);" title="Select Qty Mode">
+                                        <option value="flat">Flat</option>
+                                        <option value="step" selected>Step</option>
+                                        <option value="marti">Marti</option>
+                                    </select>
+                                    <span class="small text-muted" style="white-space:nowrap;">Current SL: <b id="spnCurrentSL">-</b></span>
                                 </div>
                             </div>
                             <div class="col-6 col-lg-1 text-lg-end">
@@ -426,10 +430,10 @@
                             <div class="col-1" id="tdHeadPL">
                                 0.00
                             </div>
-                            <div class="col-2" style="font-weight: bold;">
+                            <div class="col-2" style="font-weight: bold;text-align:right">
                                 <div class="form-check form-switch fs-6" style="white-space: nowrap;">
                                     <input class="form-check-input  me-0" type="checkbox" checked style="cursor: pointer" id="swtYetToRec" name="swtYetToRec" onchange="fnUpdateYet2RecSwt();" />
-                                    <label id="lblYetToRecover" for="swtYetToRec" style="cursor:pointer;text-wrap:nowrap;">Yet to Recover:</label>
+                                    <label id="lblYetToRecover" for="swtYetToRec" style="cursor:pointer;text-wrap:nowrap;">Y2R:</label>
                                 </div>
                             </div>
                             <div class="col-2">
@@ -497,11 +501,25 @@
                                 <option value="best_ask">Best Ask</option>
                             </select>
 
+                            <label for="txtRenkoMinStepPts" class="mb-0 small text-muted">Min Step</label>
+                            <input type="number" class="form-control form-control-sm" id="txtRenkoMinStepPts" value="0" min="0" step="0.1" onchange="fnUpdateRenkoMinStepPoints(this);" style="width: 95px;" />
+
                             <label for="txtRenkoBuyPatterns" class="mb-0 small text-muted">Buy</label>
                             <input type="text" id="txtRenkoBuyPatterns" class="form-control form-control-sm" placeholder="GGR,GRRG" value="RRG,GRG" onchange="fnUpdateRenkoPatterns(this, 'buy');" style="width: 190px;" />
 
                             <label for="txtRenkoSellPatterns" class="mb-0 small text-muted">Sell</label>
                             <input type="text" id="txtRenkoSellPatterns" class="form-control form-control-sm" placeholder="RRGRR,RGRR" value="GGR,RGR" onchange="fnUpdateRenkoPatterns(this, 'sell');" style="width: 190px;" />
+
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" id="swtRenkoHHLL" onchange="fnToggleRenkoHHLL(this);" />
+                                <label class="form-check-label small" for="swtRenkoHHLL">HH/LL</label>
+                            </div>
+
+                            <label for="txtPrevRenkoGreenClose" class="mb-0 small text-muted">Prev Renko Green Close</label>
+                            <input type="number" id="txtPrevRenkoGreenClose" class="form-control form-control-sm" onchange="fnUpdatePrevRenkoCloseFromInput(this, 'green');" style="width: 120px;" />
+
+                            <label for="txtPrevRenkoRedClose" class="mb-0 small text-muted">Prev Renko Red Close</label>
+                            <input type="number" id="txtPrevRenkoRedClose" class="form-control form-control-sm" onchange="fnUpdatePrevRenkoCloseFromInput(this, 'red');" style="width: 120px;" />
 
                             <span class="small text-muted ms-2" id="spnRenkoFeedMeta">Symbol: -</span>
                             <button class="btn btn-outline-secondary btn-sm ms-auto" type="button" onclick="fnClearRenkoFeedLog();">Clear</button>
@@ -519,8 +537,7 @@
 </div>
 </div>
 
-<%- include('partials/HLFutSclprDemoSettings.ejs') %>
+<%- include('partials/FutSclprDemo-DE-MSettings.ejs') %>
 
-<script src="/js/HLFutSclprDemo.js"></script>
-<script src="/js/HLFutSclprDemoSettings.js"></script>
-
+<script src="/js/FutSclprDemo-DE-M.js"></script>
+<script src="/js/FutSclprDemo-DE-MSettings.js"></script>

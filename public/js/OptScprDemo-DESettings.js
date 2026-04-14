@@ -57,14 +57,18 @@ function fnValidateDeltaLogin(){
             redirect: 'follow'
         };
 
-        fetch("/deltaFutScprDemo/validateLogin", requestOptions)
+        fetch("/strategyfogreeks/validateLogin", requestOptions)
         .then(response => response.json())
         .then(objResult => {
             if(objResult.status === "success"){
                 console.log(objResult.data);
                 fnPersistDeltaFsApiCredentials();
 
-                let objBalances = { BalanceINR: objResult.data.result[0].available_balance_inr, BalanceUSD: objResult.data.result[0].available_balance };
+                const objWallet = Array.isArray(objResult.data) ? objResult.data[0] : (objResult.data?.result?.[0] || {});
+                let objBalances = {
+                    BalanceINR: objWallet?.available_balance_inr ?? 0,
+                    BalanceUSD: objWallet?.available_balance ?? 0
+                };
                 localStorage.setItem("DFSD_NetLimit", JSON.stringify(objBalances));
                 console.log(localStorage.getItem("DFSD_NetLimit"));
                 localStorage.setItem("lsTgBotTokenDFSD", JSON.stringify(objTgBotToken?.value || ""));
@@ -77,7 +81,7 @@ function fnValidateDeltaLogin(){
                 $('#mdlDeltaLogin').modal('hide');
                 localStorage.setItem("lsDFSDLoginValid", "true");
                 localStorage.setItem("isDFSDAutoTrader", "false");
-                fnGenMessage(objResult.message, `badge bg-${objResult.status}`, "spnGenMsg");
+                fnGenMessage("Option trader login valid, balance fetched!", `badge bg-${objResult.status}`, "spnGenMsg");
                 fnGenMessage("Please Input Login Details", `badge bg-primary`, "spnDeltaLogin");
                 fnGetSetTraderLoginStatus();
                 fnGetSetAutoTraderStatus();
@@ -106,8 +110,8 @@ function fnValidateDeltaLogin(){
         })
         .catch(error => {
             fnClearLoginStatus();
-            //console.log('error: ', error);
-            fnGenMessage("Error to Fetch with Login Details.", `badge bg-danger`, "spnDeltaLogin");
+            console.log("OptScprDemo-DE login error:", error);
+            fnGenMessage("Error to fetch login details.", `badge bg-danger`, "spnDeltaLogin");
         });
     }
 }

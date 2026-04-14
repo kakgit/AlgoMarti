@@ -17,17 +17,14 @@ const kotakPaperController = require("../controller/controllerKotakPaper.js");
 const deltaLiveController = require("../controller/controllerDeltaLive.js");
 const deltaFutDemoController = require("../controller/controllerDeltaFutDemo.js");
 const deltaFutScprDemoController = require("../controller/controllerDeltaFutScprDemo.js");
-const hlFutSclprDemoController = require("../controller/controllerHLFutSclprDemo.js");
+const futSclprDemoDEMController = require("../controller/controllerFutSclprDemo-DE-M.js");
+const optScprDemoDEController = require("../controller/controllerOptScprDemo-DE.js");
 const deltaFutLiveController = require("../controller/controllerDeltaFutLive.js");
 const deltaFutScprLiveController = require("../controller/controllerDeltaFutScprLive.js");
 const deltaOptDemoController = require("../controller/controllerDeltaOptDemo.js");
 const deltaFundingLiveCtrler = require("../controller/controllerDeltaFundingLive.js");
 const deltaSStraddleLiveCtrler = require("../controller/cntrDeltaSStraddleL.js");
-const strategy1FOCtrler = require("../controller/cntrStrategy1FO.js");
-const strategy2FOCtrler = require("../controller/cntrStrategy2FO.js");
 const strategyFOGreeksCtrler = require("../controller/cntrStrategyFOGreeks.js");
-const strategyGreeksCtrler = require("../controller/cntrStrategyGreeks.js");
-const strategyGreeksPaperCtrler = require("../controller/cntrStrategyGreeksPaper.js");
 const liveStrategy1FOCtrler = require("../controller/cntrLiveStrategy1FO.js");
 const liveStrategy2FOCtrler = require("../controller/cntrLiveStrategy2FO.js");
 const deltaSStrangleLiveCtrler = require("../controller/cntrDeltaSStrangleL.js");
@@ -65,7 +62,8 @@ route.get("/deltaLive", deltaLiveController.defaultRoute);
 //Delta Futures Demo Route
 route.get("/deltaFutures-Demo", deltaFutDemoController.defaultRoute);
 route.get("/DeltaFutScprDemo", deltaFutScprDemoController.defaultRoute);
-route.get("/HLFutSclprDemo", hlFutSclprDemoController.defaultRoute);
+route.get("/FutSclprDemo-DE-M", futSclprDemoDEMController.defaultRoute);
+route.get("/OptScprDemo-DE", optScprDemoDEController.defaultRoute);
 route.get("/DeltaFutScprLive", deltaFutScprLiveController.defaultRoute);
 route.get("/RenkoDualBacktest", renkoDualBacktestCtrler.defaultRoute);
 
@@ -81,11 +79,7 @@ route.get("/deltaFunding-Live", deltaFundingLiveCtrler.defaultRoute);
 //Delta Short Straddle Live Route
 route.get("/deltaSStraddleLive", deltaSStraddleLiveCtrler.defaultRoute);
 
-//Strategy1FO Route
-route.get("/Strategy1FO", strategy1FOCtrler.defaultRoute);
-route.get("/Strategy2FO", strategy2FOCtrler.defaultRoute);
 route.get("/StrategyFOGreeks", strategyFOGreeksCtrler.defaultRoute);
-route.get("/StrategyGreeks", strategyGreeksCtrler.defaultRoute);
 route.get("/LiveStrategy1FO", liveStrategy1FOCtrler.defaultRoute);
 route.get("/LiveStrategy2FO", liveStrategy2FOCtrler.defaultRoute);
 
@@ -228,20 +222,6 @@ route.post("/deltaSStraddleLive/getRealClsdPos", deltaSStraddleLiveCtrler.fnGetR
 route.post("/deltaSStraddleLive/openRealPosition", deltaSStraddleLiveCtrler.fnOpenRealPoistion);
 route.post("/deltaSStraddleLive/closeRealPosition", deltaSStraddleLiveCtrler.fnCloseRealPoistion);
 
-//Strategy1FO Routes
-route.post("/strategy1fo/validateLogin", strategy1FOCtrler.fnValidateUserLogin);
-route.post("/strategy1fo/getOptChnSDKByAstOptTypExp", strategy1FOCtrler.fnGetOptChnSDKByAstOptTypExp);
-route.post("/strategy1fo/execOption", strategy1FOCtrler.fnExecOptionByOptTypeExpTransType);
-route.post("/strategy1fo/execOptionLeg", strategy1FOCtrler.fnExecOptByOTypExpTType);
-route.post("/strategy1fo/execFutureLeg", strategy1FOCtrler.fnExecFutByTType);
-route.post("/strategy1fo/getBestRatesBySymb", strategy1FOCtrler.fnGetBestRatesBySymbol);
-route.post("/strategy2fo/validateLogin", strategy2FOCtrler.fnValidateUserLogin);
-route.post("/strategy2fo/getOptChnSDKByAstOptTypExp", strategy2FOCtrler.fnGetOptChnSDKByAstOptTypExp);
-route.post("/strategy2fo/execOption", strategy2FOCtrler.fnExecOptionByOptTypeExpTransType);
-route.post("/strategy2fo/execOptionLeg", strategy2FOCtrler.fnExecOptByOTypExpTType);
-route.post("/strategy2fo/execFutureLeg", strategy2FOCtrler.fnExecFutByTType);
-route.post("/strategy2fo/getBestRatesBySymb", strategy2FOCtrler.fnGetBestRatesBySymbol);
-route.post("/strategy2fo/sendTelegramAlert", strategy2FOCtrler.fnSendTelegramAlertMsg);
 route.post("/strategyfogreeks/validateLogin", strategyFOGreeksCtrler.fnValidateUserLogin);
 route.post("/strategyfogreeks/getOptChnSDKByAstOptTypExp", strategyFOGreeksCtrler.fnGetOptChnSDKByAstOptTypExp);
 route.post("/strategyfogreeks/execOption", strategyFOGreeksCtrler.fnExecOptionByOptTypeExpTransType);
@@ -249,18 +229,6 @@ route.post("/strategyfogreeks/execOptionLeg", strategyFOGreeksCtrler.fnExecOptBy
 route.post("/strategyfogreeks/execFutureLeg", strategyFOGreeksCtrler.fnExecFutByTType);
 route.post("/strategyfogreeks/getBestRatesBySymb", strategyFOGreeksCtrler.fnGetBestRatesBySymbol);
 route.post("/strategyfogreeks/sendTelegramAlert", strategyFOGreeksCtrler.fnSendTelegramAlertMsg);
-route.post("/strategygreeks/validateLogin", strategyGreeksCtrler.fnValidateUserLogin);
-route.post("/strategygreeks/getOptChnSDKByAstOptTypExp", strategyGreeksCtrler.fnGetOptChnSDKByAstOptTypExp);
-route.post("/strategygreeks/execOption", strategyGreeksCtrler.fnExecOptionByOptTypeExpTransType);
-route.post("/strategygreeks/execOptionLeg", strategyGreeksCtrler.fnExecOptByOTypExpTType);
-route.post("/strategygreeks/execFutureLeg", strategyGreeksCtrler.fnExecFutByTType);
-route.post("/strategygreeks/getBestRatesBySymb", strategyGreeksCtrler.fnGetBestRatesBySymbol);
-route.post("/strategygreeks/sendTelegramAlert", strategyGreeksCtrler.fnSendTelegramAlertMsg);
-route.post("/strategygreeks/paper/start", strategyGreeksPaperCtrler.fnStartPaperEngine);
-route.post("/strategygreeks/paper/stop", strategyGreeksPaperCtrler.fnStopPaperEngine);
-route.post("/strategygreeks/paper/cycle", strategyGreeksPaperCtrler.fnRunPaperCycle);
-route.post("/strategygreeks/paper/reset", strategyGreeksPaperCtrler.fnResetPaperState);
-route.get("/strategygreeks/paper/status", strategyGreeksPaperCtrler.fnGetPaperStatus);
 route.post("/liveStrategy1fo/validateLogin", liveStrategy1FOCtrler.fnValidateUserLogin);
 route.post("/liveStrategy1fo/getOptChnSDKByAstOptTypExp", liveStrategy1FOCtrler.fnGetOptChnSDKByAstOptTypExp);
 route.post("/liveStrategy1fo/execOption", liveStrategy1FOCtrler.fnExecOptionByOptTypeExpTransType);
@@ -323,12 +291,12 @@ route.post("/deltaFutScprDemo/getHistOHLC", deltaFutScprDemoController.fnHistori
 route.post("/deltaFutScprDemo/getCurrBSRates", deltaFutScprDemoController.fnGetCurrBuySellRates);
 route.post("/deltaFutScprDemo/placeLimitOrder", deltaFutScprDemoController.fnPlaceLimitOrderSDK);
 route.post("/deltaFutScprDemo/sendTelegramAlert", deltaFutScprDemoController.fnSendTelegramAlertMsg);
+route.post("/futSclprDemo-DE-M/validateLogin", futSclprDemoDEMController.fnValidateUserLogin);
+route.post("/futSclprDemo-DE-M/getHistOHLC", futSclprDemoDEMController.fnHistoricalOHLCAPI);
+route.post("/futSclprDemo-DE-M/getCurrBSRates", futSclprDemoDEMController.fnGetCurrBuySellRates);
+route.post("/futSclprDemo-DE-M/placeLimitOrder", futSclprDemoDEMController.fnPlaceLimitOrderSDK);
+route.post("/futSclprDemo-DE-M/sendTelegramAlert", futSclprDemoDEMController.fnSendTelegramAlertMsg);
 route.post("/deltaFutScprLive/sendTelegramAlert", deltaFutScprLiveController.fnSendTelegramAlertMsg);
-route.post("/hlFutSclprDemo/validateLogin", hlFutSclprDemoController.fnValidateUserLogin);
-route.post("/hlFutSclprDemo/getHistOHLC", hlFutSclprDemoController.fnHistoricalOHLCAPI);
-route.post("/hlFutSclprDemo/getCurrBSRates", hlFutSclprDemoController.fnGetCurrBuySellRates);
-route.post("/hlFutSclprDemo/placeLimitOrder", hlFutSclprDemoController.fnPlaceLimitOrderSDK);
-route.post("/hlFutSclprDemo/sendTelegramAlert", hlFutSclprDemoController.fnSendTelegramAlertMsg);
 route.post("/renkoDualBacktest/run", renkoDualBacktestCtrler.fnRunBacktest);
 
 //Delta Options Routes

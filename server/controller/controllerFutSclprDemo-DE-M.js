@@ -15,7 +15,7 @@ const gTelegramChatId = process.env.TELEGRAM_CHAT_ID || "";
 
 exports.defaultRoute = (req, res) => {
     //res.send("Crud Application");
-    res.render("HLFutSclprDemo.ejs");
+    res.render("FutSclprDemo-DE-M.ejs");
 }
 
 exports.fnValidateUserLogin = async (req, res) => {
@@ -46,6 +46,11 @@ exports.fnValidateUserLogin = async (req, res) => {
 exports.fnHistoricalOHLCAPI = async (req, res) => {
     let vCandleMinutes = req.body.CandleMinutes;
     let vSymbol = (req.body.Symbol || "BTCUSD").toString().toUpperCase();
+    let vLookbackCandles = Number(req.body.LookbackCandles);
+    if(!Number.isFinite(vLookbackCandles) || vLookbackCandles < 1){
+        vLookbackCandles = 1;
+    }
+    vLookbackCandles = Math.min(Math.floor(vLookbackCandles), 500);
 
     if(!["BTCUSD", "ETHUSD"].includes(vSymbol)){
         res.send({ "status": "warning", "message": "Unsupported symbol for OHLC request.", "data": "" });
@@ -55,7 +60,7 @@ exports.fnHistoricalOHLCAPI = async (req, res) => {
     const vNow = new Date();
     const vRoundedTime = fnRoundTimeToNearestXMinutes(vNow, vCandleMinutes);
     let vEndTime = ((vRoundedTime.valueOf())/1000) - 60;
-    let vStartTime = vEndTime - (vCandleMinutes * 60);
+    let vStartTime = vEndTime - (vCandleMinutes * 60 * vLookbackCandles);
     // console.log("Rounded Time (nearest 5 minutes):", vEndTime);
 
     const vMethod = "GET";
@@ -283,4 +288,3 @@ const fnGetTelegramConfigFromReq = (req) => {
         chatId: String(req?.body?.TelegramChatId || "").trim()
     };
 }
-
