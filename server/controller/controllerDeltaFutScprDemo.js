@@ -122,6 +122,96 @@ exports.fnGetCurrBuySellRates = async (req, res) => {
     // res.send({ "status": "success", "message": "Current Rate Information Feched!", "data": "" });
 }
 
+exports.fnGetOptionTrendSnapshot = async (req, res) => {
+    try{
+        const vSymbol = String(req?.body?.Symbol || "BTCUSD").toUpperCase();
+        const vUnderlying = fnMapFuturesSymbolToUnderlying(vSymbol);
+        if(!vUnderlying){
+            res.send({ status: "warning", message: "Unsupported symbol for trend snapshot.", data: "" });
+            return;
+        }
+
+        const objProductsResp = await axios.get(`${gBaseUrl}/v2/products`, {
+            headers: { Accept: "application/json" },
+            timeout: 10000
+        });
+        const objProducts = Array.isArray(objProductsResp?.data?.result) ? objProductsResp.data.result : [];
+        const objExpiryBuckets = fnGetTrendExpiryBuckets(objProducts, vUnderlying);
+        const objExpiryList = [...new Set(Object.values(objExpiryBuckets).filter(Boolean))];
+        if(objExpiryList.length === 0){
+            res.send({ status: "warning", message: "No live option expiries available for trend snapshot.", data: "" });
+            return;
+        }
+
+        const objTickerResp = await axios.get(`${gBaseUrl}/v2/tickers/${encodeURIComponent(vSymbol)}`, {
+            headers: { Accept: "application/json" },
+            timeout: 10000
+        });
+        const objFutTicker = objTickerResp?.data?.result || {};
+        const vSpot = Number(objFutTicker?.spot_price || objFutTicker?.mark_price || objFutTicker?.close);
+        const vMarkPrice = Number(objFutTicker?.mark_price || objFutTicker?.spot_price || objFutTicker?.close);
+        const vRefPrice = Number.isFinite(vSpot) && vSpot > 0 ? vSpot : vMarkPrice;
+        if(!Number.isFinite(vRefPrice) || vRefPrice <= 0){
+            res.send({ status: "warning", message: "Reference price unavailable for trend snapshot.", data: "" });
+            return;
+        }
+
+        const objExpiryMetrics = {};
+
+        for(const vExpiry of objExpiryList){
+            const objChainResp = await axios.get(`${gBaseUrl}/v2/tickers`, {
+                params: {
+                    contract_types: "call_options,put_options",
+                    underlying_asset_symbols: vUnderlying,
+                    expiry_date: vExpiry
+                },
+                headers: { Accept: "application/json" },
+                timeout: 10000
+            });
+            const objChainRows = Array.isArray(objChainResp?.data?.result) ? objChainResp.data.result : [];
+            objExpiryMetrics[vExpiry] = fnBuildOptionMetrics(objChainRows, vRefPrice);
+        }
+
+        const objNearMetrics = fnGetMetricsForBucket(objExpiryMetrics, objExpiryBuckets.near);
+        const objWeekMetrics = fnGetMetricsForBucket(objExpiryMetrics, objExpiryBuckets.week);
+        const objMonthMetrics = fnGetMetricsForBucket(objExpiryMetrics, objExpiryBuckets.month);
+        const objCombinedMetrics = fnMergeOptionMetrics([objNearMetrics, objWeekMetrics, objMonthMetrics]);
+
+        res.send({
+            status: "success",
+            message: "Option trend snapshot fetched.",
+            data: {
+                ts: Date.now(),
+                symbol: vSymbol,
+                underlying: vUnderlying,
+                spot: Number.isFinite(vSpot) ? Number(vSpot.toFixed(2)) : null,
+                markPrice: Number.isFinite(vMarkPrice) ? Number(vMarkPrice.toFixed(2)) : null,
+                refPrice: Number(vRefPrice.toFixed(2)),
+                expiries: objExpiryList,
+                expiryBuckets: objExpiryBuckets,
+                rowsUsed: objCombinedMetrics.rowsUsed,
+                totalCallOi: objCombinedMetrics.totalCallOi,
+                totalPutOi: objCombinedMetrics.totalPutOi,
+                totalCallVol: objCombinedMetrics.totalCallVol,
+                totalPutVol: objCombinedMetrics.totalPutVol,
+                totalOi: objCombinedMetrics.totalOi,
+                pcrOi: objCombinedMetrics.pcrOi,
+                pcrVol: objCombinedMetrics.pcrVol,
+                maxCallOiStrike: objCombinedMetrics.maxCallOiStrike,
+                maxPutOiStrike: objCombinedMetrics.maxPutOiStrike,
+                buckets: {
+                    near: { expiry: objExpiryBuckets.near, ...objNearMetrics },
+                    week: { expiry: objExpiryBuckets.week, ...objWeekMetrics },
+                    month: { expiry: objExpiryBuckets.month, ...objMonthMetrics }
+                }
+            }
+        });
+    }
+    catch(objError){
+        res.send({ status: "danger", message: "Error in option trend snapshot.", data: objError?.message || objError });
+    }
+}
+
 //Sample Functions to place or cancel order
 exports.fnPlaceLimitOrderSDK = async (req, res) => {
     let vApiKey = req.body.ApiKey;
@@ -287,4 +377,224 @@ const fnGetTelegramConfigFromReq = (req) => {
         botToken: String(req?.body?.TelegramBotToken || "").trim(),
         chatId: String(req?.body?.TelegramChatId || "").trim()
     };
+}
+
+function fnMapFuturesSymbolToUnderlying(pSymbol){
+    if(pSymbol === "BTCUSD"){
+        return "BTC";
+    }
+    if(pSymbol === "ETHUSD"){
+        return "ETH";
+    }
+    return "";
+}
+
+function fnGetTrendExpiryBuckets(pProducts, pUnderlying){
+    const objExpiries = fnGetNearestOptionExpiriesDetailed(pProducts, pUnderlying);
+    if(objExpiries.length === 0){
+        return { near: null, week: null, month: null };
+    }
+    const objNear = objExpiries[0];
+    const objWeek = objExpiries.find((x) => x.daysToExpiry >= 5) || objExpiries[Math.min(1, objExpiries.length - 1)] || objNear;
+    const objMonth = objExpiries.find((x) => x.daysToExpiry >= 20) || objExpiries[objExpiries.length - 1] || objWeek || objNear;
+    return {
+        near: objNear?.apiDate || null,
+        week: objWeek?.apiDate || null,
+        month: objMonth?.apiDate || null
+    };
+}
+
+function fnGetNearestOptionExpiriesDetailed(pProducts, pUnderlying){
+    const vToday = new Date();
+    const objMap = new Map();
+    for(const objProd of (pProducts || [])){
+        const vContractType = String(objProd?.contract_type || "").toLowerCase();
+        if(vContractType !== "call_options" && vContractType !== "put_options"){
+            continue;
+        }
+        const vSymbol = String(objProd?.symbol || "");
+        if(!vSymbol.startsWith(`C-${pUnderlying}-`) && !vSymbol.startsWith(`P-${pUnderlying}-`)){
+            continue;
+        }
+        const objMatch = vSymbol.match(/-(\d{6})$/);
+        if(!objMatch){
+            continue;
+        }
+        const vExpiry = fnParseDdMmYyToDate(objMatch[1]);
+        if(!vExpiry || vExpiry < new Date(vToday.getFullYear(), vToday.getMonth(), vToday.getDate())){
+            continue;
+        }
+        const vApiDate = fnFormatDateForDelta(vExpiry);
+        if(!objMap.has(vApiDate)){
+            const vStartToday = new Date(vToday.getFullYear(), vToday.getMonth(), vToday.getDate());
+            const vDaysToExpiry = Math.round((vExpiry.getTime() - vStartToday.getTime()) / 86400000);
+            objMap.set(vApiDate, { ts: vExpiry.getTime(), daysToExpiry: Math.max(0, vDaysToExpiry) });
+        }
+    }
+    return [...objMap.entries()]
+        .sort((a, b) => a[1].ts - b[1].ts)
+        .map(([vApiDate, vMeta]) => ({ apiDate: vApiDate, daysToExpiry: vMeta.daysToExpiry, ts: vMeta.ts }));
+}
+
+function fnBuildOptionMetrics(pRows, pRefPrice){
+    let vTotalCallOi = 0;
+    let vTotalPutOi = 0;
+    let vTotalCallVol = 0;
+    let vTotalPutVol = 0;
+    let vMaxCallOi = -1;
+    let vMaxPutOi = -1;
+    let vMaxCallOiStrike = null;
+    let vMaxPutOiStrike = null;
+    let vRowsUsed = 0;
+
+    for(const objRow of (pRows || [])){
+        const vStrike = Number(objRow?.strike_price);
+        if(!Number.isFinite(vStrike) || !fnIsStrikeNearMoney(vStrike, pRefPrice, 0.03)){
+            continue;
+        }
+        const vOi = Number(objRow?.oi);
+        const vVol = Number(objRow?.volume);
+        const vType = String(objRow?.contract_type || "").toLowerCase();
+        if(vType === "call_options"){
+            vTotalCallOi += Number.isFinite(vOi) ? vOi : 0;
+            vTotalCallVol += Number.isFinite(vVol) ? vVol : 0;
+            if(Number.isFinite(vOi) && vOi > vMaxCallOi){
+                vMaxCallOi = vOi;
+                vMaxCallOiStrike = vStrike;
+            }
+        }
+        else if(vType === "put_options"){
+            vTotalPutOi += Number.isFinite(vOi) ? vOi : 0;
+            vTotalPutVol += Number.isFinite(vVol) ? vVol : 0;
+            if(Number.isFinite(vOi) && vOi > vMaxPutOi){
+                vMaxPutOi = vOi;
+                vMaxPutOiStrike = vStrike;
+            }
+        }
+        vRowsUsed += 1;
+    }
+
+    return fnFinalizeOptionMetrics({
+        rowsUsed: vRowsUsed,
+        totalCallOi: vTotalCallOi,
+        totalPutOi: vTotalPutOi,
+        totalCallVol: vTotalCallVol,
+        totalPutVol: vTotalPutVol,
+        maxCallOiStrike: vMaxCallOiStrike,
+        maxPutOiStrike: vMaxPutOiStrike
+    });
+}
+
+function fnMergeOptionMetrics(pMetricsList){
+    let vRowsUsed = 0;
+    let vTotalCallOi = 0;
+    let vTotalPutOi = 0;
+    let vTotalCallVol = 0;
+    let vTotalPutVol = 0;
+    const objCallStrikeScores = new Map();
+    const objPutStrikeScores = new Map();
+
+    for(const objMetrics of (pMetricsList || [])){
+        if(!objMetrics){
+            continue;
+        }
+        vRowsUsed += Number(objMetrics.rowsUsed || 0);
+        vTotalCallOi += Number(objMetrics.totalCallOi || 0);
+        vTotalPutOi += Number(objMetrics.totalPutOi || 0);
+        vTotalCallVol += Number(objMetrics.totalCallVol || 0);
+        vTotalPutVol += Number(objMetrics.totalPutVol || 0);
+        if(Number.isFinite(Number(objMetrics.maxCallOiStrike))){
+            objCallStrikeScores.set(Number(objMetrics.maxCallOiStrike), (objCallStrikeScores.get(Number(objMetrics.maxCallOiStrike)) || 0) + Number(objMetrics.totalCallOi || 0));
+        }
+        if(Number.isFinite(Number(objMetrics.maxPutOiStrike))){
+            objPutStrikeScores.set(Number(objMetrics.maxPutOiStrike), (objPutStrikeScores.get(Number(objMetrics.maxPutOiStrike)) || 0) + Number(objMetrics.totalPutOi || 0));
+        }
+    }
+
+    return fnFinalizeOptionMetrics({
+        rowsUsed: vRowsUsed,
+        totalCallOi: vTotalCallOi,
+        totalPutOi: vTotalPutOi,
+        totalCallVol: vTotalCallVol,
+        totalPutVol: vTotalPutVol,
+        maxCallOiStrike: fnGetHighestWeightedStrike(objCallStrikeScores),
+        maxPutOiStrike: fnGetHighestWeightedStrike(objPutStrikeScores)
+    });
+}
+
+function fnFinalizeOptionMetrics(pMetrics){
+    const vCallOi = Number(pMetrics.totalCallOi || 0);
+    const vPutOi = Number(pMetrics.totalPutOi || 0);
+    const vCallVol = Number(pMetrics.totalCallVol || 0);
+    const vPutVol = Number(pMetrics.totalPutVol || 0);
+    return {
+        rowsUsed: Number(pMetrics.rowsUsed || 0),
+        totalCallOi: Number(vCallOi.toFixed(2)),
+        totalPutOi: Number(vPutOi.toFixed(2)),
+        totalCallVol: Number(vCallVol.toFixed(2)),
+        totalPutVol: Number(vPutVol.toFixed(2)),
+        totalOi: Number((vCallOi + vPutOi).toFixed(2)),
+        pcrOi: vCallOi > 0 ? Number((vPutOi / vCallOi).toFixed(4)) : null,
+        pcrVol: vCallVol > 0 ? Number((vPutVol / vCallVol).toFixed(4)) : null,
+        maxCallOiStrike: Number.isFinite(Number(pMetrics.maxCallOiStrike)) ? Number(pMetrics.maxCallOiStrike) : null,
+        maxPutOiStrike: Number.isFinite(Number(pMetrics.maxPutOiStrike)) ? Number(pMetrics.maxPutOiStrike) : null
+    };
+}
+
+function fnGetMetricsForBucket(pExpiryMetrics, pExpiry){
+    const objMetrics = pExpiry ? pExpiryMetrics?.[pExpiry] : null;
+    if(objMetrics){
+        return objMetrics;
+    }
+    return fnFinalizeOptionMetrics({
+        rowsUsed: 0,
+        totalCallOi: 0,
+        totalPutOi: 0,
+        totalCallVol: 0,
+        totalPutVol: 0,
+        maxCallOiStrike: null,
+        maxPutOiStrike: null
+    });
+}
+
+function fnGetHighestWeightedStrike(pMap){
+    let vBestStrike = null;
+    let vBestScore = -1;
+    for(const [vStrike, vScore] of (pMap || new Map()).entries()){
+        if(vScore > vBestScore){
+            vBestScore = vScore;
+            vBestStrike = vStrike;
+        }
+    }
+    return vBestStrike;
+}
+
+function fnParseDdMmYyToDate(pDdMmYy){
+    const vRaw = String(pDdMmYy || "");
+    if(!/^\d{6}$/.test(vRaw)){
+        return null;
+    }
+    const vDay = Number(vRaw.slice(0, 2));
+    const vMonth = Number(vRaw.slice(2, 4));
+    const vYear = 2000 + Number(vRaw.slice(4, 6));
+    const vDate = new Date(vYear, vMonth - 1, vDay);
+    if(vDate.getFullYear() !== vYear || (vDate.getMonth() + 1) !== vMonth || vDate.getDate() !== vDay){
+        return null;
+    }
+    return vDate;
+}
+
+function fnFormatDateForDelta(pDate){
+    const vDay = String(pDate.getDate()).padStart(2, "0");
+    const vMonth = String(pDate.getMonth() + 1).padStart(2, "0");
+    const vYear = pDate.getFullYear();
+    return `${vDay}-${vMonth}-${vYear}`;
+}
+
+function fnIsStrikeNearMoney(pStrike, pRefPrice, pBandPct = 0.03){
+    if(!Number.isFinite(pStrike) || !Number.isFinite(pRefPrice) || pStrike <= 0 || pRefPrice <= 0){
+        return false;
+    }
+    const vBand = pRefPrice * pBandPct;
+    return Math.abs(pStrike - pRefPrice) <= vBand;
 }

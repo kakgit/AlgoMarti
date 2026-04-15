@@ -37,6 +37,9 @@ let gManualPrevGreenSeedActive = false;
 let gManualPrevRedSeedActive = false;
 let gEditTradeSource = "";
 let gCloseAllBusyDFSD = false;
+let gOiTrendTimer = 0;
+let gOiTrendBusy = false;
+let gOiTrendIntervalMs = 5 * 60 * 1000;
 
 window.addEventListener("DOMContentLoaded", function(){
 	fnGetAllStatus();
@@ -185,6 +188,426 @@ function fnSetRenkoFeedMeta(){
     const vBuyPatts = objBuyPatterns.length > 0 ? objBuyPatterns.join(",") : "-";
     const vSellPatts = objSellPatterns.length > 0 ? objSellPatterns.join(",") : "-";
     objMeta.innerText = `Symbol: ${fnGetRenkoFeedSymbol()} | Step: ${gRenkoFeedStepPts} | MinStep: ${gRenkoMinStepPoints} | Src: ${gRenkoFeedPriceSource} | B: ${vBuyPatts} | S: ${vSellPatts}`;
+}
+
+function fnSetOiTrendStatus(pTxt, pCls = "bg-secondary"){
+    const obj = document.getElementById("spnOiTrendStatus");
+    if(!obj){
+        return;
+    }
+    obj.className = `badge ${pCls}`;
+    obj.innerText = pTxt;
+}
+
+function fnSetOiTrendMeta(pTxt){
+    const obj = document.getElementById("spnOiTrendMeta");
+    if(!obj){
+        return;
+    }
+    obj.innerText = pTxt;
+}
+
+function fnSetOiVolBurstStatus(pTxt, pCls = "bg-secondary"){
+    const obj = document.getElementById("spnOiVolBurstStatus");
+    if(!obj){
+        return;
+    }
+    obj.className = `badge ${pCls}`;
+    obj.innerText = pTxt;
+}
+
+function fnGetOiTrendStorageKey(){
+    return `DFSD_OITrendSnapshot_${fnGetRenkoFeedSymbol()}`;
+}
+
+function fnGetOiTrendSnapshotFromStorage(){
+    return fnGetLsJSON(fnGetOiTrendStorageKey(), null);
+}
+
+function fnSaveOiTrendSnapshot(pSnapshot){
+    localStorage.setItem(fnGetOiTrendStorageKey(), JSON.stringify(pSnapshot));
+}
+
+function fnFormatOiTrendMeta(pSnap, pSignal){
+    if(!pSnap){
+        return "No trend snapshot yet.";
+    }
+    const vSpot = Number.isFinite(Number(pSnap.spot)) ? Number(pSnap.spot).toFixed(0) : "-";
+    const vWhen = Number.isFinite(Number(pSnap.ts)) ? new Date(pSnap.ts).toLocaleTimeString("en-GB") : "-";
+    const vNear = fnFormatBucketSignalShort("N", pSignal?.buckets?.near);
+    const vWeek = fnFormatBucketSignalShort("W", pSignal?.buckets?.week);
+    const vMonth = fnFormatBucketSignalShort("M", pSignal?.buckets?.month);
+    const vVolNear = fnFormatBucketVolShort("VN", pSignal?.volumeBurst?.buckets?.near);
+    const vVolWeek = fnFormatBucketVolShort("VW", pSignal?.volumeBurst?.buckets?.week);
+    const vVolMonth = fnFormatBucketVolShort("VM", pSignal?.volumeBurst?.buckets?.month);
+    const vNearExpiry = pSnap?.buckets?.near?.expiry || "-";
+    const vWeekExpiry = pSnap?.buckets?.week?.expiry || "-";
+    const vMonthExpiry = pSnap?.buckets?.month?.expiry || "-";
+    return `${vNear} ${vWeek} ${vMonth} | ${vVolNear} ${vVolWeek} ${vVolMonth} | Spot ${vSpot} | Exp N:${vNearExpiry} W:${vWeekExpiry} M:${vMonthExpiry} | ${vWhen}`;
+}
+
+function fnFormatBucketSignalShort(pLabel, pBucketSignal){
+    if(!pBucketSignal){
+        return `${pLabel}:-`;
+    }
+    const vScore = Number.isFinite(Number(pBucketSignal.score)) ? Number(pBucketSignal.score) : 0;
+    const vScoreTxt = vScore > 0 ? `+${vScore}` : `${vScore}`;
+    return `${pLabel}:${pBucketSignal.direction || "WAIT"}(${vScoreTxt})`;
+}
+
+function fnFormatBucketVolShort(pLabel, pBucketSignal){
+    if(!pBucketSignal){
+        return `${pLabel}:-`;
+    }
+    const vScore = Number.isFinite(Number(pBucketSignal.score)) ? Number(pBucketSignal.score) : 0;
+    const vScoreTxt = vScore > 0 ? `+${vScore}` : `${vScore}`;
+    return `${pLabel}:${pBucketSignal.direction || "WAIT"}(${vScoreTxt})`;
+}
+
+function fnEvaluateOiTrendBucket(pCurr, pPrev){
+    if(!pCurr || Number(pCurr.rowsUsed || 0) <= 0){
+        return { direction: "WAIT", score: 0, reasons: ["Snapshot unavailable"] };
+    }
+    if(!pPrev || Number(pPrev.rowsUsed || 0) <= 0){
+        return { direction: "WAIT", score: 0, reasons: ["Waiting for previous 5m snapshot"] };
+    }
+
+    const vPriceChg = Number(pCurr.spot || pCurr.refPrice || 0) - Number(pPrev.spot || pPrev.refPrice || 0);
+    const vOiChg = Number(pCurr.totalOi || 0) - Number(pPrev.totalOi || 0);
+    const vPcrOiChg = Number(pCurr.pcrOi || 0) - Number(pPrev.pcrOi || 0);
+    const vPcrVolChg = Number(pCurr.pcrVol || 0) - Number(pPrev.pcrVol || 0);
+    const vPutShift = Number(pCurr.maxPutOiStrike || 0) - Number(pPrev.maxPutOiStrike || 0);
+    const vCallShift = Number(pCurr.maxCallOiStrike || 0) - Number(pPrev.maxCallOiStrike || 0);
+    let vScore = 0;
+    const objReasons = [];
+
+    if(vPriceChg > 0 && vOiChg > 0){
+        vScore += 2;
+        objReasons.push("price_up_oi_up");
+    }
+    else if(vPriceChg < 0 && vOiChg > 0){
+        vScore -= 2;
+        objReasons.push("price_dn_oi_up");
+    }
+    else if(vPriceChg > 0 && vOiChg < 0){
+        vScore -= 1;
+        objReasons.push("price_up_oi_dn");
+    }
+    else if(vPriceChg < 0 && vOiChg < 0){
+        vScore += 1;
+        objReasons.push("price_dn_oi_dn");
+    }
+
+    if(vPcrOiChg >= 0.03){
+        vScore += 1;
+        objReasons.push("pcr_oi_up");
+    }
+    else if(vPcrOiChg <= -0.03){
+        vScore -= 1;
+        objReasons.push("pcr_oi_dn");
+    }
+
+    if(vPcrVolChg >= 0.05){
+        vScore += 1;
+        objReasons.push("pcr_vol_up");
+    }
+    else if(vPcrVolChg <= -0.05){
+        vScore -= 1;
+        objReasons.push("pcr_vol_dn");
+    }
+
+    if(Number.isFinite(vPutShift) && vPutShift > 0){
+        vScore += 1;
+        objReasons.push("put_support_up");
+    }
+    else if(Number.isFinite(vPutShift) && vPutShift < 0){
+        vScore -= 1;
+        objReasons.push("put_support_dn");
+    }
+
+    if(Number.isFinite(vCallShift) && vCallShift > 0){
+        vScore += 1;
+        objReasons.push("call_res_up");
+    }
+    else if(Number.isFinite(vCallShift) && vCallShift < 0){
+        vScore -= 1;
+        objReasons.push("call_res_dn");
+    }
+
+    let vDirection = "UP";
+    if(vScore < 0){
+        vDirection = "DN";
+    }
+    else if(vScore === 0){
+        vDirection = vPriceChg < 0 ? "DN" : "UP";
+    }
+
+    return {
+        direction: vDirection,
+        score: vScore,
+        reasons: objReasons,
+        priceChg: Number(vPriceChg.toFixed(2)),
+        oiChg: Number(vOiChg.toFixed(2)),
+        pcrOiChg: Number(vPcrOiChg.toFixed(4)),
+        pcrVolChg: Number(vPcrVolChg.toFixed(4))
+    };
+}
+
+function fnGetBucketWeight(pBucketName){
+    if(pBucketName === "near"){
+        return 0.5;
+    }
+    if(pBucketName === "week"){
+        return 0.3;
+    }
+    if(pBucketName === "month"){
+        return 0.2;
+    }
+    return 0;
+}
+
+function fnEvaluateVolumeBurstBucket(pCurr, pPrev){
+    if(!pCurr || Number(pCurr.rowsUsed || 0) <= 0){
+        return { direction: "WAIT", score: 0, reasons: ["Snapshot unavailable"] };
+    }
+    if(!pPrev || Number(pPrev.rowsUsed || 0) <= 0){
+        return { direction: "WAIT", score: 0, reasons: ["Waiting for previous 5m snapshot"] };
+    }
+
+    const vCallVolChg = Number(pCurr.totalCallVol || 0) - Number(pPrev.totalCallVol || 0);
+    const vPutVolChg = Number(pCurr.totalPutVol || 0) - Number(pPrev.totalPutVol || 0);
+    const vTotalAbs = Math.abs(vCallVolChg) + Math.abs(vPutVolChg);
+    if(vTotalAbs <= 0){
+        return {
+            direction: "FLAT",
+            score: 0,
+            callVolChg: 0,
+            putVolChg: 0,
+            dominance: 0
+        };
+    }
+
+    const vDominance = (vPutVolChg - vCallVolChg) / Math.max(1, vTotalAbs);
+    let vDirection = "FLAT";
+    let vScore = 0;
+
+    if(vPutVolChg > 0 && vDominance >= 0.35){
+        vDirection = "UP";
+        vScore = vDominance >= 0.6 ? 2 : 1;
+    }
+    else if(vCallVolChg > 0 && vDominance <= -0.35){
+        vDirection = "DN";
+        vScore = vDominance <= -0.6 ? -2 : -1;
+    }
+    else{
+        vDirection = "FLAT";
+        vScore = 0;
+    }
+
+    return {
+        direction: vDirection,
+        score: vScore,
+        callVolChg: Number(vCallVolChg.toFixed(2)),
+        putVolChg: Number(vPutVolChg.toFixed(2)),
+        dominance: Number(vDominance.toFixed(4))
+    };
+}
+
+function fnEvaluateVolumeBurstSignal(pCurr, pPrev){
+    if(!pCurr){
+        return { direction: "WAIT", score: 0, weightedScore: 0, buckets: {} };
+    }
+    const objBucketNames = ["near", "week", "month"];
+    const objBucketSignals = {};
+    let vWeightedScore = 0;
+    let vAvailableCount = 0;
+
+    for(const vBucketName of objBucketNames){
+        const objCurrBucket = pCurr?.buckets?.[vBucketName] || {};
+        const objPrevBucket = pPrev?.buckets?.[vBucketName] || null;
+        const objSignal = fnEvaluateVolumeBurstBucket(objCurrBucket, objPrevBucket);
+        objBucketSignals[vBucketName] = objSignal;
+        if(objSignal.direction === "UP" || objSignal.direction === "DN"){
+            vWeightedScore += objSignal.score * fnGetBucketWeight(vBucketName);
+            vAvailableCount += 1;
+        }
+    }
+
+    let vDirection = "WAIT";
+    if(vAvailableCount === 0){
+        vDirection = "WAIT";
+    }
+    else if(vWeightedScore >= 0.5){
+        vDirection = "UP";
+    }
+    else if(vWeightedScore <= -0.5){
+        vDirection = "DN";
+    }
+    else{
+        vDirection = "FLAT";
+    }
+
+    return {
+        direction: vDirection,
+        score: Number(vWeightedScore.toFixed(2)),
+        weightedScore: Number(vWeightedScore.toFixed(2)),
+        buckets: objBucketSignals
+    };
+}
+
+function fnEvaluateOiTrendSignal(pCurr, pPrev){
+    if(!pCurr){
+        return { direction: "WAIT", score: 0, weightedScore: 0, buckets: {} };
+    }
+
+    const objBucketNames = ["near", "week", "month"];
+    const objBucketSignals = {};
+    let vWeightedScore = 0;
+    let vAvailableCount = 0;
+
+    for(const vBucketName of objBucketNames){
+        const objCurrBucket = {
+            ...(pCurr?.buckets?.[vBucketName] || {}),
+            spot: pCurr.spot,
+            refPrice: pCurr.refPrice
+        };
+        const objPrevBucket = pPrev ? {
+            ...(pPrev?.buckets?.[vBucketName] || {}),
+            spot: pPrev.spot,
+            refPrice: pPrev.refPrice
+        } : null;
+        const objSignal = fnEvaluateOiTrendBucket(objCurrBucket, objPrevBucket);
+        objBucketSignals[vBucketName] = objSignal;
+        if(objSignal.direction === "UP" || objSignal.direction === "DN"){
+            vWeightedScore += objSignal.score * fnGetBucketWeight(vBucketName);
+            vAvailableCount += 1;
+        }
+    }
+
+    const vNearDir = objBucketSignals.near?.direction || "WAIT";
+    const vWeekDir = objBucketSignals.week?.direction || "WAIT";
+    const vMonthDir = objBucketSignals.month?.direction || "WAIT";
+    const objConfirmDirs = [vWeekDir, vMonthDir].filter((x) => x === "UP" || x === "DN");
+    let vDirection = "WAIT";
+
+    if(vAvailableCount === 0){
+        vDirection = "WAIT";
+    }
+    else if(vNearDir !== "WAIT" && objConfirmDirs.length >= 2 && objConfirmDirs.every((x) => x !== vNearDir)){
+        vDirection = "FLAT";
+    }
+    else if(vWeightedScore >= 0.35){
+        vDirection = "UP";
+    }
+    else if(vWeightedScore <= -0.35){
+        vDirection = "DN";
+    }
+    else{
+        vDirection = "FLAT";
+    }
+
+    const objVolBurst = fnEvaluateVolumeBurstSignal(pCurr, pPrev);
+
+    return {
+        direction: vDirection,
+        score: Number(vWeightedScore.toFixed(2)),
+        weightedScore: Number(vWeightedScore.toFixed(2)),
+        buckets: objBucketSignals,
+        volumeBurst: objVolBurst
+    };
+}
+
+async function fnRefreshOiTrendSignal(){
+    if(gOiTrendBusy){
+        return;
+    }
+    gOiTrendBusy = true;
+    const vSymbol = fnGetRenkoFeedSymbol();
+    try{
+        fnSetOiTrendStatus("RUN", "bg-warning");
+        const vHeaders = new Headers();
+        vHeaders.append("Content-Type", "application/json");
+        const objResp = await fetch("/deltaFutScprDemo/getOptionTrendSnapshot", {
+            method: "POST",
+            headers: vHeaders,
+            body: JSON.stringify({ Symbol: vSymbol }),
+            redirect: "follow"
+        });
+        const objResult = await objResp.json();
+        if(objResult.status !== "success"){
+            fnSetOiTrendStatus("ERR", "bg-danger");
+            fnSetOiTrendMeta(objResult.message || "Trend snapshot failed.");
+            return;
+        }
+
+        const objPrev = fnGetOiTrendSnapshotFromStorage();
+        const objCurr = objResult.data;
+        const objSignal = fnEvaluateOiTrendSignal(objCurr, objPrev);
+        fnSaveOiTrendSnapshot(objCurr);
+
+        if(objSignal.direction === "UP"){
+            fnSetOiTrendStatus(`UP ${objSignal.score > 0 ? "+" + objSignal.score : objSignal.score}`, "bg-success");
+        }
+        else if(objSignal.direction === "DN"){
+            fnSetOiTrendStatus(`DN ${objSignal.score < 0 ? objSignal.score : "+" + objSignal.score}`, "bg-danger");
+        }
+        else if(objSignal.direction === "FLAT"){
+            fnSetOiTrendStatus(`FLAT ${objSignal.score > 0 ? "+" + objSignal.score : objSignal.score}`, "bg-secondary");
+        }
+        else{
+            fnSetOiTrendStatus("WAIT", "bg-secondary");
+        }
+
+        if(objSignal.volumeBurst?.direction === "UP"){
+            fnSetOiVolBurstStatus(`VOL UP ${objSignal.volumeBurst.score > 0 ? "+" + objSignal.volumeBurst.score : objSignal.volumeBurst.score}`, "bg-success");
+        }
+        else if(objSignal.volumeBurst?.direction === "DN"){
+            fnSetOiVolBurstStatus(`VOL DN ${objSignal.volumeBurst.score < 0 ? objSignal.volumeBurst.score : "+" + objSignal.volumeBurst.score}`, "bg-danger");
+        }
+        else if(objSignal.volumeBurst?.direction === "FLAT"){
+            fnSetOiVolBurstStatus(`VOL FLAT ${objSignal.volumeBurst.score > 0 ? "+" + objSignal.volumeBurst.score : objSignal.volumeBurst.score}`, "bg-secondary");
+        }
+        else{
+            fnSetOiVolBurstStatus("VOL WAIT", "bg-secondary");
+        }
+        fnSetOiTrendMeta(fnFormatOiTrendMeta(objCurr, objSignal));
+    }
+    catch(objErr){
+        fnSetOiTrendStatus("ERR", "bg-danger");
+        fnSetOiVolBurstStatus("VOL ERR", "bg-danger");
+        fnSetOiTrendMeta(objErr?.message || "Trend snapshot failed.");
+    }
+    finally{
+        gOiTrendBusy = false;
+    }
+}
+
+function fnScheduleOiTrendPolling(){
+    if(gOiTrendTimer){
+        clearTimeout(gOiTrendTimer);
+        gOiTrendTimer = 0;
+    }
+    const vBucketMins = Math.max(1, Math.floor(gOiTrendIntervalMs / 60000));
+    const vNow = new Date();
+    const vNext = new Date(vNow);
+    vNext.setSeconds(0, 0);
+    vNext.setMinutes(Math.ceil(vNow.getMinutes() / vBucketMins) * vBucketMins);
+    if(vNext <= vNow){
+        vNext.setMinutes(vNext.getMinutes() + vBucketMins);
+    }
+    const vDelayMs = Math.max(1000, vNext.getTime() - vNow.getTime());
+    gOiTrendTimer = setTimeout(async () => {
+        await fnRefreshOiTrendSignal();
+        fnScheduleOiTrendPolling();
+    }, vDelayMs);
+}
+
+function fnInitOiTrendMonitor(){
+    fnSetOiTrendStatus("INIT", "bg-secondary");
+    fnSetOiVolBurstStatus("VOL INIT", "bg-secondary");
+    fnSetOiTrendMeta("Preparing 5m trend monitor...");
+    void fnRefreshOiTrendSignal();
+    fnScheduleOiTrendPolling();
 }
 
 function fnGetTickerVolumeText(pVol){
@@ -1139,6 +1562,7 @@ function fnGetAllStatus(){
 		fnLoadTradeSide();
 	}
     fnLoadRenkoFeedSettings();
+    fnInitOiTrendMonitor();
     fnUpdateMartiDebugStatus();
 }
 
@@ -1168,6 +1592,12 @@ function fnSetSymbolData(pThisVal){
 	else{
 		objLotSize.value = 0;
 	}
+
+    fnSetOiTrendStatus("INIT", "bg-secondary");
+    fnSetOiVolBurstStatus("VOL INIT", "bg-secondary");
+    fnSetOiTrendMeta(`Preparing 5m trend monitor for ${pThisVal}...`);
+    void fnRefreshOiTrendSignal();
+    fnScheduleOiTrendPolling();
 
     gRenkoFeedAnchor = null;
     gRenkoFeedLastDir = 0;

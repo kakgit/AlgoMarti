@@ -79,6 +79,42 @@
         .dfs-phase3 .renko-feed-item:last-child {
             border-bottom: 0;
         }
+
+        .dfs-phase3 .trend-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            padding: 0.6rem 0.85rem;
+            border: 1px solid rgba(13, 110, 253, 0.18);
+            border-left: 4px solid rgba(13, 110, 253, 0.65);
+            border-radius: 0.6rem;
+            background: linear-gradient(90deg, rgba(13, 110, 253, 0.08), rgba(13, 110, 253, 0.02));
+        }
+
+        .dfs-phase3 .trend-strip-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-weight: 700;
+            color: #315a9b;
+            letter-spacing: 0.01em;
+        }
+
+        .dfs-phase3 .trend-strip-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            min-width: 0;
+        }
+
+        .dfs-phase3 .trend-strip-meta-text {
+            color: #5c6773;
+            min-width: 0;
+            word-break: break-word;
+        }
     </style>
     <div class="dfs-phase3">
     <div class="page-heading">
@@ -226,6 +262,19 @@
                                         <input type="number" class="form-control-plaintext fw-semibold" placeholder="Best Sell Price" id="txtBestSellPrice" readonly tabindex="-1" />
                                     </div>
                                     <div class="col-2"></div>
+                                    <div class="col-12">
+                                        <div class="trend-strip">
+                                            <span class="trend-strip-label">
+                                                <i class="fa fa-line-chart" aria-hidden="true"></i>
+                                                Trend 5m
+                                            </span>
+                                            <div class="trend-strip-meta small">
+                                                <span id="spnOiTrendStatus" class="badge bg-secondary">WAIT</span>
+                                                <span id="spnOiVolBurstStatus" class="badge bg-secondary">VOL WAIT</span>
+                                                <span id="spnOiTrendMeta" class="trend-strip-meta-text">Loading...</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="col-12 my-1"><hr class="my-1"/></div>
                                     <div class="col-12">
                                         <div id="divMartiDbg" class="small text-muted" style="white-space: nowrap; overflow-x: auto;"></div>

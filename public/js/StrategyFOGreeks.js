@@ -4102,6 +4102,7 @@ async function fnPreInitAutoTrade(pOptionType, pTransType, pCfgRow, pUseReDelta 
     let objOrderType = document.getElementById("ddlOrderType");
     let objSymbol = document.getElementById("ddlSymbols");
     let objLotSize = document.getElementById("txtLotSize");
+    let objBrokAmt = document.getElementById("txtBrok2Rec");
 
     let vCfgRow = parseInt(pCfgRow);
     if(!Number.isFinite(vCfgRow)){
@@ -4166,8 +4167,17 @@ async function fnPreInitAutoTrade(pOptionType, pTransType, pCfgRow, pUseReDelta 
         localStorage.setItem("CurrPosDSSDV2", objExcTradeDtls);
 
         let vCharges = fnGetTradeCharges(vStrPrice, vLotSize, vLotQty, vBestBuy, vBestSell, vCorP);
-        gOtherFlds[0]["BrokerageAmt"] = parseFloat(objBrokAmt.value) + vCharges;
-        objBrokAmt.value = gOtherFlds[0]["BrokerageAmt"];
+        let vCurrBrokAmt = parseFloat(objBrokAmt?.value);
+        if(!Number.isFinite(vCurrBrokAmt)){
+            vCurrBrokAmt = parseFloat(gOtherFlds?.[0]?.BrokerageAmt);
+        }
+        if(!Number.isFinite(vCurrBrokAmt)){
+            vCurrBrokAmt = 0;
+        }
+        gOtherFlds[0]["BrokerageAmt"] = vCurrBrokAmt + vCharges;
+        if(objBrokAmt){
+            objBrokAmt.value = gOtherFlds[0]["BrokerageAmt"];
+        }
 
         localStorage.setItem("HidFldsDSSDV2", JSON.stringify(gOtherFlds));
         if(bCycleStart){
@@ -4959,6 +4969,141 @@ function fnGetTradePL(pBuyPrice, pSellPrice, pLotSize, pQty, pCharges){
     let vPL = ((pSellPrice - pBuyPrice) * pLotSize * pQty) - pCharges;
 
     return vPL;
+}
+
+function fnApplyClosedLegPnLAndBrokerageS2(pPL, pCharges){
+    let objBrokAmt = document.getElementById("txtBrok2Rec");
+    let objYet2Recvr = document.getElementById("txtYet2Recvr");
+
+    let vYet2RecvrAmt = parseFloat(objYet2Recvr?.value);
+    if(!Number.isFinite(vYet2RecvrAmt)){
+        vYet2RecvrAmt = parseFloat(gOtherFlds?.[0]?.Yet2RecvrAmt);
+    }
+    if(!Number.isFinite(vYet2RecvrAmt)){
+        vYet2RecvrAmt = 0;
+    }
+    gOtherFlds[0]["Yet2RecvrAmt"] = vYet2RecvrAmt + Number(pPL || 0);
+    if(objYet2Recvr){
+        objYet2Recvr.value = gOtherFlds[0]["Yet2RecvrAmt"];
+    }
+
+    if(Number(pPL) > 0){
+        let vBrok = parseFloat(objBrokAmt?.value);
+        if(!Number.isFinite(vBrok)){
+            vBrok = parseFloat(gOtherFlds?.[0]?.BrokerageAmt);
+        }
+        if(!Number.isFinite(vBrok)){
+            vBrok = 0;
+        }
+        if(vBrok >= Number(pCharges || 0)){
+            gOtherFlds[0]["BrokerageAmt"] = vBrok - Number(pCharges || 0);
+            if(objBrokAmt){
+                objBrokAmt.value = gOtherFlds[0]["BrokerageAmt"];
+            }
+        }
+    }
+}
+
+async function fnReduceOpenFuturesPositionsForHedge(pTargetSide, pQtyToReduce){
+    let vReduceQty = Math.floor(Number(pQtyToReduce));
+    if(!Number.isFinite(vReduceQty) || vReduceQty < 1){
+        return { status: "noop", reducedQty: 0, residualQty: 0 };
+    }
+    if(!gCurrPosDSSDV2 || !Array.isArray(gCurrPosDSSDV2.TradeData)){
+        return { status: "noop", reducedQty: 0, residualQty: vReduceQty };
+    }
+
+    const vOppSide = pTargetSide === "buy" ? "sell" : "buy";
+    const objApiKey = document.getElementById("txtUserAPIKey");
+    const objApiSecret = document.getElementById("txtAPISecret");
+    if(!objApiKey || !objApiSecret){
+        return { status: "warning", reducedQty: 0, residualQty: vReduceQty, message: "Missing API credentials for futures reduction." };
+    }
+
+    const objOppLegs = gCurrPosDSSDV2.TradeData
+        .filter(objLeg => objLeg && objLeg.Status === "OPEN" && objLeg.OptionType === "F" && objLeg.TransType === vOppSide)
+        .sort((a, b) => Number(a.OpenDTVal || 0) - Number(b.OpenDTVal || 0));
+
+    if(objOppLegs.length === 0){
+        return { status: "noop", reducedQty: 0, residualQty: vReduceQty };
+    }
+
+    let vRemaining = vReduceQty;
+    let vReduced = 0;
+    let bChanged = false;
+
+    for(const objLeg of objOppLegs){
+        if(vRemaining < 1){
+            break;
+        }
+
+        const vCurrQty = Math.floor(Number(objLeg?.LotQty));
+        if(!Number.isFinite(vCurrQty) || vCurrQty < 1){
+            continue;
+        }
+
+        const objBestRates = await fnGetBestRatesBySymbId(objApiKey.value, objApiSecret.value, objLeg.Symbol);
+        if(objBestRates.status !== "success"){
+            return { status: "warning", reducedQty: vReduced, residualQty: vRemaining, message: objBestRates.message || "Failed to get rates for futures reduction." };
+        }
+
+        const vNow = new Date();
+        const vMonth = vNow.getMonth() + 1;
+        const vNowTxt = vNow.getDate() + "-" + vMonth + "-" + vNow.getFullYear() + " " + vNow.getHours() + ":" + vNow.getMinutes() + ":" + vNow.getSeconds();
+        const vBestAsk = parseFloat(objBestRates.data.result.quotes.best_ask);
+        const vBestBid = parseFloat(objBestRates.data.result.quotes.best_bid);
+        if(vOppSide === "sell"){
+            objLeg.BuyPrice = vBestAsk;
+        }
+        else{
+            objLeg.SellPrice = vBestBid;
+        }
+
+        const vCloseQty = Math.min(vRemaining, vCurrQty);
+        if(vCloseQty >= vCurrQty){
+            const vStrikePrice = parseFloat(objLeg.StrikePrice || 0);
+            const vLotSize = parseFloat(objLeg.LotSize || 0);
+            const vBuyPrice = parseFloat(objLeg.BuyPrice || 0);
+            const vSellPrice = parseFloat(objLeg.SellPrice || 0);
+            const vCharges = fnGetTradeCharges(vStrikePrice, vLotSize, vCurrQty, vBuyPrice, vSellPrice, "F");
+            const vPL = fnGetTradePL(vBuyPrice, vSellPrice, vLotSize, vCurrQty, vCharges);
+
+            objLeg.CloseDT = vNowTxt;
+            objLeg.Status = "CLOSED";
+            fnApplyClosedLegPnLAndBrokerageS2(vPL, vCharges);
+
+            if(!gClsdPosDSSDV2 || !Array.isArray(gClsdPosDSSDV2.TradeData)){
+                gClsdPosDSSDV2 = { TradeData : [] };
+            }
+            if(!gClsdPosDSSDV2.TradeData.some(objClosed => String(objClosed.TradeID) === String(objLeg.TradeID))){
+                gClsdPosDSSDV2.TradeData.push({ ...objLeg });
+            }
+            const vIdx = gCurrPosDSSDV2.TradeData.findIndex(objOpen => String(objOpen.TradeID) === String(objLeg.TradeID));
+            if(vIdx >= 0){
+                gCurrPosDSSDV2.TradeData.splice(vIdx, 1);
+            }
+        }
+        else{
+            objLeg.CloseDT = vNowTxt;
+            fnCloseOpenLegByQtyS2(objLeg, vCloseQty, vNowTxt);
+        }
+
+        vRemaining -= vCloseQty;
+        vReduced += vCloseQty;
+        bChanged = true;
+    }
+
+    if(bChanged){
+        localStorage.setItem("CurrPosDSSDV2", JSON.stringify(gCurrPosDSSDV2));
+        localStorage.setItem("ClsdPosDSSDV2", JSON.stringify(gClsdPosDSSDV2));
+        localStorage.setItem("HidFldsDSSDV2", JSON.stringify(gOtherFlds));
+        gUpdPos = true;
+        fnSetSymbolTickerList();
+        fnUpdateOpenPositions();
+        fnDispClosedPositions();
+    }
+
+    return { status: bChanged ? "success" : "noop", reducedQty: vReduced, residualQty: vRemaining };
 }
 
 function fnGetLegMarginRefPrice(objLeg){
@@ -5981,6 +6126,20 @@ async function executeDeltaHedge(pTotalDelta, pOpts = {}){
     // Only hedge if quantity is at least 1 contract
     if(vHedgeQty < 1){
         return { status: "qty_below_one", hedged: false };
+    }
+
+    const objReduction = await fnReduceOpenFuturesPositionsForHedge(vHedgeTransType, vHedgeQty);
+    if(objReduction?.status === "warning"){
+        fnGenMessage(objReduction.message || "Failed to reduce opposite futures hedge.", `badge bg-warning`, "spnGenMsg");
+        return { status: "warning", hedged: false, message: objReduction.message };
+    }
+    if(Number(objReduction?.reducedQty || 0) > 0){
+        fnGenMessage(`Reduced ${objReduction.reducedQty} opposite futures contracts before hedge adjustment.`, `badge bg-info`, "spnGenMsg");
+    }
+    vHedgeQty = Math.max(0, Math.floor(Number(objReduction?.residualQty ?? vHedgeQty)));
+    if(vHedgeQty < 1){
+        gLastHedgeTime = Date.now();
+        return { status: "reduced_only", hedged: true, qty: Number(objReduction?.reducedQty || 0), side: vHedgeTransType };
     }
     
     fnGenMessage(`Executing delta hedge: ${vHedgeTransType.toUpperCase()} ${vHedgeQty} contracts of BTCUSD to offset ${pTotalDelta > 0 ? '+' : ''}${pTotalDelta.toFixed(3)} delta`, `badge bg-info`, "spnGenMsg");

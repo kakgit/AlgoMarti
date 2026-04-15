@@ -289,6 +289,7 @@ route.post("/deltaExcFut/placeLimitOrder", deltaFutDemoController.fnPlaceLimitOr
 route.post("/deltaFutScprDemo/validateLogin", deltaFutScprDemoController.fnValidateUserLogin);
 route.post("/deltaFutScprDemo/getHistOHLC", deltaFutScprDemoController.fnHistoricalOHLCAPI);
 route.post("/deltaFutScprDemo/getCurrBSRates", deltaFutScprDemoController.fnGetCurrBuySellRates);
+route.post("/deltaFutScprDemo/getOptionTrendSnapshot", deltaFutScprDemoController.fnGetOptionTrendSnapshot);
 route.post("/deltaFutScprDemo/placeLimitOrder", deltaFutScprDemoController.fnPlaceLimitOrderSDK);
 route.post("/deltaFutScprDemo/sendTelegramAlert", deltaFutScprDemoController.fnSendTelegramAlertMsg);
 route.post("/futSclprDemo-DE-M/validateLogin", futSclprDemoDEMController.fnValidateUserLogin);
