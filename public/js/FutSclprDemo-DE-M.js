@@ -966,6 +966,42 @@ function fnGetSyntheticRenkoOHLC(pOpen, pClose){
     return { Open: vOpen, High: vHigh, Low: vLow, Close: vClose };
 }
 
+function fnHasPendingFirstLossBoxExit(){
+    const objTrade = gCurrPos?.TradeData?.[0];
+    const vState = String(objTrade?.FirstLossBoxExitState || "off").toLowerCase();
+    return vState === "pending";
+}
+
+async function fnHandleFirstLossBoxExitFromTicker(pTicData, pSource = "delta"){
+    const vMark = fnGetRenkoFeedTickerPrice(pTicData);
+    const vVol = fnGetTickerVolumeFromTick(pTicData);
+    const vVolTxt = fnGetTickerVolumeText(vVol);
+    if(!Number.isFinite(vMark) || vMark <= 0){
+        return;
+    }
+    if(!Number.isFinite(gRenkoFeedAnchor)){
+        gRenkoFeedAnchor = Math.floor(vMark / gRenkoFeedStepPts) * gRenkoFeedStepPts;
+        gRenkoFeedLastDir = 0;
+        if(fnHasPendingFirstLossBoxExit()){
+            fnAppendRenkoFeedMsg(`[${pSource}] Anchor set @ ${gRenkoFeedAnchor.toFixed(2)} (${fnGetRenkoFeedSymbol()})`);
+        }
+        return;
+    }
+
+    const objBuild = fnBuildStandardRenkoBricks(vMark, gRenkoFeedStepPts, gRenkoFeedAnchor, gRenkoFeedLastDir, 25);
+    gRenkoFeedAnchor = objBuild.Anchor;
+    gRenkoFeedLastDir = objBuild.LastDir;
+    for(let i = 0; i < objBuild.Bricks.length; i += 1){
+        const vOpen = objBuild.Bricks[i].Open;
+        const vClose = objBuild.Bricks[i].Close;
+        const objOHLC = fnGetSyntheticRenkoOHLC(vOpen, vClose);
+        if(fnHasPendingFirstLossBoxExit()){
+            fnAppendRenkoFeedMsg(`[${pSource}] O:${objOHLC.Open.toFixed(2)} H:${objOHLC.High.toFixed(2)} L:${objOHLC.Low.toFixed(2)} C:${objOHLC.Close.toFixed(2)} V:${vVolTxt}`);
+        }
+        await fnHandleFirstLossBoxExitByRenko(objOHLC.Open, objOHLC.Close, pSource);
+    }
+}
+
 async function fnHandleRenkoFeedTicker(pTicData){
     const vMark = fnGetRenkoFeedTickerPrice(pTicData);
     const vVol = fnGetTickerVolumeFromTick(pTicData);
@@ -1654,6 +1690,9 @@ function fnGetRates(pTicData){
 	if(gCurrPos !== null){
 		fnUpdateOpnPosStatus();
 	}
+    if(!gRenkoFeedEnabled){
+        void fnHandleFirstLossBoxExitFromTicker(pTicData, "ws");
+    }
 	// else{
 	// 	fnExecInternalStrategy();
 	// }
