@@ -27,6 +27,7 @@ const deltaSStraddleLiveCtrler = require("../controller/cntrDeltaSStraddleL.js")
 const strategyFOGreeksCtrler = require("../controller/cntrStrategyFOGreeks.js");
 const liveStrategy1FOCtrler = require("../controller/cntrLiveStrategy1FO.js");
 const liveStrategy2FOCtrler = require("../controller/cntrLiveStrategy2FO.js");
+const coveredCallDECtrler = require("../controller/cntrCoveredCallDE.js");
 const deltaSStrangleLiveCtrler = require("../controller/cntrDeltaSStrangleL.js");
 const ctrlCryptoFunding = require("../controller/controllerCryptoFunding.js");
 const ctrlCryptoFundingV2 = require("../controller/controllerCryptoFundingV2.js");
@@ -82,6 +83,7 @@ route.get("/deltaSStraddleLive", deltaSStraddleLiveCtrler.defaultRoute);
 route.get("/StrategyFOGreeks", strategyFOGreeksCtrler.defaultRoute);
 route.get("/LiveStrategy1FO", liveStrategy1FOCtrler.defaultRoute);
 route.get("/LiveStrategy2FO", liveStrategy2FOCtrler.defaultRoute);
+route.get("/CoveredCall-DE", coveredCallDECtrler.defaultRoute);
 
 //Delta Short Strangle Live Route
 route.get("/deltaSStrangleLive", deltaSStrangleLiveCtrler.defaultRoute);
@@ -251,6 +253,17 @@ route.post("/liveStrategy2fo/closeLeg", liveStrategy2FOCtrler.fnCloseLeg);
 route.post("/liveStrategy2fo/getLiveOpenPositions", liveStrategy2FOCtrler.fnGetLiveOpenPositions);
 route.post("/liveStrategy2fo/getBestRatesBySymb", liveStrategy2FOCtrler.fnGetBestRatesBySymbol);
 route.post("/liveStrategy2fo/getFilledOrderHistory", liveStrategy2FOCtrler.fnGetFilledOrderHistory);
+route.post("/coveredCallDE/validateLogin", coveredCallDECtrler.fnValidateUserLogin);
+route.post("/coveredCallDE/getOptChnSDKByAstOptTypExp", coveredCallDECtrler.fnGetOptChnSDKByAstOptTypExp);
+route.post("/coveredCallDE/execOption", coveredCallDECtrler.fnExecOptionByOptTypeExpTransType);
+route.post("/coveredCallDE/execOptionLeg", coveredCallDECtrler.fnExecOptByOTypExpTType);
+route.post("/coveredCallDE/execFutureLeg", coveredCallDECtrler.fnExecFutByTType);
+route.post("/coveredCallDE/abortPendingFutOrders", coveredCallDECtrler.fnAbortPendingFutOrders);
+route.post("/coveredCallDE/sendTelegramAlert", coveredCallDECtrler.fnSendTelegramAlertMsg);
+route.post("/coveredCallDE/closeLeg", coveredCallDECtrler.fnCloseLeg);
+route.post("/coveredCallDE/getLiveOpenPositions", coveredCallDECtrler.fnGetLiveOpenPositions);
+route.post("/coveredCallDE/getBestRatesBySymb", coveredCallDECtrler.fnGetBestRatesBySymbol);
+route.post("/coveredCallDE/getFilledOrderHistory", coveredCallDECtrler.fnGetFilledOrderHistory);
 //Delta Short Strangle Live Routes
 route.post("/deltaSStrangleLive/validateLogin", deltaSStrangleLiveCtrler.fnValidateUserLogin);
 route.post("/deltaSStrangleLive/getWalletDetails", deltaSStrangleLiveCtrler.fnWalletDetails);

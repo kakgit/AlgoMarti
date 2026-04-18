@@ -1,0 +1,151 @@
+<div class="modal fade text-left" id="mdlDeltaLogin" tabindex="-1" role="dialog" aria-labelledby="ccdeLoginModalLabel"
+    data-bs-backdrop="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h4 class="modal-title" id="ccdeLoginModalLabel">Covered Call - Delta Exchange Login</h4>
+                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
+            </div>
+            <div class="modal-body">
+                <section id="ccde-login-form">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="card mb-0">
+                                <div class="card-header text-center">
+                                    <span id="spnDeltaLogin" class="badge bg-primary">Please Input Login Details</span>
+                                </div>
+                                <div class="card-body">
+                                    <form class="form">
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    <label for="txtUserAPIKey">Account API Key</label>
+                                                    <input type="text" id="txtUserAPIKey" class="form-control" value="" placeholder="API Key" autocomplete="off" />
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    <label for="txtAPISecret">Account Secret Code</label>
+                                                    <input type="password" id="txtAPISecret" class="form-control" value="" placeholder="Secret Code" autocomplete="off" />
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    <label for="txtTelegramBotToken">Telegram Bot Token (Optional)</label>
+                                                    <input type="text" id="txtTelegramBotToken" class="form-control" value="" placeholder="123456789:AA..." autocomplete="off" />
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    <label for="txtTelegramChatId">Telegram Chat ID (Optional)</label>
+                                                    <input type="text" id="txtTelegramChatId" class="form-control" value="" placeholder="-1001234567890" autocomplete="off" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="txtWalletUsd" value="" />
+                    <input type="hidden" id="txtWalletInr" value="" />
+                    <input type="hidden" id="txtPmStatus" value="Needs wallet check" />
+                    <input type="hidden" id="txtFutOpenQty" value="0" />
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                    <span>CLOSE</span>
+                </button>
+                <button id="btnSubmitCoveredCallLogin" type="button" class="btn btn-primary ms-1" onclick="fnValidateDeltaLogin();">
+                    <span>SUBMIT</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade text-left" id="mdlFetchLivePos" tabindex="-1" role="dialog" aria-labelledby="mdlFetchLivePosLabel"
+    data-bs-backdrop="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h5 class="modal-title" id="mdlFetchLivePosLabel">Fetch Live Open Positions</h5>
+                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="margin-bottom: 10px;">
+                    <div class="col-12" style="text-align: right;">
+                        <label for="chkReplaceExistingLivePos" style="margin-right: 8px; cursor: pointer;">Replace existing symbol legs</label>
+                        <input type="checkbox" id="chkReplaceExistingLivePos" style="cursor: pointer;" />
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr style="text-align:center;">
+                                <th scope="col"><input type="checkbox" id="chkFetchAllLivePos" onchange="fnToggleSelectAllFetchLivePos(this.checked);" /></th>
+                                <th scope="col">Symbol</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Side</th>
+                                <th scope="col">Qty</th>
+                                <th scope="col">Entry</th>
+                                <th scope="col">Best Ask</th>
+                                <th scope="col">Best Bid</th>
+                                <th scope="col">U-PnL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tBodyFetchLivePos"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="fnAddSelectedLivePosToLocal();">Add Selected</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade text-left" id="mdlLegEditor" tabindex="-1" role="dialog" aria-labelledby="ccdeLegEditorLabel" data-bs-backdrop="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h4 class="modal-title" id="ccdeLegEditorLabel">Update Option Leg</h4>
+                <i class="fa fa-times" aria-hidden="true" data-bs-dismiss="modal" aria-label="Close" style="cursor: pointer;"></i>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-6">Lot Size</div>
+                        <div class="col-6">Quantity</div>
+                        <div class="col-6">
+                            <input type="text" value="" id="txtEdLotSize" class="form-control" />
+                            <input type="text" value="" id="hidLegID" class="form-control" />
+                        </div>
+                        <div class="col-6">
+                            <input type="text" value="" id="txtEdQty" class="form-control" />
+                        </div>
+
+                        <div class="col-6">Buy Price</div>
+                        <div class="col-6">Sell Price</div>
+                        <div class="col-6">
+                            <input type="text" value="" id="txtEdBuyPrice" class="form-control" />
+                        </div>
+                        <div class="col-6">
+                            <input type="text" value="" id="txtEdSellPrice" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">
+                    <span>CLOSE</span>
+                </button>
+                <button type="button" class="btn btn-primary ms-1" onclick="fnUpdateOptionLeg();">
+                    <span>UPDATE</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

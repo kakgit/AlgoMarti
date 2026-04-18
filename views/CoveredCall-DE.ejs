@@ -1,0 +1,403 @@
+<div id="main" class="container-xxl">
+    <style>
+        .ccde-page .card {
+            border: 0;
+            box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
+            margin-bottom: 1rem;
+        }
+
+        .ccde-page .stat-tile {
+            border-radius: 0.75rem;
+            padding: 0.9rem 1rem;
+            background: linear-gradient(135deg, rgba(23, 37, 84, 0.08), rgba(14, 116, 144, 0.08));
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            min-height: 92px;
+        }
+
+        .ccde-page .stat-label {
+            font-size: 0.82rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .ccde-page .stat-value {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .ccde-page .mini-note {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        .ccde-page .strategy-log {
+            min-height: 220px;
+            max-height: 320px;
+            overflow-y: auto;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 0.75rem;
+            padding: 0.75rem 0.9rem;
+            background: linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(241, 245, 249, 0.95));
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 0.84rem;
+            line-height: 1.35;
+        }
+
+        .ccde-page .strategy-log-item {
+            padding: 0.2rem 0;
+            border-bottom: 1px dashed rgba(15, 23, 42, 0.08);
+        }
+
+        .ccde-page .strategy-log-item:last-child {
+            border-bottom: 0;
+        }
+
+        .ccde-page .manual-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+
+        .ccde-page .ws-controls {
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .ccde-page .ws-dot {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 30px;
+            width: 30px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+    </style>
+
+    <div class="ccde-page">
+        <div class="page-heading">
+            <div class="row align-items-center g-2">
+                <div class="col-12 col-md-4">
+                    <h3>Rolling Option - Live</h3>
+                </div>
+                <div class="col-12 col-md-4 text-center">
+                    <span class="badge bg-warning" id="spnGenMsg">Hi, Welcome</span>
+                </div>
+                <div class="col-12 col-md-4 text-md-end">
+                    <a href="javascript:void(0);" class="btn btn-outline-primary" onclick="fnChangeLater();">
+                        <i class="fa fa-cogs" aria-hidden="true" style="color: orangered;"></i> Covered Call Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-content">
+            <section class="row">
+                <div class="col-12">
+                    <div class="row text-center g-2 mb-3">
+                        <div class="col-12 col-md-4">
+                            <button class="badge bg-danger" onclick="fnShowTraderLoginMdl(this);" id="btnTraderStatus">Trader - Invalid</button>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <button class="badge bg-danger" onclick="fnToggleAutoTrader();" id="btnAutoTraderStatus">Auto Trader - OFF</button>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <button class="badge bg-secondary" onclick="fnRefreshCoveredCallShell();" id="btnStrategyStatus">Shell - Initializing</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="row">
+                <div class="col-12">
+                    <div class="card" id="cardManualFuturesTrader">
+                        <div class="card-header">
+                            <div class="row align-items-center g-2">
+                                <div class="col-12 col-xl-7">
+                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                        <span class="manual-title">Manual Trader</span>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-5">
+                                    <div class="ws-controls">
+                                        <span id="spnCoveredCallWSStatus" class="badge bg-secondary">WS-OFF</span>
+                                        <span class="badge rounded-pill text-bg-primary ws-dot" onclick="fnConnectCoveredCallWS();" title="Connect to WebSocket" aria-label="Connect WebSocket"><i class="fa fa-plug" aria-hidden="true"></i></span>
+                                        <span id="spnCoveredCallSub" class="badge rounded-pill text-bg-success ws-dot" onclick="fnSubscribeCoveredCallWSManual();" title="Subscribe to WebSocket" aria-label="Subscribe WebSocket"><i class="fa fa-rss" aria-hidden="true"></i></span>
+                                        <span class="badge rounded-pill text-bg-danger ws-dot" onclick="fnDisconnectCoveredCallWS();" title="Disconnect WebSocket" aria-label="Disconnect WebSocket"><i class="fa fa-power-off" aria-hidden="true"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="container-fluid">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-2">
+                                        <label for="ddlCoveredCallSymbol" class="form-label">Symbols List</label>
+                                        <select id="ddlCoveredCallSymbol" class="form-select">
+                                            <option value="BTC" selected>BTCUSD</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-1">
+                                        <label for="txtCoveredCallLotSize" class="form-label">Lot Size</label>
+                                        <input type="text" id="txtCoveredCallLotSize" class="form-control" value="0.001" readonly />
+                                    </div>
+                                    <div class="col-12 col-md-1">
+                                        <label for="txtManualFutQty" class="form-label">Qty</label>
+                                        <input type="number" min="1" step="1" id="txtManualFutQty" class="form-control" value="1" />
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        <label for="ddlManualFutOrderType" class="form-label">Order Type</label>
+                                        <select id="ddlManualFutOrderType" class="form-select">
+                                            <option value="limit_order">Limit Order</option>
+                                            <option value="market_order" selected>Market Order</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-danger" type="button" onclick="fnOpenCoveredCallFuture('sell');">SELL FUT</button>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-success" type="button" onclick="fnOpenCoveredCallFuture('buy');">BUY FUT</button>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-warning" type="button" onclick="fnExitCoveredCallFuture();">EXIT FUT</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-1" style="text-align: center;">Action</div>
+                                    <div class="col-1" style="text-align: center;">Legs</div>
+                                    <div class="col-2">Expiry Type</div>
+                                    <div class="col-2">Select Expiry</div>
+                                    <div class="col-1">Qty</div>
+                                    <div class="col-1">New D</div>
+                                    <div class="col-1">Re D</div>
+                                    <div class="col-1">TP D</div>
+                                    <div class="col-1">SL D</div>
+                                    <div class="col-1" style="text-align: center;">Re Enter</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-1">
+                                        <select id="ddlActionCoveredCall1" class="form-select" title="Covered call action">
+                                            <option value="none">None</option>
+                                            <option value="buy">Buy</option>
+                                            <option value="sell" selected>Sell</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-1">
+                                        <select id="ddlLegSideCoveredCall1" class="form-select" title="Covered call leg selector">
+                                            <option value="both">Both</option>
+                                            <option value="ce" selected>CE</option>
+                                            <option value="pe">PE</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-2">
+                                        <select id="ddlExpiryModeCoveredCall1" class="form-select" title="Expiry mode">
+                                            <option value="1" selected>DAILY T+1</option>
+                                            <option value="2">DAILY T+2</option>
+                                            <option value="4">WEEKLY</option>
+                                            <option value="5">BI-WEEKLY</option>
+                                            <option value="6">MONTHLY</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="date" class="form-control" id="txtExpiryCoveredCall1" value="" title="Select / Input Leg Expiry Date" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0" value="0" id="txtManualOptQtyCoveredCall1" title="Manual option qty" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" step="0.01" id="txtNewDeltaCoveredCall1" value="0.50" title="Target call delta" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" step="0.01" id="txtReDeltaCoveredCall1" value="0.50" title="Re-entry delta" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" step="0.01" id="txtDeltaTPCoveredCall1" value="0.10" title="Take Profit Delta" />
+                                    </div>
+                                    <div class="col-1">
+                                        <input type="number" class="form-control" min="0.0" max="2.0" step="0.01" id="txtDeltaSLCoveredCall1" value="0.90" title="Stop Loss Delta" />
+                                    </div>
+                                    <div class="col-1" style="text-align: center;">
+                                        <input type="checkbox" class="form-check-input" id="chkReLegCoveredCall1" />
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="d-flex flex-wrap align-items-center gap-2">
+                                            <div class="form-check form-switch mb-0">
+                                                <input class="form-check-input" type="checkbox" id="chkAddOneLotFutIfNegFut">
+                                                <label class="form-check-label" for="chkAddOneLotFutIfNegFut">Add 1 Lot Fut if -Fut</label>
+                                            </div>
+                                            <button class="btn btn-outline-primary" type="button" onclick="fnExecCoveredCallStrategy();">Exec Strategy</button>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-2 ms-md-auto">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-success" type="button" onclick="fnOpenCoveredCallOption();">OPEN OPTION</button>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-outline-warning" type="button" onclick="fnExitCoveredCallOption();">EXIT OPTION</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3 g-2">
+                                    <div class="col-12 col-md-4">
+                                        <div class="small text-muted">Total Margin</div>
+                                        <div class="fw-semibold" id="divTotalMargin">-</div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="small text-muted">Blocked Margin</div>
+                                        <div class="fw-semibold" id="divBlockedMargin">-</div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="small text-muted">Available Balance</div>
+                                        <div class="fw-semibold" id="divBalanceMargin">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <section class="row">
+                <div class="col-12">
+                    <div class="card" id="cardOpenPosition">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col-3">
+                                    <h4>Open Position(s)</h4>
+                                </div>
+                                <div class="col-1">
+                                    <a href="javascript:void(0);" class="nav-link" onclick="fnOpenFetchLivePosModal();" title="Fetch Live Positions">
+                                        <i class="fa fa-download" aria-hidden="true"></i>
+                                    </a>
+                                </div>
+                                <div class="col-1"></div>
+                                <div class="col-1"></div>
+                                <div class="col-2"></div>
+                                <div class="col-1" style="text-align: right;">
+                                    <button class="nav-link" onclick="fnClearLocalStorageTemp();" role="tab" type="button">Clear All</button>
+                                </div>
+                                <div class="col-1"><i class="fa fa-refresh" aria-hidden="true" style="color: skyblue; cursor: pointer;" onclick="fnRefreshAllOpenBrowser();"></i></div>
+                                <div class="col-1" style="text-align: right;">
+                                    <span id="spnClsAllPos" class="badge rounded-pill text-bg-danger" style="height: 30px; width: 30px; cursor:pointer;" title="Kill Switch - Close All Real Open Legs" onclick="fnKillSwitchCloseAll();">&nbsp;</span>
+                                </div>
+                                <div class="col-1" style="text-align: right;">
+                                    <a data-bs-toggle="collapse" href="#divOpenPosClps" role="button" aria-expanded="true" aria-controls="divOpenPosClps">
+                                        <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="collapse show" id="divOpenPosClps">
+                                <div class="container-fluid">
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead>
+                                                <tr style="text-align:center;">
+                                                    <th scope="col" style="text-wrap: nowrap;">Actions</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Delta</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Gamma</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Theta</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Vega</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Symbol</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Tr Type</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Lot Sz</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Qty</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Charges</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Start DT</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">End DT</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tBodyCurrTrades"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="row">
+                <div class="col-12">
+                    <div class="card" id="cardClosedPosition">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col-12 col-lg-3">
+                                    <h4>Closed Positions</h4>
+                                </div>
+                                <div class="col-12 col-lg-4" style="display: flex; align-items: center; gap: 8px;">
+                                    <label for="txtClsFromDate" style="margin-bottom: 0; white-space: nowrap;">From</label>
+                                    <input type="datetime-local" class="form-control" id="txtClsFromDate" />
+                                </div>
+                                <div class="col-12 col-lg-4" style="display: flex; align-items: center; gap: 8px;">
+                                    <label for="txtClsToDate" style="margin-bottom: 0; white-space: nowrap;">To</label>
+                                    <input type="datetime-local" class="form-control" id="txtClsToDate" />
+                                    <a href="javascript:void(0);" title="Clear and load defaults" onclick="fnClearClosedPosDateTimeFilters();" style="color: #dc3545;">
+                                        <i class="fa fa-times-circle" aria-hidden="true"></i>
+                                    </a>
+                                </div>
+                                <div class="col-12 col-lg-1" style="text-align: right;">
+                                    <a data-bs-toggle="collapse" href="#divClosedPosClps" role="button" aria-expanded="true" aria-controls="divClosedPosClps">
+                                        <i class="fa fa-caret-square-o-down" aria-hidden="true" style="color: orangered;"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="collapse show" id="divClosedPosClps">
+                                <div class="container-fluid">
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead>
+                                                <tr style="text-align:center;">
+                                                    <th scope="col" style="text-wrap: nowrap;">Start DT</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">End DT</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Symbol</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Tr Type</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Lot Sz</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Qty</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Buy Price</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Sell Price</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">Charges</th>
+                                                    <th scope="col" style="text-wrap: nowrap;">P &amp; L</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tBodyClosedTrades"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/CoveredCall-DESettings.ejs') %>
+
+<script src="/js/CoveredCall-DE.js"></script>
+<script src="/js/CoveredCall-DESettings.js"></script>
