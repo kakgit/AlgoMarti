@@ -2563,13 +2563,13 @@ async function fnClosePrctTrade(pPct = gLossRecPerct, pSuccessMsg = "Partial Qty
         }
 
         const vCurrQty = Number(gCurrPos.TradeData[0].Qty);
-        const vPct = Math.min(99, Math.max(1, Math.floor(fnParsePositiveNumber(pPct, 50))));
+        const vPct = Math.min(100, Math.max(1, Math.floor(fnParsePositiveNumber(pPct, 50))));
         let vPrctQty2Rec = Math.floor((vCurrQty * vPct) / 100);
         if(vPrctQty2Rec < 1){
             vPrctQty2Rec = 1;
         }
-        if(vPrctQty2Rec >= vCurrQty){
-            vPrctQty2Rec = vCurrQty - 1;
+        if(vPrctQty2Rec > vCurrQty){
+            vPrctQty2Rec = vCurrQty;
         }
         if(vPrctQty2Rec < 1){
             fnGenMessage("Not enough quantity for partial close.", `badge bg-warning`, "spnGenMsg");

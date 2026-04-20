@@ -2811,8 +2811,8 @@ async function fnClosePrctTrade(){
             if(vPrctQty2Rec < 1){
                 vPrctQty2Rec = 1;
             }
-            if(vPrctQty2Rec >= vCurrQty){
-                vPrctQty2Rec = vCurrQty - 1;
+            if(vPrctQty2Rec > vCurrQty){
+                vPrctQty2Rec = vCurrQty;
             }
             if(vPrctQty2Rec < 1){
                 fnGenMessage("Not enough quantity for partial close.", `badge bg-warning`, "spnGenMsg");
@@ -2823,7 +2823,8 @@ async function fnClosePrctTrade(){
             if(objClsTrd.status === "success"){
                 fnSetInitFutTrdDtls();
 			    fnLoadTodayTrades();
-                fnGenMessage("Partial Qty Closed!", `badge bg-${objClsTrd.status}`, "spnGenMsg");   
+                const vMsg = (vPrctQty2Rec >= vCurrQty) ? "Full Qty Closed!" : "Partial Qty Closed!";
+                fnGenMessage(vMsg, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
             }
             else{
                 fnGenMessage(objClsTrd.message, `badge bg-${objClsTrd.status}`, "spnGenMsg");   
