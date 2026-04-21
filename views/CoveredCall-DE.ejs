@@ -140,6 +140,7 @@
                                         <label for="ddlCoveredCallSymbol" class="form-label">Symbols List</label>
                                         <select id="ddlCoveredCallSymbol" class="form-select">
                                             <option value="BTC" selected>BTCUSD</option>
+                                            <option value="ETH">ETHUSD</option>
                                         </select>
                                     </div>
                                     <div class="col-12 col-md-1">
@@ -235,7 +236,7 @@
                                         <div class="d-flex flex-wrap align-items-center gap-2">
                                             <div class="form-check form-switch mb-0">
                                                 <input class="form-check-input" type="checkbox" id="chkAddOneLotFutIfNegFut">
-                                                <label class="form-check-label" for="chkAddOneLotFutIfNegFut">Add 1 Lot Fut if -Fut</label>
+                                                <label class="form-check-label" for="chkAddOneLotFutIfNegFut">Add 1 Lot Future</label>
                                             </div>
                                             <button class="btn btn-outline-primary" type="button" onclick="fnExecCoveredCallStrategy();">Exec Strategy</button>
                                         </div>
