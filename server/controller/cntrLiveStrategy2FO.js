@@ -512,7 +512,9 @@ exports.fnCloseLeg = async (req, res) => {
                 TransType: objOrd.side,
                 Qty: objOrd.size,
                 State: objOrd.state,
-                ClosePrice: vExecPx
+                ClosePrice: vExecPx,
+                Commission: Number(objOrd.paid_commission || 0),
+                paid_commission: Number(objOrd.paid_commission || 0)
             }
         });
     }

@@ -30,6 +30,52 @@ function fnCCDEGetStorage(pKey, pDefault = ""){
     return vVal === null ? pDefault : vVal;
 }
 
+function fnGetCoveredCallOptionsPnlBase(){
+    const vVal = Number(fnCCDEGetStorage("OptionsPnl", "0"));
+    return Number.isFinite(vVal) ? vVal : 0;
+}
+
+function fnSetCoveredCallOptionsPnlBase(pValue){
+    const vSafe = Number.isFinite(Number(pValue)) ? Number(pValue) : 0;
+    fnCCDESetStorage("OptionsPnl", vSafe.toFixed(2));
+    const objInp = document.getElementById("txtOptionsPnl");
+    if(objInp && document.activeElement !== objInp){
+        objInp.value = vSafe.toFixed(2);
+    }
+    return vSafe;
+}
+
+function fnApplyCoveredCallOptionsPnlDelta(pDelta){
+    const vBase = fnGetCoveredCallOptionsPnlBase();
+    const vDelta = Number.isFinite(Number(pDelta)) ? Number(pDelta) : 0;
+    return fnSetCoveredCallOptionsPnlBase(vBase + vDelta);
+}
+
+function fnRefreshCoveredCallOptionsPnlInput(){
+    const objInp = document.getElementById("txtOptionsPnl");
+    if(!objInp){
+        return;
+    }
+    objInp.value = fnGetCoveredCallOptionsPnlBase().toFixed(2);
+}
+
+function fnBindCoveredCallOptionsPnlInput(){
+    const objInp = document.getElementById("txtOptionsPnl");
+    if(!objInp || objInp.dataset.ccdeOptionsPnlBound === "true"){
+        return;
+    }
+
+    const fnPersist = function(){
+        const vRaw = String(objInp.value || "").trim();
+        const vParsed = Number(vRaw);
+        fnSetCoveredCallOptionsPnlBase(Number.isFinite(vParsed) ? vParsed : 0);
+    };
+
+    objInp.addEventListener("change", fnPersist);
+    objInp.addEventListener("blur", fnPersist);
+    objInp.dataset.ccdeOptionsPnlBound = "true";
+}
+
 function fnSetControlValueCCDE(pId, pValue){
     const objEle = document.getElementById(pId);
     if(!objEle){
@@ -496,6 +542,10 @@ function fnSetCoveredCallWSStatus(pText, pCls = "bg-secondary"){
 function fnGetCoveredCallSubscribedSymbols(){
     const objOpenTrades = fnGetCoveredCallOpenTrades();
     const objSet = new Set();
+    const vSelectedTickerSymbol = fnGetCoveredCallSelectedTickerSymbol();
+    if(vSelectedTickerSymbol){
+        objSet.add(vSelectedTickerSymbol);
+    }
     objOpenTrades.forEach((objTrade) => {
         const vSymbol = String(objTrade?.Symbol || "").trim();
         if(vSymbol){
@@ -521,6 +571,196 @@ function fnGetCcdeCurrentGreek(pSymbol, pMap, pFallback = 0){
         return vCurr;
     }
     return Number(pFallback || 0);
+}
+
+function fnGetCoveredCallSelectedTickerSymbol(){
+    const vSelectedUnderlying = String(document.getElementById("ddlCoveredCallSymbol")?.value || "").trim().toUpperCase();
+    if(!vSelectedUnderlying){
+        return "";
+    }
+    return vSelectedUnderlying + "USD";
+}
+
+function fnGetCoveredCallLiveDisplayPrice(pSymbol){
+    const vSymbol = String(pSymbol || "").trim();
+    if(!vSymbol){
+        return NaN;
+    }
+
+    const vAsk = Number(gCCDESymbBRateList[vSymbol]);
+    const vBid = Number(gCCDESymbSRateList[vSymbol]);
+    if(Number.isFinite(vAsk) && vAsk > 0 && Number.isFinite(vBid) && vBid > 0){
+        return (vAsk + vBid) / 2;
+    }
+    if(Number.isFinite(vAsk) && vAsk > 0){
+        return vAsk;
+    }
+    if(Number.isFinite(vBid) && vBid > 0){
+        return vBid;
+    }
+    return NaN;
+}
+
+function fnRefreshCoveredCallOneLotValue(){
+    const objVal = document.getElementById("divOneLotValue");
+    if(!objVal){
+        return;
+    }
+
+    const vTickerSymbol = fnGetCoveredCallSelectedTickerSymbol();
+    const vLotSize = Number(document.getElementById("txtCoveredCallLotSize")?.value || 0);
+    const vLivePrice = fnGetCoveredCallLiveDisplayPrice(vTickerSymbol);
+    const vOneLotValue = vLivePrice * vLotSize;
+
+    objVal.innerText = (Number.isFinite(vOneLotValue) && vOneLotValue > 0) ? vOneLotValue.toFixed(2) : "-";
+}
+
+function fnGetCoveredCallSelectedFuturePositionValue(){
+    const vTickerSymbol = fnGetCoveredCallSelectedTickerSymbol();
+    if(!vTickerSymbol){
+        return NaN;
+    }
+
+    const objFutureTrades = (Array.isArray(gCCDEFetchedLivePosRows) ? gCCDEFetchedLivePosRows : []).filter((objTrade) => {
+        return String(objTrade?.OptionType || "F").toUpperCase() === "F"
+            && String(objTrade?.Symbol || "").trim().toUpperCase() === vTickerSymbol;
+    });
+    if(objFutureTrades.length === 0){
+        return NaN;
+    }
+
+    let vTotalValue = 0;
+    for(let i = 0; i < objFutureTrades.length; i += 1){
+        const objTrade = objFutureTrades[i];
+        const vQty = Number(objTrade?.Qty || objTrade?.LotQty || 0);
+        const vLotSize = Number(objTrade?.LotSize || document.getElementById("txtCoveredCallLotSize")?.value || 0);
+        const vLivePrice = fnGetCoveredCallLiveDisplayPrice(objTrade?.Symbol);
+        const vFallbackPrice = Number(objTrade?.EntryPrice || objTrade?.BestAsk || objTrade?.BestBid || 0);
+        const vPrice = Number.isFinite(vLivePrice) && vLivePrice > 0 ? vLivePrice : vFallbackPrice;
+        const vPositionValue = vQty * vLotSize * vPrice;
+        if(Number.isFinite(vPositionValue)){
+            vTotalValue += vPositionValue;
+        }
+    }
+
+    return vTotalValue > 0 ? vTotalValue : NaN;
+}
+
+function fnRefreshCoveredCallHealth(){
+    const objHealth = document.getElementById("divHealthPct");
+    if(!objHealth){
+        return;
+    }
+
+    const vAvailableBalance = Number(fnCCDEGetStorage("AvailableMargin", ""));
+    const vPositionValue = fnGetCoveredCallSelectedFuturePositionValue();
+    if(!Number.isFinite(vAvailableBalance) || vAvailableBalance < 0 || !Number.isFinite(vPositionValue) || vPositionValue <= 0){
+        objHealth.innerText = "-";
+        objHealth.style.color = "";
+        return;
+    }
+
+    if(vAvailableBalance <= 0){
+        objHealth.innerText = "-";
+        objHealth.style.color = "";
+        return;
+    }
+
+    const vHealthPct = (vPositionValue / vAvailableBalance) * 100;
+    objHealth.innerText = `${vHealthPct.toFixed(2)}%`;
+    if(vHealthPct <= 100){
+        objHealth.style.color = "#198754";
+    }
+    else if(vHealthPct <= 150){
+        objHealth.style.color = "#fd7e14";
+    }
+    else{
+        objHealth.style.color = "#dc3545";
+    }
+}
+
+function fnGetCoveredCallEntryOptionCommission(objTrade){
+    const vEntryComm = Number(
+        objTrade?.Commission
+        || objTrade?.BuyCommission
+        || objTrade?.SellCommission
+        || 0
+    );
+    return Number.isFinite(vEntryComm) && vEntryComm > 0 ? vEntryComm : 0;
+}
+
+function fnGetCoveredCallCloseOptionCommission(pCloseData){
+    const vCloseComm = Number(
+        pCloseData?.Commission
+        || pCloseData?.paid_commission
+        || 0
+    );
+    return Number.isFinite(vCloseComm) && vCloseComm > 0 ? vCloseComm : 0;
+}
+
+function fnCalcCoveredCallOptionTds(pCommissionTotal){
+    const vComm = Number(pCommissionTotal);
+    if(!Number.isFinite(vComm) || vComm <= 0){
+        return 0;
+    }
+    return vComm * 0.18;
+}
+
+function fnApplyCoveredCallClosedOptionPnl(objTrade, pCloseData){
+    const vOptionType = String(objTrade?.OptionType || "").toUpperCase();
+    if(vOptionType !== "C" && vOptionType !== "P"){
+        return 0;
+    }
+
+    const vQty = Number(objTrade?.LotQty || objTrade?.Qty || pCloseData?.Qty || 0);
+    const vLotSize = Number(objTrade?.LotSize || 0);
+    const vClosePrice = Number(pCloseData?.ClosePrice || 0);
+    const vTransType = String(objTrade?.TransType || "").toLowerCase();
+    let vBuyPrice = Number(objTrade?.BuyPrice || 0);
+    let vSellPrice = Number(objTrade?.SellPrice || 0);
+
+    if(vTransType === "buy"){
+        vSellPrice = vClosePrice;
+    }
+    else if(vTransType === "sell"){
+        vBuyPrice = vClosePrice;
+    }
+
+    if(!Number.isFinite(vQty) || vQty <= 0 || !Number.isFinite(vLotSize) || vLotSize <= 0){
+        return 0;
+    }
+    if(!Number.isFinite(vBuyPrice) || !Number.isFinite(vSellPrice)){
+        return 0;
+    }
+
+    const vGrossPnl = (vSellPrice - vBuyPrice) * vQty * vLotSize;
+    const vEntryComm = fnGetCoveredCallEntryOptionCommission(objTrade);
+    const vExitComm = fnGetCoveredCallCloseOptionCommission(pCloseData);
+    const vCommissionTotal = vEntryComm + vExitComm;
+    const vTds = fnCalcCoveredCallOptionTds(vCommissionTotal);
+    const vNetBeforeTds = vGrossPnl - vCommissionTotal;
+    const vNetPnl = vNetBeforeTds - vTds;
+
+    fnApplyCoveredCallOptionsPnlDelta(vNetPnl);
+    return vNetPnl;
+}
+
+async function fnRefreshCoveredCallLivePositionCache(pSilent = true){
+    const objCreds = fnGetCCDECreds();
+    if(!objCreds.apiKey || !objCreds.apiSecret){
+        return { status: "warning", message: "Please login with API credentials first.", data: [] };
+    }
+
+    const objRet = await fnGetLiveOpenPositionsCCDE(objCreds.apiKey, objCreds.apiSecret);
+    if(objRet.status !== "success"){
+        if(!pSilent){
+            fnHandleCoveredCallAuthError(objRet);
+        }
+        return objRet;
+    }
+
+    fnRefreshCoveredCallHealth();
+    return objRet;
 }
 
 function fnCalcCommByPctCCDE(pNotional, pPct){
@@ -560,6 +800,8 @@ function fnHandleCoveredCallTicker(pTicData){
         gCCDESymbVegaList[pTicData.symbol] = Number(pTicData.greeks.vega || 0);
     }
 
+    fnRefreshCoveredCallOneLotValue();
+    fnRefreshCoveredCallHealth();
     fnRenderCoveredCallOpenPositions();
 }
 
@@ -1036,6 +1278,8 @@ function fnLoadNetLimitsCCDE(){
     objTotalMargin.innerText = Number.isFinite(vTotalMargin) ? vTotalMargin.toFixed(2) : "-";
     objBlockedMargin.innerText = vSafeBlocked.toFixed(2);
     objBalanceMargin.innerText = Number.isFinite(vAvailMargin) ? vAvailMargin.toFixed(2) : "-";
+    fnRefreshCoveredCallOneLotValue();
+    fnRefreshCoveredCallHealth();
 }
 
 async function fnRefreshCoveredCallClosedPositions(){
@@ -1301,7 +1545,13 @@ function fnGetLiveOpenPositionsCCDE(pApiKey, pApiSecret){
         redirect: "follow"
     })
     .then((response) => response.json())
-    .then((objResult) => ({ status: objResult.status, message: objResult.message, data: objResult.data }))
+    .then((objResult) => {
+        const objData = Array.isArray(objResult.data) ? objResult.data : [];
+        if(objResult.status === "success"){
+            gCCDEFetchedLivePosRows = objData;
+        }
+        return { status: objResult.status, message: objResult.message, data: objData };
+    })
     .catch(() => ({ status: "danger", message: "Error while fetching live positions.", data: [] }));
 }
 
@@ -1623,9 +1873,33 @@ function fnLoadCoveredCallShell(){
 }
 
 function fnRefreshCoveredCallShell(){
+    fnEnsureCoveredCallWS();
     fnLoadCoveredCallShell();
     fnSafeSetButton("btnStrategyStatus", "badge bg-success", "Shell - Ready");
     fnRefreshCoveredCallNetLimits();
+    fnRefreshCoveredCallHealth();
+}
+
+function fnBindCoveredCallLiveValueEvents(){
+    const objSymbol = document.getElementById("ddlCoveredCallSymbol");
+    const objLotSize = document.getElementById("txtCoveredCallLotSize");
+
+    if(objSymbol && objSymbol.dataset.ccdeOneLotBound !== "true"){
+        objSymbol.addEventListener("change", function(){
+            fnEnsureCoveredCallWS();
+            fnRefreshCoveredCallOneLotValue();
+            fnRefreshCoveredCallHealth();
+        });
+        objSymbol.dataset.ccdeOneLotBound = "true";
+    }
+
+    if(objLotSize && objLotSize.dataset.ccdeOneLotBound !== "true"){
+        objLotSize.addEventListener("input", fnRefreshCoveredCallOneLotValue);
+        objLotSize.addEventListener("change", fnRefreshCoveredCallOneLotValue);
+        objLotSize.addEventListener("input", fnRefreshCoveredCallHealth);
+        objLotSize.addEventListener("change", fnRefreshCoveredCallHealth);
+        objLotSize.dataset.ccdeOneLotBound = "true";
+    }
 }
 
 function fnToggleAutoTrader(){
@@ -1888,6 +2162,9 @@ function fnMapCoveredCallExecOptionTrade(objTradeDtls, pInput){
         Qty: Number(objTradeDtls?.LotQty || pInput.qty || 0),
         BuyPrice: Number(objTradeDtls?.BestAsk || 0),
         SellPrice: Number(objTradeDtls?.BestBid || 0),
+        Commission: Number(objTradeDtls?.Commission || 0),
+        BuyCommission: String(objTradeDtls?.TransType || "").toLowerCase() === "buy" ? Number(objTradeDtls?.Commission || 0) : 0,
+        SellCommission: String(objTradeDtls?.TransType || "").toLowerCase() === "sell" ? Number(objTradeDtls?.Commission || 0) : 0,
         Delta: Number(objTradeDtls?.Delta || 0),
         DeltaC: Number(objTradeDtls?.DeltaC || objTradeDtls?.Delta || 0),
         Gamma: Number(objTradeDtls?.Gamma || 0),
@@ -2000,6 +2277,7 @@ async function fnExitCoveredCallOption(){
             fnHandleCoveredCallAuthError(objCloseRes);
             return;
         }
+        fnApplyCoveredCallClosedOptionPnl(objOpenOptionTrades[i], objCloseRes.data || {});
         vClosedCount += 1;
     }
 
@@ -2134,6 +2412,8 @@ async function fnProcessCoveredCallOptionRolls(){
                 fnHandleCoveredCallAuthError(objCloseRes);
                 return;
             }
+
+            fnApplyCoveredCallClosedOptionPnl(objTrade, objCloseRes.data || {});
 
             await fnRefreshAllOpenBrowser();
             await fnRefreshCoveredCallClosedPositions();
@@ -2485,6 +2765,7 @@ async function fnRefreshAllOpenBrowser(){
         return fnApplyCoveredCallOptionConfigToMappedTrade(fnMapLivePosRowToCcdeTrade(objPos), objExistingTrade);
     });
     fnSaveCoveredCallCurrentPositions();
+    fnRefreshCoveredCallHealth();
     fnRenderCoveredCallOpenPositions();
     fnRefreshCoveredCallClosedPositions();
     fnRefreshCoveredCallNetLimits();
@@ -2533,6 +2814,10 @@ async function fnCloseCoveredCallPosition(pLegID){
         return;
     }
 
+    if(String(objTrade?.OptionType || "").toUpperCase() !== "F"){
+        fnApplyCoveredCallClosedOptionPnl(objTrade, objCloseRes.data || {});
+    }
+
     await fnRefreshAllOpenBrowser();
     await fnRefreshCoveredCallClosedPositions();
 }
@@ -2557,6 +2842,9 @@ async function fnKillSwitchCloseAll(){
     for(let i = 0; i < objOpenLegs.length; i += 1){
         const objCloseRes = await fnCloseLiveLegCCDE(objCreds.apiKey, objCreds.apiSecret, objOpenLegs[i]);
         if(objCloseRes.status === "success"){
+            if(String(objOpenLegs[i]?.OptionType || "").toUpperCase() !== "F"){
+                fnApplyCoveredCallClosedOptionPnl(objOpenLegs[i], objCloseRes.data || {});
+            }
             vClosed += 1;
         }
     }
@@ -2569,6 +2857,9 @@ async function fnKillSwitchCloseAll(){
 window.addEventListener("DOMContentLoaded", function(){
     fnLoadCoveredCallCurrentPositions();
     fnRestoreManualTraderControlsCCDE();
+    fnBindCoveredCallOptionsPnlInput();
+    fnRefreshCoveredCallOptionsPnlInput();
+    fnBindCoveredCallLiveValueEvents();
     fnBindCoveredCallExpiryMode();
     fnSyncCoveredCallExpiryByMode();
     fnInitClosedPosDateTimeFilters();
@@ -2582,4 +2873,5 @@ window.addEventListener("DOMContentLoaded", function(){
     fnDispCoveredCallClosedPositions();
     fnRefreshCoveredCallClosedPositions();
     fnRefreshCoveredCallNetLimits();
+    fnRefreshCoveredCallLivePositionCache(true);
 });
