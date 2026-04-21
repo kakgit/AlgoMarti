@@ -20,6 +20,13 @@ let gCCDEOptionMonitorInst = null;
 let gCCDEOptionMonitorBusy = false;
 let gCCDEStrategyTimerInst = null;
 let gCCDEStrategyBusy = false;
+let gCCDETelegramAlertState = {
+    offlineSent: false,
+    wsDisconnectedSent: false,
+    wsErrorSent: false,
+    hedgeMismatchKey: "",
+    lastErrorKey: ""
+};
 const gCCDESymbolLotSizeMap = {
     BTC: "0.001",
     ETH: "0.01"
@@ -290,6 +297,165 @@ function fnSendTelegramRuntimeAlert(pMsg){
     }).catch(() => {
         // no-op
     });
+}
+
+function fnGetCoveredCallTelegramTimestamp(){
+    try{
+        return new Date().toLocaleString("en-GB");
+    }
+    catch(_err){
+        return String(new Date());
+    }
+}
+
+function fnGetCoveredCallSelectedSymbolLabel(){
+    const vUnderlying = String(document.getElementById("ddlCoveredCallSymbol")?.value || "").trim().toUpperCase();
+    if(vUnderlying === "ETH"){
+        return "ETHUSD";
+    }
+    return "BTCUSD";
+}
+
+function fnSendCoveredCallTelegramEvent(pTitle, pLines = [], pOptions = {}){
+    const vDedupKey = String(pOptions.dedupKey || "").trim();
+    if(vDedupKey && gCCDETelegramAlertState.lastErrorKey === vDedupKey){
+        return;
+    }
+
+    const objLines = [
+        "Covered Call - " + String(pTitle || "Alert"),
+        "Time: " + fnGetCoveredCallTelegramTimestamp()
+    ];
+
+    for(let i = 0; i < pLines.length; i += 1){
+        const vLine = String(pLines[i] || "").trim();
+        if(vLine){
+            objLines.push(vLine);
+        }
+    }
+
+    fnSendTelegramRuntimeAlert(objLines.join("\n"));
+
+    if(vDedupKey){
+        gCCDETelegramAlertState.lastErrorKey = vDedupKey;
+    }
+}
+
+function fnResetCoveredCallTelegramDedupKey(pDedupKey){
+    const vKey = String(pDedupKey || "").trim();
+    if(vKey && gCCDETelegramAlertState.lastErrorKey === vKey){
+        gCCDETelegramAlertState.lastErrorKey = "";
+    }
+}
+
+function fnFormatCoveredCallTradeForTelegram(objTrade, pOverrides = {}){
+    const vSymbol = String(pOverrides.symbol || objTrade?.Symbol || fnGetCoveredCallSelectedSymbolLabel()).trim();
+    const vSide = String(pOverrides.side || objTrade?.TransType || "").toUpperCase();
+    const vQty = Number(
+        pOverrides.qty ?? objTrade?.LotQty ?? objTrade?.Qty ?? 0
+    );
+    const vLotSize = Number(
+        (pOverrides.lotSize ?? objTrade?.LotSize ?? document.getElementById("txtCoveredCallLotSize")?.value ?? 0)
+    );
+    const vOrderType = String(
+        pOverrides.orderType || objTrade?.OrderType || document.getElementById("ddlManualFutOrderType")?.value || "market_order"
+    ).trim();
+    const vOptionType = String(pOverrides.optionType || objTrade?.OptionType || "").toUpperCase();
+
+    const objLines = [
+        "Symbol: " + vSymbol,
+        "Side: " + (vSide || "-"),
+        "Qty: " + (Number.isFinite(vQty) ? vQty : 0),
+        "Lot Size: " + (Number.isFinite(vLotSize) ? vLotSize : 0),
+        "Order Type: " + vOrderType
+    ];
+
+    if(vOptionType){
+        objLines.push("Instrument: " + (vOptionType === "F" ? "FUTURE" : (vOptionType === "C" ? "CALL OPTION" : (vOptionType === "P" ? "PUT OPTION" : vOptionType))));
+    }
+
+    const vEntry = Number(pOverrides.entryPrice ?? objTrade?.EntryPrice ?? 0);
+    const vExit = Number(pOverrides.exitPrice ?? 0);
+    if(Number.isFinite(vEntry) && vEntry > 0){
+        objLines.push("Entry Price: " + vEntry.toFixed(2));
+    }
+    if(Number.isFinite(vExit) && vExit > 0){
+        objLines.push("Exit Price: " + vExit.toFixed(2));
+    }
+
+    return objLines;
+}
+
+function fnGetCoveredCallClosePrice(objTrade, objCloseData){
+    const vTradeSide = String(objTrade?.TransType || "").toLowerCase();
+    const vPreferredKeys = vTradeSide === "sell"
+        ? ["BuyPrice", "buy_price", "AvgPrice", "average_fill_price", "limit_price"]
+        : ["SellPrice", "sell_price", "AvgPrice", "average_fill_price", "limit_price"];
+
+    for(let i = 0; i < vPreferredKeys.length; i += 1){
+        const vNum = Number(objCloseData?.[vPreferredKeys[i]] || 0);
+        if(Number.isFinite(vNum) && vNum > 0){
+            return vNum;
+        }
+    }
+    return 0;
+}
+
+function fnNotifyCoveredCallOpenEvent(pKind, objTrade, pExtraLines = []){
+    fnSendCoveredCallTelegramEvent(`${pKind} Opened`, [
+        ...fnFormatCoveredCallTradeForTelegram(objTrade),
+        ...pExtraLines
+    ]);
+}
+
+function fnNotifyCoveredCallCloseEvent(pKind, objTrade, objCloseData = {}, pExtraLines = []){
+    const vExitPrice = fnGetCoveredCallClosePrice(objTrade, objCloseData);
+    const objLines = fnFormatCoveredCallTradeForTelegram(objTrade, { exitPrice: vExitPrice });
+    const vCharges = Number(objCloseData?.Commission || objCloseData?.paid_commission || 0);
+    if(Number.isFinite(vCharges) && vCharges > 0){
+        objLines.push("Exit Charges: " + vCharges.toFixed(4));
+    }
+    const vPnl = Number(objCloseData?.PnL ?? objCloseData?.pnl ?? objCloseData?.RealizedPnL ?? 0);
+    if(Number.isFinite(vPnl) && vPnl !== 0){
+        objLines.push("Close PnL: " + vPnl.toFixed(2));
+    }
+
+    fnSendCoveredCallTelegramEvent(`${pKind} Closed`, [
+        ...objLines,
+        ...pExtraLines
+    ]);
+}
+
+function fnNotifyCoveredCallRuntimeIssue(pTitle, pLines = [], pDedupKey = ""){
+    fnSendCoveredCallTelegramEvent(pTitle, pLines, { dedupKey: pDedupKey });
+}
+
+function fnCheckCoveredCallHedgeAlert(){
+    const vFutQty = Number(fnCCDEGetStorage("FutQty", "0"));
+    const vCallQty = Number(fnCCDEGetStorage("CallQty", "0"));
+
+    if(!Number.isFinite(vFutQty) || !Number.isFinite(vCallQty)){
+        gCCDETelegramAlertState.hedgeMismatchKey = "";
+        return;
+    }
+
+    if(vFutQty === vCallQty){
+        gCCDETelegramAlertState.hedgeMismatchKey = "";
+        return;
+    }
+
+    const vMismatchKey = `${vFutQty}:${vCallQty}:${fnGetCoveredCallSelectedSymbolLabel()}`;
+    if(gCCDETelegramAlertState.hedgeMismatchKey === vMismatchKey){
+        return;
+    }
+
+    gCCDETelegramAlertState.hedgeMismatchKey = vMismatchKey;
+    fnSendCoveredCallTelegramEvent("Hedge Mismatch", [
+        "Symbol: " + fnGetCoveredCallSelectedSymbolLabel(),
+        "Open Futures Qty: " + vFutQty,
+        "Open CE Qty: " + vCallQty,
+        "Status: 1:1 hedge missing"
+    ]);
 }
 
 function fnGetCCDECreds(){
@@ -1006,12 +1172,23 @@ function fnEnsureCoveredCallWS(){
     gCCDEWS = new WebSocket("wss://socket.india.delta.exchange");
 
     gCCDEWS.onopen = function(){
+        gCCDETelegramAlertState.wsDisconnectedSent = false;
+        gCCDETelegramAlertState.wsErrorSent = false;
+        fnResetCoveredCallTelegramDedupKey("ws-error");
+        fnResetCoveredCallTelegramDedupKey("ws-disconnected");
         fnSetCoveredCallWSStatus("WS-ON", "bg-success");
         fnSubscribeCoveredCallWS();
     };
 
     gCCDEWS.onerror = function(){
         fnSetCoveredCallWSStatus("WS-ERR", "bg-danger");
+        if(!gCCDETelegramAlertState.wsErrorSent){
+            gCCDETelegramAlertState.wsErrorSent = true;
+            fnNotifyCoveredCallRuntimeIssue("WebSocket Error", [
+                "Symbol: " + fnGetCoveredCallSelectedSymbolLabel(),
+                "Status: Delta websocket reported an error."
+            ], "ws-error");
+        }
     };
 
     gCCDEWS.onclose = function(){
@@ -1023,6 +1200,13 @@ function fnEnsureCoveredCallWS(){
         }
         if(fnGetCoveredCallSubscribedSymbols().length > 0){
             fnSetCoveredCallWSStatus("WS-RETRY", "bg-warning text-dark");
+            if(!gCCDETelegramAlertState.wsDisconnectedSent){
+                gCCDETelegramAlertState.wsDisconnectedSent = true;
+                fnNotifyCoveredCallRuntimeIssue("WebSocket Disconnected", [
+                    "Symbol: " + fnGetCoveredCallSelectedSymbolLabel(),
+                    "Status: Live feed disconnected. Auto retry started."
+                ], "ws-disconnected");
+            }
             setTimeout(fnEnsureCoveredCallWS, 3000);
             return;
         }
@@ -1670,14 +1854,23 @@ function fnHandleCoveredCallAuthError(pResult){
         vMsg += " (" + vErrCode + ")";
     }
 
+    fnNotifyCoveredCallRuntimeIssue("Program Error", [
+        "Message: " + vMsg
+    ], "auth:" + vMsg);
     fnSafeGenMessage(vMsg, "badge bg-danger", "spnGenMsg");
 }
 
 function fnHandleCoveredCallActionError(pResult, pFallbackMsg = "Request failed."){
     if(pResult?.status === "warning"){
+        fnNotifyCoveredCallRuntimeIssue("Warning", [
+            "Message: " + String(pResult.message || pFallbackMsg).trim()
+        ], "warning:" + String(pResult.message || pFallbackMsg).trim());
         fnSafeGenMessage(pResult.message || pFallbackMsg, "badge bg-warning", "spnGenMsg");
         return;
     }
+    fnNotifyCoveredCallRuntimeIssue("Program Error", [
+        "Message: " + String(pResult?.message || pFallbackMsg).trim()
+    ], "error:" + String(pResult?.message || pFallbackMsg).trim());
     fnHandleCoveredCallAuthError(pResult || { message: pFallbackMsg });
 }
 
@@ -2016,6 +2209,8 @@ function fnLoadCoveredCallShell(){
         fnSetTextValue("spnHedgeMatch", "-");
     }
 
+    fnCheckCoveredCallHedgeAlert();
+
     fnLoadNetLimitsCCDE();
 }
 
@@ -2218,6 +2413,15 @@ async function fnExecuteCoveredCallFutureFlow(pSide, pInput, pOptions = {}){
     await fnRefreshAllOpenBrowser(!!pOptions.silentRefresh);
     await fnRefreshCoveredCallClosedPositions();
 
+    fnNotifyCoveredCallOpenEvent("Future", {
+        Symbol: String(pInput.symbol || fnGetCoveredCallSelectedSymbolLabel()).trim().toUpperCase() + "USD",
+        TransType: vSide,
+        LotQty: Number(pInput.qty || 0),
+        LotSize: Number(pInput.lotSize || 0),
+        OptionType: "F",
+        OrderType: String(pInput.orderType || "market_order").trim()
+    });
+
     if(!pOptions.silentSuccess){
         fnSafeGenMessage(vSide === "buy" ? "Future buy executed." : "Future sell executed.", "badge bg-success", "spnGenMsg");
     }
@@ -2393,6 +2597,10 @@ async function fnExecuteCoveredCallOptionFlow(pInput, pOptions = {}){
     fnSaveCoveredCallCurrentPositions();
     fnRenderCoveredCallOpenPositions();
     fnRefreshCoveredCallNetLimits();
+    const objNewTrades = fnGetCoveredCallOpenTrades().slice(-1 * vOpenedCount);
+    for(let i = 0; i < objNewTrades.length; i += 1){
+        fnNotifyCoveredCallOpenEvent("Option", objNewTrades[i]);
+    }
     if(!pOptions.silentSuccess){
         fnSafeGenMessage("Option leg(s) opened: " + vOpenedCount, "badge bg-success", "spnGenMsg");
     }
@@ -2426,6 +2634,7 @@ async function fnExitCoveredCallOption(){
             return;
         }
         fnApplyCoveredCallClosedOptionPnl(objOpenOptionTrades[i], objCloseRes.data || {});
+        fnNotifyCoveredCallCloseEvent("Option", objOpenOptionTrades[i], objCloseRes.data || {}, ["Close Reason: Manual exit"]);
         vClosedCount += 1;
     }
 
@@ -2492,6 +2701,8 @@ async function fnOpenCoveredCallReplacementOption(objTrade, pOptions = {}){
     gCCDECurrPos.TradeData.push(fnMapCoveredCallExecOptionTrade(objTradeDtls.data, objInput));
     fnSaveCoveredCallCurrentPositions();
     fnRenderCoveredCallOpenPositions();
+    const objNewTrade = gCCDECurrPos.TradeData[gCCDECurrPos.TradeData.length - 1];
+    fnNotifyCoveredCallOpenEvent("Option", objNewTrade, ["Open Reason: Replacement / Roll"]);
     return { status: "success", message: "Replacement option opened.", data: objTradeDtls.data };
 }
 
@@ -2507,6 +2718,7 @@ async function fnCloseCoveredCallTriggeredOption(objTrade){
     }
 
     fnApplyCoveredCallClosedOptionPnl(objTrade, objCloseRes.data || {});
+    fnNotifyCoveredCallCloseEvent("Option", objTrade, objCloseRes.data || {}, ["Close Reason: Triggered close"]);
     return objCloseRes;
 }
 
@@ -2788,6 +3000,7 @@ async function fnExitCoveredCallFuture(){
             fnHandleCoveredCallAuthError(objCloseRes);
             return;
         }
+        fnNotifyCoveredCallCloseEvent("Future", objFutureTrades[i], objCloseRes.data || {}, ["Close Reason: Manual exit"]);
         vClosedCount += 1;
     }
 
@@ -2890,6 +3103,7 @@ async function fnRefreshAllOpenBrowser(pSilent = false){
     fnRenderCoveredCallOpenPositions();
     fnRefreshCoveredCallClosedPositions();
     fnRefreshCoveredCallNetLimits();
+    fnLoadCoveredCallShell();
     if(!pSilent){
         fnSafeGenMessage("Covered Call open positions refreshed from Delta Exchange.", "badge bg-success", "spnGenMsg");
     }
@@ -2939,6 +3153,10 @@ async function fnCloseCoveredCallPosition(pLegID){
 
     if(String(objTrade?.OptionType || "").toUpperCase() !== "F"){
         fnApplyCoveredCallClosedOptionPnl(objTrade, objCloseRes.data || {});
+        fnNotifyCoveredCallCloseEvent("Option", objTrade, objCloseRes.data || {}, ["Close Reason: Manual single-leg close"]);
+    }
+    else{
+        fnNotifyCoveredCallCloseEvent("Future", objTrade, objCloseRes.data || {}, ["Close Reason: Manual single-leg close"]);
     }
 
     await fnRefreshAllOpenBrowser();
@@ -2967,6 +3185,10 @@ async function fnKillSwitchCloseAll(){
         if(objCloseRes.status === "success"){
             if(String(objOpenLegs[i]?.OptionType || "").toUpperCase() !== "F"){
                 fnApplyCoveredCallClosedOptionPnl(objOpenLegs[i], objCloseRes.data || {});
+                fnNotifyCoveredCallCloseEvent("Option", objOpenLegs[i], objCloseRes.data || {}, ["Close Reason: Kill switch"]);
+            }
+            else{
+                fnNotifyCoveredCallCloseEvent("Future", objOpenLegs[i], objCloseRes.data || {}, ["Close Reason: Kill switch"]);
             }
             vClosed += 1;
         }
@@ -2976,6 +3198,42 @@ async function fnKillSwitchCloseAll(){
     await fnRefreshCoveredCallClosedPositions();
     fnSafeGenMessage("Kill switch executed. Closed legs: " + vClosed, "badge bg-success", "spnGenMsg");
 }
+
+window.addEventListener("offline", function(){
+    if(gCCDETelegramAlertState.offlineSent){
+        return;
+    }
+    gCCDETelegramAlertState.offlineSent = true;
+    fnNotifyCoveredCallRuntimeIssue("Internet Disconnected", [
+        "Status: Browser reported network offline."
+    ], "browser-offline");
+});
+
+window.addEventListener("online", function(){
+    gCCDETelegramAlertState.offlineSent = false;
+    fnResetCoveredCallTelegramDedupKey("browser-offline");
+    fnSendCoveredCallTelegramEvent("Internet Reconnected", [
+        "Status: Browser network connection restored."
+    ]);
+});
+
+window.addEventListener("error", function(pEvent){
+    const vMsg = String(pEvent?.message || "Unhandled browser error").trim();
+    fnNotifyCoveredCallRuntimeIssue("Program Error", [
+        "Message: " + vMsg,
+        pEvent?.filename ? ("File: " + pEvent.filename) : "",
+        Number.isFinite(Number(pEvent?.lineno)) && Number(pEvent.lineno) > 0 ? ("Line: " + Number(pEvent.lineno)) : ""
+    ], "window-error:" + vMsg);
+});
+
+window.addEventListener("unhandledrejection", function(pEvent){
+    const vReason = typeof pEvent?.reason === "string"
+        ? pEvent.reason
+        : (pEvent?.reason?.message || "Unhandled promise rejection");
+    fnNotifyCoveredCallRuntimeIssue("Program Error", [
+        "Message: " + String(vReason || "Unhandled promise rejection").trim()
+    ], "promise-error:" + String(vReason || "Unhandled promise rejection").trim());
+});
 
 window.addEventListener("DOMContentLoaded", function(){
     fnLoadCoveredCallCurrentPositions();
