@@ -18,6 +18,7 @@ const gFutModifyRetryMs = 8000;
 const gCoveredCallExitOffsetPoints = 10;
 const gCoveredCallExitRetryMs = 10000;
 const gFutLoopAbortMap = {};
+const gFutLoopActiveMap = {};
 const gTelegramBotToken = process.env.TELEGRAM_BOT_TOKEN || "";
 const gTelegramChatId = process.env.TELEGRAM_CHAT_ID || "";
 
@@ -210,7 +211,7 @@ exports.fnExecFutByTType = async (req, res) => {
     let vOrderType = req.body.OrderType;
     let vPointsTP = req.body.PointsTP;
     let vPointsSL = req.body.PointsSL;
-    let vOffsetPoints = Number(req.body.OffsetPoints);
+            let vOffsetPoints = Number(req.body.OffsetPoints);
     let vRetryMs = Number(req.body.RetryMs);
     const objTgCfg = fnGetTelegramConfigFromReq(req);
     let vContractType = "";
@@ -231,9 +232,6 @@ exports.fnExecFutByTType = async (req, res) => {
         if(objSybDet.status === "success"){
             // Delta futures `size` expects contract quantity, not base-notional.
             let vOrderSize = Number(vLotQty);
-            if(!(vOffsetPoints > 0)){
-                vOffsetPoints = gFutPostOnlyOffsetPoints;
-            }
             if(!(vRetryMs > 0)){
                 vRetryMs = gFutModifyRetryMs;
             }
@@ -242,7 +240,7 @@ exports.fnExecFutByTType = async (req, res) => {
                 vLimitPrice = fnGetPostOnlyMakerPrice({
                     best_bid: Number(objSybDet.data.BestBid),
                     best_ask: Number(objSybDet.data.BestAsk)
-                }, vTransType, vLimitPrice, vOffsetPoints);
+                }, vTransType, vLimitPrice, 0);
             }
             let objOrdRes = null;
             if(vOrderType === "limit_order"){
@@ -465,7 +463,7 @@ exports.fnCloseLeg = async (req, res) => {
             let objTicker = await fnGetTickerBySymbol(vSymbol);
             if(objTicker.status === "success"){
                 let objQ = objTicker?.data?.result?.quotes || {};
-                vLimitPrice = fnGetPostOnlyMakerPrice(objQ, vCloseSide, 0, gCoveredCallExitOffsetPoints);
+                vLimitPrice = fnGetPostOnlyMakerPrice(objQ, vCloseSide, 0, 0);
             }
             if(!(vLimitPrice > 0)){
                 vLimitPrice = 1;
@@ -852,22 +850,214 @@ const fnPlaceFutPostOnlyLimitUntilFilled = async (pApiKey, pApiSecret, pInput) =
     let vLastKnownLimit = Number(pInput?.initialLimitPrice);
     let vAttempt = 0;
     const vRetryMs = Number(pInput?.retryMs) > 0 ? Number(pInput.retryMs) : gFutModifyRetryMs;
-    const vOffsetPoints = Number(pInput?.offsetPoints) > 0 ? Number(pInput.offsetPoints) : gFutPostOnlyOffsetPoints;
     const bStrictPostOnly = !!pInput?.strictPostOnly;
     const vLoopKey = pInput?.loopKey || fnGetFutLoopKey(pApiKey, vSymbol, vSide);
+    const vMaxRejectedAttempts = fnGetPostOnlyRejectedAttemptCap(vSymbol);
     const vRemainingQty = Number((vRequestedQty - vFilledTotal).toFixed(8));
     if(vRemainingQty <= gOrderFillEpsilon){
         return { "status": "warning", "message": "Nothing left to execute.", "data": "" };
     }
+    if(gFutLoopActiveMap[vLoopKey] === true){
+        return { "status": "warning", "message": "Futures limit loop already active for this symbol/side.", "data": "" };
+    }
+    gFutLoopActiveMap[vLoopKey] = true;
 
-    // Place initial post-only order; retry only until an order-id is created.
-    let objOrder = null;
-    let vOrderId = 0;
-    while(bStrictPostOnly || vAttempt < gFutLimitMaxAttempts){
-        if(gFutLoopAbortMap[vLoopKey] === true){
+    try{
+        // Place initial post-only order; retry only until an order-id is created.
+        let objOrder = null;
+        let vOrderId = 0;
+        const fnTryAdoptExistingOrder = async () => {
+            const objExisting = await fnFindReusablePendingFutOrder(pApiKey, pApiSecret, vSymbol, vSide, !!pInput?.reduceOnly);
+            if(objExisting.status === "success" && objExisting.data){
+                objOrder = objExisting.data;
+                vLastOrder = objOrder;
+                vOrderId = Number(objOrder?.id);
+                vLastKnownLimit = Number(objOrder?.limit_price || vLastKnownLimit || 0);
+                fnSendReusePendingOrderAlert(pInput?.alertCfg, vSymbol, vSide, vOrderId, vLastKnownLimit);
+                return true;
+            }
+            return false;
+        };
+
+        await fnTryAdoptExistingOrder();
+
+        while(!(Number.isFinite(vOrderId) && vOrderId > 0) && (bStrictPostOnly || vAttempt < gFutLimitMaxAttempts)){
+            if(gFutLoopAbortMap[vLoopKey] === true){
+                return {
+                    "status": "warning",
+                    "message": "Futures post-only loop aborted by user action.",
+                    "data": {
+                        requested_qty: vRequestedQty,
+                        filled_qty: vFilledTotal,
+                        remaining_qty: Number((vRequestedQty - vFilledTotal).toFixed(8)),
+                        last_order: vLastOrder
+                    }
+                };
+            }
+
+            const objTicker = await fnGetTickerBySymbol(vSymbol);
+            if(objTicker.status === "success"){
+                const objQ = objTicker?.data?.result?.quotes || {};
+                const vFreshPx = fnGetPostOnlyMakerPrice(objQ, vSide, vLastKnownLimit, Math.min(vAttempt, vMaxRejectedAttempts));
+                if(Number.isFinite(vFreshPx) && vFreshPx > 0){
+                    vLastKnownLimit = vFreshPx;
+                }
+            }
+            if(!Number.isFinite(vLastKnownLimit) || vLastKnownLimit <= 0){
+                return { "status": "warning", "message": "Unable to fetch valid limit price for futures.", "data": "" };
+            }
+
+            const objPlace = await fnPlaceLiveOrder(pApiKey, pApiSecret, {
+                symbol: vSymbol,
+                size: vRemainingQty,
+                side: vSide,
+                orderType: "limit_order",
+                limitPrice: vLastKnownLimit,
+                reduceOnly: !!pInput?.reduceOnly,
+                postOnly: true
+            });
+            if(objPlace.status === "success"){
+                objOrder = objPlace?.data?.result || {};
+                vLastOrder = objOrder;
+                vOrderId = Number(objOrder?.id);
+                if(Number.isFinite(vOrderId) && vOrderId > 0){
+                    break;
+                }
+                if(await fnTryAdoptExistingOrder()){
+                    break;
+                }
+                return { "status": "warning", "message": "Order placed but missing order id.", "data": objPlace.data };
+            }
+            if(await fnTryAdoptExistingOrder()){
+                break;
+            }
+            if(!fnIsPostOnlyImmediateExecError(objPlace)){
+                return { "status": objPlace.status, "message": objPlace.message, "data": objPlace.data };
+            }
+            vAttempt += 1;
+            fnSendPostOnlyRetryAlert(pInput?.alertCfg, vSymbol, vSide, vAttempt, vLastKnownLimit);
+            await fnSleep(vRetryMs);
+        }
+
+        if(!(Number.isFinite(vOrderId) && vOrderId > 0)){
+            return { "status": "warning", "message": "Unable to place or reuse post-only order after retries.", "data": "" };
+        }
+
+        let vAccountedFillQty = 0;
+        let vModifyCount = 0;
+        while(bStrictPostOnly || vModifyCount <= gFutModifyMaxAttempts){
+            if(gFutLoopAbortMap[vLoopKey] === true){
+                return {
+                    "status": "warning",
+                    "message": "Futures post-only loop aborted by user action.",
+                    "data": {
+                        requested_qty: vRequestedQty,
+                        filled_qty: vFilledTotal + vAccountedFillQty,
+                        remaining_qty: Number((vRequestedQty - (vFilledTotal + vAccountedFillQty)).toFixed(8)),
+                        last_order: vLastOrder
+                    }
+                };
+            }
+
+            await fnSleep(vRetryMs);
+            let objDetRes = await fnGetOrderDetailsById(pApiKey, pApiSecret, vOrderId);
+            if(objDetRes.status === "success"){
+                objOrder = objDetRes.data;
+                vLastOrder = objOrder;
+            }
+
+            let objFill = fnGetFillFromOrder(objOrder || {}, vRemainingQty);
+            if(objFill.filledQty > vAccountedFillQty){
+                const vDeltaFill = objFill.filledQty - vAccountedFillQty;
+                const vExecPx = fnGetExecPrice(objOrder || {}, vLastKnownLimit);
+                vAccountedFillQty = objFill.filledQty;
+                vNotionalFilled += (vDeltaFill * vExecPx);
+                vCommissionTotal += Number(objOrder?.paid_commission || 0);
+            }
+
+            if(objFill.isFullyFilled || objFill.isClosed){
+                break;
+            }
+
+            if(!bStrictPostOnly && vModifyCount >= gFutModifyMaxAttempts){
+                break;
+            }
+
+            const objModTicker = await fnGetTickerBySymbol(vSymbol);
+            if(objModTicker.status === "success"){
+                const objMQ = objModTicker?.data?.result?.quotes || {};
+                const vModPx = fnGetPostOnlyMakerPrice(objMQ, vSide, vLastKnownLimit, 0);
+                if(Number.isFinite(vModPx) && vModPx > 0){
+                    vLastKnownLimit = vModPx;
+                    await fnModifyLiveOrder(pApiKey, pApiSecret, {
+                        orderId: vOrderId,
+                        symbol: vSymbol,
+                        size: Number((vRemainingQty - vAccountedFillQty).toFixed(8)),
+                        limitPrice: vLastKnownLimit,
+                        postOnly: true
+                    });
+                }
+            }
+            vModifyCount += 1;
+        }
+
+        vFilledTotal += vAccountedFillQty;
+
+        // If still not fully filled after 5 modifies, close pending limit and execute market for remainder.
+        let vMarketRemain = Number((vRequestedQty - vFilledTotal).toFixed(8));
+        if(vMarketRemain > gOrderFillEpsilon){
+            if(Number.isFinite(vOrderId) && vOrderId > 0){
+                await fnCancelLiveOrder(pApiKey, pApiSecret, vOrderId, vSymbol);
+            }
+
+            if(bStrictPostOnly){
+                return {
+                    "status": "warning",
+                    "message": "Post-only limit order ended without full fill.",
+                    "data": {
+                        requested_qty: vRequestedQty,
+                        filled_qty: vFilledTotal,
+                        remaining_qty: vMarketRemain,
+                        last_order: vLastOrder
+                    }
+                };
+            }
+
+            const objMkt = await fnPlaceLiveOrder(pApiKey, pApiSecret, {
+                symbol: vSymbol,
+                size: vMarketRemain,
+                side: vSide,
+                orderType: "market_order",
+                limitPrice: 0,
+                reduceOnly: !!pInput?.reduceOnly
+            });
+            if(objMkt.status !== "success"){
+                fnSendTelegramAlert(`LiveStrategy2FO Futures Market Fallback Failed\nSymbol: ${vSymbol}\nSide: ${vSide}\nRemainQty: ${vMarketRemain}\nReason: ${objMkt.message || objMkt.status}`, pInput?.alertCfg);
+                return { "status": objMkt.status, "message": "Limit not filled after modifies and market fallback failed: " + objMkt.message, "data": objMkt.data };
+            }
+
+            let objMktOrd = objMkt?.data?.result || {};
+            fnSendTelegramAlert(`LiveStrategy2FO Futures Market Fallback\nSymbol: ${objMktOrd.product_symbol || vSymbol}\nSide: ${objMktOrd.side || vSide}\nQty: ${objMktOrd.size || vMarketRemain}\nReason: Limit not filled after ${gFutModifyMaxAttempts} modifies`, pInput?.alertCfg);
+            let objMktFill = fnGetFillFromOrder(objMktOrd, vMarketRemain);
+            let vMktFilled = objMktFill.filledQty;
+            if(vMktFilled <= gOrderFillEpsilon){
+                if(String(objMktOrd?.state || "").toLowerCase() === "closed"){
+                    vMktFilled = vMarketRemain;
+                }
+            }
+            if(vMktFilled > gOrderFillEpsilon){
+                const vMktPx = fnGetExecPrice(objMktOrd, vLastKnownLimit);
+                vFilledTotal += vMktFilled;
+                vNotionalFilled += (vMktFilled * vMktPx);
+                vCommissionTotal += Number(objMktOrd?.paid_commission || 0);
+                vLastOrder = objMktOrd;
+            }
+        }
+
+        if((vRequestedQty - vFilledTotal) > gOrderFillEpsilon){
             return {
                 "status": "warning",
-                "message": "Futures post-only loop aborted by user action.",
+                "message": "Futures order partially filled after modify attempts and market fallback.",
                 "data": {
                     requested_qty: vRequestedQty,
                     filled_qty: vFilledTotal,
@@ -877,192 +1067,31 @@ const fnPlaceFutPostOnlyLimitUntilFilled = async (pApiKey, pApiSecret, pInput) =
             };
         }
 
-        const objTicker = await fnGetTickerBySymbol(vSymbol);
-        if(objTicker.status === "success"){
-            const objQ = objTicker?.data?.result?.quotes || {};
-            const vFreshPx = fnGetPostOnlyMakerPrice(objQ, vSide, vLastKnownLimit, vOffsetPoints);
-            if(Number.isFinite(vFreshPx) && vFreshPx > 0){
-                vLastKnownLimit = vFreshPx;
-            }
-        }
-        if(!Number.isFinite(vLastKnownLimit) || vLastKnownLimit <= 0){
-            return { "status": "warning", "message": "Unable to fetch valid limit price for futures.", "data": "" };
-        }
+        const vAvgExecPx = (vFilledTotal > gOrderFillEpsilon) ? (vNotionalFilled / vFilledTotal) : fnGetExecPrice(vLastOrder, vLastKnownLimit);
+        const objFinal = {
+            id: vLastOrder?.id,
+            client_order_id: vLastOrder?.client_order_id,
+            product_id: vLastOrder?.product_id,
+            product_symbol: vLastOrder?.product_symbol || vSymbol,
+            side: vLastOrder?.side || vSide,
+            size: vRequestedQty,
+            filled_size: vRequestedQty,
+            unfilled_size: 0,
+            state: "closed",
+            average_fill_price: vAvgExecPx,
+            limit_price: vLastOrder?.limit_price || vLastKnownLimit,
+            paid_commission: vCommissionTotal
+        };
 
-        const objPlace = await fnPlaceLiveOrder(pApiKey, pApiSecret, {
-            symbol: vSymbol,
-            size: vRemainingQty,
-            side: vSide,
-            orderType: "limit_order",
-            limitPrice: vLastKnownLimit,
-            reduceOnly: !!pInput?.reduceOnly,
-            postOnly: true
-        });
-        if(objPlace.status === "success"){
-            objOrder = objPlace?.data?.result || {};
-            vLastOrder = objOrder;
-            vOrderId = Number(objOrder?.id);
-            if(Number.isFinite(vOrderId) && vOrderId > 0){
-                break;
-            }
-            return { "status": "warning", "message": "Order placed but missing order id.", "data": objPlace.data };
-        }
-        if(!fnIsPostOnlyImmediateExecError(objPlace)){
-            return { "status": objPlace.status, "message": objPlace.message, "data": objPlace.data };
-        }
-        vAttempt += 1;
-        await fnSleep(vRetryMs);
-    }
-
-    if(!(Number.isFinite(vOrderId) && vOrderId > 0)){
-        return { "status": "warning", "message": "Unable to place post-only order after retries.", "data": "" };
-    }
-
-    let vAccountedFillQty = 0;
-    let vModifyCount = 0;
-    while(bStrictPostOnly || vModifyCount <= gFutModifyMaxAttempts){
-        if(gFutLoopAbortMap[vLoopKey] === true){
-            return {
-                "status": "warning",
-                "message": "Futures post-only loop aborted by user action.",
-                "data": {
-                    requested_qty: vRequestedQty,
-                    filled_qty: vFilledTotal + vAccountedFillQty,
-                    remaining_qty: Number((vRequestedQty - (vFilledTotal + vAccountedFillQty)).toFixed(8)),
-                    last_order: vLastOrder
-                }
-            };
-        }
-
-        await fnSleep(vRetryMs);
-        let objDetRes = await fnGetOrderDetailsById(pApiKey, pApiSecret, vOrderId);
-        if(objDetRes.status === "success"){
-            objOrder = objDetRes.data;
-            vLastOrder = objOrder;
-        }
-
-        let objFill = fnGetFillFromOrder(objOrder || {}, vRemainingQty);
-        if(objFill.filledQty > vAccountedFillQty){
-            const vDeltaFill = objFill.filledQty - vAccountedFillQty;
-            const vExecPx = fnGetExecPrice(objOrder || {}, vLastKnownLimit);
-            vAccountedFillQty = objFill.filledQty;
-            vNotionalFilled += (vDeltaFill * vExecPx);
-            vCommissionTotal += Number(objOrder?.paid_commission || 0);
-        }
-
-        if(objFill.isFullyFilled || objFill.isClosed){
-            break;
-        }
-
-        if(!bStrictPostOnly && vModifyCount >= gFutModifyMaxAttempts){
-            break;
-        }
-
-        const objModTicker = await fnGetTickerBySymbol(vSymbol);
-        if(objModTicker.status === "success"){
-            const objMQ = objModTicker?.data?.result?.quotes || {};
-            const vModPx = fnGetPostOnlyMakerPrice(objMQ, vSide, vLastKnownLimit, vOffsetPoints);
-            if(Number.isFinite(vModPx) && vModPx > 0){
-                vLastKnownLimit = vModPx;
-                await fnModifyLiveOrder(pApiKey, pApiSecret, {
-                    orderId: vOrderId,
-                    symbol: vSymbol,
-                    size: Number((vRemainingQty - vAccountedFillQty).toFixed(8)),
-                    limitPrice: vLastKnownLimit,
-                    postOnly: true
-                });
-            }
-        }
-        vModifyCount += 1;
-    }
-
-    vFilledTotal += vAccountedFillQty;
-
-    // If still not fully filled after 5 modifies, close pending limit and execute market for remainder.
-    let vMarketRemain = Number((vRequestedQty - vFilledTotal).toFixed(8));
-    if(vMarketRemain > gOrderFillEpsilon){
-        if(Number.isFinite(vOrderId) && vOrderId > 0){
-            await fnCancelLiveOrder(pApiKey, pApiSecret, vOrderId, vSymbol);
-        }
-
-        if(bStrictPostOnly){
-            return {
-                "status": "warning",
-                "message": "Post-only limit order ended without full fill.",
-                "data": {
-                    requested_qty: vRequestedQty,
-                    filled_qty: vFilledTotal,
-                    remaining_qty: vMarketRemain,
-                    last_order: vLastOrder
-                }
-            };
-        }
-
-        const objMkt = await fnPlaceLiveOrder(pApiKey, pApiSecret, {
-            symbol: vSymbol,
-            size: vMarketRemain,
-            side: vSide,
-            orderType: "market_order",
-            limitPrice: 0,
-            reduceOnly: !!pInput?.reduceOnly
-        });
-        if(objMkt.status !== "success"){
-            fnSendTelegramAlert(`LiveStrategy2FO Futures Market Fallback Failed\nSymbol: ${vSymbol}\nSide: ${vSide}\nRemainQty: ${vMarketRemain}\nReason: ${objMkt.message || objMkt.status}`, pInput?.alertCfg);
-            return { "status": objMkt.status, "message": "Limit not filled after modifies and market fallback failed: " + objMkt.message, "data": objMkt.data };
-        }
-
-        let objMktOrd = objMkt?.data?.result || {};
-        fnSendTelegramAlert(`LiveStrategy2FO Futures Market Fallback\nSymbol: ${objMktOrd.product_symbol || vSymbol}\nSide: ${objMktOrd.side || vSide}\nQty: ${objMktOrd.size || vMarketRemain}\nReason: Limit not filled after ${gFutModifyMaxAttempts} modifies`, pInput?.alertCfg);
-        let objMktFill = fnGetFillFromOrder(objMktOrd, vMarketRemain);
-        let vMktFilled = objMktFill.filledQty;
-        if(vMktFilled <= gOrderFillEpsilon){
-            if(String(objMktOrd?.state || "").toLowerCase() === "closed"){
-                vMktFilled = vMarketRemain;
-            }
-        }
-        if(vMktFilled > gOrderFillEpsilon){
-            const vMktPx = fnGetExecPrice(objMktOrd, vLastKnownLimit);
-            vFilledTotal += vMktFilled;
-            vNotionalFilled += (vMktFilled * vMktPx);
-            vCommissionTotal += Number(objMktOrd?.paid_commission || 0);
-            vLastOrder = objMktOrd;
-        }
-    }
-
-    if((vRequestedQty - vFilledTotal) > gOrderFillEpsilon){
         return {
-            "status": "warning",
-            "message": "Futures order partially filled after modify attempts and market fallback.",
-            "data": {
-                requested_qty: vRequestedQty,
-                filled_qty: vFilledTotal,
-                remaining_qty: Number((vRequestedQty - vFilledTotal).toFixed(8)),
-                last_order: vLastOrder
-            }
+            "status": "success",
+            "message": "Futures post-only limit order fully executed.",
+            "data": { success: true, result: objFinal }
         };
     }
-
-    const vAvgExecPx = (vFilledTotal > gOrderFillEpsilon) ? (vNotionalFilled / vFilledTotal) : fnGetExecPrice(vLastOrder, vLastKnownLimit);
-    const objFinal = {
-        id: vLastOrder?.id,
-        client_order_id: vLastOrder?.client_order_id,
-        product_id: vLastOrder?.product_id,
-        product_symbol: vLastOrder?.product_symbol || vSymbol,
-        side: vLastOrder?.side || vSide,
-        size: vRequestedQty,
-        filled_size: vRequestedQty,
-        unfilled_size: 0,
-        state: "closed",
-        average_fill_price: vAvgExecPx,
-        limit_price: vLastOrder?.limit_price || vLastKnownLimit,
-        paid_commission: vCommissionTotal
-    };
-
-    return {
-        "status": "success",
-        "message": "Futures post-only limit order fully executed.",
-        "data": { success: true, result: objFinal }
-    };
+    finally{
+        delete gFutLoopActiveMap[vLoopKey];
+    }
 }
 
 const fnGetOrderDetailsById = async (pApiKey, pApiSecret, pOrderId) => {
@@ -1239,22 +1268,23 @@ const fnGetFillFromOrder = (pOrder, pReqQty) => {
     };
 }
 
-const fnGetPostOnlyMakerPrice = (pQuotes, pSide, pFallbackPx, pOffsetPoints = gFutPostOnlyOffsetPoints) => {
+const fnGetPostOnlyMakerPrice = (pQuotes, pSide, pFallbackPx, pRejectedAttempts = 0) => {
     let vBestBid = Number(pQuotes?.best_bid);
     let vBestAsk = Number(pQuotes?.best_ask);
     let vFallback = Number(pFallbackPx);
-    let vOffset = Number(pOffsetPoints);
-    if(!(vOffset > 0)){
-        vOffset = gFutPostOnlyOffsetPoints;
-    }
     let vStepBase = Number.isFinite(vBestAsk) && vBestAsk > 0 ? vBestAsk : (Number.isFinite(vBestBid) && vBestBid > 0 ? vBestBid : vFallback);
     let vStep = fnInferPriceStep(vStepBase);
     if(!(vStep > 0)){
         vStep = 1;
     }
+    let vOffsetTicks = Number(pRejectedAttempts);
+    if(!(vOffsetTicks >= 0)){
+        vOffsetTicks = 0;
+    }
+    const vOffsetPx = vStep * vOffsetTicks;
 
     if(pSide === "buy"){
-        let vPx = Number.isFinite(vBestBid) && vBestBid > 0 ? (vBestBid - vOffset) : (Number.isFinite(vFallback) && vFallback > 0 ? (vFallback - vOffset) : 0);
+        let vPx = Number.isFinite(vBestBid) && vBestBid > 0 ? (vBestBid - vOffsetPx) : (Number.isFinite(vFallback) && vFallback > 0 ? (vFallback - vOffsetPx) : 0);
         if(Number.isFinite(vBestAsk) && vBestAsk > 0 && vPx >= vBestAsk){
             vPx = vBestAsk - vStep;
         }
@@ -1264,7 +1294,7 @@ const fnGetPostOnlyMakerPrice = (pQuotes, pSide, pFallbackPx, pOffsetPoints = gF
         return vPx;
     }
 
-    let vPx = Number.isFinite(vBestAsk) && vBestAsk > 0 ? (vBestAsk + vOffset) : (Number.isFinite(vFallback) && vFallback > 0 ? (vFallback + vOffset) : 0);
+    let vPx = Number.isFinite(vBestAsk) && vBestAsk > 0 ? (vBestAsk + vOffsetPx) : (Number.isFinite(vFallback) && vFallback > 0 ? (vFallback + vOffsetPx) : 0);
     if(Number.isFinite(vBestBid) && vBestBid > 0 && vPx <= vBestBid){
         vPx = vBestBid + vStep;
     }
@@ -1303,6 +1333,33 @@ const fnIsPostOnlyImmediateExecError = (pRes) => {
     return vText.includes("immediate_execution_post_only");
 }
 
+const fnSendPostOnlyRetryAlert = (pAlertCfg, pSymbol, pSide, pAttemptNo, pLimitPrice) => {
+    const vAttemptNo = Number(pAttemptNo);
+    const vTickAway = Number.isFinite(vAttemptNo) && vAttemptNo > 0 ? vAttemptNo : 0;
+    const vLimitPrice = Number(pLimitPrice);
+    fnSendTelegramAlert(
+        `LiveStrategy2FO Limit Retry\n`
+        + `Symbol: ${pSymbol}\n`
+        + `Side: ${String(pSide || "").toUpperCase()}\n`
+        + `Retry No: ${Number.isFinite(vAttemptNo) ? vAttemptNo : 0}\n`
+        + `Ticks Away: ${vTickAway}\n`
+        + `Limit Price: ${Number.isFinite(vLimitPrice) && vLimitPrice > 0 ? vLimitPrice.toFixed(2) : "0.00"}`,
+        pAlertCfg
+    );
+}
+
+const fnSendReusePendingOrderAlert = (pAlertCfg, pSymbol, pSide, pOrderId, pLimitPrice) => {
+    const vLimitPrice = Number(pLimitPrice);
+    fnSendTelegramAlert(
+        `LiveStrategy2FO Reusing Pending Limit\n`
+        + `Symbol: ${pSymbol}\n`
+        + `Side: ${String(pSide || "").toUpperCase()}\n`
+        + `Order ID: ${Number(pOrderId || 0)}\n`
+        + `Limit Price: ${Number.isFinite(vLimitPrice) && vLimitPrice > 0 ? vLimitPrice.toFixed(2) : "0.00"}`,
+        pAlertCfg
+    );
+}
+
 const fnSendTelegramAlert = async (pText, pCfg) => {
     try{
         const vBotToken = (pCfg?.botToken || gTelegramBotToken || "").trim();
@@ -1335,6 +1392,17 @@ const fnGetTelegramConfigFromReq = (req) => {
 
 const fnGetFutLoopKey = (pApiKey, pSymbol, pSide) => {
     return `${(pApiKey || "").toString()}|${(pSymbol || "").toString()}|${(pSide || "").toString()}`;
+}
+
+const fnGetPostOnlyRejectedAttemptCap = (pSymbol) => {
+    const vSymbol = String(pSymbol || "").trim().toUpperCase();
+    if(vSymbol === "ETHUSD"){
+        return 1;
+    }
+    if(vSymbol === "BTCUSD"){
+        return 3;
+    }
+    return 2;
 }
 
 const fnSleep = (pMs) => {
@@ -1383,6 +1451,66 @@ const fnGetOpenPositions = async (pApiKey, pApiSecret) => {
         });
     });
     return objPromise;
+}
+
+const fnGetOpenOrders = async (pApiKey, pApiSecret, pSymbol = "") => {
+    const objPromise = new Promise((resolve, reject) => {
+        new DeltaRestClient(pApiKey, pApiSecret).then(client => {
+            const objArgs = { state: "open" };
+            if(pSymbol){
+                objArgs.product_symbol = pSymbol;
+            }
+            client.apis.Orders.getOrders(objArgs).then(function (response) {
+                let objResult = JSON.parse(response.data.toString());
+                if(objResult.success){
+                    resolve({ "status": "success", "message": "Open orders fetched.", "data": objResult });
+                }
+                else{
+                    resolve({ "status": "warning", "message": "Error while fetching open orders.", "data": objResult });
+                }
+            })
+            .catch(function(objError) {
+                resolve({ "status": "danger", "message": objError?.response?.text || objError?.response?.data || objError?.message || "Error at get open orders.", "data": objError });
+            });
+        });
+    });
+    return objPromise;
+}
+
+const fnFindReusablePendingFutOrder = async (pApiKey, pApiSecret, pSymbol, pSide, pReduceOnly = false) => {
+    const objOpenOrders = await fnGetOpenOrders(pApiKey, pApiSecret, pSymbol);
+    if(objOpenOrders.status !== "success"){
+        return { "status": objOpenOrders.status, "message": objOpenOrders.message, "data": null };
+    }
+
+    const objRows = Array.isArray(objOpenOrders.data?.result) ? objOpenOrders.data.result : [];
+    const vSide = String(pSide || "").trim().toLowerCase();
+    const vSymbol = String(pSymbol || "").trim().toUpperCase();
+    const bReduceOnly = !!pReduceOnly;
+
+    const objMatches = objRows.filter((objRow) => {
+        const vRowSymbol = String(objRow?.product_symbol || objRow?.symbol || "").trim().toUpperCase();
+        const vRowSide = String(objRow?.side || "").trim().toLowerCase();
+        const vState = String(objRow?.state || "").trim().toLowerCase();
+        const vOrderType = String(objRow?.order_type || "").trim().toLowerCase();
+        return vRowSymbol === vSymbol
+            && vRowSide === vSide
+            && vState === "open"
+            && vOrderType === "limit_order"
+            && (!!objRow?.reduce_only) === bReduceOnly;
+    });
+
+    if(objMatches.length === 0){
+        return { "status": "success", "message": "No reusable pending futures order found.", "data": null };
+    }
+
+    objMatches.sort((a, b) => {
+        const vA = Number(a?.id || 0);
+        const vB = Number(b?.id || 0);
+        return vB - vA;
+    });
+
+    return { "status": "success", "message": "Reusable pending futures order found.", "data": objMatches[0] };
 }
 
 const fnGetOrderHistory = async (pApiKey, pApiSecret, pStartDT, pEndDT) => {
