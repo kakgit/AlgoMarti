@@ -7,6 +7,8 @@ let gRenkoFeedAnchor = null;
 let gRenkoFeedLastDir = 0;
 let gRenkoFeedMaxRows = 300;
 let gLastRenkoColorCode = "";
+let gManualRenkoTimer = null;
+let gManualRenkoTimerEndsAt = 0;
 
 function fnRenkoCcdeStorageKey(pKey){
     return "CCDE_Renko_" + String(pKey || "");
@@ -27,6 +29,10 @@ function fnIsCoveredCallRenkoFeedOn(){
 
 function fnGetCoveredCallRenkoSignalColor(){
     return gRenkoFeedEnabled === true ? String(gLastRenkoColorCode || "").toUpperCase() : "";
+}
+
+function fnHasPendingManualRenkoTimer(){
+    return gManualRenkoTimer !== null;
 }
 
 function fnGetRenkoFeedSymbol(){
@@ -72,6 +78,23 @@ function fnSetRenkoSignalBox(pColorCode){
     objBox.className = "renko-signal-box renko-signal-idle";
     objBox.innerText = "-";
     objBox.title = "Current Renko box color";
+}
+
+function fnClearManualRenkoTimer(pReason = ""){
+    if(gManualRenkoTimer !== null){
+        clearTimeout(gManualRenkoTimer);
+        gManualRenkoTimer = null;
+    }
+    gManualRenkoTimerEndsAt = 0;
+    if(pReason){
+        fnAppendRenkoFeedMsg(pReason);
+    }
+}
+
+function fnSetManualRenkoSignalColor(pColorCode){
+    const vColorCode = String(pColorCode || "").toUpperCase();
+    gLastRenkoColorCode = vColorCode === "R" || vColorCode === "G" ? vColorCode : "";
+    fnSetRenkoSignalBox(gLastRenkoColorCode);
 }
 
 function fnGetTickerVolumeText(pVol){
@@ -201,6 +224,9 @@ function fnUpdateRenkoColorTransition(pOpen, pClose){
 
     gLastRenkoColorCode = vColorCode;
     fnSetRenkoSignalBox(vColorCode);
+    if(vColorCode !== "R" && fnHasPendingManualRenkoTimer()){
+        fnClearManualRenkoTimer("[delta] Live signal turned non-RED. Pending manual RED timer cancelled.");
+    }
     return { ColorCode: vColorCode, Transition: vTransition };
 }
 
@@ -235,6 +261,7 @@ function fnResetRenkoFeedStateForSettingChange(){
     gRenkoFeedAnchor = null;
     gRenkoFeedLastDir = 0;
     gLastRenkoColorCode = "";
+    fnClearManualRenkoTimer();
 }
 
 function fnUpdateRenkoFeedStep(pThis){
@@ -282,6 +309,72 @@ async function fnExecuteCoveredCallRenkoTrade(pSide){
         return;
     }
     fnAppendRenkoFeedMsg("[delta] RED direction change detected but Covered Call Renko option handler is unavailable.");
+}
+
+async function fnRunManualRenkoRedTimer(){
+    gManualRenkoTimer = null;
+    gManualRenkoTimerEndsAt = 0;
+
+    if(!gRenkoFeedEnabled){
+        fnAppendRenkoFeedMsg("[manual] RED timer skipped because Delta Renko Feed is OFF.");
+        return;
+    }
+    if(String(gLastRenkoColorCode || "").toUpperCase() !== "R"){
+        fnAppendRenkoFeedMsg("[manual] RED timer skipped because current signal is no longer RED.");
+        return;
+    }
+    if(fnGetCoveredCallOpenOptionTrades().length > 0){
+        fnAppendRenkoFeedMsg("[manual] RED timer finished but option position already exists.");
+        return;
+    }
+    if(typeof fnHandleCoveredCallRenkoRedOptionEntry !== "function"){
+        fnAppendRenkoFeedMsg("[manual] RED timer finished but Renko option-entry handler is unavailable.");
+        return;
+    }
+
+    fnAppendRenkoFeedMsg("[manual] RED timer finished. Preparing futures/options entry.");
+    try{
+        await fnHandleCoveredCallRenkoRedOptionEntry();
+    }
+    catch(pErr){
+        const vMsg = String(pErr?.message || pErr || "Unknown error");
+        fnAppendRenkoFeedMsg(`[manual] RED timer entry failed: ${vMsg}`);
+    }
+}
+
+function fnArmManualRenkoRedTimer(){
+    if(!gRenkoFeedEnabled){
+        fnAppendRenkoFeedMsg("[manual] Turn ON Delta Renko Feed to use manual Renko trigger.");
+        return;
+    }
+
+    if(gManualRenkoTimer !== null){
+        clearTimeout(gManualRenkoTimer);
+        gManualRenkoTimer = null;
+    }
+
+    fnSetManualRenkoSignalColor("R");
+    gManualRenkoTimerEndsAt = Date.now() + 10000;
+    fnAppendRenkoFeedMsg("[manual] RED selected. Waiting 10 seconds before checking option entry.");
+    gManualRenkoTimer = setTimeout(() => {
+        void fnRunManualRenkoRedTimer();
+    }, 10000);
+}
+
+function fnToggleManualRenkoSignalBox(){
+    if(!gRenkoFeedEnabled){
+        fnAppendRenkoFeedMsg("[manual] Delta Renko Feed is OFF. Manual signal toggle ignored.");
+        return;
+    }
+
+    const vCurrent = String(gLastRenkoColorCode || "").toUpperCase();
+    if(vCurrent === "R"){
+        fnSetManualRenkoSignalColor("G");
+        fnClearManualRenkoTimer("[manual] GREEN selected. Pending RED timer cancelled.");
+        return;
+    }
+
+    fnArmManualRenkoRedTimer();
 }
 
 async function fnProcessRenkoSignal(pRenkoMsg, pSource = "delta"){
@@ -456,6 +549,7 @@ function fnStartRenkoFeedWS(){
 
 function fnStopRenkoFeedWS(){
     gRenkoFeedForceClose = true;
+    fnClearManualRenkoTimer();
     if(gRenkoFeedWS !== null){
         try{
             gRenkoFeedWS.close();
@@ -532,6 +626,7 @@ function fnBindRenkoCoveredCallSymbolChange(){
         gRenkoFeedAnchor = null;
         gRenkoFeedLastDir = 0;
         gLastRenkoColorCode = "";
+        fnClearManualRenkoTimer("[delta] Symbol changed. Pending manual RED timer cancelled.");
         fnSetRenkoSignalBox("");
         fnSetRenkoFeedMeta();
         if(gRenkoFeedEnabled){
