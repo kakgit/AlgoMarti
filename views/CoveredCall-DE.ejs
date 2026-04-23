@@ -77,6 +77,57 @@
             cursor: pointer;
             font-weight: 700;
         }
+
+        .ccde-page .renko-feed-log {
+            min-height: 220px;
+            max-height: 280px;
+            overflow-y: auto;
+            border: 1px solid rgba(75, 85, 99, 0.22);
+            border-radius: 0.75rem;
+            padding: 0.75rem 0.9rem;
+            background: linear-gradient(180deg, rgba(55, 65, 81, 0.18), rgba(31, 41, 55, 0.14));
+            color: #374151;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 0.84rem;
+            line-height: 1.35;
+        }
+
+        .ccde-page .renko-feed-item {
+            padding: 0.2rem 0;
+            border-bottom: 1px dashed rgba(75, 85, 99, 0.18);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ccde-page .renko-feed-item:last-child {
+            border-bottom: 0;
+        }
+
+        .ccde-page .renko-signal-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 58px;
+            height: 30px;
+            border-radius: 0.4rem;
+            color: #ffffff;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.16);
+        }
+
+        .ccde-page .renko-signal-idle {
+            background: #6b7280;
+        }
+
+        .ccde-page .renko-signal-green {
+            background: #16a34a;
+        }
+
+        .ccde-page .renko-signal-red {
+            background: #dc2626;
+        }
     </style>
 
     <div class="ccde-page">
@@ -121,6 +172,11 @@
                                 <div class="col-12 col-xl-7">
                                     <div class="d-flex flex-wrap align-items-center gap-2">
                                         <span class="manual-title">Manual Trader</span>
+                                        <div class="form-check form-switch mb-0 ms-2">
+                                            <input class="form-check-input" type="checkbox" id="swtRenkoFeed" onchange="fnToggleRenkoFeedSwitch();" />
+                                            <label class="form-check-label" for="swtRenkoFeed" style="cursor:pointer;">Delta Renko Feed</label>
+                                        </div>
+                                        <span id="spnRenkoFeedStatus" class="badge bg-secondary">OFF</span>
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-5">
@@ -288,6 +344,38 @@
 
             <section class="row">
                 <div class="col-12">
+                    <div class="card" id="cardDeltaRenkoFeed">
+                        <div class="card-header">
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <h5 class="mb-0 me-2">Delta Renko-style Feed</h5>
+
+                                <label for="txtRenkoFeedPts" class="mb-0 small text-muted">Point</label>
+                                <input type="number" class="form-control form-control-sm" id="txtRenkoFeedPts" value="200" min="1" onchange="fnUpdateRenkoFeedStep(this);" style="width: 90px;" />
+
+                                <label for="ddlRenkoFeedPriceSrc" class="mb-0 small text-muted">Source</label>
+                                <select id="ddlRenkoFeedPriceSrc" class="form-select form-select-sm" onchange="fnUpdateRenkoFeedPriceSource(this);" style="width: 130px;">
+                                    <option value="mark_price" selected>Mark Price</option>
+                                    <option value="spot_price">Spot Price</option>
+                                    <option value="best_bid">Best Bid</option>
+                                    <option value="best_ask">Best Ask</option>
+                                </select>
+
+                                <span class="small text-muted ms-2" id="spnRenkoFeedMeta">Symbol: -</span>
+                                <span id="spnRenkoSignalBox" class="renko-signal-box renko-signal-idle" title="Current Renko box color">-</span>
+                                <button class="btn btn-outline-secondary btn-sm ms-auto" type="button" onclick="fnClearRenkoFeedLog();">Clear</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="divRenkoFeedMsgs" class="renko-feed-log">
+                                <div class="renko-feed-item text-muted">Feed is idle. Turn on "Delta Renko Feed" switch in Manual Trader header.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="row">
+                <div class="col-12">
                     <div class="card" id="cardOpenPosition">
                         <div class="card-header">
                             <div class="row">
@@ -413,4 +501,5 @@
 <%- include('partials/CoveredCall-DESettings.ejs') %>
 
 <script src="/js/CoveredCall-DE.js"></script>
+<script src="/js/CoveredCall-DERenko.js"></script>
 <script src="/js/CoveredCall-DESettings.js"></script>
