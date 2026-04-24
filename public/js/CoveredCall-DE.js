@@ -62,6 +62,15 @@ function fnApplyCoveredCallOptionsPnlDelta(pDelta){
     return fnSetCoveredCallOptionsPnlBase(vBase + vDelta);
 }
 
+function fnConsumeCoveredCallOptionsPnlOneLot(pOneLotValue){
+    const vBase = fnGetCoveredCallOptionsPnlBase();
+    const vOneLotValue = Number(pOneLotValue);
+    if(!Number.isFinite(vOneLotValue) || vOneLotValue <= 0){
+        return vBase;
+    }
+    return fnSetCoveredCallOptionsPnlBase(vBase - vOneLotValue);
+}
+
 function fnRefreshCoveredCallOptionsPnlInput(){
     const objInp = document.getElementById("txtOptionsPnl");
     if(!objInp){
@@ -2740,7 +2749,7 @@ async function fnCloseCoveredCallTriggeredOption(objTrade){
 async function fnAddCoveredCallOneFutureIfAllowed(objSnapshot, objTrade = null){
     const objAddDecision = fnShouldAddOneMoreFutureOnSl();
     let bAddedFuture = false;
-    let bResetOptionsPnl = false;
+    let bDeductedOptionsPnl = false;
 
     if(!objAddDecision.shouldAdd){
         return { status: "success", addedFuture: false, resetOptionsPnl: false, addDecision: objAddDecision };
@@ -2768,14 +2777,14 @@ async function fnAddCoveredCallOneFutureIfAllowed(objSnapshot, objTrade = null){
 
     bAddedFuture = true;
     if(objAddDecision.optionsPnlGate){
-        fnSetCoveredCallOptionsPnlBase(0);
-        bResetOptionsPnl = true;
+        fnConsumeCoveredCallOptionsPnlOneLot(objAddDecision.oneLotValue);
+        bDeductedOptionsPnl = true;
     }
 
     return {
         status: "success",
         addedFuture: bAddedFuture,
-        resetOptionsPnl: bResetOptionsPnl,
+        deductedOptionsPnl: bDeductedOptionsPnl,
         addDecision: objAddDecision
     };
 }
@@ -2843,7 +2852,7 @@ async function fnHandleCoveredCallRenkoRedOptionFlow(objTrade = null, pOptions =
 
     const vMsgPrefix = objTrade ? "Option rolled after Renko RED trigger" : "Option opened after Renko RED trigger";
     if(objAddRes.addedFuture){
-        fnSafeGenMessage(`${vMsgPrefix}. Added 1 futures lot${objAddRes.resetOptionsPnl ? " and reset Options PnL" : ""}.`, "badge bg-success", "spnGenMsg");
+        fnSafeGenMessage(`${vMsgPrefix}. Added 1 futures lot${objAddRes.deductedOptionsPnl ? " and deducted 1 x / Lot from Options PnL" : ""}.`, "badge bg-success", "spnGenMsg");
     }
     else if(Number.isFinite(vQtyToOpen) && vQtyToOpen > 0){
         fnSafeGenMessage(`${vMsgPrefix} using existing futures qty.`, "badge bg-success", "spnGenMsg");
@@ -2940,7 +2949,7 @@ async function fnHandleCoveredCallOptionSl(objTrade){
 
     let objSnapshot = fnGetCoveredCallLiveFutureSnapshot(gCCDEFetchedLivePosRows, objTrade);
     let bAddedFuture = false;
-    let bResetOptionsPnl = false;
+    let bDeductedOptionsPnl = false;
 
     if(objAddDecision.shouldAdd){
         let vFutureSide = objSnapshot.side;
@@ -2962,8 +2971,8 @@ async function fnHandleCoveredCallOptionSl(objTrade){
 
             bAddedFuture = true;
             if(objAddDecision.optionsPnlGate){
-                fnSetCoveredCallOptionsPnlBase(0);
-                bResetOptionsPnl = true;
+                fnConsumeCoveredCallOptionsPnlOneLot(objAddDecision.oneLotValue);
+                bDeductedOptionsPnl = true;
             }
 
             objLiveRes = await fnRefreshCoveredCallLivePositionCache(true);
@@ -2996,7 +3005,7 @@ async function fnHandleCoveredCallOptionSl(objTrade){
     await fnRefreshAllOpenBrowser(true);
     await fnRefreshCoveredCallClosedPositions();
     if(bAddedFuture){
-        fnSafeGenMessage(`Option rolled after SL trigger. Added 1 futures lot${bResetOptionsPnl ? " and reset Options PnL" : ""}.`, "badge bg-success", "spnGenMsg");
+        fnSafeGenMessage(`Option rolled after SL trigger. Added 1 futures lot${bDeductedOptionsPnl ? " and deducted 1 x / Lot from Options PnL" : ""}.`, "badge bg-success", "spnGenMsg");
     }
     else if(Number.isFinite(vQtyToOpen) && vQtyToOpen > 0){
         fnSafeGenMessage("Option rolled after SL trigger using existing futures qty.", "badge bg-success", "spnGenMsg");
