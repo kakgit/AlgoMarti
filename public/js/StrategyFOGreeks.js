@@ -58,6 +58,7 @@ let gThetaNeutralLastTriggerPnl = 0.0;
 let gThetaNeutralRow1TradeId = "";
 let gLastHedgeTime = 0;
 let gHedgeCooldownMs = 5000; // 5 second cooldown between hedges
+let gNeutralityCheckTimer = null;
 let gLastRenkoColorCode = "";
 let gManualPrevGreenSeedActive = false;
 let gManualPrevRedSeedActive = false;
@@ -1763,12 +1764,8 @@ function fnLoadNeutralModeSettings(){
         objThetaDelta.checked = (vMode === "theta");
     }
 
-    let vBasePnl = Number(localStorage.getItem("S2FO_ThetaNeutralBasePnl"));
-    let vLastTriggerPnl = Number(localStorage.getItem("S2FO_ThetaNeutralLastTriggerPnl"));
-    gThetaNeutralBasePnl = Number.isFinite(vBasePnl) ? vBasePnl : 0;
-    gThetaNeutralLastTriggerPnl = Number.isFinite(vLastTriggerPnl) ? vLastTriggerPnl : gThetaNeutralBasePnl;
-    gThetaNeutralRow1TradeId = String(localStorage.getItem("S2FO_ThetaNeutralRow1TradeId") || "");
-    fnUpdateThetaNeutralDebugStatus();
+    localStorage.setItem("S2FO_NeutralMode", gNeutralMode);
+    fnResetThetaNeutralTracking("load");
 }
 
 function fnToggleNeutralMode(pMode){
@@ -1800,9 +1797,7 @@ function fnToggleNeutralMode(pMode){
     }
 
     localStorage.setItem("S2FO_NeutralMode", gNeutralMode);
-    if(gNeutralMode === "theta"){
-        fnResetThetaNeutralTracking("mode_switch");
-    }
+    fnResetThetaNeutralTracking("mode_switch");
     if(gNeutralMode === "delta"){
         fnGenMessage("Only Delta Neutral mode enabled.", "badge bg-success", "spnGenMsg");
     }
@@ -1812,69 +1807,18 @@ function fnToggleNeutralMode(pMode){
     else{
         fnGenMessage("All neutral hedging modes are OFF.", "badge bg-warning", "spnGenMsg");
     }
-    fnUpdateThetaNeutralDebugStatus();
 }
 
 function fnGetThetaNeutralRow1Leg(){
-    if(!gCurrPosDSSDV2 || !Array.isArray(gCurrPosDSSDV2.TradeData)){
-        return null;
-    }
-    for(let i = 0; i < gCurrPosDSSDV2.TradeData.length; i++){
-        let objLeg = gCurrPosDSSDV2.TradeData[i];
-        if(!objLeg || objLeg.Status !== "OPEN"){
-            continue;
-        }
-        if(String(objLeg.OptionType || "").toUpperCase() === "F"){
-            continue;
-        }
-        if(parseInt(objLeg.CfgRow || 0) === 1){
-            return objLeg;
-        }
-    }
     return null;
 }
 
 function fnGetThetaNeutralThreshold(objLeg){
-    if(!objLeg){
-        return 0;
-    }
-
-    let vThetaPerUnit = Number(objLeg.ThetaC ?? objLeg.Theta);
-    if(!Number.isFinite(vThetaPerUnit)){
-        return 0;
-    }
-
-    const vLotSize = Math.abs(Number(objLeg.LotSize || 0));
-    const vLotQty = Math.abs(Number(objLeg.LotQty || objLeg.Qty || 0));
-    const vUnits = vLotSize * vLotQty;
-
-    if(Number.isFinite(vUnits) && vUnits > 0){
-        return Math.abs(vThetaPerUnit * vUnits);
-    }
-
-    return Math.abs(vThetaPerUnit);
+    return 0;
 }
 
 function fnUpdateThetaNeutralDebugStatus(){
-    const objDbg = document.getElementById("divThetaNeutralDbg");
-    if(!objDbg){
-        return;
-    }
-
-    const objRow1Leg = fnGetThetaNeutralRow1Leg();
-    const vCurrNetPnl = Number(gPL);
-    const vSafeCurrNetPnl = Number.isFinite(vCurrNetPnl) ? vCurrNetPnl : 0;
-    const vLastTrigger = Number(gThetaNeutralLastTriggerPnl);
-    const vSafeLastTrigger = Number.isFinite(vLastTrigger) ? vLastTrigger : 0;
-    const vBasePnl = Number(gThetaNeutralBasePnl);
-    const vSafeBasePnl = Number.isFinite(vBasePnl) ? vBasePnl : 0;
-    const vStepNetPnl = vSafeCurrNetPnl - vSafeLastTrigger;
-    const vThetaThreshold = fnGetThetaNeutralThreshold(objRow1Leg);
-    const vRemaining = Number.isFinite(vThetaThreshold) && vThetaThreshold > 0 ? (vThetaThreshold - Math.abs(vStepNetPnl)) : 0;
-    const vTradeId = String(objRow1Leg?.TradeID || gThetaNeutralRow1TradeId || "-");
-    const vSymbol = String(objRow1Leg?.Symbol || "-");
-
-    objDbg.textContent = `ThetaMode: ${String(gNeutralMode || "none").toUpperCase()} | Row1: ${vSymbol}#${vTradeId} | NetPnL: ${vSafeCurrNetPnl.toFixed(2)} | BasePnL: ${vSafeBasePnl.toFixed(2)} | LastTriggerPnL: ${vSafeLastTrigger.toFixed(2)} | StepPnL: ${vStepNetPnl.toFixed(2)} | ThetaThreshold: ${vThetaThreshold.toFixed(4)} | Remaining: ${Math.max(0, vRemaining).toFixed(4)}`;
+    return;
 }
 
 function fnResetThetaNeutralTracking(pReason = "reset", pBasePnl = null, pTradeId = ""){
@@ -1888,10 +1832,9 @@ function fnResetThetaNeutralTracking(pReason = "reset", pBasePnl = null, pTradeI
     gThetaNeutralBasePnl = vBasePnl;
     gThetaNeutralLastTriggerPnl = vBasePnl;
     gThetaNeutralRow1TradeId = String(pTradeId || "");
-    localStorage.setItem("S2FO_ThetaNeutralBasePnl", String(gThetaNeutralBasePnl));
-    localStorage.setItem("S2FO_ThetaNeutralLastTriggerPnl", String(gThetaNeutralLastTriggerPnl));
-    localStorage.setItem("S2FO_ThetaNeutralRow1TradeId", gThetaNeutralRow1TradeId);
-    fnUpdateThetaNeutralDebugStatus();
+    localStorage.removeItem("S2FO_ThetaNeutralBasePnl");
+    localStorage.removeItem("S2FO_ThetaNeutralLastTriggerPnl");
+    localStorage.removeItem("S2FO_ThetaNeutralRow1TradeId");
 }
 
 function fnLoadDefQty(){
@@ -3089,8 +3032,7 @@ async function fnSaveUpdCurrPos(){
             await fnCloseOptPosition(vLegID, vTransType, vOptionType, vSymbol, "CLOSED");
         }
 
-        // Check delta neutrality after position updates
-        await checkDeltaNeutrality();
+        // Hedge check is deferred until close/re-entry flow settles.
     }
     finally{
         gSaveUpdBusy = false;
@@ -3745,10 +3687,8 @@ async function fnCheckOptionLeg(){
                 }
     }
 
-    // Trigger delta hedging after option execution with 5-10 second delay
-    setTimeout(async () => {
-        await checkDeltaNeutrality();
-    }, 8000); // 8 second delay to allow positions to be updated
+    // Trigger neutral hedge check after option execution with delay for greek refresh.
+    fnScheduleNeutralityCheck(8000);
 }
 
 function fnExecOptionLeg(pApiKey, pSecret, pOrderType, pUndrAsst, pExpiry, pOptionType, pTransType, pLotSize, pLotQty, pDeltaPos, pDeltaRePos, pDeltaTP, pDeltaSL){
@@ -5381,7 +5321,11 @@ async function fnCloseOptPosition(pLegID, pTransType, pOptionType, pSymbol, pSta
             let vReRow = gReLegCfgRow;
             gReLeg = false;
             gReLegCfgRow = 0;
-            fnPreInitAutoTrade(pOptionType, pTransType, vReRow, true);
+            await fnPreInitAutoTrade(pOptionType, pTransType, vReRow, true);
+            fnScheduleNeutralityCheck(8000);
+        }
+        else if(pOptionType !== "F"){
+            fnScheduleNeutralityCheck(8000);
         }
     }
 }
@@ -6076,6 +6020,47 @@ function calculateTotalDelta(){
     return vTotalDelta;
 }
 
+function calculateTotalTheta(){
+    let vTotalTheta = 0.0;
+    if(!gCurrPosDSSDV2 || !Array.isArray(gCurrPosDSSDV2.TradeData)){
+        return vTotalTheta;
+    }
+    for(let i = 0; i < gCurrPosDSSDV2.TradeData.length; i++){
+        let objLeg = gCurrPosDSSDV2.TradeData[i];
+        if(objLeg.Status !== "OPEN"){
+            continue;
+        }
+        let vThetaC = parseFloat(objLeg.ThetaC);
+        if(!Number.isFinite(vThetaC)){
+            vThetaC = parseFloat(objLeg.Theta || 0);
+        }
+        if(!Number.isFinite(vThetaC) || vThetaC === 0){
+            continue;
+        }
+        let vQty = parseFloat(objLeg.LotQty || objLeg.Qty || 1);
+        if(!Number.isFinite(vQty) || vQty <= 0){
+            vQty = 1;
+        }
+        vTotalTheta += (vThetaC * vQty);
+    }
+    return vTotalTheta;
+}
+
+function fnScheduleNeutralityCheck(pDelayMs = 8000){
+    let vDelayMs = Math.floor(Number(pDelayMs));
+    if(!Number.isFinite(vDelayMs) || vDelayMs < 0){
+        vDelayMs = 8000;
+    }
+    if(gNeutralityCheckTimer){
+        clearTimeout(gNeutralityCheckTimer);
+        gNeutralityCheckTimer = null;
+    }
+    gNeutralityCheckTimer = setTimeout(async () => {
+        gNeutralityCheckTimer = null;
+        await checkDeltaNeutrality();
+    }, vDelayMs);
+}
+
 // Execute delta hedging with futures
 async function executeDeltaHedge(pTotalDelta, pOpts = {}){
     const bBypassThresholds = !!pOpts.bypassThresholds;
@@ -6141,8 +6126,10 @@ async function executeDeltaHedge(pTotalDelta, pOpts = {}){
         gLastHedgeTime = Date.now();
         return { status: "reduced_only", hedged: true, qty: Number(objReduction?.reducedQty || 0), side: vHedgeTransType };
     }
-    
-    fnGenMessage(`Executing delta hedge: ${vHedgeTransType.toUpperCase()} ${vHedgeQty} contracts of BTCUSD to offset ${pTotalDelta > 0 ? '+' : ''}${pTotalDelta.toFixed(3)} delta`, `badge bg-info`, "spnGenMsg");
+
+    const vSymbolTxt = String(objSymbol?.value || "").trim().toUpperCase() || "BTC";
+    const vReasonTxt = String(pOpts.reasonText || "").trim();
+    fnGenMessage(`Executing hedge: ${vHedgeTransType.toUpperCase()} ${vHedgeQty} contracts of ${vSymbolTxt} to offset ${pTotalDelta > 0 ? '+' : ''}${pTotalDelta.toFixed(3)} delta${vReasonTxt ? ` | ${vReasonTxt}` : ""}`, `badge bg-info`, "spnGenMsg");
     
     try{
         let objTradeResult = await fnExecFuturesLeg(
@@ -6216,7 +6203,7 @@ async function executeDeltaHedge(pTotalDelta, pOpts = {}){
             fnSetSymbolTickerList();
             fnUpdateOpenPositions();
             
-            fnGenMessage(`Delta hedge executed successfully: ${vBuyOrSell} ${vLotQty} futures contracts`, `badge bg-success`, "spnGenMsg");
+            fnGenMessage(`Delta hedge executed successfully: ${vBuyOrSell} ${vLotQty} ${vSymbolTxt} futures contracts`, `badge bg-success`, "spnGenMsg");
             gLastHedgeTime = Date.now(); // Update cooldown timestamp
             fnSendTelegramRuntimeAlert(`StrategyFOGreeks\nDelta Hedge Executed\nSide: ${vBuyOrSell}\nQty: ${vLotQty}\nTime: ${new Date().toLocaleString("en-GB")}`);
             return { status: "success", hedged: true, qty: vLotQty, side: vBuyOrSell };
@@ -6233,40 +6220,26 @@ async function executeDeltaHedge(pTotalDelta, pOpts = {}){
 }
 
 async function checkThetaDeltaNeutrality(){
-    const objRow1Leg = fnGetThetaNeutralRow1Leg();
-    if(!objRow1Leg){
-        fnResetThetaNeutralTracking("no_row1", gPL, "");
+    if(gNeutralMode !== "theta"){
         return;
     }
 
-    const vTradeId = String(objRow1Leg.TradeID || "");
-    const vCurrNetPnl = Number(gPL);
-    const vSafeCurrNetPnl = Number.isFinite(vCurrNetPnl) ? vCurrNetPnl : 0;
-    const vThetaThreshold = fnGetThetaNeutralThreshold(objRow1Leg);
-
-    if(gThetaNeutralRow1TradeId !== vTradeId){
-        fnResetThetaNeutralTracking("new_row1", vSafeCurrNetPnl, vTradeId);
-        return;
-    }
+    const vTotalDelta = calculateTotalDelta();
+    const vTotalTheta = calculateTotalTheta();
+    const vThetaThreshold = Math.abs(vTotalTheta) * 0.5;
 
     if(!Number.isFinite(vThetaThreshold) || vThetaThreshold <= 0){
         return;
     }
 
-    const vStepNetPnl = vSafeCurrNetPnl - gThetaNeutralLastTriggerPnl;
-    if(Math.abs(vStepNetPnl) < vThetaThreshold){
+    if(Math.abs(vTotalDelta) <= vThetaThreshold){
         return;
     }
 
-    const vTotalDelta = calculateTotalDelta();
-    const objHedge = await executeDeltaHedge(vTotalDelta, { bypassThresholds: true });
-    if(objHedge?.hedged){
-        gThetaNeutralLastTriggerPnl = vSafeCurrNetPnl;
-        localStorage.setItem("S2FO_ThetaNeutralLastTriggerPnl", String(gThetaNeutralLastTriggerPnl));
-        localStorage.setItem("S2FO_ThetaNeutralRow1TradeId", gThetaNeutralRow1TradeId);
-        fnUpdateThetaNeutralDebugStatus();
-        fnGenMessage(`Theta-neutral hedge step executed. Step PnL ${vStepNetPnl.toFixed(2)} crossed Row1 theta threshold ${vThetaThreshold.toFixed(4)}.`, "badge bg-success", "spnGenMsg");
-    }
+    await executeDeltaHedge(vTotalDelta, {
+        bypassThresholds: true,
+        reasonText: `Theta mode | |Delta| ${Math.abs(vTotalDelta).toFixed(3)} > 50% of |Theta| ${vThetaThreshold.toFixed(3)}`
+    });
 }
 
 // Check delta neutrality and trigger hedging if needed
