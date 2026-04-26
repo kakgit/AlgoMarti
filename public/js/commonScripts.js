@@ -14,6 +14,75 @@ window.addEventListener("DOMContentLoaded", function(){
   fnGetSetAppStatus();
 });
 
+async function fnSendTelegramTestMessage(pEndpoint, pMsgTarget, pBtn){
+  const objBotToken = document.getElementById("txtTelegramBotToken");
+  const objChatId = document.getElementById("txtTelegramChatId");
+  const vBotToken = String(objBotToken?.value || "").trim();
+  const vChatId = String(objChatId?.value || "").trim();
+  const vEndpoint = String(pEndpoint || "").trim();
+  const vMsgTarget = String(pMsgTarget || "spnGenMsg").trim();
+  const objBtn = pBtn || null;
+  const vBtnTxt = objBtn ? String(objBtn.innerText || "TEST") : "TEST";
+
+  if(vBotToken === ""){
+    if(objBotToken){
+      objBotToken.focus();
+    }
+    fnGenMessage("Please input Telegram Bot Token.", "badge bg-warning", vMsgTarget);
+    return;
+  }
+
+  if(vChatId === ""){
+    if(objChatId){
+      objChatId.focus();
+    }
+    fnGenMessage("Please input Telegram Chat ID.", "badge bg-warning", vMsgTarget);
+    return;
+  }
+
+  if(vEndpoint === ""){
+    fnGenMessage("Telegram test route is not configured.", "badge bg-danger", vMsgTarget);
+    return;
+  }
+
+  if(objBtn){
+    objBtn.disabled = true;
+    objBtn.innerText = "SENDING...";
+  }
+
+  try{
+    let vHeaders = new Headers();
+    vHeaders.append("Content-Type", "application/json");
+
+    const objRequestData = {
+      method: "POST",
+      headers: vHeaders,
+      body: JSON.stringify({
+        TelegramBotToken: vBotToken,
+        TelegramChatId: vChatId,
+        Message: "Hi, This is a test Message, pls ignore."
+      }),
+      redirect: "follow"
+    };
+
+    const objResponse = await fetch(vEndpoint, objRequestData);
+    const objResult = await objResponse.json();
+    const vStatus = String(objResult?.status || "warning").trim();
+    const vMsg = String(objResult?.message || "Telegram test message request completed.").trim();
+
+    fnGenMessage(vMsg, `badge bg-${vStatus}`, vMsgTarget);
+  }
+  catch(objErr){
+    fnGenMessage("Error while sending Telegram test message.", "badge bg-danger", vMsgTarget);
+  }
+  finally{
+    if(objBtn){
+      objBtn.disabled = false;
+      objBtn.innerText = vBtnTxt;
+    }
+  }
+}
+
 function createCaptcha(pLength){
   //clear the contents of captcha div first 
   document.getElementById('divCaptcha').innerHTML = "";

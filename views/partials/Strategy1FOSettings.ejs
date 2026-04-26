@@ -42,7 +42,10 @@
                                                 <div class="col-md-12 col-12">
                                                     <div class="form-group">
                                                         <label for="txtTelegramChatId">Telegram Chat ID (Optional)</label>
-                                                        <input type="text" id="txtTelegramChatId" class="form-control" value="" placeholder="-1001234567890" />
+                                                        <div class="input-group">
+                                                            <input type="text" id="txtTelegramChatId" class="form-control" value="" placeholder="-1001234567890" />
+                                                            <button type="button" class="btn btn-outline-primary" onclick="fnSendTelegramTestMessage('/liveStrategy1fo/sendTelegramAlert', 'spnDeltaLogin', this);">TEST</button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>

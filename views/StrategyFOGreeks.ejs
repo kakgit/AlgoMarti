@@ -358,7 +358,11 @@
                                 <div class="row">
                                     <div class="col-3">Only Delta Neutral</div>
                                     <div class="col-3">Theta Delta Neutral</div>
-                                    <div class="col-6"></div>
+                                    <div class="col-6" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                                        <span id="spnThetaNeutralTotalDelta" class="badge bg-secondary">Delta: 0.000</span>
+                                        <span id="spnThetaNeutralTheta50" class="badge bg-secondary">Theta 50%: 0.000</span>
+                                        <span id="spnThetaNeutralBalance" class="badge bg-secondary">Balance: Mode OFF</span>
+                                    </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-3">
@@ -367,8 +371,12 @@
                                         </div>
                                     </div>
                                     <div class="col-3">
-                                        <div class="form-check form-switch fs-6" style="white-space: nowrap;">
-                                            <input class="form-check-input me-0" type="checkbox" style="cursor: pointer" id="swtThetaDeltaNeutral" onchange="fnToggleNeutralMode('theta');" />
+                                        <div class="d-flex align-items-center gap-2" style="white-space: nowrap;">
+                                            <div class="form-check form-switch fs-6 mb-0">
+                                                <input class="form-check-input me-0" type="checkbox" style="cursor: pointer" id="swtThetaDeltaNeutral" onchange="fnToggleNeutralMode('theta');" />
+                                            </div>
+                                            <input type="number" class="form-control form-control-sm" min="1" max="500" step="1" id="txtThetaNeutralPct" value="50" style="max-width: 82px;" onchange="fnSaveThetaNeutralPercent(this.value);" title="Theta threshold percentage" />
+                                            <span>%</span>
                                         </div>
                                     </div>
                                     <div class="col-6"></div>

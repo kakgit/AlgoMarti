@@ -83,7 +83,7 @@ function fnValidateDeltaLogin(){
             redirect: 'follow'
         };
 
-        fetch("/strategy2fo/validateLogin", requestOptions)
+        fetch("/strategyfogreeks/validateLogin", requestOptions)
         .then(response => response.json())
         .then(objResult => {
             if(objResult.status === "success"){
@@ -106,13 +106,16 @@ function fnValidateDeltaLogin(){
             }
             else if(objResult.status === "danger"){
                 fnClearLoginStatus();
-                //ip_not_whitelisted_for_api_key
-                //invalid_api_key
-                if(objResult.data.response.body.error.code === "ip_not_whitelisted_for_api_key"){
-                    fnGenMessage(objResult.data.response.body.error.code + " IP: " + objResult.data.response.body.error.context.client_ip, `badge bg-${objResult.status}`, "spnDeltaLogin");
+                let objErr = fnParseDeltaLoginError(objResult.data);
+                if(objErr.code === "ip_not_whitelisted_for_api_key"){
+                    let vIPMsg = objErr.clientIp ? (" IP: " + objErr.clientIp) : " IP not available in response.";
+                    fnGenMessage(objErr.code + vIPMsg, `badge bg-${objResult.status}`, "spnDeltaLogin");
+                }
+                else if(objErr.code){
+                    fnGenMessage(objErr.code + " Contact Admin!", `badge bg-${objResult.status}`, "spnDeltaLogin");
                 }
                 else{
-                    fnGenMessage(objResult.data.response.body.error.code + " Contact Admin!", `badge bg-${objResult.status}`, "spnDeltaLogin");
+                    fnGenMessage(objResult.message || "Error in Login, Contact Admin.", `badge bg-${objResult.status}`, "spnDeltaLogin");
                 }
             }
             else if(objResult.status === "warning"){
@@ -130,6 +133,36 @@ function fnValidateDeltaLogin(){
             fnGenMessage("Error to Fetch with Login Details.", `badge bg-danger`, "spnDeltaLogin");
         });
     }
+}
+
+function fnParseDeltaLoginError(pErrData){
+    let objPayload = pErrData;
+    let vCode = "";
+    let vClientIP = "";
+
+    if(objPayload?.response?.text && typeof objPayload.response.text === "string"){
+        try{
+            objPayload = JSON.parse(objPayload.response.text);
+        }
+        catch(objErr){
+            // keep original payload
+        }
+    }
+
+    if(typeof objPayload === "string"){
+        try{
+            objPayload = JSON.parse(objPayload);
+        }
+        catch(objErr){
+            objPayload = { message: objPayload };
+        }
+    }
+
+    let objErrNode = objPayload?.response?.body?.error || objPayload?.error || null;
+    vCode = objErrNode?.code || objPayload?.code || "";
+    vClientIP = objErrNode?.context?.client_ip || objPayload?.context?.client_ip || "";
+
+    return { code: vCode, clientIp: vClientIP };
 }
 
 function fnToggleAutoTrader(){

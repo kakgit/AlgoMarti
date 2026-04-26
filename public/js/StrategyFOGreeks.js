@@ -1751,11 +1751,17 @@ function fnGetAllStatus(){
 function fnLoadNeutralModeSettings(){
     const objOnlyDelta = document.getElementById("swtOnlyDeltaNeutral");
     const objThetaDelta = document.getElementById("swtThetaDeltaNeutral");
+    const objThetaPct = document.getElementById("txtThetaNeutralPct");
     let vMode = String(localStorage.getItem("S2FO_NeutralMode") || "delta").toLowerCase();
     if(vMode !== "delta" && vMode !== "theta" && vMode !== "none"){
         vMode = "delta";
     }
     gNeutralMode = vMode;
+
+    let vThetaPct = Number(localStorage.getItem("S2FO_ThetaNeutralPct"));
+    if(!Number.isFinite(vThetaPct) || vThetaPct <= 0){
+        vThetaPct = 50;
+    }
 
     if(objOnlyDelta){
         objOnlyDelta.checked = (vMode === "delta");
@@ -1763,8 +1769,12 @@ function fnLoadNeutralModeSettings(){
     if(objThetaDelta){
         objThetaDelta.checked = (vMode === "theta");
     }
+    if(objThetaPct){
+        objThetaPct.value = String(vThetaPct);
+    }
 
     localStorage.setItem("S2FO_NeutralMode", gNeutralMode);
+    localStorage.setItem("S2FO_ThetaNeutralPct", String(vThetaPct));
     fnResetThetaNeutralTracking("load");
 }
 
@@ -1813,12 +1823,89 @@ function fnGetThetaNeutralRow1Leg(){
     return null;
 }
 
+function fnGetThetaNeutralPercent(){
+    const objThetaPct = document.getElementById("txtThetaNeutralPct");
+    let vThetaPct = Number(objThetaPct?.value || localStorage.getItem("S2FO_ThetaNeutralPct") || 50);
+    if(!Number.isFinite(vThetaPct) || vThetaPct <= 0){
+        vThetaPct = 50;
+    }
+    return vThetaPct;
+}
+
+function fnSaveThetaNeutralPercent(pValue){
+    const objThetaPct = document.getElementById("txtThetaNeutralPct");
+    let vThetaPct = Number(pValue);
+    if(!Number.isFinite(vThetaPct) || vThetaPct <= 0){
+        vThetaPct = 50;
+    }
+    vThetaPct = Math.min(500, Math.max(1, Math.round(vThetaPct)));
+    if(objThetaPct){
+        objThetaPct.value = String(vThetaPct);
+    }
+    localStorage.setItem("S2FO_ThetaNeutralPct", String(vThetaPct));
+    fnUpdateThetaNeutralDebugStatus();
+    if(gNeutralMode === "theta"){
+        fnGenMessage(`Theta Delta Neutral threshold updated to ${vThetaPct}%. Re-checking hedge condition.`, "badge bg-info", "spnGenMsg");
+        fnScheduleNeutralityCheck(200);
+    }
+}
+
 function fnGetThetaNeutralThreshold(objLeg){
-    return 0;
+    let vThetaTotal = 0;
+    if(typeof objLeg === "number"){
+        vThetaTotal = Number(objLeg);
+    }
+    else{
+        vThetaTotal = calculateTotalTheta();
+    }
+    if(!Number.isFinite(vThetaTotal)){
+        return 0;
+    }
+    return Math.abs(vThetaTotal) * (fnGetThetaNeutralPercent() / 100);
 }
 
 function fnUpdateThetaNeutralDebugStatus(){
-    return;
+    const objDelta = document.getElementById("spnThetaNeutralTotalDelta");
+    const objTheta50 = document.getElementById("spnThetaNeutralTheta50");
+    const objBalance = document.getElementById("spnThetaNeutralBalance");
+
+    if(!objDelta || !objTheta50 || !objBalance){
+        return;
+    }
+
+    const vTotalDelta = Number(calculateTotalDelta());
+    const vTotalTheta = Number(calculateTotalTheta());
+    const vThetaPct = Number(fnGetThetaNeutralPercent());
+    const vThetaThreshold = Number(fnGetThetaNeutralThreshold(vTotalTheta));
+    const vAbsDelta = Math.abs(vTotalDelta);
+
+    objDelta.className = "badge bg-secondary";
+    objTheta50.className = "badge bg-secondary";
+    objBalance.className = "badge bg-secondary";
+
+    objDelta.innerText = `Delta: ${Number.isFinite(vTotalDelta) ? vTotalDelta.toFixed(3) : "0.000"}`;
+    objTheta50.innerText = `Theta ${vThetaPct.toFixed(0)}%: ${Number.isFinite(vThetaThreshold) ? vThetaThreshold.toFixed(3) : "0.000"}`;
+
+    if(gNeutralMode !== "theta"){
+        objBalance.innerText = "Balance: Mode OFF";
+        return;
+    }
+
+    if(!Number.isFinite(vThetaThreshold) || vThetaThreshold <= 0){
+        objBalance.className = "badge bg-warning";
+        objBalance.innerText = "Balance: Theta not available";
+        return;
+    }
+
+    const vBuffer = vThetaThreshold - vAbsDelta;
+    if(vAbsDelta <= vThetaThreshold){
+        objBalance.className = "badge bg-success";
+        objBalance.innerText = `Balance: Balanced (${vBuffer.toFixed(3)} left)`;
+    }
+    else{
+        objBalance.className = "badge bg-danger";
+        objBalance.innerText = `Balance: Hedge Trigger (${Math.abs(vBuffer).toFixed(3)} over)`;
+    }
 }
 
 function fnResetThetaNeutralTracking(pReason = "reset", pBasePnl = null, pTradeId = ""){
@@ -1835,6 +1922,7 @@ function fnResetThetaNeutralTracking(pReason = "reset", pBasePnl = null, pTradeI
     localStorage.removeItem("S2FO_ThetaNeutralBasePnl");
     localStorage.removeItem("S2FO_ThetaNeutralLastTriggerPnl");
     localStorage.removeItem("S2FO_ThetaNeutralRow1TradeId");
+    fnUpdateThetaNeutralDebugStatus();
 }
 
 function fnLoadDefQty(){
@@ -6037,11 +6125,8 @@ function calculateTotalTheta(){
         if(!Number.isFinite(vThetaC) || vThetaC === 0){
             continue;
         }
-        let vQty = parseFloat(objLeg.LotQty || objLeg.Qty || 1);
-        if(!Number.isFinite(vQty) || vQty <= 0){
-            vQty = 1;
-        }
-        vTotalTheta += (vThetaC * vQty);
+        // Keep theta-neutral status aligned with the theta totals displayed in the UI.
+        vTotalTheta += vThetaC;
     }
     return vTotalTheta;
 }
@@ -6226,7 +6311,8 @@ async function checkThetaDeltaNeutrality(){
 
     const vTotalDelta = calculateTotalDelta();
     const vTotalTheta = calculateTotalTheta();
-    const vThetaThreshold = Math.abs(vTotalTheta) * 0.5;
+    const vThetaPct = fnGetThetaNeutralPercent();
+    const vThetaThreshold = Math.abs(vTotalTheta) * (vThetaPct / 100);
 
     if(!Number.isFinite(vThetaThreshold) || vThetaThreshold <= 0){
         return;
@@ -6238,7 +6324,7 @@ async function checkThetaDeltaNeutrality(){
 
     await executeDeltaHedge(vTotalDelta, {
         bypassThresholds: true,
-        reasonText: `Theta mode | |Delta| ${Math.abs(vTotalDelta).toFixed(3)} > 50% of |Theta| ${vThetaThreshold.toFixed(3)}`
+        reasonText: `Theta mode | |Delta| ${Math.abs(vTotalDelta).toFixed(3)} > ${Number(vThetaPct).toFixed(0)}% of |Theta| ${vThetaThreshold.toFixed(3)}`
     });
 }
 
