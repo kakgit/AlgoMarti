@@ -1810,9 +1810,11 @@ function fnToggleNeutralMode(pMode){
     fnResetThetaNeutralTracking("mode_switch");
     if(gNeutralMode === "delta"){
         fnGenMessage("Only Delta Neutral mode enabled.", "badge bg-success", "spnGenMsg");
+        fnScheduleNeutralityCheck(200);
     }
     else if(gNeutralMode === "theta"){
         fnGenMessage("Theta Delta Neutral mode enabled.", "badge bg-warning", "spnGenMsg");
+        fnScheduleNeutralityCheck(200);
     }
     else{
         fnGenMessage("All neutral hedging modes are OFF.", "badge bg-warning", "spnGenMsg");
@@ -1865,19 +1867,48 @@ function fnGetThetaNeutralThreshold(objLeg){
 }
 
 function fnUpdateThetaNeutralDebugStatus(){
+    const objDeltaModeDelta = document.getElementById("spnDeltaNeutralTotalDelta");
+    const objDeltaModeRange = document.getElementById("spnDeltaNeutralRange");
+    const objDeltaModeBalance = document.getElementById("spnDeltaNeutralBalance");
     const objDelta = document.getElementById("spnThetaNeutralTotalDelta");
     const objTheta50 = document.getElementById("spnThetaNeutralTheta50");
     const objBalance = document.getElementById("spnThetaNeutralBalance");
 
-    if(!objDelta || !objTheta50 || !objBalance){
+    if(!objDeltaModeDelta || !objDeltaModeRange || !objDeltaModeBalance || !objDelta || !objTheta50 || !objBalance){
         return;
     }
 
+    let objNegThreshold = document.getElementById("txtNegDeltaThreshold");
+    let objPosThreshold = document.getElementById("txtPosDeltaThreshold");
     const vTotalDelta = Number(calculateTotalDelta());
     const vTotalTheta = Number(calculateTotalTheta());
     const vThetaPct = Number(fnGetThetaNeutralPercent());
     const vThetaThreshold = Number(fnGetThetaNeutralThreshold(vTotalTheta));
     const vAbsDelta = Math.abs(vTotalDelta);
+    const vNegThreshold = Number(objNegThreshold?.value || gNegDeltaThreshold || 0);
+    const vPosThreshold = Number(objPosThreshold?.value || gPosDeltaThreshold || 0);
+
+    objDeltaModeDelta.className = "badge bg-secondary";
+    objDeltaModeRange.className = "badge bg-secondary";
+    objDeltaModeBalance.className = "badge bg-secondary";
+    objDeltaModeDelta.innerText = `Delta: ${Number.isFinite(vTotalDelta) ? vTotalDelta.toFixed(3) : "0.000"}`;
+    objDeltaModeRange.innerText = `Range: ${Number.isFinite(vNegThreshold) ? vNegThreshold.toFixed(3) : "0.000"} to ${Number.isFinite(vPosThreshold) ? vPosThreshold.toFixed(3) : "0.000"}`;
+
+    if(gNeutralMode !== "delta"){
+        objDeltaModeBalance.innerText = "Balance: Mode OFF";
+    }
+    else if(vTotalDelta >= vNegThreshold && vTotalDelta <= vPosThreshold){
+        const vLowerGap = Math.abs(vTotalDelta - vNegThreshold);
+        const vUpperGap = Math.abs(vPosThreshold - vTotalDelta);
+        const vHeadroom = Math.min(vLowerGap, vUpperGap);
+        objDeltaModeBalance.className = "badge bg-success";
+        objDeltaModeBalance.innerText = `Balance: Balanced (${vHeadroom.toFixed(3)} left)`;
+    }
+    else{
+        const vOverBy = vTotalDelta < vNegThreshold ? Math.abs(vNegThreshold - vTotalDelta) : Math.abs(vTotalDelta - vPosThreshold);
+        objDeltaModeBalance.className = "badge bg-danger";
+        objDeltaModeBalance.innerText = `Balance: Hedge Trigger (${vOverBy.toFixed(3)} over)`;
+    }
 
     objDelta.className = "badge bg-secondary";
     objTheta50.className = "badge bg-secondary";
@@ -2003,9 +2034,14 @@ function fnUpdateDeltaThresholdSettings(pSilent = false){
 
     localStorage.setItem("S2FO_NegDeltaThreshold", String(gNegDeltaThreshold));
     localStorage.setItem("S2FO_PosDeltaThreshold", String(gPosDeltaThreshold));
+    fnUpdateThetaNeutralDebugStatus();
 
     if(!pSilent){
         fnGenMessage("Delta threshold settings updated successfully!", "badge bg-success", "spnGenMsg");
+    }
+    if(gNeutralMode === "delta"){
+        fnGenMessage("Delta Neutral thresholds updated. Re-checking hedge condition.", "badge bg-info", "spnGenMsg");
+        fnScheduleNeutralityCheck(200);
     }
 }
 
