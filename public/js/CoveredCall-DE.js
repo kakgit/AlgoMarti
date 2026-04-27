@@ -141,6 +141,7 @@ function fnRestoreManualTraderControlsCCDE(){
         "ddlLegSideCoveredCall1",
         "ddlExpiryModeCoveredCall1",
         "txtExpiryCoveredCall1",
+        "txtAutoOptQtyPctCoveredCall",
         "txtManualOptQtyCoveredCall1",
         "txtNewDeltaCoveredCall1",
         "txtReDeltaCoveredCall1",
@@ -2471,6 +2472,26 @@ function fnGetCoveredCallOptionOrderInput(){
     };
 }
 
+function fnGetCoveredCallAutoOptionQtyPct(){
+    const objInp = document.getElementById("txtAutoOptQtyPctCoveredCall");
+    const vParsed = Math.round(Number(objInp?.value || 100));
+    if(Number.isFinite(vParsed) && vParsed > 0){
+        return vParsed;
+    }
+    return 100;
+}
+
+function fnGetCoveredCallAutoOptionQtyByFuturesQty(pFuturesQty){
+    const vFuturesQty = Number(pFuturesQty);
+    if(!Number.isFinite(vFuturesQty) || vFuturesQty <= 0){
+        return 0;
+    }
+
+    const vPct = fnGetCoveredCallAutoOptionQtyPct();
+    const vQty = Math.round(vFuturesQty * vPct / 100);
+    return Number.isFinite(vQty) && vQty > 0 ? vQty : 0;
+}
+
 function fnGetCoveredCallOptionTypesBySelection(pLegSide){
     const vLegSide = String(pLegSide || "").toLowerCase();
     if(vLegSide === "both"){
@@ -2790,7 +2811,8 @@ async function fnAddCoveredCallOneFutureIfAllowed(objSnapshot, objTrade = null){
 }
 
 async function fnOpenCoveredCallOptionByCurrentFuturesQty(objTrade = null, pQtyToOpen = 0){
-    const vQtyToOpen = Number(pQtyToOpen);
+    const vFuturesQty = Number(pQtyToOpen);
+    const vQtyToOpen = fnGetCoveredCallAutoOptionQtyByFuturesQty(vFuturesQty);
     if(!Number.isFinite(vQtyToOpen) || vQtyToOpen <= 0){
         return { status: "warning", message: "No futures qty available for option entry." };
     }
@@ -2900,7 +2922,8 @@ async function fnHandleCoveredCallOptionTp(objTrade){
     if(bReEnter){
         await fnRefreshCoveredCallLivePositionCache(true);
         const objSnapshot = fnGetCoveredCallLiveFutureSnapshot(gCCDEFetchedLivePosRows, objTrade);
-        const vQtyToOpen = objSnapshot.totalQty > 0 ? objSnapshot.totalQty : Number(objTrade?.LotQty || objTrade?.Qty || 0);
+        const vBaseFuturesQty = objSnapshot.totalQty > 0 ? objSnapshot.totalQty : Number(objTrade?.LotQty || objTrade?.Qty || 0);
+        const vQtyToOpen = fnGetCoveredCallAutoOptionQtyByFuturesQty(vBaseFuturesQty);
         const objOpenRes = await fnOpenCoveredCallReplacementOption(objTrade, {
             qtyOverride: vQtyToOpen,
             requireAutoTrader: true
@@ -3115,6 +3138,11 @@ async function fnRunCoveredCallStrategy(pOptions = {}){
         const objFutRes = await fnExecuteCoveredCallFutureFlow(vFutureSide, objFutureInput, { silentSuccess: true });
         if(objFutRes.status !== "success"){
             return objFutRes;
+        }
+
+        objOptionInput.qty = fnGetCoveredCallAutoOptionQtyByFuturesQty(objFutureInput.qty);
+        if(!Number.isFinite(objOptionInput.qty) || objOptionInput.qty <= 0){
+            return { status: "warning", message: "Please enter a valid Auto Option Qty %." };
         }
 
         const objOptRes = await fnExecuteCoveredCallOptionFlow(objOptionInput, { silentSuccess: true });

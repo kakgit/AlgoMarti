@@ -296,22 +296,18 @@
                                     <div class="col-1" style="text-align: center;">
                                         <input type="checkbox" class="form-check-input" id="chkReLegCoveredCall1" />
                                     </div>
-                                    <div class="col-12 col-md-4">
-                                        <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <div class="col-12 col-lg-8">
+                                        <div class="d-flex flex-wrap align-items-end gap-2">
+                                            <div>
+                                                <label for="txtAutoOptQtyPctCoveredCall" class="form-label mb-1">Auto Option Qty %</label>
+                                                <input type="number" class="form-control" min="1" step="1" id="txtAutoOptQtyPctCoveredCall" value="100" title="Used only for auto option entry / re-entry from futures qty" style="width: 140px;" />
+                                            </div>
                                             <div class="form-check form-switch mb-0">
                                                 <input class="form-check-input" type="checkbox" id="chkAddOneLotFutIfNegFut">
                                                 <label class="form-check-label" for="chkAddOneLotFutIfNegFut">Add 1 Lot Future</label>
                                             </div>
                                             <button class="btn btn-outline-primary" type="button" onclick="fnExecCoveredCallStrategy();">Exec Strategy</button>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 col-md-2 ms-md-auto">
-                                        <div class="d-grid gap-1">
                                             <button class="btn btn-outline-success" type="button" onclick="fnOpenCoveredCallOption();">OPEN OPTION</button>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 col-md-2">
-                                        <div class="d-grid gap-1">
                                             <button class="btn btn-outline-warning" type="button" onclick="fnExitCoveredCallOption();">EXIT OPTION</button>
                                         </div>
                                     </div>
