@@ -59,6 +59,7 @@ let gThetaNeutralRow1TradeId = "";
 let gLastHedgeTime = 0;
 let gHedgeCooldownMs = 5000; // 5 second cooldown between hedges
 let gNeutralityCheckTimer = null;
+let gNeutralityCheckInFlight = false;
 let gLastRenkoColorCode = "";
 let gManualPrevGreenSeedActive = false;
 let gManualPrevRedSeedActive = false;
@@ -3155,6 +3156,10 @@ async function fnSaveUpdCurrPos(){
             // SL/TP hit: close only the triggered leg and keep other legs, including futures, running.
             await fnCloseOptPosition(vLegID, vTransType, vOptionType, vSymbol, "CLOSED");
         }
+        else if(fnIsNeutralityModeActive() && fnHasOpenPositionsForNeutrality()){
+            // Re-check soon after the latest greeks snapshot is written into open positions.
+            fnScheduleNeutralityCheck(200);
+        }
 
         // Hedge check is deferred until close/re-entry flow settles.
     }
@@ -6167,6 +6172,14 @@ function calculateTotalTheta(){
     return vTotalTheta;
 }
 
+function fnIsNeutralityModeActive(){
+    return gNeutralMode === "delta" || gNeutralMode === "theta";
+}
+
+function fnHasOpenPositionsForNeutrality(){
+    return !!(gCurrPosDSSDV2 && Array.isArray(gCurrPosDSSDV2.TradeData) && gCurrPosDSSDV2.TradeData.some(objLeg => objLeg && objLeg.Status === "OPEN"));
+}
+
 function fnScheduleNeutralityCheck(pDelayMs = 8000){
     let vDelayMs = Math.floor(Number(pDelayMs));
     if(!Number.isFinite(vDelayMs) || vDelayMs < 0){
@@ -6178,7 +6191,30 @@ function fnScheduleNeutralityCheck(pDelayMs = 8000){
     }
     gNeutralityCheckTimer = setTimeout(async () => {
         gNeutralityCheckTimer = null;
-        await checkDeltaNeutrality();
+        if(!fnIsNeutralityModeActive()){
+            fnUpdateThetaNeutralDebugStatus();
+            return;
+        }
+
+        if(gNeutralityCheckInFlight){
+            if(fnHasOpenPositionsForNeutrality()){
+                fnScheduleNeutralityCheck(Math.max(1000, vDelayMs));
+            }
+            return;
+        }
+
+        gNeutralityCheckInFlight = true;
+        try{
+            await checkDeltaNeutrality();
+        }
+        finally{
+            gNeutralityCheckInFlight = false;
+            fnUpdateThetaNeutralDebugStatus();
+
+            if(fnIsNeutralityModeActive() && fnHasOpenPositionsForNeutrality()){
+                fnScheduleNeutralityCheck(8000);
+            }
+        }
     }, vDelayMs);
 }
 
