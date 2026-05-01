@@ -141,7 +141,8 @@ function fnRestoreManualTraderControlsCCDE(){
         "ddlLegSideCoveredCall1",
         "ddlExpiryModeCoveredCall1",
         "txtExpiryCoveredCall1",
-        "txtAutoOptQtyPctCoveredCall",
+        "txtAutoOptQtyPctCoveredCallRed",
+        "txtAutoOptQtyPctCoveredCallGreen",
         "txtManualOptQtyCoveredCall1",
         "txtNewDeltaCoveredCall1",
         "txtReDeltaCoveredCall1",
@@ -2472,8 +2473,10 @@ function fnGetCoveredCallOptionOrderInput(){
     };
 }
 
-function fnGetCoveredCallAutoOptionQtyPct(){
-    const objInp = document.getElementById("txtAutoOptQtyPctCoveredCall");
+function fnGetCoveredCallAutoOptionQtyPct(pColor = "R"){
+    const vColor = String(pColor || "R").trim().toUpperCase();
+    const vInputId = vColor === "G" ? "txtAutoOptQtyPctCoveredCallGreen" : "txtAutoOptQtyPctCoveredCallRed";
+    const objInp = document.getElementById(vInputId);
     const vParsed = Math.round(Number(objInp?.value || 100));
     if(Number.isFinite(vParsed) && vParsed > 0){
         return vParsed;
@@ -2481,13 +2484,13 @@ function fnGetCoveredCallAutoOptionQtyPct(){
     return 100;
 }
 
-function fnGetCoveredCallAutoOptionQtyByFuturesQty(pFuturesQty){
+function fnGetCoveredCallAutoOptionQtyByFuturesQty(pFuturesQty, pColor = "R"){
     const vFuturesQty = Number(pFuturesQty);
     if(!Number.isFinite(vFuturesQty) || vFuturesQty <= 0){
         return 0;
     }
 
-    const vPct = fnGetCoveredCallAutoOptionQtyPct();
+    const vPct = fnGetCoveredCallAutoOptionQtyPct(pColor);
     const vQty = Math.round(vFuturesQty * vPct / 100);
     return Number.isFinite(vQty) && vQty > 0 ? vQty : 0;
 }
@@ -2810,9 +2813,9 @@ async function fnAddCoveredCallOneFutureIfAllowed(objSnapshot, objTrade = null){
     };
 }
 
-async function fnOpenCoveredCallOptionByCurrentFuturesQty(objTrade = null, pQtyToOpen = 0){
+async function fnOpenCoveredCallOptionByCurrentFuturesQty(objTrade = null, pQtyToOpen = 0, pColor = "R"){
     const vFuturesQty = Number(pQtyToOpen);
-    const vQtyToOpen = fnGetCoveredCallAutoOptionQtyByFuturesQty(vFuturesQty);
+    const vQtyToOpen = fnGetCoveredCallAutoOptionQtyByFuturesQty(vFuturesQty, pColor);
     if(!Number.isFinite(vQtyToOpen) || vQtyToOpen <= 0){
         return { status: "warning", message: "No futures qty available for option entry." };
     }
@@ -2853,7 +2856,7 @@ async function fnHandleCoveredCallRenkoRedOptionFlow(objTrade = null, pOptions =
 
     const vQtyToOpen = Number(objSnapshot.totalQty || 0);
     if(Number.isFinite(vQtyToOpen) && vQtyToOpen > 0){
-        const objOpenRes = await fnOpenCoveredCallOptionByCurrentFuturesQty(objTrade, vQtyToOpen);
+        const objOpenRes = await fnOpenCoveredCallOptionByCurrentFuturesQty(objTrade, vQtyToOpen, "R");
         if(objOpenRes.status !== "success"){
             const vKeepMsg = objTrade ? " Existing option kept open." : "";
             fnSafeGenMessage((objOpenRes.message || "Renko RED option open failed.") + vKeepMsg, "badge bg-warning", "spnGenMsg");
@@ -2892,6 +2895,41 @@ async function fnHandleCoveredCallRenkoRedOptionFlow(objTrade = null, pOptions =
     };
 }
 
+async function fnHandleCoveredCallRenkoGreenOptionEntry(){
+    if(fnGetCoveredCallOpenOptionTrades().length > 0){
+        fnSafeGenMessage("Renko GREEN ignored because option position already exists.", "badge bg-warning", "spnGenMsg");
+        return { status: "warning", message: "Option position already exists.", handled: false };
+    }
+
+    const objLiveRes = await fnRefreshCoveredCallLivePositionCache(true);
+    if(objLiveRes.status !== "success"){
+        fnHandleCoveredCallActionError(objLiveRes, "Unable to fetch live positions for Renko GREEN option flow.");
+        return { ...objLiveRes, handled: false };
+    }
+
+    const objSnapshot = fnGetCoveredCallLiveFutureSnapshot(gCCDEFetchedLivePosRows, null);
+    const vQtyToOpen = Number(objSnapshot.totalQty || 0);
+    if(!Number.isFinite(vQtyToOpen) || vQtyToOpen <= 0){
+        fnSafeGenMessage("Renko GREEN flow skipped option open. No futures qty available.", "badge bg-warning", "spnGenMsg");
+        return { status: "warning", message: "No futures qty available.", handled: false };
+    }
+
+    const objOpenRes = await fnOpenCoveredCallOptionByCurrentFuturesQty(null, vQtyToOpen, "G");
+    if(objOpenRes.status !== "success"){
+        fnSafeGenMessage(objOpenRes.message || "Renko GREEN option open failed.", "badge bg-warning", "spnGenMsg");
+        return { ...objOpenRes, handled: false };
+    }
+
+    await fnRefreshAllOpenBrowser(true);
+    await fnRefreshCoveredCallClosedPositions();
+    fnSafeGenMessage("Option opened after Renko GREEN trigger using existing futures qty.", "badge bg-success", "spnGenMsg");
+    return {
+        status: "success",
+        handled: true,
+        qtyToOpen: vQtyToOpen
+    };
+}
+
 async function fnHandleCoveredCallRenkoRedOptionEntry(){
     if(fnGetCoveredCallOpenOptionTrades().length > 0){
         fnSafeGenMessage("Renko RED ignored because option position already exists.", "badge bg-warning", "spnGenMsg");
@@ -2923,7 +2961,7 @@ async function fnHandleCoveredCallOptionTp(objTrade){
         await fnRefreshCoveredCallLivePositionCache(true);
         const objSnapshot = fnGetCoveredCallLiveFutureSnapshot(gCCDEFetchedLivePosRows, objTrade);
         const vBaseFuturesQty = objSnapshot.totalQty > 0 ? objSnapshot.totalQty : Number(objTrade?.LotQty || objTrade?.Qty || 0);
-        const vQtyToOpen = fnGetCoveredCallAutoOptionQtyByFuturesQty(vBaseFuturesQty);
+        const vQtyToOpen = fnGetCoveredCallAutoOptionQtyByFuturesQty(vBaseFuturesQty, "R");
         const objOpenRes = await fnOpenCoveredCallReplacementOption(objTrade, {
             qtyOverride: vQtyToOpen,
             requireAutoTrader: true
@@ -3140,9 +3178,9 @@ async function fnRunCoveredCallStrategy(pOptions = {}){
             return objFutRes;
         }
 
-        objOptionInput.qty = fnGetCoveredCallAutoOptionQtyByFuturesQty(objFutureInput.qty);
+        objOptionInput.qty = fnGetCoveredCallAutoOptionQtyByFuturesQty(objFutureInput.qty, "R");
         if(!Number.isFinite(objOptionInput.qty) || objOptionInput.qty <= 0){
-            return { status: "warning", message: "Please enter a valid Auto Option Qty %." };
+            return { status: "warning", message: "Please enter a valid Red Opt Qty %." };
         }
 
         const objOptRes = await fnExecuteCoveredCallOptionFlow(objOptionInput, { silentSuccess: true });

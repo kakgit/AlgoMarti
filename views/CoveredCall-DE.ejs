@@ -297,34 +297,34 @@
                                         <input type="checkbox" class="form-check-input" id="chkReLegCoveredCall1" />
                                     </div>
 
-                                    <div class="col-2">Auto Option Qty %</div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2"></div>
+                                </div>
 
-                                    <div class="col-2">
-                                        <input type="number" class="form-control" min="1" step="1" id="txtAutoOptQtyPctCoveredCall" value="100" title="Used only for auto option entry / re-entry from futures qty" style="width: 140px;" />
+                                <div class="row mt-3 g-2 align-items-end">
+                                    <div class="col-12 col-md-6 col-xl-2">
+                                        <label for="txtAutoOptQtyPctCoveredCallRed" class="form-label">Red Opt Qty %</label>
+                                        <input type="number" class="form-control" min="1" step="1" id="txtAutoOptQtyPctCoveredCallRed" value="100" title="Used for RED auto option entry / re-entry from futures qty" />
                                     </div>
-                                    <div class="col-2">
-                                        <div class="form-check form-switch mb-0">
+                                    <div class="col-12 col-md-6 col-xl-2">
+                                        <label for="txtAutoOptQtyPctCoveredCallGreen" class="form-label">Green Opt Qty %</label>
+                                        <input type="number" class="form-control" min="1" step="1" id="txtAutoOptQtyPctCoveredCallGreen" value="100" title="Used for GREEN auto option entry / re-entry from futures qty" />
+                                    </div>
+                                    <div class="col-12 col-md-6 col-xl-2">
+                                        <div class="form-check form-switch mb-2">
                                             <input class="form-check-input" type="checkbox" id="chkAddOneLotFutIfNegFut">
                                             <label class="form-check-label" for="chkAddOneLotFutIfNegFut">Add 1 Lot Future</label>
                                         </div>
                                     </div>
-                                    <div class="col-2">
+                                    <div class="col-12 col-md-6 col-xl-2">
                                         <div class="d-grid gap-1">
                                             <button class="btn btn-outline-primary" type="button" onclick="fnExecCoveredCallStrategy();">Exec Strategy</button>
                                         </div>
                                     </div>
-                                    <div class="col-2"></div>
-                                    <div class="col-2">
+                                    <div class="col-12 col-md-6 col-xl-2">
                                         <div class="d-grid gap-1">
                                             <button class="btn btn-outline-success" type="button" onclick="fnOpenCoveredCallOption();">OPEN OPTION</button>
                                         </div>
                                     </div>
-                                    <div class="col-2">
+                                    <div class="col-12 col-md-6 col-xl-2">
                                         <div class="d-grid gap-1">
                                             <button class="btn btn-outline-warning" type="button" onclick="fnExitCoveredCallOption();">EXIT OPTION</button>
                                         </div>

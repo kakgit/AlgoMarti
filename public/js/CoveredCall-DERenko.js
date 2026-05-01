@@ -295,20 +295,21 @@ async function fnExecuteCoveredCallRenkoTrade(pSide){
     if(vSide !== "buy" && vSide !== "sell"){
         return;
     }
-    if(vSide !== "sell"){
-        fnAppendRenkoFeedMsg(`[delta] ${vSide.toUpperCase()} direction change detected. No option entry action for non-RED signal.`);
-        return;
-    }
     if(!fnHasCoveredCallAutoTraderEnabled()){
-        fnAppendRenkoFeedMsg("[delta] RED direction change detected but Covered Call Auto Trader is OFF.");
+        fnAppendRenkoFeedMsg(`[delta] ${vSide.toUpperCase()} direction change detected but Covered Call Auto Trader is OFF.`);
         return;
     }
-    if(typeof fnHandleCoveredCallRenkoRedOptionEntry === "function"){
+    if(vSide === "sell" && typeof fnHandleCoveredCallRenkoRedOptionEntry === "function"){
         fnAppendRenkoFeedMsg("[delta] RED direction change detected. Preparing futures/options entry.");
         await fnHandleCoveredCallRenkoRedOptionEntry();
         return;
     }
-    fnAppendRenkoFeedMsg("[delta] RED direction change detected but Covered Call Renko option handler is unavailable.");
+    if(vSide === "buy" && typeof fnHandleCoveredCallRenkoGreenOptionEntry === "function"){
+        fnAppendRenkoFeedMsg("[delta] GREEN direction change detected. Preparing option entry using existing futures qty.");
+        await fnHandleCoveredCallRenkoGreenOptionEntry();
+        return;
+    }
+    fnAppendRenkoFeedMsg(`[delta] ${vSide.toUpperCase()} direction change detected but Covered Call Renko option handler is unavailable.`);
 }
 
 async function fnRunManualRenkoRedTimer(){
