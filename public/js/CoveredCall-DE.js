@@ -2895,39 +2895,53 @@ async function fnHandleCoveredCallRenkoRedOptionFlow(objTrade = null, pOptions =
     };
 }
 
-async function fnHandleCoveredCallRenkoGreenOptionEntry(){
-    if(fnGetCoveredCallOpenOptionTrades().length > 0){
-        fnSafeGenMessage("Renko GREEN ignored because option position already exists.", "badge bg-warning", "spnGenMsg");
-        return { status: "warning", message: "Option position already exists.", handled: false };
-    }
-
+async function fnHandleCoveredCallRenkoGreenOptionFlow(objTrade = null, pOptions = {}){
     const objLiveRes = await fnRefreshCoveredCallLivePositionCache(true);
     if(objLiveRes.status !== "success"){
         fnHandleCoveredCallActionError(objLiveRes, "Unable to fetch live positions for Renko GREEN option flow.");
         return { ...objLiveRes, handled: false };
     }
 
-    const objSnapshot = fnGetCoveredCallLiveFutureSnapshot(gCCDEFetchedLivePosRows, null);
+    const objSnapshot = fnGetCoveredCallLiveFutureSnapshot(gCCDEFetchedLivePosRows, objTrade);
     const vQtyToOpen = Number(objSnapshot.totalQty || 0);
     if(!Number.isFinite(vQtyToOpen) || vQtyToOpen <= 0){
         fnSafeGenMessage("Renko GREEN flow skipped option open. No futures qty available.", "badge bg-warning", "spnGenMsg");
         return { status: "warning", message: "No futures qty available.", handled: false };
     }
 
-    const objOpenRes = await fnOpenCoveredCallOptionByCurrentFuturesQty(null, vQtyToOpen, "G");
+    const objOpenRes = await fnOpenCoveredCallOptionByCurrentFuturesQty(objTrade, vQtyToOpen, "G");
     if(objOpenRes.status !== "success"){
-        fnSafeGenMessage(objOpenRes.message || "Renko GREEN option open failed.", "badge bg-warning", "spnGenMsg");
+        const vKeepMsg = objTrade ? " Existing option kept open." : "";
+        fnSafeGenMessage((objOpenRes.message || "Renko GREEN option open failed.") + vKeepMsg, "badge bg-warning", "spnGenMsg");
         return { ...objOpenRes, handled: false };
+    }
+
+    if(objTrade && pOptions.closeExisting !== false){
+        const objCloseRes = await fnCloseCoveredCallTriggeredOption(objTrade);
+        if(objCloseRes.status !== "success"){
+            fnHandleCoveredCallActionError(objCloseRes, "Unable to close triggered option after Renko GREEN flow.");
+            return { ...objCloseRes, handled: false };
+        }
     }
 
     await fnRefreshAllOpenBrowser(true);
     await fnRefreshCoveredCallClosedPositions();
-    fnSafeGenMessage("Option opened after Renko GREEN trigger using existing futures qty.", "badge bg-success", "spnGenMsg");
+
+    const vMsgPrefix = objTrade ? "Option rolled after Renko GREEN trigger" : "Option opened after Renko GREEN trigger";
+    fnSafeGenMessage(`${vMsgPrefix} using existing futures qty.`, "badge bg-success", "spnGenMsg");
     return {
         status: "success",
         handled: true,
         qtyToOpen: vQtyToOpen
     };
+}
+
+async function fnHandleCoveredCallRenkoGreenOptionEntry(){
+    if(fnGetCoveredCallOpenOptionTrades().length > 0){
+        fnSafeGenMessage("Renko GREEN ignored because option position already exists.", "badge bg-warning", "spnGenMsg");
+        return { status: "warning", message: "Option position already exists.", handled: false };
+    }
+    return fnHandleCoveredCallRenkoGreenOptionFlow(null, { closeExisting: false });
 }
 
 async function fnHandleCoveredCallRenkoRedOptionEntry(){
@@ -2939,21 +2953,16 @@ async function fnHandleCoveredCallRenkoRedOptionEntry(){
 }
 
 async function fnHandleCoveredCallOptionTp(objTrade){
-    if(fnShouldCoveredCallRenkoCloseOnly()){
-        const objCloseRes = await fnCloseCoveredCallTriggeredOption(objTrade);
-        if(objCloseRes.status !== "success"){
-            fnHandleCoveredCallActionError(objCloseRes, "Unable to close TP option.");
+    if(fnIsCoveredCallRenkoAutomationOn()){
+        const vRenkoColor = fnGetCoveredCallRenkoAutomationColor();
+        if(vRenkoColor === "R"){
+            await fnHandleCoveredCallRenkoRedOptionFlow(objTrade, { closeExisting: true });
             return;
         }
-        await fnRefreshAllOpenBrowser(true);
-        await fnRefreshCoveredCallClosedPositions();
-        fnSafeGenMessage("Option exited after TP trigger. Renko is ON and current box is not RED.", "badge bg-success", "spnGenMsg");
-        return;
-    }
-
-    if(fnIsCoveredCallRenkoAutomationOn() && fnGetCoveredCallRenkoAutomationColor() === "R"){
-        await fnHandleCoveredCallRenkoRedOptionFlow(objTrade, { closeExisting: true });
-        return;
+        if(vRenkoColor === "G"){
+            await fnHandleCoveredCallRenkoGreenOptionFlow(objTrade, { closeExisting: true });
+            return;
+        }
     }
 
     const bReEnter = !!objTrade?.ReEnter;
@@ -2984,21 +2993,16 @@ async function fnHandleCoveredCallOptionTp(objTrade){
 }
 
 async function fnHandleCoveredCallOptionSl(objTrade){
-    if(fnShouldCoveredCallRenkoCloseOnly()){
-        const objCloseRes = await fnCloseCoveredCallTriggeredOption(objTrade);
-        if(objCloseRes.status !== "success"){
-            fnHandleCoveredCallActionError(objCloseRes, "Unable to close SL option.");
+    if(fnIsCoveredCallRenkoAutomationOn()){
+        const vRenkoColor = fnGetCoveredCallRenkoAutomationColor();
+        if(vRenkoColor === "R"){
+            await fnHandleCoveredCallRenkoRedOptionFlow(objTrade, { closeExisting: true });
             return;
         }
-        await fnRefreshAllOpenBrowser(true);
-        await fnRefreshCoveredCallClosedPositions();
-        fnSafeGenMessage("Option exited after SL trigger. Renko is ON and current box is not RED.", "badge bg-success", "spnGenMsg");
-        return;
-    }
-
-    if(fnIsCoveredCallRenkoAutomationOn() && fnGetCoveredCallRenkoAutomationColor() === "R"){
-        await fnHandleCoveredCallRenkoRedOptionFlow(objTrade, { closeExisting: true });
-        return;
+        if(vRenkoColor === "G"){
+            await fnHandleCoveredCallRenkoGreenOptionFlow(objTrade, { closeExisting: true });
+            return;
+        }
     }
 
     const objAddDecision = fnShouldAddOneMoreFutureOnSl();
