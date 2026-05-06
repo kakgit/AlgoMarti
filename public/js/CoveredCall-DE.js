@@ -2477,8 +2477,12 @@ function fnGetCoveredCallAutoOptionQtyPct(pColor = "R"){
     const vColor = String(pColor || "R").trim().toUpperCase();
     const vInputId = vColor === "G" ? "txtAutoOptQtyPctCoveredCallGreen" : "txtAutoOptQtyPctCoveredCallRed";
     const objInp = document.getElementById(vInputId);
-    const vParsed = Math.round(Number(objInp?.value || 100));
-    if(Number.isFinite(vParsed) && vParsed > 0){
+    const vRawValue = objInp?.value;
+    if(vRawValue === "" || vRawValue === null || typeof vRawValue === "undefined"){
+        return 100;
+    }
+    const vParsed = Math.round(Number(vRawValue));
+    if(Number.isFinite(vParsed) && vParsed >= 0){
         return vParsed;
     }
     return 100;
@@ -2723,13 +2727,19 @@ async function fnOpenCoveredCallReplacementOption(objTrade, pOptions = {}){
     fnSyncCoveredCallExpiryByMode();
     const vRefreshedExpiryRaw = String(document.getElementById("txtExpiryCoveredCall1")?.value || "").trim();
     const vRefreshedExpiry = fnSetCoveredCallDDMMYYYY(vRefreshedExpiryRaw || "");
+    const vQtyOverride = Number(pOptions.qtyOverride);
+    const vQtyColor = String(pOptions.qtyColor || "R").trim().toUpperCase();
+    if(Number.isFinite(vQtyOverride) && vQtyOverride <= 0){
+        const vColorLabel = vQtyColor === "G" ? "Green" : "Red";
+        return { status: "warning", message: `${vColorLabel} Opt Qty % is 0. Option order skipped.` };
+    }
 
     const objInput = {
         symbol: String(objTrade?.UndrAsstSymb || document.getElementById("ddlCoveredCallSymbol")?.value || "").trim(),
         expiryRaw: vRefreshedExpiryRaw || String(objTrade?.Expiry || "").trim(),
         expiry: vRefreshedExpiry || String(objTrade?.Expiry || "").trim(),
-        qty: Number.isFinite(Number(pOptions.qtyOverride)) && Number(pOptions.qtyOverride) > 0
-            ? Number(pOptions.qtyOverride)
+        qty: Number.isFinite(vQtyOverride) && vQtyOverride > 0
+            ? vQtyOverride
             : Number(objTrade?.LotQty || objTrade?.Qty || 0),
         lotSize: Number(objTrade?.LotSize || document.getElementById("txtCoveredCallLotSize")?.value || 0),
         orderType: String(document.getElementById("ddlManualFutOrderType")?.value || "market_order").trim(),
@@ -2817,12 +2827,17 @@ async function fnOpenCoveredCallOptionByCurrentFuturesQty(objTrade = null, pQtyT
     const vFuturesQty = Number(pQtyToOpen);
     const vQtyToOpen = fnGetCoveredCallAutoOptionQtyByFuturesQty(vFuturesQty, pColor);
     if(!Number.isFinite(vQtyToOpen) || vQtyToOpen <= 0){
+        const vColorLabel = String(pColor || "R").trim().toUpperCase() === "G" ? "Green" : "Red";
+        if(Number.isFinite(vFuturesQty) && vFuturesQty > 0){
+            return { status: "warning", message: `${vColorLabel} Opt Qty % is 0. Option order skipped.` };
+        }
         return { status: "warning", message: "No futures qty available for option entry." };
     }
 
     if(objTrade){
         return fnOpenCoveredCallReplacementOption(objTrade, {
             qtyOverride: vQtyToOpen,
+            qtyColor: pColor,
             requireAutoTrader: false
         });
     }
@@ -2973,6 +2988,7 @@ async function fnHandleCoveredCallOptionTp(objTrade){
         const vQtyToOpen = fnGetCoveredCallAutoOptionQtyByFuturesQty(vBaseFuturesQty, "R");
         const objOpenRes = await fnOpenCoveredCallReplacementOption(objTrade, {
             qtyOverride: vQtyToOpen,
+            qtyColor: "R",
             requireAutoTrader: true
         });
         if(objOpenRes.status !== "success"){
@@ -3049,10 +3065,11 @@ async function fnHandleCoveredCallOptionSl(objTrade){
         }
     }
 
-    const vQtyToOpen = objSnapshot.totalQty;
+    const vQtyToOpen = fnGetCoveredCallAutoOptionQtyByFuturesQty(objSnapshot.totalQty, "R");
     if(Number.isFinite(vQtyToOpen) && vQtyToOpen > 0){
         const objOpenRes = await fnOpenCoveredCallReplacementOption(objTrade, {
             qtyOverride: vQtyToOpen,
+            qtyColor: "R",
             requireAutoTrader: false
         });
         if(objOpenRes.status !== "success"){
@@ -3184,7 +3201,8 @@ async function fnRunCoveredCallStrategy(pOptions = {}){
 
         objOptionInput.qty = fnGetCoveredCallAutoOptionQtyByFuturesQty(objFutureInput.qty, "R");
         if(!Number.isFinite(objOptionInput.qty) || objOptionInput.qty <= 0){
-            return { status: "warning", message: "Please enter a valid Red Opt Qty %." };
+            fnSafeGenMessage("Strategy executed. Futures opened. Red Opt Qty % is 0, so option order was skipped.", "badge bg-warning", "spnGenMsg");
+            return { status: "success", message: "Strategy executed. Option order skipped." };
         }
 
         const objOptRes = await fnExecuteCoveredCallOptionFlow(objOptionInput, { silentSuccess: true });

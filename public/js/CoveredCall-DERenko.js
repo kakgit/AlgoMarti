@@ -391,18 +391,7 @@ async function fnProcessRenkoSignal(pRenkoMsg, pSource = "delta"){
 
     const objBoxState = fnUpdateRenkoColorTransition(vOpen, vClose);
     const vColorCode = vClose > vOpen ? "G" : "R";
-
-    let vSide = "";
-    if(objBoxState?.Transition === "R2G"){
-        vSide = "buy";
-    }
-    else if(objBoxState?.Transition === "G2R"){
-        vSide = "sell";
-    }
-    if(vSide === ""){
-        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} skipped. No direction-change event for step validation (Event:${objBoxState?.Transition || "NONE"}).`);
-        return;
-    }
+    let vSide = vColorCode === "G" ? "buy" : "sell";
 
     const vSideSwt = fnGetTradeSideSwitch();
     if(vSideSwt === "buy"){
@@ -417,8 +406,15 @@ async function fnProcessRenkoSignal(pRenkoMsg, pSource = "delta"){
     }
 
     if(fnGetCoveredCallOpenOptionTrades().length > 0){
-        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} direction change found but Covered Call option position is open.`);
+        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} box checked. Covered Call option position is already open.`);
         return;
+    }
+
+    if(objBoxState?.Transition === "R2G" || objBoxState?.Transition === "G2R"){
+        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} direction change (${objBoxState.Transition}) found with no open option. Rechecking option entry.`);
+    }
+    else{
+        fnAppendRenkoFeedMsg(`[${pSource}] ${vColorCode} box formed with no open option. Rechecking option entry.`);
     }
 
     await fnExecuteCoveredCallRenkoTrade(vSide);
