@@ -773,6 +773,29 @@ function fnGetCcdeCurrentGreek(pSymbol, pMap, pFallback = 0){
     return Number(pFallback || 0);
 }
 
+function fnGetCoveredCallSignedDeltaByTradeMeta(pDelta, pOptionType, pTransType){
+    const vDelta = Number(pDelta);
+    const vOptionType = String(pOptionType || "").toUpperCase();
+    const vTransType = String(pTransType || "").toLowerCase();
+    if(!Number.isFinite(vDelta)){
+        return NaN;
+    }
+
+    if(vOptionType !== "C" && vOptionType !== "P"){
+        return vDelta;
+    }
+
+    const vAbsDelta = Math.abs(vDelta);
+    if(vOptionType === "C"){
+        return vTransType === "sell" ? (-1 * vAbsDelta) : vAbsDelta;
+    }
+    if(vOptionType === "P"){
+        return vTransType === "sell" ? vAbsDelta : (-1 * vAbsDelta);
+    }
+
+    return vDelta;
+}
+
 function fnGetCoveredCallSelectedTickerSymbol(){
     const vSelectedUnderlying = String(document.getElementById("ddlCoveredCallSymbol")?.value || "").trim().toUpperCase();
     if(!vSelectedUnderlying){
@@ -979,6 +1002,49 @@ function fnGetCoveredCallLiveFutureSnapshot(pRows = [], objTrade = null){
     };
 }
 
+function fnFindCoveredCallLivePosMatch(objTrade){
+    if(!objTrade || !Array.isArray(gCCDEFetchedLivePosRows) || gCCDEFetchedLivePosRows.length === 0){
+        return null;
+    }
+
+    const vTradeId = Number(objTrade?.TradeID || 0);
+    const vClientOrderId = Number(objTrade?.ClientOrderID || 0);
+    const vProductId = Number(objTrade?.ProductID || 0);
+    const vSymbol = String(objTrade?.Symbol || "").trim().toUpperCase();
+    const vSide = String(objTrade?.TransType || "").toLowerCase();
+    const vOptionType = String(objTrade?.OptionType || "").toUpperCase();
+    const vExpiry = String(objTrade?.Expiry || "").trim();
+    const vQty = Number(objTrade?.LotQty || objTrade?.Qty || 0);
+
+    for(let i = 0; i < gCCDEFetchedLivePosRows.length; i += 1){
+        const objPos = gCCDEFetchedLivePosRows[i];
+        const vPosId = Number(objPos?.PositionID || 0);
+        if(vTradeId > 0 && vPosId === vTradeId){
+            return objPos;
+        }
+        if(vClientOrderId > 0 && vPosId === vClientOrderId){
+            return objPos;
+        }
+    }
+
+    for(let i = 0; i < gCCDEFetchedLivePosRows.length; i += 1){
+        const objPos = gCCDEFetchedLivePosRows[i];
+        const bProductMatch = vProductId > 0 && Number(objPos?.ProductID || 0) === vProductId;
+        const bSymbolMatch = vSymbol && String(objPos?.Symbol || "").trim().toUpperCase() === vSymbol;
+        const bSideMatch = vSide && String(objPos?.TransType || "").toLowerCase() === vSide;
+        const bTypeMatch = vOptionType && String(objPos?.OptionType || "").toUpperCase() === vOptionType;
+        const bExpiryMatch = !vExpiry || !String(objPos?.Expiry || "").trim() || String(objPos?.Expiry || "").trim() === vExpiry;
+        const vPosQty = Number(objPos?.Qty || 0);
+        const bQtyMatch = !(vQty > 0) || !(vPosQty > 0) || Math.abs(vPosQty - vQty) < 0.00000001;
+
+        if((bProductMatch || bSymbolMatch) && bSideMatch && bTypeMatch && bExpiryMatch && bQtyMatch){
+            return objPos;
+        }
+    }
+
+    return null;
+}
+
 function fnShouldAddOneMoreFutureOnSl(){
     const vHealthPct = fnGetCoveredCallHealthPctValue();
     const vOptionsPnl = fnGetCoveredCallOptionsPnlBase();
@@ -1090,8 +1156,12 @@ async function fnRefreshCoveredCallLivePositionCache(pSilent = true){
         return objRet;
     }
 
+    gCCDEFetchedLivePosRows = Array.isArray(objRet.data) ? objRet.data : [];
     fnRefreshCoveredCallHealth();
-    return objRet;
+    return {
+        ...objRet,
+        data: gCCDEFetchedLivePosRows
+    };
 }
 
 function fnCalcCommByPctCCDE(pNotional, pPct){
@@ -1968,14 +2038,14 @@ function fnMapLivePosRowToCcdeTrade(objPos){
     const vEntry = Number(objPos.EntryPrice || 0);
     const vSide = String(objPos.TransType || "").toLowerCase();
     const vManualLotSize = Number(document.getElementById("txtCoveredCallLotSize")?.value || 0);
-
-    const vConfiguredDeltaRaw = Number(document.getElementById("txtNewDeltaCoveredCall1")?.value || NaN);
-    const vHasConfiguredDelta = Number.isFinite(vConfiguredDeltaRaw) && vConfiguredDeltaRaw > 0;
     const vOptionType = String(objPos.OptionType || "F").toUpperCase();
-    let vMappedDelta = Number(objPos.Delta || 0);
+    let vMappedDelta = Number(objPos.Delta);
+    if(!Number.isFinite(vMappedDelta)){
+        vMappedDelta = 0;
+    }
 
-    if(vHasConfiguredDelta && (vOptionType === "C" || vOptionType === "P")){
-        const vAbsDelta = Math.abs(vConfiguredDeltaRaw);
+    if((vOptionType === "C" || vOptionType === "P") && vMappedDelta !== 0){
+        const vAbsDelta = Math.abs(vMappedDelta);
         if(vOptionType === "C"){
             vMappedDelta = vSide === "sell" ? (-1 * vAbsDelta) : vAbsDelta;
         }
@@ -2711,7 +2781,24 @@ function fnSyncCoveredCallOptionMonitor(){
 }
 
 function fnGetCoveredCallLiveDeltaForTrade(objTrade){
-    return fnGetCcdeCurrentGreek(objTrade?.Symbol, gCCDESymbDeltaList, Number((objTrade?.DeltaC ?? objTrade?.Delta) || 0));
+    const vWsDelta = Number(gCCDESymbDeltaList[String(objTrade?.Symbol || "")]);
+    if(Number.isFinite(vWsDelta)){
+        return vWsDelta;
+    }
+
+    const objLivePos = fnFindCoveredCallLivePosMatch(objTrade);
+    if(objLivePos){
+        const vLiveDelta = fnGetCoveredCallSignedDeltaByTradeMeta(
+            objLivePos?.Delta,
+            objTrade?.OptionType || objLivePos?.OptionType,
+            objTrade?.TransType || objLivePos?.TransType
+        );
+        if(Number.isFinite(vLiveDelta)){
+            return vLiveDelta;
+        }
+    }
+
+    return Number((objTrade?.DeltaC ?? objTrade?.Delta) || 0);
 }
 
 async function fnOpenCoveredCallReplacementOption(objTrade, pOptions = {}){
@@ -3110,6 +3197,7 @@ async function fnProcessCoveredCallOptionRolls(){
 
     gCCDEOptionMonitorBusy = true;
     try{
+        await fnRefreshCoveredCallLivePositionCache(true);
         for(let i = 0; i < objOpenOptions.length; i += 1){
             const objTrade = objOpenOptions[i];
             const objDecision = fnGetCoveredCallTriggerDecision(objTrade);
